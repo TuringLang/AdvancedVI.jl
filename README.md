@@ -1,2 +1,2 @@
-# AdvancedVBayes.jl
-A library for variational Bayesian methods in Julia
+# AdvancedVI.jl
+A library for variational Bayesian inference in Julia.
