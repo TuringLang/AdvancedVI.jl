@@ -4,22 +4,6 @@ using Bijectors
 using Bijectors: TransformedDistribution
 using Random: AbstractRNG, GLOBAL_RNG
 
-update(d::TuringDiagMvNormal, μ, σ) = TuringDiagMvNormal(μ, σ)
-update(td::TransformedDistribution, θ...) = transformed(update(td.dist, θ...), td.transform)
-function update(td::TransformedDistribution{<:TuringDiagMvNormal}, θ::AbstractArray)
-    μ, ω = θ[1:length(td)], θ[length(td) + 1:end]
-    return update(td, μ, softplus.(ω))
-end
-
-# TODO: add these to DistributionsAD.jl and remove from here
-Distributions.params(d::TuringDiagMvNormal) = (d.m, d.σ)
-
-import StatsBase: entropy
-function entropy(d::TuringDiagMvNormal)
-    T = eltype(d.σ)
-    return (DistributionsAD.length(d) * (T(log2π) + one(T)) / 2 + sum(log.(d.σ)))
-end
-
 
 """
     ADVI(samples_per_step = 1, max_iters = 1000)

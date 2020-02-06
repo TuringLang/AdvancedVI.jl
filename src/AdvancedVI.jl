@@ -209,6 +209,16 @@ function update(td::TransformedDistribution{<:TuringDiagMvNormal}, θ::AbstractA
     return update(td, μ, softplus.(ω))
 end
 
+# TODO: add these to DistributionsAD.jl and remove from here
+Distributions.params(d::TuringDiagMvNormal) = (d.m, d.σ)
+
+import StatsBase: entropy
+function entropy(d::TuringDiagMvNormal)
+    T = eltype(d.σ)
+    return (DistributionsAD.length(d) * (T(log2π) + one(T)) / 2 + sum(log.(d.σ)))
+end
+
+
 # objectives
 include("objectives.jl")
 
