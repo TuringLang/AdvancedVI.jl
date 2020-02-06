@@ -7,6 +7,8 @@ The purpose of this package will then be to provide a common interface together 
 
 As an example, in Turing.jl we support automatic differentiation variational inference (ADVI) but really the only piece of code tied into the Turing.jl is the conversion of a `Turing.Model` to a `logjoint(z)` function which computes `z ↦ log p(x, z)`, with `x` denoting the observations embedded in the `Turing.Model`. As long as this `logjoint(z)` method is compatible with some AD framework, e.g. `ForwardDiff.jl` or `Zygote.jl`, this is all we need from Turing.jl to be able to perform ADVI!
 
+## TODO Design
+
 ## Examples
 ### Variational Inference
 A very simple generative model is the following
@@ -55,7 +57,7 @@ julia> # Perform VI
        advi = ADVI(10, 10_000)
 ADVI{AdvancedVI.ForwardDiffAD{40}}(10, 10000)
 ```
-And finally we perform VI!
+And finally we can perform VI! The usual inferface is to call `vi` which behind the scenes takes care of the optimization and returns the resulting variational posterior:
 ```julia
 julia> q = vi(logπ, advi, getq, randn(4))
 [ADVI] Optimizing...100% Time: 0:00:01
