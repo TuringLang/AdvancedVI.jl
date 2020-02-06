@@ -74,7 +74,6 @@ function optimize(elbo::ELBO, alg::ADVI, q, model, θ_init; optimizer = Truncate
     return θ
 end
 
-# WITHOUT updating parameters inside ELBO
 function (elbo::ELBO)(
     rng::AbstractRNG,
     alg::ADVI,
