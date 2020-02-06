@@ -27,7 +27,6 @@ julia> d = 2; n = 100;
 julia> observations = randn((d, n)); # 100 observations from 2D 𝒩(0, 1)
 
 julia> # Define generative model
-       #
        #    μ ~ 𝒩(0, 1)
        #    xᵢ ∼ 𝒩(μ, 1) , ∀i = 1, …, n
        prior(μ) = logpdf(MvNormal(ones(d)), μ)
