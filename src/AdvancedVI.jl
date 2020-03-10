@@ -56,18 +56,7 @@ This implicitly also gives a default implementation of `optimize!`.
 
 Variance reduction techniques, e.g. control variates, should be implemented in this function.
 """
-function grad!(
-    vo,
-    alg::VariationalInference,
-    q,
-    model,
-    θ,
-    out,
-    args...
-)
-    error("Turing.Variational.grad!: unmanaged variational inference algorithm: "
-          * "$(typeof(alg))")
-end
+function grad! end
 
 """
     vi(model, alg::VariationalInference)
@@ -84,18 +73,7 @@ following the configuration of the given `VariationalInference` instance.
 - `getq`: function taking parameters `θ` as input and returns a `VariationalPosterior`
 - `θ`: only required if `getq` is used, in which case it is the initial parameters for the variational posterior
 """
-function vi(model, alg::VariationalInference)
-    error("Turing.Variational.vi: variational inference algorithm $(typeof(alg)) "
-          * "is not implemented")
-end
-function vi(model, alg::VariationalInference, q)
-    error("Turing.Variational.vi: variational inference algorithm $(typeof(alg)) "
-          * "is not implemented")
-end
-function vi(model, alg::VariationalInference, q, θ_init)
-    error("Turing.Variational.vi: variational inference algorithm $(typeof(alg)) "
-          * "is not implemented")
-end
+function vi end
 
 # default implementations
 function grad!(

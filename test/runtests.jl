@@ -25,3 +25,4 @@ q = vi(logπ, advi, q0, randn(4))
 
 xs = rand(target, 10)
 @test mean(abs2, logpdf(q, xs) - logpdf(target, xs)) ≤ 0.05
+
