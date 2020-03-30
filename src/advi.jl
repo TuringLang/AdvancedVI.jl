@@ -6,36 +6,29 @@ using Random: AbstractRNG, GLOBAL_RNG
 
 
 """
-    ADVI(samples_per_step = 1, max_iters = 1000)
+$(TYPEDEF)
 
-Automatic Differentiation Variational Inference (ADVI) for a given model.
+Automatic Differentiation Variational Inference (ADVI) with automatic differentiation
+backend `AD`.
+
+# Fields
+
+$(TYPEDFIELDS)
 """
 struct ADVI{AD} <: VariationalInference{AD}
-    samples_per_step::Int # number of samples used to estimate the ELBO in each optimization step
-    max_iters::Int        # maximum number of gradient steps used in optimization
+    "Number of samples used to estimate the ELBO in each optimization step."
+    samples_per_step::Int
+    "Maximum number of gradient steps."
+    max_iters::Int
 end
 
-ADVI(args...) = ADVI{ADBackend()}(args...)
-ADVI() = ADVI(1, 1000)
+function ADVI(samples_per_step::Int=1, max_iters::Int=1000)
+    return ADVI{ADBackend()}(samples_per_step, max_iters)
+end
 
 alg_str(::ADVI) = "ADVI"
 
-
-function vi(model, alg::ADVI, q::TransformedDistribution{<:TuringDiagMvNormal}; optimizer = TruncatedADAGrad())
-    DEBUG && @debug "Optimizing ADVI..."
-    # Initial parameters for mean-field approx
-    μ, σs = params(q)
-    θ = vcat(μ, invsoftplus.(σs))
-
-    # Optimize
-    optimize!(elbo, alg, q, model, θ; optimizer = optimizer)
-
-    # Return updated `Distribution`
-    return update(q, θ)
-end
-
 function vi(model, alg::ADVI, q, θ_init; optimizer = TruncatedADAGrad())
-    DEBUG && @debug "Optimizing ADVI..."
     θ = copy(θ_init)
     optimize!(elbo, alg, q, model, θ; optimizer = optimizer)
 
@@ -51,18 +44,19 @@ end
 
 function optimize(elbo::ELBO, alg::ADVI, q, model, θ_init; optimizer = TruncatedADAGrad())
     θ = copy(θ_init)
-    
+
     # `model` assumed to be callable z ↦ p(x, z)
     optimize!(elbo, alg, q, model, θ; optimizer = optimizer)
 
     return θ
 end
 
+# WITHOUT updating parameters inside ELBO
 function (elbo::ELBO)(
     rng::AbstractRNG,
     alg::ADVI,
     q::VariationalPosterior,
-    logπ,
+    logπ::Function,
     num_samples
 )
     #   𝔼_q(z)[log p(xᵢ, z)]
@@ -91,7 +85,11 @@ function (elbo::ELBO)(
     _, z, logjac, _ = forward(rng, q)
     res = (logπ(z) + logjac) / num_samples
 
-    res += (q isa TransformedDistribution) ? entropy(q.dist) : entropy(q)
+    if q isa TransformedDistribution
+        res += entropy(q.dist)
+    else
+        res += entropy(q)
+    end
     
     for i = 2:num_samples
         _, z, logjac, _ = forward(rng, q)
@@ -100,4 +98,3 @@ function (elbo::ELBO)(
 
     return res
 end
-

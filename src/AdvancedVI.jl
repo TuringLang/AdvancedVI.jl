@@ -3,9 +3,7 @@ module AdvancedVI
 using Random: AbstractRNG
 
 using Distributions, DistributionsAD, Bijectors
-
-# TODO: remove in favour of fix in DistributionsAD when that's done
-Base.size(d::TuringDiagMvNormal) = (length(d), )
+using DocStringExtensions
 
 using ProgressMeter, LinearAlgebra
 
@@ -14,7 +12,7 @@ using Tracker
 
 const PROGRESS = Ref(true)
 function turnprogress(switch::Bool)
-    @info("[Turing]: global PROGRESS is set as $switch")
+    @info("[AdvancedVI]: global PROGRESS is set as $switch")
     PROGRESS[] = switch
 end
 
@@ -24,9 +22,59 @@ include("ad.jl")
 
 using Requires
 function __init__()
-    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" apply!(o, x, Δ) = Flux.Optimise.apply!(o, x, Δ)
-    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" Flux.Optimise.apply!(o::TruncatedADAGrad, x, Δ) = apply!(o, x, Δ)
-    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" Flux.Optimise.apply!(o::DecayedADAGrad, x, Δ) = apply!(o, x, Δ)
+    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
+        apply!(o, x, Δ) = Flux.Optimise.apply!(o, x, Δ)
+        Flux.Optimise.apply!(o::TruncatedADAGrad, x, Δ) = apply!(o, x, Δ)
+        Flux.Optimise.apply!(o::DecayedADAGrad, x, Δ) = apply!(o, x, Δ)
+    end
+    @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
+        include("compat/zygote.jl")
+        export ZygoteAD
+
+        function AdvancedVI.grad!(
+            vo,
+            alg::VariationalInference{<:AdvancedVI.ZygoteAD},
+            q,
+            model,
+            θ::AbstractVector{<:Real},
+            out::DiffResults.MutableDiffResult,
+            args...
+        )
+            f(θ) = if (q isa Distribution)
+                - vo(alg, update(q, θ), model, args...)
+            else
+                - vo(alg, q(θ), model, args...)
+            end
+            y, back = Zygote.pullback(f, θ)
+            dy = first(back(1.0))
+            DiffResults.value!(out, y)
+            DiffResults.gradient!(out, dy)
+            return out
+        end
+    end
+    @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" begin
+        include("compat/reversediff.jl")
+        export ReverseDiffAD
+
+        function AdvancedVI.grad!(
+            vo,
+            alg::VariationalInference{<:AdvancedVI.ReverseDiffAD{false}},
+            q,
+            model,
+            θ::AbstractVector{<:Real},
+            out::DiffResults.MutableDiffResult,
+            args...
+        )
+            f(θ) = if (q isa Distribution)
+                - vo(alg, update(q, θ), model, args...)
+            else
+                - vo(alg, q(θ), model, args...)
+            end
+            tp = AdvancedVI.tape(f, θ)
+            ReverseDiff.gradient!(out, tp, θ)
+            return out
+        end
+    end
 end
 
 export
@@ -35,7 +83,8 @@ export
     ELBO,
     elbo,
     TruncatedADAGrad,
-    DecayedADAGrad
+    DecayedADAGrad,
+    VariationalInference
 
 abstract type VariationalInference{AD} end
 
@@ -75,6 +124,8 @@ following the configuration of the given `VariationalInference` instance.
 """
 function vi end
 
+function update end
+
 # default implementations
 function grad!(
     vo,
@@ -85,7 +136,7 @@ function grad!(
     out::DiffResults.MutableDiffResult,
     args...
 )
-    f(θ_) = if (q isa VariationalPosterior)
+    f(θ_) = if (q isa Distribution)
         - vo(alg, update(q, θ_), model, args...)
     else
         - vo(alg, q(θ_), model, args...)
@@ -108,7 +159,7 @@ function grad!(
     args...
 )
     θ_tracked = Tracker.param(θ)
-    y = if (q isa VariationalPosterior)
+    y = if (q isa Distribution)
         - vo(alg, update(q, θ_tracked), model, args...)
     else
         - vo(alg, q(θ_tracked), model, args...)
@@ -119,10 +170,6 @@ function grad!(
     DiffResults.gradient!(out, Tracker.grad(θ_tracked))
 end
 
-import Tracker: TrackedArray, track, Call
-function TrackedArray(f::Call, x::SA) where {T, N, A, SA<:SubArray{T, N, A}}
-    TrackedArray(f, convert(A, x))
-end
 
 """
     optimize!(vo, alg::VariationalInference{AD}, q::VariationalPosterior, model::Model, θ; optimizer = TruncatedADAGrad())
@@ -178,24 +225,6 @@ function optimize!(
 
     return θ
 end
-
-# utilities
-update(d::TuringDiagMvNormal, μ, σ) = TuringDiagMvNormal(μ, σ)
-update(td::TransformedDistribution, θ...) = transformed(update(td.dist, θ...), td.transform)
-function update(td::TransformedDistribution{<:TuringDiagMvNormal}, θ::AbstractArray)
-    μ, ω = θ[1:length(td)], θ[length(td) + 1:end]
-    return update(td, μ, softplus.(ω))
-end
-
-# TODO: add these to DistributionsAD.jl and remove from here
-Distributions.params(d::TuringDiagMvNormal) = (d.m, d.σ)
-
-import StatsBase: entropy
-function entropy(d::TuringDiagMvNormal)
-    T = eltype(d.σ)
-    return (DistributionsAD.length(d) * (T(log2π) + one(T)) / 2 + sum(log.(d.σ)))
-end
-
 
 # objectives
 include("objectives.jl")
