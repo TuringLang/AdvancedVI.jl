@@ -28,9 +28,9 @@ end
 
 alg_str(::ADVI) = "ADVI"
 
-function vi(model, alg::ADVI, q, θ_init; optimizer = TruncatedADAGrad())
+function vi(model, alg::ADVI, q, θ_init; optimizer = TruncatedADAGrad(), callback = nothing)
     θ = copy(θ_init)
-    optimize!(elbo, alg, q, model, θ; optimizer = optimizer)
+    optimize!(elbo, alg, q, model, θ; optimizer = optimizer, callback = callback)
 
     # If `q` is a mean-field approx we use the specialized `update` function
     if q isa Distribution
@@ -42,11 +42,11 @@ function vi(model, alg::ADVI, q, θ_init; optimizer = TruncatedADAGrad())
 end
 
 
-function optimize(elbo::ELBO, alg::ADVI, q, model, θ_init; optimizer = TruncatedADAGrad())
+function optimize(elbo::ELBO, alg::ADVI, q, model, θ_init; optimizer = TruncatedADAGrad(), callback = nothing)
     θ = copy(θ_init)
 
     # `model` assumed to be callable z ↦ p(x, z)
-    optimize!(elbo, alg, q, model, θ; optimizer = optimizer)
+    optimize!(elbo, alg, q, model, θ; optimizer = optimizer, callback = nothing)
 
     return θ
 end
@@ -90,7 +90,7 @@ function (elbo::ELBO)(
     else
         res += entropy(q)
     end
-    
+
     for i = 2:num_samples
         _, z, logjac, _ = forward(rng, q)
         res += (logπ(z) + logjac) / num_samples
