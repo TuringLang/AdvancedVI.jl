@@ -219,7 +219,7 @@ function optimize!(
         @. θ = θ - Δ
 
         if !isnothing(callback)
-            callback(vo, alg, q, model, θ)
+            callback(i, vo, alg, q, model, θ)
         end
 
         AdvancedVI.DEBUG && @debug "Step $i" Δ DiffResults.value(diff_result)
