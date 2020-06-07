@@ -170,6 +170,76 @@ julia> mean(abs2, logpdf(q, zs) - logpdf(p, zs))
 ```
 That doesn't look too bad!
 
+## Implementing your own training loop
+Sometimes it might be convenient to roll your own training loop rather than using `vi(...)`. Here's some psuedo-code for how one would do that when used together with Turing.jl:
+
+```julia
+using Turing, AdvancedVI, DiffResults
+using Turing: Variational
+
+using ProgressMeter
+
+# Assuming you have an instance of a Turing model (`model`)
+
+# 1. Create log-joint needed for ELBO evaluation
+logπ = Variational.make_logjoint(model)
+
+# 2. Define objective
+variational_objective = Variational.ELBO()
+
+# 3. Optimizer
+optimizer = Variational.DecayedADAGrad()
+
+# 4. VI-algorithm
+alg = ADVI(10, 1000)
+
+# 5. Variational distribution
+function getq(θ)
+    # ...
+end
+
+# 6. [OPTIONAL] Implement convergence criterion
+function hasconverged(args...)
+    # ...
+end
+
+# 7. [OPTIONAL] Implement a callback for tracking stats
+function callback(args...)
+    # ...
+end
+
+# 8. Train
+converged = false
+step = 1
+
+prog = ProgressMeter.Progress(num_steps, 1)
+
+diff_results = DiffResults.GradientResult(θ_init)
+
+while (step ≤ num_steps) && !converged
+    # 1. Compute gradient and objective value; results are stored in `diff_results`
+    AdvancedVI.grad!(variational_objective, alg, getq, model, diff_results)
+
+    # 2. Extract gradient from `diff_result`
+    ∇ = DiffResults.gradient(diff_result)
+
+    # 3. Apply optimizer, e.g. multiplying by step-size
+    Δ = apply!(optimizer, θ, ∇)
+
+    # 4. Update parameters
+    @. θ = θ - Δ
+
+    # 5. Do whatever analysis you want
+    callback(args...)
+
+    # 6. Update
+    converged = hasconverged(...) # or something user-defined
+    step += 1
+
+    ProgressMeter.next!(prog)
+end
+```
+
 
 ## References
 
