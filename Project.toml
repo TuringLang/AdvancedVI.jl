@@ -1,6 +1,6 @@
 name = "AdvancedVI"
 uuid = "b5ca4192-6429-45e5-a2d9-87aec30a685c"
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
