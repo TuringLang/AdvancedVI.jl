@@ -75,7 +75,7 @@ Let's have a look at the resulting ELBO:
 julia> AdvancedVI.elbo(advi, q, logπ, 1000)
 -287.7866366886285
 ```
-Unfortunately, the *final* value of the ELBO is not always a very good diagnostic, though it's an important metric to keep an eye on during training since a *decrease* in the ELBO means we're going in the right direction. Luckily, this is such a simple problem that we can indeed obtain a closed form solution! Because we're lazy (at least I am), we'll let [ConjugatePriors.jl](https://github.com/JuliaStats/ConjugatePriors.jl) do this for us:
+Unfortunately, the *final* value of the ELBO is not always a very good diagnostic, though the ELBO is an important metric to keep an eye on during training since an *increase* in the ELBO means we're going in the right direction. Luckily, this is such a simple problem that we can indeed obtain a closed form solution! Because we're lazy (at least I am), we'll let [ConjugatePriors.jl](https://github.com/JuliaStats/ConjugatePriors.jl) do this for us:
 ```julia
 julia> # True posterior
        using ConjugatePriors
