@@ -25,8 +25,8 @@ jobs:
           - os: macOS-latest
             arch: x86
         include:
-          - os: ubuntu-latest
-            version: '1.0'
+          - version: '1.0'
+            os: ubuntu-latest
             arch: x64
           - os: ubuntu-latest
             version: '1'
