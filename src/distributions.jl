@@ -53,9 +53,8 @@ function Distributions._rand!(
 end
 
 Distributions.var(d::AbstractLowRankMvNormal) = vec(sum(d.Γ .* d.Γ, dims = 2))
-Distributions.entropy(d::AbstractLowRankMvNormal) = 0.5 * (log2π + logdet(cov(d) + 1e-5I))
 rank(d::AbstractLowRankMvNormal) = size(d.Γ, 2)
-
+Base.length(d::AbstractLowRankMvNormal) = d.dim
 ## Traditional Cholesky representation where Γ is Lower Triangular
 
 struct CholMvNormal{T, Tμ<:AbstractVector{T}, TΓ<:LowerTriangular{T}} <: AbstractLowRankMvNormal{T}
@@ -189,11 +188,9 @@ struct LowRankMvNormal{
 end
 
 Distributions.cov(d::LowRankMvNormal) = XXt(d.Γ)
-
+## This is a regularized version of the entropy when the rank(d) < length(d)
+Distributions.entropy(d::LowRankMvNormal) = logdet(XtX(d.Γ) .+ 1.0) + 0.5 * length(d) * log2π
 @functor LowRankMvNormal
-
-Base.length(d::AbstractLowRankMvNormal) = d.dim
-
 struct BlockMFLowRankMvNormal{
     T,
     Ti<:AbstractVector{<:Int},
