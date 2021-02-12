@@ -27,10 +27,13 @@ function __init__()
         Flux.Optimise.apply!(o::DecayedADAGrad, x, Δ) = apply!(o, x, Δ)
     end
     @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
-        include("compat/zygote.jl")
+        include(joinpath("compat", "zygote.jl"))
     end
     @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" begin
-        include("compat/reversediff.jl")
+        include(joinpath("compat", "reversediff.jl"))
+    end
+    @require Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c" begin
+        include(joinpath("compat", "tracker.jl"))
     end
 end
 
@@ -83,49 +86,6 @@ function vi end
 
 function update end
 
-# default implementations
-function grad!(
-    vo,
-    alg::VariationalInference{<:ForwardDiffAD},
-    q,
-    model,
-    θ::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult,
-    args...
-)
-    f(θ_) = if (q isa Distribution)
-        - vo(alg, update(q, θ_), model, args...)
-    else
-        - vo(alg, q(θ_), model, args...)
-    end
-
-    chunk_size = getchunksize(typeof(alg))
-    # Set chunk size and do ForwardMode.
-    chunk = ForwardDiff.Chunk(min(length(θ), chunk_size))
-    config = ForwardDiff.GradientConfig(f, θ, chunk)
-    ForwardDiff.gradient!(out, f, θ, config)
-end
-
-function grad!(
-    vo,
-    alg::VariationalInference{<:TrackerAD},
-    q,
-    model,
-    θ::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult,
-    args...
-)
-    θ_tracked = Tracker.param(θ)
-    y = if (q isa Distribution)
-        - vo(alg, update(q, θ_tracked), model, args...)
-    else
-        - vo(alg, q(θ_tracked), model, args...)
-    end
-    Tracker.back!(y, 1.0)
-
-    DiffResults.value!(out, Tracker.data(y))
-    DiffResults.gradient!(out, Tracker.grad(θ_tracked))
-end
 
 # Custom distributions
 include("distributions.jl")

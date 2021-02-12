@@ -12,10 +12,6 @@ function setadbackend(::Val{:ForwardDiff})
     ADBACKEND[] = :ForwardDiff
 end
 
-function setadbackend(::Val{:Tracker})
-    ADBACKEND[] = :Tracker
-end
-
 const ADSAFE = Ref(false)
 function setadsafe(switch::Bool)
     @info("[AdvancedVI]: global ADSAFE is set as $switch")
@@ -35,11 +31,9 @@ abstract type ADBackend end
 struct ForwardDiffAD{chunk} <: ADBackend end
 getchunksize(::Type{<:ForwardDiffAD{chunk}}) where chunk = chunk
 
-struct TrackerAD <: ADBackend end
 
 ADBackend() = ADBackend(ADBACKEND[])
 ADBackend(T::Symbol) = ADBackend(Val(T))
 
 ADBackend(::Val{:ForwardDiff}) = ForwardDiffAD{CHUNKSIZE[]}
-ADBackend(::Val{:Tracker}) = TrackerAD
 ADBackend(::Val) = error("The requested AD backend is not available. Make sure to load all required packages.")
