@@ -14,3 +14,24 @@ tape(f, x) = GradientTape(f, x)
 function taperesult(f, x)
     return tape(f, x), GradientResult(x)
 end
+
+export ReverseDiffAD
+
+function AdvancedVI.grad!(
+    vo,
+    alg::VariationalInference{<:AdvancedVI.ReverseDiffAD{false}},
+    q,
+    model,
+    θ::AbstractVector{<:Real},
+    out::DiffResults.MutableDiffResult,
+    args...
+)
+    f(θ) = if (q isa Distribution)
+        - vo(alg, update(q, θ), model, args...)
+    else
+        - vo(alg, q(θ), model, args...)
+    end
+    tp = AdvancedVI.tape(f, θ)
+    ReverseDiff.gradient!(out, tp, θ)
+    return out
+end
