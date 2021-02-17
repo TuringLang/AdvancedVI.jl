@@ -41,7 +41,6 @@ export
     vi,
     ADVI,
     ELBO,
-    elbo,
     TruncatedADAGrad,
     DecayedADAGrad,
     VariationalInference
@@ -67,35 +66,16 @@ Variance reduction techniques, e.g. control variates, should be implemented in t
 """
 function grad! end
 
-"""
-    vi(model, alg::VariationalInference)
-    vi(model, alg::VariationalInference, q::VariationalPosterior)
-    vi(model, alg::VariationalInference, getq::Function, θ::AbstractArray)
-
-Constructs the variational posterior from the `model` and performs the optimization
-following the configuration of the given `VariationalInference` instance.
-
-# Arguments
-- `model`: `Turing.Model` or `Function` z ↦ log p(x, z) where `x` denotes the observations
-- `alg`: the VI algorithm used
-- `q`: a `VariationalPosterior` for which it is assumed a specialized implementation of the variational objective used exists.
-- `getq`: function taking parameters `θ` as input and returns a `VariationalPosterior`
-- `θ`: only required if `getq` is used, in which case it is the initial parameters for the variational posterior
-"""
-function vi end
-
-function update end
-
-
 # Custom distributions
 include("distributions.jl")
 
 # objectives
+include("objectives.jl")
 include("gradients.jl")
 include("interface.jl")
 include("optimisers.jl")
 
 # VI algorithms
-include("dsvi.jl")
+include("advi.jl")
 
 end # module

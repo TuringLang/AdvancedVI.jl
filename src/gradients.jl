@@ -31,9 +31,9 @@ function gradlogπ!(
     x,
 )
     f(x) =
-        sum(eachcol(x)) do z
-            return logπ(z)
-        end
+    sum(eachcol(x)) do z
+        return evaluate(logπ, q, z)
+    end
     chunk_size = getchunksize(typeof(alg))
     # Set chunk size and do ForwardMode.
     chunk = ForwardDiff.Chunk(min(length(x), chunk_size))
