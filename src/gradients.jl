@@ -1,38 +1,31 @@
 
 # default implementations
-function grad!(
-    vo,
+function gradobjective!(
+    g::DiffResults.MutableDiffResult,
+    vo::VariationalObjective,
     alg::VariationalInference{<:ForwardDiffAD},
-    q,
-    model,
-    θ::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult,
+    logπ, # Log joint distribution
+    q, # Function to create the variational distribution
+    x::AbstractVector{<:Real}, # Variational parameters
     args...,
 )
-    f(θ_) =
-        if (q isa Distribution)
-            -vo(alg, update(q, θ_), model, args...)
-        else
-            -vo(alg, q(θ_), model, args...)
-        end
-
+    f(x) = evaluate(vo, alg, q, x, logπ)
     chunk_size = getchunksize(typeof(alg))
     # Set chunk size and do ForwardMode.
     chunk = ForwardDiff.Chunk(min(length(θ), chunk_size))
-    config = ForwardDiff.GradientConfig(f, θ, chunk)
-    return ForwardDiff.gradient!(out, f, θ, config)
+    config = ForwardDiff.GradientConfig(f, x, chunk)
+    return ForwardDiff.gradient!(g, f, x, config)
 end
 
 function gradlogπ!(
-    g::GradientResult,
+    g::DiffResults.MutableDiffResult,
     alg::VariationalInference{<:ForwardDiffAD},
-    logπ,
-    q,
-    x,
+    logπ, # Log joint distribution
+    q, # Variational distribution
+    x::AbstractMatrix, # Collection of samples
 )
-    f(x) =
-    sum(eachcol(x)) do z
-        return evaluate(logπ, q, z)
+    f(X) = sum(eachcol(X)) do x
+        return evaluate(logπ, q, x)
     end
     chunk_size = getchunksize(typeof(alg))
     # Set chunk size and do ForwardMode.

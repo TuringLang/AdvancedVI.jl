@@ -3,10 +3,7 @@
 ##############################
 const ADBACKEND = Ref(:ForwardDiff)
 setadbackend(backend_sym::Symbol) = setadbackend(Val(backend_sym))
-function setadbackend(::Val{:ForwardDiff})
-    Base.depwarn("`AdvancedVI.setadbackend(:ForwardDiff)` is deprecated. Please use `AdvancedVI.setadbackend(:forwarddiff)` to use `ForwardDiff`.", :setadbackend)
-    setadbackend(Val(:forwarddiff))
-end
+
 function setadbackend(::Val{:ForwardDiff})
     CHUNKSIZE[] == 0 && setchunksize(40)
     ADBACKEND[] = :ForwardDiff

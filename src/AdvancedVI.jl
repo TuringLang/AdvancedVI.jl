@@ -2,12 +2,17 @@ module AdvancedVI
 
 using Random: AbstractRNG
 
-using Distributions, DistributionsAD, Bijectors
+using Bijectors
+using Distributions
+using DistributionsAD
 using DocStringExtensions
-
-using ProgressMeter, LinearAlgebra
-
 using ForwardDiff
+using Flux: Optimise # Temp before Optimisers.jl is registered
+using Functors
+using ProgressMeter, LinearAlgebra
+using Random
+using Requires
+
 
 const PROGRESS = Ref(true)
 function turnprogress(switch::Bool)
@@ -19,7 +24,6 @@ const DEBUG = Bool(parse(Int, get(ENV, "DEBUG_ADVANCEDVI", "0")))
 
 include("ad.jl")
 
-using Requires
 function __init__()
     @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
         apply!(o, x, Δ) = Flux.Optimise.apply!(o, x, Δ)
@@ -68,6 +72,8 @@ function grad! end
 
 # Custom distributions
 include("distributions.jl")
+
+include("utils.jl")
 
 # objectives
 include("objectives.jl")

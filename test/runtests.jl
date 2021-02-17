@@ -1,7 +1,8 @@
 using Test
 using Distributions, DistributionsAD
 using AdvancedVI
-
+using LinearAlgebra
+using Flux
 include("optimisers.jl")
 
 target = MvNormal(ones(2))
@@ -10,6 +11,8 @@ advi = ADVI(10, 1000)
 
 # Using a function z ↦ q(⋅∣z)
 getq(θ) = TuringDiagMvNormal(θ[1:2], exp.(θ[3:4]))
+q = AdvancedVI.CholMvNormal(zeros(2), LowerTriangular(randn(2,2)))
+q = vi(logπ, advi, q, opt=ADAM(0.01))
 q = vi(logπ, advi, getq, randn(4))
 
 xs = rand(target, 10)

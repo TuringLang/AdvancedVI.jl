@@ -13,7 +13,7 @@ function expec_logπ(alg, q, θ, logπ)
     expec_logπ(alg, q(θ), logπ)
 end
 
-function evaluate(logπ, q::TransformedDistribution, x::AbstractVector)
+function evaluate(logπ, q::Bijectors.TransformedDistribution, x::AbstractVector)
     z, logjac = forward(q.transform, x)
     logπ(z) + logjac
 end

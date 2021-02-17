@@ -391,7 +391,7 @@ function reparametrize!(x, q::CholMvNormal, z)
     x .= q.μ .+ q.Γ * z
 end
 
-function reparametrize!(x, q::MFMvNormal, z)
+function reparametrize!(x, q::DiagMvNormal, z)
     x .= q.μ .+ q.Γ .* z
 end
 
