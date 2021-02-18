@@ -113,7 +113,7 @@ function optimize!(
     # add criterion? A running mean maybe?
     time_elapsed = @elapsed while (i < max_iters) # & converged
         logπ = makelogπ(model, hyperparams)
-        step!(alg, q, logπ, state, opt)
+        step!(vo, alg, q, logπ, state, opt)
 
         AdvancedVI.DEBUG && @debug "Step $i" Δ DiffResults.value(diff_result)
         PROGRESS[] && (ProgressMeter.next!(prog))

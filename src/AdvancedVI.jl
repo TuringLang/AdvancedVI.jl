@@ -43,7 +43,7 @@ end
 
 export
     vi,
-    ADVI,
+    ADVI, BBVI,
     ELBO,
     TruncatedADAGrad,
     DecayedADAGrad,
@@ -83,5 +83,6 @@ include("optimisers.jl")
 
 # VI algorithms
 include("advi.jl")
+include("bbvi.jl")
 
 end # module

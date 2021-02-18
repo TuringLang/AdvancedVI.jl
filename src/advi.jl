@@ -40,7 +40,7 @@ function init(alg::ADVI, q, opt)
     return (x₀=x₀, x=x, diff_result=diff_result)
 end
 
-function step!(vo::ELBO, alg::ADVI, q, logπ, state, opt)
+function step!(::ELBO, alg::ADVI, q, logπ, state, opt)
     randn!(state.x₀) # Get initial samples from x₀
     reparametrize!(state.x, q, state.x₀)
     gradlogπ!(diff_result, alg, logπ, q, state.x)
