@@ -26,9 +26,9 @@ niters(alg::BBVI) = alg.max_iters
 function compats(::BBVI)
     return Union{
                 CholMvNormal,
-                Bijectors.TransformDistribution{<:CholMvNormal},
+                # Bijectors.TransformDistribution{<:CholMvNormal},
                 DiagMvNormal,
-                Bijectors.TransformedDistribution{<:DiagMvNormal},
+                # Bijectors.TransformedDistribution{<:DiagMvNormal},
         }
 end
 
