@@ -1,4 +1,5 @@
 using AdvancedVI
+using Bijectors
 using Test
 using Distributions, DistributionsAD
 using LinearAlgebra

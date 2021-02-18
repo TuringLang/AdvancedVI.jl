@@ -9,10 +9,6 @@ function expec_logπ(alg, q, logπ)
     mean(logπ, eachcol(rand(q, nsamples(alg))))
 end
 
-function expec_logπ(alg, q, θ, logπ)
-    expec_logπ(alg, q(θ), logπ)
-end
-
 function evaluate(logπ, q::Bijectors.TransformedDistribution, x::AbstractVector)
     z, logjac = forward(q.transform, x)
     logπ(z) + logjac
