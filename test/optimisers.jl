@@ -1,8 +1,6 @@
-using Random, Test, LinearAlgebra, ForwardDiff
-using AdvancedVI: TruncatedADAGrad, DecayedADAGrad, apply!
-
-θ = randn(10, 10)
 @testset for opt in [TruncatedADAGrad(), DecayedADAGrad(1e-2)]
+    using AdvancedVI: TruncatedADAGrad, DecayedADAGrad, apply!
+    θ = randn(10, 10)
     θ_fit = randn(10, 10)
     loss(x, θ_) = mean(sum(abs2, θ*x - θ_*x; dims = 1))
     for t = 1:10^4

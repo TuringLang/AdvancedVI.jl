@@ -54,6 +54,10 @@ function update!(alg::ADVI, q, state, opt)
     return nothing
 end
 
+function update_cov!(alg::ADVI, q::TransformedDistribution, Δ, state, opt)
+    update_cov!(alg, q.dist, Δ, state, opt)
+end
+
 function update_cov!(::ADVI, q::CholMvNormal, Δ, state, opt)
     return q.Γ .+= LowerTriangular(
         Optimise.apply!(opt, q.Γ.data, Δ * state.x₀' / size(state.x₀, 2) + inv(Diagonal(q.Γ))),
@@ -63,3 +67,5 @@ end
 function update_cov!(::ADVI, q::DiagMvNormal, Δ, state, opt)
     return q.Γ .+= Optimise.apply!(opt, q.Γ, vec(mean(Δ .* state.x₀', dims = 2)) + inv.(q.Γ))
 end
+
+Distributions.entropy(::ADVI, q) = Distributions.entropy(q)

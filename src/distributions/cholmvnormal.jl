@@ -22,7 +22,7 @@ struct CholMvNormal{T, Tμ<:AbstractVector{T}, TΓ<:LowerTriangular{T}} <: Abstr
 end
 
 Distributions.cov(d::CholMvNormal) = XXt(d.Γ)
-Distributions.entropy(d::CholMvNormal) = logdet(d.Γ) + 0.5 * length(d) * log2π 
+Distributions.entropy(d::CholMvNormal) = logdet(d.Γ) + 0.5 * length(d) * log(2π) 
 
 
 function reparametrize!(x, q::CholMvNormal, z)
