@@ -15,12 +15,11 @@ following the configuration of the given `VariationalInference` instance.
 - `opt_hyperparams` : Optimiser for the Hyperparameters
 """
 function vi(vo::VariationalObjective, model, alg::VariationalInference, q; opt=TruncatedADAGrad(), hyperparams=nothing, opt_hyperparams=nothing)
-    optimize!(vo, alg, q, model; opt=opt, hyperparams=hyperparams, opt_hyperparams=opt_hyperparams)
-    return q
+    check_compatibility(alg, q)
+    return optimize!(vo, alg, q, model; opt=opt, hyperparams=hyperparams, opt_hyperparams=opt_hyperparams)
 end
 
 function vi(model, alg::VariationalInference, q; opt=TruncatedADAGrad(), hyperparams=nothing, opt_hyperparams=nothing)
-    check_compatibility(alg, q)
     return vi(ELBO(), model, alg, q; opt=opt, hyperparams=hyperparams, opt_hyperparams=opt_hyperparams)
 end
 
@@ -43,7 +42,7 @@ function optimize!(
     # TODO: should we always assume `samples_per_step` and `max_iters` for all algos?
     max_iters = niters(alg)
     
-    global state = init(alg, q, opt) # opt is there to be used in the future
+    state = init(alg, q, opt) # opt is there to be used in the future
 
     i = 0
     prog = if PROGRESS[]
@@ -64,7 +63,7 @@ function optimize!(
         i += 1
     end
 
-    return q = finish(alg, q, state)
+    return finish(alg, q, state)
 end
 
 ## Generic solution for most problems

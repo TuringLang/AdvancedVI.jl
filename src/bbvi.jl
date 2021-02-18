@@ -41,7 +41,7 @@ function init(alg::BBVI, q, opt)
 end
 
 function step!(::ELBO, alg::BBVI, q, logπ, state, opt)
-    rand!(q, state.x) # Get initial samples from x₀
+    rand!(to_dist(q, state.θ), state.x) # Get initial samples from x₀
     gradbbvi!(logπ, state, alg, q)
     return update!(alg, q, state, opt)
 end

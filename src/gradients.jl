@@ -40,7 +40,8 @@ function gradbbvi!(
     alg::VariationalInference{<:ForwardDiffAD},
     q, # Variational distribution
 )
-    Δlog = logπ.(eachcol(state.x)) .- logpdf(to_dist(q, state.θ), state.x)
+    q̂ = to_dist(q, state.θ)
+    Δlog = evaluate.(logπ, Ref(q̂), eachcol(state.x)) .- logpdf(q̂, state.x)
     f(θ) = mean(logpdf(to_dist(q, θ), state.x) .* Δlog)
     chunk_size = getchunksize(typeof(alg))
     # Set chunk size and do ForwardMode.
