@@ -1,6 +1,6 @@
+using AdvancedVI
 using Test
 using Distributions, DistributionsAD
-using AdvancedVI
 using LinearAlgebra
 using Flux
 include("optimisers.jl")

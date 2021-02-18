@@ -398,3 +398,32 @@ end
 function reparametrize!(x, q::FCSMvNormal, z, ϵ)
     x .= q.μ .+ q.Γ * z + q.D .* ϵ
 end
+
+## Update methods
+
+function update_mean!(q::Bijectors.TransformedDistribution, Δ, opt)
+    return update_mean!(q.dist, Δ, opt)
+end
+
+function update_mean!(q::AbstractPosteriorMvNormal, Δ, opt)
+    return q.μ .+= Optimise.apply!(opt, q.μ, Δ)
+end
+
+## Flattening and reconstruction methods
+
+function to_vec(q::Bijectors.TransformedDistribution)
+    to_vec(q.dist)
+end
+
+function to_vec(q::CholMvNormal)
+    vcat(q.μ, vec(q.L))
+end
+
+
+function to_dist(q::Bijectors.TransformedDistribution, θ::AbstractVector)
+    transformed(to_dist(q.dist, θ), q.transform)
+end
+
+function to_dist(q::CholMvNormal, θ::AbstractVector)
+    CholMvNormal(θ[1:length(q)], LowerTriangular(reshape(θ[(length(q)+1):end], length(q), length(q))))
+end

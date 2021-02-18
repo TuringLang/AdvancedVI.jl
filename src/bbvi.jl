@@ -32,38 +32,28 @@ end
 
 function init(alg::BBVI, q, opt)
     samples_per_step = nsamples(alg)
-    x = rand(q, samples_per_step) # Preallocating x₀
+    x = rand(q, samples_per_step) # Preallocating x
+    θ = to_vec(q)
+    Δ = zeros(length(θ), samples_per_step)
     diff_result = DiffResults.GradientResult(x)
-    return (x=x, diff_result=diff_result)
+    return (x=x, θ=θ, diff_result=diff_result)
 end
 
-function step!(vo::ELBO, alg::BBVI, q, logπ, state, opt)
+function step!(::ELBO, alg::BBVI, q, logπ, state, opt)
     rand!(q, state.x) # Get initial samples from x₀
-    gradobjective!(diff_result, vo, alg, logπ, q, x)
-    return update!(q, x₀, diff_result, opt)
+    gradlogq!(state, alg, q)
+    Δ = DiffResults.gradient(state.diff_result)
+    state.Δ .= vec(mean(1:nsamples(alg); dims=2) do i
+        @views Δ[:, i] * (logπ(x[:, i]) - logpdf(q, x[:, i]))
+    end) 
+    return update!(alg, q, state, opt)
 end
 
-function update!(q, z, diff_result, opt)
-    Δ = DiffResults.gradient(diff_result)
-    update_mean!(q, vec(mean(Δ, dims = 2)), opt)
-    update_cov!(q, Δ, z, opt)
+function update!(::BBVI, q, state, opt)
+    q.θ .+= Optimise.apply!(opt, state.θ, state.Δ)
     return nothing
 end
 
-function update_mean!(q::Bijectors.TransformedDistribution, Δ, opt)
-    return update_mean!(q.dist, Δ, opt)
-end
-
-function update_mean!(q::AbstractPosteriorMvNormal, Δ, opt)
-    return q.μ .+= Optimise.apply!(opt, q.μ, Δ)
-end
-
-function update_cov!(q::CholMvNormal, Δ, z, opt)
-    return q.Γ .+= LowerTriangular(
-        Optimise.apply!(opt, q.Γ.data, Δ * z' / size(z, 2) + inv(Diagonal(q.Γ))),
-    )
-end
-
-function update_cov!(q::DiagMvNormal, Δ, z, opt)
-    return q.Γ .+= Optimise.apply!(opt, q.Γ, vec(mean(Δ .* z', dims = 2)) + inv.(q.Γ))
+function finish(::BBVI, q, state)
+    return to_dist(q, state.θ)
 end

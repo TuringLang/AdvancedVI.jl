@@ -44,30 +44,22 @@ function step!(::ELBO, alg::ADVI, q, logπ, state, opt)
     randn!(state.x₀) # Get initial samples from x₀
     reparametrize!(state.x, q, state.x₀)
     gradlogπ!(diff_result, alg, logπ, q, state.x)
-    return update!(q, state, opt)
+    return update!(alg, q, state, opt)
 end
 
-function update!(q, state, opt)
+function update!(alg::ADVI, q, state, opt)
     Δ = DiffResults.gradient(state.diff_result)
     update_mean!(q, vec(mean(Δ, dims = 2)), opt)
-    update_cov!(q, Δ, state, opt)
+    update_cov!(alg, q, Δ, state, opt)
     return nothing
 end
 
-function update_mean!(q::Bijectors.TransformedDistribution, Δ, opt)
-    return update_mean!(q.dist, Δ, opt)
-end
-
-function update_mean!(q::AbstractPosteriorMvNormal, Δ, opt)
-    return q.μ .+= Optimise.apply!(opt, q.μ, Δ)
-end
-
-function update_cov!(q::CholMvNormal, Δ, state, opt)
+function update_cov!(::ADVI, q::CholMvNormal, Δ, state, opt)
     return q.Γ .+= LowerTriangular(
         Optimise.apply!(opt, q.Γ.data, Δ * state.x₀' / size(z, 2) + inv(Diagonal(q.Γ))),
     )
 end
 
-function update_cov!(q::DiagMvNormal, Δ, state, opt)
+function update_cov!(::ADVI, q::DiagMvNormal, Δ, state, opt)
     return q.Γ .+= Optimise.apply!(opt, q.Γ, vec(mean(Δ .* state.x₀', dims = 2)) + inv.(q.Γ))
 end

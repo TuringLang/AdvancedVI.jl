@@ -33,3 +33,16 @@ function gradlogπ!(
     config = ForwardDiff.GradientConfig(f, x, chunk)
     return ForwardDiff.gradient!(g, f, x, config)
 end
+
+function gradlogq!(
+    state,
+    alg::VariationalInference{<:ForwardDiffAD},
+    q, # Variational distribution
+)
+    f(θ) = sum(logpdf(to_dist(q, θ), state.x))
+    chunk_size = getchunksize(typeof(alg))
+    # Set chunk size and do ForwardMode.
+    chunk = ForwardDiff.Chunk(min(length(state.θ), chunk_size))
+    config = ForwardDiff.GradientConfig(f, state.θ, chunk)
+    return ForwardDiff.gradient!(state.diff_result, f, state.θ, config)
+end
