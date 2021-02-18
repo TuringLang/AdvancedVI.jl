@@ -5,6 +5,24 @@ using LinearAlgebra
 using Flux
 # include("optimisers.jl")
 
+@testset "AdvancedVI" begin
+    @testset "algorithms" begin
+        include(joinpath("algorithms", "advi.jl"))
+        include(joinpath("algorithms", "bbvi.jl"))
+    end
+    @testset "distributions" begin
+        include(joinpath("distributions", "distributions.jl"))
+        include(joinpath("distributions", "diagmvnormal.jl"))
+        include(joinpath("distributions", "cholmvnormal.jl"))
+    end
+    include("gradients.jl")
+    include("interface.jl")
+    include("optimisers.jl")
+    include("objectives.jl")
+    include("utils.jl")
+end
+
+
 target = MvNormal(ones(2))
 logπ(z) = logpdf(target, z)
 advi = ADVI(10, 1000)

@@ -82,7 +82,7 @@ include("interface.jl")
 include("optimisers.jl")
 
 # VI algorithms
-include("advi.jl")
-include("bbvi.jl")
+include(joinpath("algorithms", "advi.jl"))
+include(joinpath("algorithms", "bbvi.jl"))
 
 end # module
