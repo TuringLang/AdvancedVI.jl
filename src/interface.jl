@@ -43,7 +43,7 @@ function optimize!(
     # TODO: should we always assume `samples_per_step` and `max_iters` for all algos?
     max_iters = niters(alg)
     
-    state = init(alg, q, opt) # opt is there to be used in the future
+    global state = init(alg, q, opt) # opt is there to be used in the future
 
     i = 0
     prog = if PROGRESS[]
@@ -73,12 +73,12 @@ finish(alg, q, state) = q
 ## Verify that the algorithm can work with the corresponding variational distribution
 function check_compatibility(alg, q)
     if !compat(alg, q)
-        throw(ArgumentError("Algorithm $(alg) cannot work with distributions of type $(typeof(q)), compatible distributions are: $(compats(q))"))
+        throw(ArgumentError("Algorithm $(alg) cannot work with distributions of type $(typeof(q)), compatible distributions are: $(compats(alg))"))
     end
 end
 
 function compat(alg::VariationalInference, q)
-    return q <: compats(alg)
+    return q isa compats(alg)
 end
 
 function compats(::Any)

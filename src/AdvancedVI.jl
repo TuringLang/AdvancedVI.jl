@@ -71,7 +71,7 @@ Variance reduction techniques, e.g. control variates, should be implemented in t
 function grad! end
 
 # Custom distributions
-include("distributions.jl")
+include(joinpath("distributions", "distributions.jl"))
 
 include("utils.jl")
 

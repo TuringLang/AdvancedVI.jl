@@ -10,6 +10,10 @@ rank(d::AbstractPosteriorMvNormal) = d.dim
 eval_entropy(::VariationalInference, d::AbstractPosteriorMvNormal) = Distributions.entropy(d)  
 Distributions.entropy(d::AbstractPosteriorMvNormal) = 0.5 * (logdet(cov(d)) + length(d) * log2π)
 
+function Distributions._logpdf(d::AbstractPosteriorMvNormal, x::AbstractArray)
+    Distributions._logpdf(MvNormal(d), x)
+end
+
 function Distributions._rand!(
   rng::AbstractRNG,
   d::AbstractPosteriorMvNormal{T},
@@ -55,32 +59,6 @@ end
 Distributions.var(d::AbstractLowRankMvNormal) = vec(sum(d.Γ .* d.Γ, dims = 2))
 rank(d::AbstractLowRankMvNormal) = size(d.Γ, 2)
 Base.length(d::AbstractLowRankMvNormal) = d.dim
-## Traditional Cholesky representation where Γ is Lower Triangular
-
-struct CholMvNormal{T, Tμ<:AbstractVector{T}, TΓ<:LowerTriangular{T}} <: AbstractLowRankMvNormal{T}
-    dim::Int
-    μ::Tμ
-    Γ::TΓ
-    function CholMvNormal(μ::AbstractVector{T}, Γ::LowerTriangular{T}) where {T}
-        length(μ) == size(Γ, 1) || throw(DimensionMismatch("μ and Γ have incompatible sizes")) 
-        new{T,typeof(μ),typeof(Γ)}(length(μ), μ, Γ)
-    end
-    function CholMvNormal(
-        dim::Int,
-        μ::Tμ,
-        Γ::TΓ
-    ) where {
-        T,
-        Tμ<:AbstractVector{T},
-        TΓ<:LowerTriangular{T},
-    }
-        length(μ) == size(Γ, 1) || throw(DimensionMismatch("μ and Γ have incompatible sizes")) 
-        new{T,Tμ,TΓ}(dim, μ, Γ)
-    end
-end
-
-Distributions.cov(d::CholMvNormal) = XXt(d.Γ)
-Distributions.entropy(d::CholMvNormal) = logdet(d.Γ) + 0.5 * length(d) * log2π 
 
 ## Representation via the precision matrix as in Lin et al. 2020 
 
@@ -248,51 +226,6 @@ Distributions.cov(d::BlockMFLowRankMvNormal) =
 
 @functor BlockMFLowRankMvNormal
 
-struct DiagMvNormal{
-    T,
-    Tμ<:AbstractVector{T},
-    TΓ<:AbstractVector{T},
-} <: AbstractPosteriorMvNormal{T}
-    dim::Int
-    μ::Tμ
-    Γ::TΓ
-    function DiagMvNormal(
-        μ::AbstractVector{T},
-        Γ::AbstractVector{T}
-    ) where {T}
-        return new{T,typeof(μ),typeof(Γ)}(length(μ), μ, Γ)
-    end
-    function DiagMvNormal(
-        dim::Int,
-        μ::Tμ,
-        Γ::TΓ
-    ) where {T, Tμ<:AbstractVector{T}, TΓ<:AbstractVector{T}}
-        return new{T,Tμ,TΓ}(dim, μ, Γ)
-    end
-end
-
-function Distributions._rand!(
-  rng::AbstractRNG,
-  d::DiagMvNormal{T},
-  x::AbstractVector,
-  ) where {T}
-  nDim = length(x)
-  nDim == d.dim || error("Wrong dimensions")
-  x .= d.μ + d.Γ .* randn(rng, T, nDim)
-end
-
-function Distributions._rand!(
-  rng::AbstractRNG,
-  d::DiagMvNormal{T},
-  x::AbstractMatrix,
-) where {T}
-  nDim, nPoints = size(x)
-  nDim == d.dim || error("Wrong dimensions")
-  x .= d.μ .+ d.Γ .* randn(rng, T, nDim, nPoints)
-end
-
-Distributions.cov(d::DiagMvNormal) = Diagonal(abs2.(d.Γ))
-@functor DiagMvNormal
 
 ## Factorized structure from Ong et al. 2017
 """
@@ -387,14 +320,6 @@ function reparametrize!(x, q::DiagPrecisionMvNormal, z)
     x .= q.μ .+ sqrt.(inv.(q.S)) .* z
 end
 
-function reparametrize!(x, q::CholMvNormal, z)
-    x .= q.μ .+ q.Γ * z
-end
-
-function reparametrize!(x, q::DiagMvNormal, z)
-    x .= q.μ .+ q.Γ .* z
-end
-
 function reparametrize!(x, q::FCSMvNormal, z, ϵ)
     x .= q.μ .+ q.Γ * z + q.D .* ϵ
 end
@@ -415,15 +340,11 @@ function to_vec(q::Bijectors.TransformedDistribution)
     to_vec(q.dist)
 end
 
-function to_vec(q::CholMvNormal)
-    vcat(q.μ, vec(q.L))
-end
-
 
 function to_dist(q::Bijectors.TransformedDistribution, θ::AbstractVector)
     transformed(to_dist(q.dist, θ), q.transform)
 end
 
-function to_dist(q::CholMvNormal, θ::AbstractVector)
-    CholMvNormal(θ[1:length(q)], LowerTriangular(reshape(θ[(length(q)+1):end], length(q), length(q))))
-end
+
+include("cholmvnormal.jl")
+include("diagmvnormal.jl")

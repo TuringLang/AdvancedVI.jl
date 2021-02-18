@@ -43,7 +43,7 @@ end
 function step!(::ELBO, alg::ADVI, q, logπ, state, opt)
     randn!(state.x₀) # Get initial samples from x₀
     reparametrize!(state.x, q, state.x₀)
-    gradlogπ!(diff_result, alg, logπ, q, state.x)
+    gradlogπ!(state.diff_result, alg, logπ, q, state.x)
     return update!(alg, q, state, opt)
 end
 
@@ -56,7 +56,7 @@ end
 
 function update_cov!(::ADVI, q::CholMvNormal, Δ, state, opt)
     return q.Γ .+= LowerTriangular(
-        Optimise.apply!(opt, q.Γ.data, Δ * state.x₀' / size(z, 2) + inv(Diagonal(q.Γ))),
+        Optimise.apply!(opt, q.Γ.data, Δ * state.x₀' / size(state.x₀, 2) + inv(Diagonal(q.Γ))),
     )
 end
 

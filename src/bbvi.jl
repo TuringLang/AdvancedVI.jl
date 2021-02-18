@@ -25,6 +25,8 @@ niters(alg::BBVI) = alg.max_iters
 
 function compats(::BBVI)
     return Union{
+                CholMvNormal,
+                Bijectors.TransformDistribution{<:CholMvNormal},
                 DiagMvNormal,
                 Bijectors.TransformedDistribution{<:DiagMvNormal},
         }
@@ -34,23 +36,18 @@ function init(alg::BBVI, q, opt)
     samples_per_step = nsamples(alg)
     x = rand(q, samples_per_step) # Preallocating x
     θ = to_vec(q)
-    Δ = zeros(length(θ), samples_per_step)
-    diff_result = DiffResults.GradientResult(x)
+    diff_result = DiffResults.GradientResult(zeros(length(θ)))
     return (x=x, θ=θ, diff_result=diff_result)
 end
 
 function step!(::ELBO, alg::BBVI, q, logπ, state, opt)
     rand!(q, state.x) # Get initial samples from x₀
-    gradlogq!(state, alg, q)
-    Δ = DiffResults.gradient(state.diff_result)
-    state.Δ .= vec(mean(1:nsamples(alg); dims=2) do i
-        @views Δ[:, i] * (logπ(x[:, i]) - logpdf(q, x[:, i]))
-    end) 
+    gradbbvi!(logπ, state, alg, q)
     return update!(alg, q, state, opt)
 end
 
 function update!(::BBVI, q, state, opt)
-    q.θ .+= Optimise.apply!(opt, state.θ, state.Δ)
+    state.θ .+= Optimise.apply!(opt, state.θ, DiffResults.gradient(state.diff_result))
     return nothing
 end
 
