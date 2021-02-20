@@ -5,7 +5,7 @@
     xs = rand(target, 10)
     logπ(z) = logpdf(target, z)
     qs = [
-        # CholMvNormal(randn(2), LowerTriangular(randn(2,2))),
+        CholMvNormal(randn(2), LowerTriangular(randn(2,2))),
         DiagMvNormal(randn(2), randn(2)),
     ]
     advi = ADVI(10, 1000)
