@@ -1,5 +1,5 @@
 ## Traditional Cholesky representation where Γ is Lower Triangular
-struct CholMvNormal{T, Tμ<:AbstractVector{T}, TΓ<:LowerTriangular{T}} <: AbstractLowRankMvNormal{T}
+struct CholMvNormal{T, Tμ<:AbstractVector{T}, TΓ<:LowerTriangular{T}} <: AbstractPosteriorMvNormal{T}
     dim::Int
     μ::Tμ
     Γ::TΓ
