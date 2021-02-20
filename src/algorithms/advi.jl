@@ -43,7 +43,10 @@ end
 function step!(::ELBO, alg::ADVI, q, logπ, state, opt)
     randn!(state.x₀) # Get initial samples from x₀
     reparametrize!(state.x, q, state.x₀)
-    gradlogπ!(state.diff_result, alg, logπ, q, state.x)
+    f(X) = sum(eachcol(X)) do x
+        return evaluate(logπ, q, x)
+    end
+    grad!(state.diff_result, f, state.x, alg)
     return update!(alg, q, state, opt)
 end
 
@@ -54,7 +57,7 @@ function update!(alg::ADVI, q, state, opt)
     return nothing
 end
 
-function update_cov!(alg::ADVI, q::TransformedDistribution, Δ, state, opt)
+function update_cov!(alg::ADVI, q::Bijectors.TransformedDistribution, Δ, state, opt)
     update_cov!(alg, q.dist, Δ, state, opt)
 end
 
@@ -65,7 +68,7 @@ function update_cov!(::ADVI, q::CholMvNormal, Δ, state, opt)
 end
 
 function update_cov!(::ADVI, q::DiagMvNormal, Δ, state, opt)
-    return q.Γ .+= Optimise.apply!(opt, q.Γ, vec(mean(Δ .* state.x₀', dims = 2)) + inv.(q.Γ))
+    return q.Γ .+= Optimise.apply!(opt, q.Γ, vec(mean(Δ .* state.x₀, dims = 2)) + inv.(q.Γ))
 end
 
 Distributions.entropy(::ADVI, q) = Distributions.entropy(q)

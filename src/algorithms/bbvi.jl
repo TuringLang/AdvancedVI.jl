@@ -41,8 +41,11 @@ function init(alg::BBVI, q, opt)
 end
 
 function step!(::ELBO, alg::BBVI, q, logπ, state, opt)
-    rand!(to_dist(q, state.θ), state.x) # Get initial samples from x₀
-    gradbbvi!(logπ, state, alg, q)
+    q̂ = to_dist(q, state.θ)
+    rand!(q̂, state.x) # Get initial samples from x₀
+    Δlog = evaluate.(logπ, Ref(q̂), eachcol(state.x)) .- logpdf(q̂, state.x)
+    f(θ) = dot(logpdf(to_dist(q, θ), state.x), Δlog) / nsamples(alg)
+    grad!(state.diff_result, f, state.θ, alg)
     return update!(alg, q, state, opt)
 end
 

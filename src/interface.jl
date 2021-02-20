@@ -42,7 +42,7 @@ function optimize!(
     # TODO: should we always assume `samples_per_step` and `max_iters` for all algos?
     max_iters = niters(alg)
     
-    state = init(alg, q, opt) # opt is there to be used in the future
+    global state = init(alg, q, opt) # opt is there to be used in the future
 
     i = 0
     prog = if PROGRESS[]
