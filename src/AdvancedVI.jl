@@ -58,18 +58,6 @@ abstract type VariationalObjective end
 
 const VariationalPosterior = Distribution{Multivariate, Continuous}
 
-
-"""
-    grad!(vo, alg::VariationalInference, q, model::Model, θ, out, args...)
-
-Computes the gradients used in `optimize!`. Default implementation is provided for 
-`VariationalInference{AD}` where `AD` is either `ForwardDiffAD` or `TrackerAD`.
-This implicitly also gives a default implementation of `optimize!`.
-
-Variance reduction techniques, e.g. control variates, should be implemented in this function.
-"""
-function grad! end
-
 # Custom distributions
 include(joinpath("distributions", "distributions.jl"))
 

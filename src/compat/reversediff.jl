@@ -18,20 +18,12 @@ end
 export ReverseDiffAD
 
 function AdvancedVI.grad!(
-    vo,
-    alg::VariationalInference{<:AdvancedVI.ReverseDiffAD{false}},
-    q,
-    model,
-    θ::AbstractVector{<:Real},
     out::DiffResults.MutableDiffResult,
-    args...
+    f,
+    x,
+    ::VariationalInference{<:AdvancedVI.ReverseDiffAD{false}},
 )
-    f(θ) = if (q isa Distribution)
-        - vo(alg, update(q, θ), model, args...)
-    else
-        - vo(alg, q(θ), model, args...)
-    end
-    tp = AdvancedVI.tape(f, θ)
-    ReverseDiff.gradient!(out, tp, θ)
+    tp = AdvancedVI.tape(f, x)
+    ReverseDiff.gradient!(out, tp, x)
     return out
 end
