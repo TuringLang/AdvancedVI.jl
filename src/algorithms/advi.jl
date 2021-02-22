@@ -61,10 +61,18 @@ function update_cov!(alg::ADVI, q::Bijectors.TransformedDistribution, Δ, state,
     update_cov!(alg, q.dist, Δ, state, opt)
 end
 
-function update_cov!(::ADVI, q::CholMvNormal, Δ, state, opt)
-    return q.Γ .+= LowerTriangular(
-        Optimise.apply!(opt, q.Γ.data, Δ * state.x₀' / size(state.x₀, 2) + inv(Diagonal(q.Γ))),
-    )
+if VERSION < v"1.5.0"
+    function update_cov!(::ADVI, q::CholMvNormal, Δ, state, opt)
+        return q.Γ .+= LowerTriangular(
+            Optimise.apply!(opt, q.Γ.data, Δ * state.x₀' / size(state.x₀, 2) + inv(Diagonal(q.Γ.data))),
+        )
+    end
+else
+    function update_cov!(::ADVI, q::CholMvNormal, Δ, state, opt)
+        return q.Γ .+= LowerTriangular(
+            Optimise.apply!(opt, q.Γ.data, Δ * state.x₀' / size(state.x₀, 2) + inv(Diagonal(q.Γ))),
+        )
+    end
 end
 
 function update_cov!(::ADVI, q::DiagMvNormal, Δ, state, opt)

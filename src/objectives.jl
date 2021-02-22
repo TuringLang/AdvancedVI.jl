@@ -1,5 +1,3 @@
-abstract type VariationalObjective end
-
 struct ELBO <: VariationalObjective end
 
 const FreeEnergy = ELBO
