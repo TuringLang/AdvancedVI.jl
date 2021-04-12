@@ -1,6 +1,6 @@
 """
-    vi([vo, [model, alg::VariationalInference]]; opt, hyperparams, opt_hyperparams)
-    vi([vo, [model, alg::VariationalInference, q::VariationalPosterior]]; opt, hyperparams, opt_hyperparams)
+    vi(vo::VariationalObjective, model, alg::VariationalInference, q::VariationalPosterior; opt, hyperparams, opt_hyperparams)
+    vi(model, alg::VariationalInference, q::VariationalPosterior; opt, hyperparams, opt_hyperparams)
 
 Constructs the variational posterior from the `model` and performs the optimization
 following the configuration of the given `VariationalInference` instance.
@@ -39,10 +39,9 @@ function optimize!(
     hyperparams = nothing,
     opt_hyperparams = nothing,
 )
-    # TODO: should we always assume `samples_per_step` and `max_iters` for all algos?
-    max_iters = niters(alg)
+    max_iters = maxiters(alg)
     
-    global state = init(alg, q, opt) # opt is there to be used in the future
+    state = init(alg, q, opt) # opt is there to be used in the future
 
     i = 0
     prog = if PROGRESS[]
@@ -63,11 +62,11 @@ function optimize!(
         i += 1
     end
 
-    return finish(alg, q, state)
+    return final_dist(alg, q, state)
 end
 
-## Generic solution for most problems
-finish(alg, q, state) = q
+## Return the final distribution after training
+final_dist(alg, q, state) = q
 
 ## Verify that the algorithm can work with the corresponding variational distribution
 function check_compatibility(alg, q)
@@ -80,6 +79,8 @@ function compat(alg::VariationalInference, q)
     return q isa compats(alg)
 end
 
-function compats(::Any)
-    return ()
+## Return the compatible distribution types for a given algorithm
+## By default all pass
+function compats(::VariationalInference)
+    return Any
 end 

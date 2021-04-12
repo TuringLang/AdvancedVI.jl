@@ -17,7 +17,7 @@ function grad!(
 )
     x_tracked = Tracker.param(x)
     y = f(x_tracked)
-    Tracker.back!(y, 1.0)
+    Tracker.back!(y, one(eltype(y)))
 
     DiffResults.value!(out, Tracker.data(y))
     DiffResults.gradient!(out, Tracker.grad(x_tracked))

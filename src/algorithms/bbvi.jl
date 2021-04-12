@@ -51,9 +51,9 @@ end
 
 function update!(::BBVI, q, state, opt)
     state.θ .+= Optimise.apply!(opt, state.θ, DiffResults.gradient(state.diff_result))
-    return nothing
+    return state
 end
 
-function finish(::BBVI, q, state)
+function final_dist(::BBVI, q, state)
     return to_dist(q, state.θ)
 end
