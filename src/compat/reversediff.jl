@@ -5,9 +5,9 @@ struct ReverseDiffAD{cache} <: ADBackend end
 const RDCache = Ref(false)
 setcache(b::Bool) = RDCache[] = b
 getcache() = RDCache[]
-ADBackend(::Val{:ReverseDiff}) = ReverseDiffAD{getcache()}
-function setadbackend(::Val{:ReverseDiff})
-    ADBACKEND[] = :ReverseDiff
+ADBackend(::Val{:reversediff}) = ReverseDiffAD{getcache()}
+function setadbackend(::Val{:reversediff})
+    ADBACKEND[] = :reversediff
 end
 
 tape(f, x) = GradientTape(f, x)
