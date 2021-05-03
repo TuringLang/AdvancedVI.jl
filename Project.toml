@@ -18,7 +18,7 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 
 [compat]
 Bijectors = "0.4.0, 0.5, 0.6, 0.7, 0.8, 0.9"
-Distributions = "0.21, 0.22, 0.23, 0.24"
+Distributions = "0.21, 0.22, 0.23, 0.24, 0.25"
 DistributionsAD = "0.2, 0.3, 0.4, 0.5, 0.6"
 DocStringExtensions = "0.8"
 ForwardDiff = "0.10.3"
