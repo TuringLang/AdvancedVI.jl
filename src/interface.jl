@@ -106,7 +106,7 @@ function optimize!(
 
     # add criterion? A running mean maybe?
     time_elapsed = @elapsed while (i < max_iters) # & converged
-        logπ = makelogπ(rng, model, hyperparams)
+        logπ = makelogπ(model, hyperparams)
         step!(rng, vo, alg, q, logπ, state, opt)
 
         # For debugging this would need to be updated somehow
