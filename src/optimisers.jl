@@ -20,26 +20,24 @@ mutable struct TruncatedADAGrad
     eta::Float64
     tau::Float64
     n::Int
-    
+
     iters::IdDict
     acc::IdDict
 end
 
-function TruncatedADAGrad(η = 0.1, τ = 1.0, n = 100)
-    TruncatedADAGrad(η, τ, n, IdDict(), IdDict())
+function TruncatedADAGrad(η=0.1, τ=1.0, n=100)
+    return TruncatedADAGrad(η, τ, n, IdDict(), IdDict())
 end
 
 function apply!(o::TruncatedADAGrad, x, Δ)
     T = eltype(Tracker.data(Δ))
-    
+
     η = o.eta
     τ = o.tau
 
     g² = get!(
-        o.acc,
-        x,
-        [zeros(T, size(x)) for j = 1:o.n]
-    )::Array{typeof(Tracker.data(Δ)), 1}
+        o.acc, x, [zeros(T, size(x)) for j in 1:(o.n)]
+    )::Array{typeof(Tracker.data(Δ)),1}
     i = get!(o.iters, x, 1)::Int
 
     # Example: suppose i = 12 and o.n = 10
@@ -50,10 +48,10 @@ function apply!(o::TruncatedADAGrad, x, Δ)
 
     # TODO: make more efficient and stable
     s = sum(g²)
-    
+
     # increment
     o.iters[x] += 1
-    
+
     # TODO: increment (but "truncate")
     # o.iters[x] = i > o.n ? o.n + mod(i, o.n) : i + 1
 
@@ -82,11 +80,11 @@ mutable struct DecayedADAGrad
     acc::IdDict
 end
 
-DecayedADAGrad(η = 0.1, pre = 1.0, post = 0.9) = DecayedADAGrad(η, pre, post, IdDict())
+DecayedADAGrad(η=0.1, pre=1.0, post=0.9) = DecayedADAGrad(η, pre, post, IdDict())
 
 function apply!(o::DecayedADAGrad, x, Δ)
     T = eltype(Tracker.data(Δ))
-    
+
     η = o.eta
     acc = get!(o.acc, x, fill(T(ϵ), size(x)))::typeof(Tracker.data(x))
     @. acc = o.post * acc + o.pre * Δ^2

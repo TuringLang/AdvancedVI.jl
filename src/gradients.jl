@@ -4,7 +4,7 @@ function grad!(
     diff_result::DiffResults.MutableDiffResult,
     f,
     x::AbstractArray,
-    alg::VariationalInference{<:ForwardDiffAD}
+    alg::VariationalInference{<:ForwardDiffAD},
 )
     chunk_size = getchunksize(typeof(alg))
     # Set chunk size and do ForwardMode.

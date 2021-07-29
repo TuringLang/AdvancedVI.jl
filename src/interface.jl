@@ -14,17 +14,67 @@ following the configuration of the given `VariationalInference` instance.
 - `hyperparams` : Hyperparameters, if different than nothing, `model(hyperparams)` will be called to obatin the logjoint
 - `opt_hyperparams` : Optimiser for the Hyperparameters
 """
-function vi(vo::VariationalObjective, model, alg::VariationalInference, q; opt=TruncatedADAGrad(), hyperparams=nothing, opt_hyperparams=nothing)
-    vi(GLOBAL_RNG, vo, model, alg, q; opt=opt, hyperparams=hyperparams, opt_hyperparams=opt_hyperparams)
+function vi(
+    vo::VariationalObjective,
+    model,
+    alg::VariationalInference,
+    q;
+    opt=TruncatedADAGrad(),
+    hyperparams=nothing,
+    opt_hyperparams=nothing,
+)
+    return vi(
+        GLOBAL_RNG,
+        vo,
+        model,
+        alg,
+        q;
+        opt=opt,
+        hyperparams=hyperparams,
+        opt_hyperparams=opt_hyperparams,
+    )
 end
 
-function vi(model, alg::VariationalInference, q; opt=TruncatedADAGrad(), hyperparams=nothing, opt_hyperparams=nothing)
-    return vi(ELBO(), model, alg, q; opt=opt, hyperparams=hyperparams, opt_hyperparams=opt_hyperparams)
+function vi(
+    model,
+    alg::VariationalInference,
+    q;
+    opt=TruncatedADAGrad(),
+    hyperparams=nothing,
+    opt_hyperparams=nothing,
+)
+    return vi(
+        ELBO(),
+        model,
+        alg,
+        q;
+        opt=opt,
+        hyperparams=hyperparams,
+        opt_hyperparams=opt_hyperparams,
+    )
 end
 
-function vi(rng::AbstractRNG, vo::VariationalObjective, model, alg::VariationalInference, q; opt=TruncatedADAGrad(), hyperparams=nothing, opt_hyperparams=nothing)
+function vi(
+    rng::AbstractRNG,
+    vo::VariationalObjective,
+    model,
+    alg::VariationalInference,
+    q;
+    opt=TruncatedADAGrad(),
+    hyperparams=nothing,
+    opt_hyperparams=nothing,
+)
     check_compatibility(alg, q)
-    return optimize!(rng, vo, alg, q, model; opt=opt, hyperparams=hyperparams, opt_hyperparams=opt_hyperparams)
+    return optimize!(
+        rng,
+        vo,
+        alg,
+        q,
+        model;
+        opt=opt,
+        hyperparams=hyperparams,
+        opt_hyperparams=opt_hyperparams,
+    )
 end
 
 """
@@ -39,12 +89,12 @@ function optimize!(
     alg::VariationalInference,
     q,
     model;
-    opt = TruncatedADAGrad(),
-    hyperparams = nothing,
-    opt_hyperparams = nothing,
+    opt=TruncatedADAGrad(),
+    hyperparams=nothing,
+    opt_hyperparams=nothing,
 )
     max_iters = maxiters(alg)
-    
+
     state = init(rng, alg, q, opt) # opt is there to be used in the future
 
     i = 0
@@ -75,7 +125,11 @@ final_dist(alg, q, state) = q
 ## Verify that the algorithm can work with the corresponding variational distribution
 function check_compatibility(alg, q)
     if !compat(alg, q)
-        throw(ArgumentError("Algorithm $(alg) cannot work with distributions of type $(typeof(q)), compatible distributions are: $(compats(alg))"))
+        throw(
+            ArgumentError(
+                "Algorithm $(alg) cannot work with distributions of type $(typeof(q)), compatible distributions are: $(compats(alg))",
+            ),
+        )
     end
 end
 
@@ -87,4 +141,4 @@ end
 ## By default all pass
 function compats(::VariationalInference)
     return Any
-end 
+end

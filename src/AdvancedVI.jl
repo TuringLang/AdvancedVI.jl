@@ -14,11 +14,10 @@ using ProgressMeter, LinearAlgebra
 using Random
 using Requires
 
-
 const PROGRESS = Ref(true)
 function turnprogress(switch::Bool)
     @info("[AdvancedVI]: global PROGRESS is set as $switch")
-    PROGRESS[] = switch
+    return PROGRESS[] = switch
 end
 
 const DEBUG = Bool(parse(Int, get(ENV, "DEBUG_ADVANCEDVI", "0")))
@@ -26,7 +25,7 @@ const DEBUG = Bool(parse(Int, get(ENV, "DEBUG_ADVANCEDVI", "0")))
 include("ad.jl")
 
 function __init__()
-    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
+    @require Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c" begin
         apply!(o, x, Δ) = Flux.Optimise.apply!(o, x, Δ)
         Flux.Optimise.apply!(o::TruncatedADAGrad, x, Δ) = apply!(o, x, Δ)
         Flux.Optimise.apply!(o::DecayedADAGrad, x, Δ) = apply!(o, x, Δ)
@@ -42,22 +41,16 @@ function __init__()
     end
 end
 
-export
-    vi,
-    ADVI, BBVI,
-    ELBO,
-    TruncatedADAGrad,
-    DecayedADAGrad,
-    VariationalInference
+export vi, ADVI, BBVI, ELBO, TruncatedADAGrad, DecayedADAGrad, VariationalInference
 
 abstract type VariationalInference{AD} end
 
-getchunksize(::Type{<:VariationalInference{AD}}) where AD = getchunksize(AD)
-getADtype(::VariationalInference{AD}) where AD = AD
+getchunksize(::Type{<:VariationalInference{AD}}) where {AD} = getchunksize(AD)
+getADtype(::VariationalInference{AD}) where {AD} = AD
 
 abstract type VariationalObjective end
 
-const VariationalPosterior = Distribution{Multivariate, Continuous}
+const VariationalPosterior = Distribution{Multivariate,Continuous}
 
 # Custom distributions
 include(joinpath("distributions", "distributions.jl"))

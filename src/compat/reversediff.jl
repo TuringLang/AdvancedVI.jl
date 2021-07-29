@@ -7,7 +7,7 @@ setcache(b::Bool) = RDCache[] = b
 getcache() = RDCache[]
 ADBackend(::Val{:reversediff}) = ReverseDiffAD{getcache()}
 function setadbackend(::Val{:reversediff})
-    ADBACKEND[] = :reversediff
+    return ADBACKEND[] = :reversediff
 end
 
 tape(f, x) = GradientTape(f, x)

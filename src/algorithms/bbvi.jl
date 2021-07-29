@@ -15,7 +15,7 @@ struct BBVI{AD} <: VariationalInference{AD}
     max_iters::Int
 end
 
-function BBVI(samples_per_step::Int = 1, max_iters::Int = 1000)
+function BBVI(samples_per_step::Int=1, max_iters::Int=1000)
     return BBVI{ADBackend()}(samples_per_step, max_iters)
 end
 
@@ -25,11 +25,11 @@ niters(alg::BBVI) = alg.max_iters
 
 function compats(::BBVI)
     return Union{
-                CholMvNormal,
-                # Bijectors.TransformDistribution{<:CholMvNormal},
-                DiagMvNormal,
-                # Bijectors.TransformedDistribution{<:DiagMvNormal},
-        }
+        CholMvNormal,
+        # Bijectors.TransformDistribution{<:CholMvNormal},
+        DiagMvNormal,
+        # Bijectors.TransformedDistribution{<:DiagMvNormal},
+    }
 end
 
 function init(rng::AbstractRNG, alg::BBVI, q, opt)

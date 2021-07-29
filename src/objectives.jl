@@ -8,5 +8,5 @@ function evaluate(::ELBO, alg, q, logπ)
 end
 
 function elbo(alg, q, logπ)
-    evaluate(ELBO(), alg, q, logπ)
+    return evaluate(ELBO(), alg, q, logπ)
 end

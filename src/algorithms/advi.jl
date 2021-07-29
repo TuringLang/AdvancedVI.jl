@@ -19,7 +19,7 @@ struct ADVI{AD} <: VariationalInference{AD}
     max_iters::Int
 end
 
-function ADVI(samples_per_step::Int = 1, max_iters::Int = 1000)
+function ADVI(samples_per_step::Int=1, max_iters::Int=1000)
     return ADVI{ADBackend()}(samples_per_step, max_iters)
 end
 
@@ -29,11 +29,11 @@ maxiters(alg::ADVI) = alg.max_iters
 
 function compats(::ADVI)
     return Union{
-                CholMvNormal,
-                Bijectors.TransformedDistribution{<:CholMvNormal},
-                DiagMvNormal,
-                Bijectors.TransformedDistribution{<:DiagMvNormal},
-            }
+        CholMvNormal,
+        Bijectors.TransformedDistribution{<:CholMvNormal},
+        DiagMvNormal,
+        Bijectors.TransformedDistribution{<:DiagMvNormal},
+    }
 end
 
 function init(rng, alg::ADVI, q, opt) # This is where the optimizer can be correctly initiated as well
@@ -47,40 +47,45 @@ end
 function step!(rng, ::ELBO, alg::ADVI, q, logπ, state, opt)
     randn!(rng, state.x₀) # Get initial samples from x₀
     reparametrize!(state.x, q, state.x₀)
-    f(X) = sum(eachcol(X)) do x
-        return evaluate(logπ, q, x)
-    end
+    f(X) =
+        sum(eachcol(X)) do x
+            return evaluate(logπ, q, x)
+        end
     grad!(state.diff_result, f, state.x, alg)
     return update!(alg, q, state, opt)
 end
 
 function update!(alg::ADVI, q, state, opt)
     Δ = DiffResults.gradient(state.diff_result)
-    update_mean!(q, vec(mean(Δ, dims = 2)), opt)
+    update_mean!(q, vec(mean(Δ; dims=2)), opt)
     update_cov!(alg, q, Δ, state, opt)
     return q
 end
 
 function update_cov!(alg::ADVI, q::Bijectors.TransformedDistribution, Δ, state, opt)
-    update_cov!(alg, q.dist, Δ, state, opt)
+    return update_cov!(alg, q.dist, Δ, state, opt)
 end
 
 if VERSION < v"1.5.0"
     function update_cov!(::ADVI, q::CholMvNormal, Δ, state, opt)
         return q.Γ .+= LowerTriangular(
-            Optimise.apply!(opt, q.Γ.data, Δ * state.x₀' / size(state.x₀, 2) + inv(Diagonal(q.Γ.data))),
+            Optimise.apply!(
+                opt, q.Γ.data, Δ * state.x₀' / size(state.x₀, 2) + inv(Diagonal(q.Γ.data))
+            ),
         )
     end
 else
     function update_cov!(::ADVI, q::CholMvNormal, Δ, state, opt)
         return q.Γ .+= LowerTriangular(
-            Optimise.apply!(opt, q.Γ.data, Δ * state.x₀' / size(state.x₀, 2) + inv(Diagonal(q.Γ))),
+            Optimise.apply!(
+                opt, q.Γ.data, Δ * state.x₀' / size(state.x₀, 2) + inv(Diagonal(q.Γ))
+            ),
         )
     end
 end
 
 function update_cov!(::ADVI, q::DiagMvNormal, Δ, state, opt)
-    return q.Γ .+= Optimise.apply!(opt, q.Γ, vec(mean(Δ .* state.x₀, dims = 2)) + inv.(q.Γ))
+    return q.Γ .+= Optimise.apply!(opt, q.Γ, vec(mean(Δ .* state.x₀; dims=2)) + inv.(q.Γ))
 end
 
 Distributions.entropy(::ADVI, q) = Distributions.entropy(q)

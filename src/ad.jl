@@ -6,13 +6,13 @@ setadbackend(backend_sym::Symbol) = setadbackend(Val(backend_sym))
 
 function setadbackend(::Val{:forwarddiff})
     CHUNKSIZE[] == 0 && setchunksize(40)
-    ADBACKEND[] = :forwarddiff
+    return ADBACKEND[] = :forwarddiff
 end
 
 const ADSAFE = Ref(false)
 function setadsafe(switch::Bool)
     @info("[AdvancedVI]: global ADSAFE is set as $switch")
-    ADSAFE[] = switch
+    return ADSAFE[] = switch
 end
 
 const CHUNKSIZE = Ref(40) # default chunksize used by AD
@@ -26,11 +26,14 @@ end
 
 abstract type ADBackend end
 struct ForwardDiffAD{chunk} <: ADBackend end
-getchunksize(::Type{<:ForwardDiffAD{chunk}}) where chunk = chunk
-
+getchunksize(::Type{<:ForwardDiffAD{chunk}}) where {chunk} = chunk
 
 ADBackend() = ADBackend(ADBACKEND[])
 ADBackend(T::Symbol) = ADBackend(Val(T))
 
 ADBackend(::Val{:ForwardDiff}) = ForwardDiffAD{CHUNKSIZE[]}
-ADBackend(::Val) = error("The requested AD backend is not available. Make sure to load all required packages.")
+function ADBackend(::Val)
+    return error(
+        "The requested AD backend is not available. Make sure to load all required packages.",
+    )
+end
