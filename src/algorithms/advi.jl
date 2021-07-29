@@ -36,16 +36,16 @@ function compats(::ADVI)
             }
 end
 
-function init(alg::ADVI, q, opt) # This is where the optimizer can be correctly initiated as well
+function init(rng, alg::ADVI, q, opt) # This is where the optimizer can be correctly initiated as well
     n_samples_per_step = samples_per_step(alg)
-    x₀ = rand(q, samples_per_step) # Preallocating x₀
+    x₀ = rand(rng, q, samples_per_step) # Preallocating x₀
     x = similar(x₀) # Preallocating x
     diff_result = DiffResults.GradientResult(x)
     return (x₀=x₀, x=x, diff_result=diff_result)
 end
 
-function step!(::ELBO, alg::ADVI, q, logπ, state, opt)
-    randn!(state.x₀) # Get initial samples from x₀
+function step!(rng, ::ELBO, alg::ADVI, q, logπ, state, opt)
+    randn!(rng, state.x₀) # Get initial samples from x₀
     reparametrize!(state.x, q, state.x₀)
     f(X) = sum(eachcol(X)) do x
         return evaluate(logπ, q, x)

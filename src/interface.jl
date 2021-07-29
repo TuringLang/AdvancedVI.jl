@@ -15,14 +15,17 @@ following the configuration of the given `VariationalInference` instance.
 - `opt_hyperparams` : Optimiser for the Hyperparameters
 """
 function vi(vo::VariationalObjective, model, alg::VariationalInference, q; opt=TruncatedADAGrad(), hyperparams=nothing, opt_hyperparams=nothing)
-    check_compatibility(alg, q)
-    return optimize!(vo, alg, q, model; opt=opt, hyperparams=hyperparams, opt_hyperparams=opt_hyperparams)
+    vi(GLOBAL_RNG, vo, model, alg, q; opt=opt, hyperparams=hyperparams, opt_hyperparams=opt_hyperparams)
 end
 
 function vi(model, alg::VariationalInference, q; opt=TruncatedADAGrad(), hyperparams=nothing, opt_hyperparams=nothing)
     return vi(ELBO(), model, alg, q; opt=opt, hyperparams=hyperparams, opt_hyperparams=opt_hyperparams)
 end
 
+function vi(rng::AbstractRNG, vo::VariationalObjective, model, alg::VariationalInference, q; opt=TruncatedADAGrad(), hyperparams=nothing, opt_hyperparams=nothing)
+    check_compatibility(alg, q)
+    return optimize!(rng, vo, alg, q, model; opt=opt, hyperparams=hyperparams, opt_hyperparams=opt_hyperparams)
+end
 
 """
     optimize!([vo::VariationalObjective, [alg::VariationalInference{AD}, q::VariationalPosterior, model::Model], θ], ]; optimizer = TruncatedADAGrad())
@@ -31,6 +34,7 @@ Iteratively updates parameters by calling `grad!` and using the given `optimizer
 the steps.
 """
 function optimize!(
+    rng::AbstractRNG,
     vo::VariationalObjective,
     alg::VariationalInference,
     q,
@@ -41,7 +45,7 @@ function optimize!(
 )
     max_iters = maxiters(alg)
     
-    state = init(alg, q, opt) # opt is there to be used in the future
+    state = init(rng, alg, q, opt) # opt is there to be used in the future
 
     i = 0
     prog = if PROGRESS[]
@@ -52,8 +56,8 @@ function optimize!(
 
     # add criterion? A running mean maybe?
     time_elapsed = @elapsed while (i < max_iters) # & converged
-        logπ = makelogπ(model, hyperparams)
-        step!(vo, alg, q, logπ, state, opt)
+        logπ = makelogπ(rng, model, hyperparams)
+        step!(rng, vo, alg, q, logπ, state, opt)
 
         # For debugging this would need to be updated somehow
         # AdvancedVI.DEBUG && @debug "Step $i" Δ DiffResults.value(diff_result)

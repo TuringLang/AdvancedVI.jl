@@ -1,6 +1,7 @@
 module AdvancedVI
 
-using Random: AbstractRNG
+using Bijectors: GLOBAL_RNG
+using Random: AbstractRNG, GLOBAL_RNG
 
 using Bijectors
 using Distributions

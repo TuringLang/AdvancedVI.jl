@@ -32,17 +32,17 @@ function compats(::BBVI)
         }
 end
 
-function init(alg::BBVI, q, opt)
+function init(rng::AbstractRNG, alg::BBVI, q, opt)
     samples_per_step = nsamples(alg)
-    x = rand(q, samples_per_step) # Preallocating x
+    x = rand(rng, q, samples_per_step) # Preallocating x
     θ = to_vec(q)
     diff_result = DiffResults.GradientResult(zeros(length(θ)))
     return (x=x, θ=θ, diff_result=diff_result)
 end
 
-function step!(::ELBO, alg::BBVI, q, logπ, state, opt)
+function step!(rng::AbstractRNG, ::ELBO, alg::BBVI, q, logπ, state, opt)
     q̂ = to_dist(q, state.θ)
-    rand!(q̂, state.x) # Get initial samples from x₀
+    rand!(rng, q̂, state.x) # Get initial samples from x₀
     Δlog = evaluate.(logπ, Ref(q̂), eachcol(state.x)) .- logpdf(q̂, state.x)
     f(θ) = dot(logpdf(to_dist(q, θ), state.x), Δlog) / nsamples(alg)
     grad!(state.diff_result, f, state.θ, alg)
