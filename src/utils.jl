@@ -1,6 +1,3 @@
-XXt(A) = A * A'
-XtX(A) = A' * A
-
 makelogπ(logπ, ::Nothing) = logπ
 makelogπ(model, hp) = model(hp)
 

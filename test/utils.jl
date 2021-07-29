@@ -1,8 +1,5 @@
 @testset "utils" begin
-    using AdvancedVI: XXt, XtX, makelogπ, evaluate
-    A = randn(3, 3)
-    @test XXt(A) == A * A'
-    @test XtX(A) == A' * A
+    using AdvancedVI: makelogπ, evaluate
 
     f(x) = 2x
     make_f(h) = f

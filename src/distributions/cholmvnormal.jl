@@ -21,7 +21,7 @@ struct CholMvNormal{T, Tμ<:AbstractVector{T}, TΓ<:LowerTriangular{T}} <: Abstr
     end
 end
 
-Distributions.cov(d::CholMvNormal) = XXt(d.Γ)
+Distributions.cov(d::CholMvNormal) = d.Γ * d.Γ'
 Distributions.entropy(d::CholMvNormal) = logdet(d.Γ) + 0.5 * length(d) * log(2π) 
 
 
