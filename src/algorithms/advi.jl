@@ -1,12 +1,16 @@
 """
 $(TYPEDEF)
 
-Automatic Differentiation Variational Inference (ADVI) with automatic differentiation
+"Automatic Differentiation Variational Inference" (ADVI) with automatic differentiation
 backend `AD`.
+
+As described in [^ADVI16]
 
 # Fields
 
 $(TYPEDFIELDS)
+
+[^ADVI16]:  Alp Kucukelbir, Dustin Tran, Rajesh Ranganath, Andrew Gelman, David M. Blei (2016), [Automatic Differentiation Variational Inference](https://arxiv.org/abs/1603.00788)
 """
 struct ADVI{AD} <: VariationalInference{AD}
     "Number of samples used to estimate the ELBO in each optimization step."
@@ -20,8 +24,8 @@ function ADVI(samples_per_step::Int = 1, max_iters::Int = 1000)
 end
 
 alg_str(::ADVI) = "ADVI"
-nsamples(alg::ADVI) = alg.samples_per_step
-niters(alg::ADVI) = alg.max_iters
+samples_per_step(alg::ADVI) = alg.samples_per_step
+maxiters(alg::ADVI) = alg.max_iters
 
 function compats(::ADVI)
     return Union{
@@ -32,8 +36,8 @@ function compats(::ADVI)
             }
 end
 
-function init(alg::ADVI, q, opt)
-    samples_per_step = nsamples(alg)
+function init(alg::ADVI, q, opt) # This is where the optimizer can be correctly initiated as well
+    n_samples_per_step = samples_per_step(alg)
     x₀ = rand(q, samples_per_step) # Preallocating x₀
     x = similar(x₀) # Preallocating x
     diff_result = DiffResults.GradientResult(x)
@@ -54,7 +58,7 @@ function update!(alg::ADVI, q, state, opt)
     Δ = DiffResults.gradient(state.diff_result)
     update_mean!(q, vec(mean(Δ, dims = 2)), opt)
     update_cov!(alg, q, Δ, state, opt)
-    return nothing
+    return q
 end
 
 function update_cov!(alg::ADVI, q::Bijectors.TransformedDistribution, Δ, state, opt)

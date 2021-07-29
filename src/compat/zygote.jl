@@ -14,7 +14,7 @@ function AdvancedVI.grad!(
     ::VariationalInference{<:AdvancedVI.ZygoteAD},
 )
     y, back = Zygote.pullback(f, x)
-    dy = first(back(1.0))
+    dy = first(back(one(eltype(y))))
     DiffResults.value!(out, y)
     DiffResults.gradient!(out, dy)
     return out

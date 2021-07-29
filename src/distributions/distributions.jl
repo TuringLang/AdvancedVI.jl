@@ -1,13 +1,14 @@
 ## Series of variation of the MvNormal distribution, different methods need different parametrizations ##
 abstract type AbstractPosteriorMvNormal{T} <:
-              Distributions.ContinuousMultivariateDistribution end
+              Distributions.AbstractMvNormal end
 
-Base.eltype(::AbstractPosteriorMvNormal{T}) where {T} = T
 Base.length(d::AbstractPosteriorMvNormal) = d.dim
 Distributions.dim(d::AbstractPosteriorMvNormal) = d.dim
 Distributions.mean(d::AbstractPosteriorMvNormal) = d.μ
 rank(d::AbstractPosteriorMvNormal) = d.dim
-eval_entropy(::VariationalInference, d::AbstractPosteriorMvNormal) = Distributions.entropy(d)  
+eval_entropy(::VariationalInference, d::AbstractPosteriorMvNormal) = Distributions.entropy(d)
+Distributions.logdetcov(d::AbstractPosteriorMvNormal) = logdet(cov(d))
+Distributions.invcov(d::AbstractPosteriorMvNormal) = inv(cov(d))
 Distributions.entropy(d::AbstractPosteriorMvNormal) = 0.5 * (logdet(cov(d)) + length(d) * log2π)
 
 function Distributions._logpdf(d::AbstractPosteriorMvNormal, x::AbstractArray)

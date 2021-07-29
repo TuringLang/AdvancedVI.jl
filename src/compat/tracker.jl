@@ -1,13 +1,13 @@
 using .Tracker
 
-ADBackend(::Val{:Tracker}) = ReverseDiffAD{getcache()}
-function setadbackend(::Val{:Tracker})
-    ADBACKEND[] = :Tracker
+ADBackend(::Val{:tracker}) = ReverseDiffAD{getcache()}
+function setadbackend(::Val{:tracker})
+    ADBACKEND[] = :tracker
 end
 
 struct TrackerAD <: ADBackend end
 
-ADBackend(::Val{:Tracker}) = TrackerAD
+ADBackend(::Val{:tracker}) = TrackerAD
 
 function grad!(
     out::DiffResults.MutableDiffResult,
@@ -17,7 +17,7 @@ function grad!(
 )
     x_tracked = Tracker.param(x)
     y = f(x_tracked)
-    Tracker.back!(y, 1.0)
+    Tracker.back!(y, one(eltype(y)))
 
     DiffResults.value!(out, Tracker.data(y))
     DiffResults.gradient!(out, Tracker.grad(x_tracked))

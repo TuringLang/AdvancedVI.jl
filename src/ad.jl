@@ -1,12 +1,12 @@
 ##############################
 # Global variables/constants #
 ##############################
-const ADBACKEND = Ref(:ForwardDiff)
+const ADBACKEND = Ref(:forwarddiff)
 setadbackend(backend_sym::Symbol) = setadbackend(Val(backend_sym))
 
-function setadbackend(::Val{:ForwardDiff})
+function setadbackend(::Val{:forwarddiff})
     CHUNKSIZE[] == 0 && setchunksize(40)
-    ADBACKEND[] = :ForwardDiff
+    ADBACKEND[] = :forwarddiff
 end
 
 const ADSAFE = Ref(false)
