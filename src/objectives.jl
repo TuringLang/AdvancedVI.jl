@@ -10,3 +10,5 @@ end
 function elbo(alg, q, logπ)
     return evaluate(ELBO(), alg, q, logπ)
 end
+
+elbo(alg, q, θ, logπ) = elbo(alg, q(θ), logπ)

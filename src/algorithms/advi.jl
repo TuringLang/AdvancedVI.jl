@@ -27,33 +27,27 @@ alg_str(::ADVI) = "ADVI"
 samples_per_step(alg::ADVI) = alg.samples_per_step
 maxiters(alg::ADVI) = alg.max_iters
 
-function compats(::ADVI)
-    return Union{
-        CholMvNormal,
-        Bijectors.TransformedDistribution{<:CholMvNormal},
-        DiagMvNormal,
-        Bijectors.TransformedDistribution{<:DiagMvNormal},
-    }
-end
-
-function init(rng, alg::ADVI, q, opt) # This is where the optimizer can be correctly initiated as well
+function init(rng, alg::ADVI, q, θ, opt) # This is where the optimizer can be correctly initiated as well
     n_samples_per_step = samples_per_step(alg)
-    x₀ = rand(rng, q, samples_per_step) # Preallocating x₀
+    x₀ = rand(rng, q(θ), n_samples_per_step) # Preallocating x₀
     x = similar(x₀) # Preallocating x
     diff_result = DiffResults.GradientResult(x)
-    return (x₀=x₀, x=x, diff_result=diff_result)
+    opt_state = Optimisers.init(opt, θ)
+    return (x₀=x₀, x=x, diff_result=diff_result, opt_state=opt_state)
 end
 
-function step!(rng, ::ELBO, alg::ADVI, q, logπ, state, opt)
+function step!(rng, ::ELBO, alg::ADVI, q, θ, logπ, state, opt)
     randn!(rng, state.x₀) # Get initial samples from x₀
-    reparametrize!(state.x, q, state.x₀)
+    reparametrize!(state.x, q(θ), state.x₀)
     f(X) =
         sum(eachcol(X)) do x
             return evaluate(logπ, q, x)
         end
     grad!(state.diff_result, f, state.x, alg)
+    θ, state.opt_state = Optimisers.update!(opt, opt_state, θ, Δ)
     return update!(alg, q, state, opt)
 end
+
 
 function update!(alg::ADVI, q, state, opt)
     Δ = DiffResults.gradient(state.diff_result)
