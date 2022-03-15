@@ -142,10 +142,13 @@ function grad!(
         - vo(alg, q(θ_), model, args...)
     end
 
-    chunk_size = getchunksize(typeof(alg))
     # Set chunk size and do ForwardMode.
-    chunk = ForwardDiff.Chunk(min(length(θ), chunk_size))
-    config = ForwardDiff.GradientConfig(f, θ, chunk)
+    chunk_size = getchunksize(typeof(alg))
+    config = if chunk_size == 0
+        ForwardDiff.GradientConfig(f, θ)
+    else
+        ForwardDiff.GradientConfig(f, θ, ForwardDiff.Chunk(length(θ), chunk_size))
+    end
     ForwardDiff.gradient!(out, f, θ, config)
 end
 

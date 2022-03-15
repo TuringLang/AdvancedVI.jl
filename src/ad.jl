@@ -8,7 +8,6 @@ function setadbackend(::Val{:forward_diff})
     setadbackend(Val(:forwarddiff))
 end
 function setadbackend(::Val{:forwarddiff})
-    CHUNKSIZE[] == 0 && setchunksize(40)
     ADBACKEND[] = :forwarddiff
 end
 
@@ -26,13 +25,11 @@ function setadsafe(switch::Bool)
     ADSAFE[] = switch
 end
 
-const CHUNKSIZE = Ref(40) # default chunksize used by AD
+const CHUNKSIZE = Ref(0) # 0 means letting ForwardDiff set it automatically
 
 function setchunksize(chunk_size::Int)
-    if ~(CHUNKSIZE[] == chunk_size)
-        @info("[AdvancedVI]: AD chunk size is set as $chunk_size")
-        CHUNKSIZE[] = chunk_size
-    end
+    @info("[AdvancedVI]: AD chunk size is set as $chunk_size")
+    CHUNKSIZE[] = chunk_size
 end
 
 abstract type ADBackend end
