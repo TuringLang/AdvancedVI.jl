@@ -19,6 +19,7 @@ end
 const DEBUG = Bool(parse(Int, get(ENV, "DEBUG_ADVANCEDVI", "0")))
 
 include("ad.jl")
+include("utils.jl")
 
 using Requires
 function __init__()

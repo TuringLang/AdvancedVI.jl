@@ -81,8 +81,8 @@ function (elbo::ELBO)(
     #      = 𝔼[log p(x, f⁻¹(z̃)) + logabsdet(J(f⁻¹(z̃)))] + ℍ(q̃(z̃))
     #      = 𝔼[log p(x, z) - logabsdetjac(J(f(z)))] + ℍ(q̃(z̃))
 
-    # But our `forward(q)` is using f⁻¹: ℝ → supp(p(z | x)) going forward → `+ logjac`
-    _, z, logjac, _ = forward(rng, q)
+    # But our `rand_and_logjac(q)` is using f⁻¹: ℝ → supp(p(z | x)) going forward → `+ logjac`
+    z, logjac = rand_and_logjac(rng, q)
     res = (logπ(z) + logjac) / num_samples
 
     if q isa TransformedDistribution
@@ -92,7 +92,7 @@ function (elbo::ELBO)(
     end
     
     for i = 2:num_samples
-        _, z, logjac, _ = forward(rng, q)
+        z, logjac = rand_and_logjac(rng, q)
         res += (logπ(z) + logjac) / num_samples
     end
 
