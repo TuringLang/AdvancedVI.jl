@@ -27,7 +27,7 @@ Requires = "0.5, 1.0"
 StatsBase = "0.32, 0.33"
 StatsFuns = "0.8, 0.9, 1"
 Tracker = "0.2.3"
-julia = "1"
+julia = "1.6"
 
 [extras]
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
