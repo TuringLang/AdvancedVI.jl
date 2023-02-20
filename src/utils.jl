@@ -1,6 +1,5 @@
 using Distributions
 
-using Random: Random
 using Bijectors: Bijectors
 
 

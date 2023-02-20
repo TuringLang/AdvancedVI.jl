@@ -2,7 +2,6 @@ using StatsFuns
 using DistributionsAD
 using Bijectors
 using Bijectors: TransformedDistribution
-using Random: AbstractRNG, GLOBAL_RNG
 
 
 """
@@ -53,7 +52,7 @@ end
 
 # WITHOUT updating parameters inside ELBO
 function (elbo::ELBO)(
-    rng::AbstractRNG,
+    rng::Random.AbstractRNG,
     alg::ADVI,
     q::VariationalPosterior,
     logπ::Function,
