@@ -1,6 +1,6 @@
 module AdvancedVI
 
-using Random: AbstractRNG
+using Random: Random
 
 using Distributions, DistributionsAD, Bijectors
 using DocStringExtensions
