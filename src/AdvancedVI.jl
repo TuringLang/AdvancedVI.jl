@@ -76,6 +76,34 @@ function __init__()
             return out
         end
     end
+    @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
+        include("compat/enzyme.jl")
+        export EnzymeAD
+
+        function AdvancedVI.grad!(
+            vo,
+            alg::VariationalInference{<:AdvancedVI.EnzymeAD},
+            q,
+            model,
+            θ::AbstractVector{<:Real},
+            out::DiffResults.MutableDiffResult,
+            args...
+        )
+            f(θ) = if (q isa Distribution)
+                - vo(alg, update(q, θ), model, args...)
+            else
+                - vo(alg, q(θ), model, args...)
+            end
+            # Use `Enzyme.ReverseWithPrimal` once it is released:
+            # https://github.com/EnzymeAD/Enzyme.jl/pull/598
+            y = f(θ)
+            DiffResults.value!(out, y)
+            dy = DiffResults.gradient(out)
+            fill!(dy, 0)
+            Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, dy))
+            return out
+        end
+    end
 end
 
 export
