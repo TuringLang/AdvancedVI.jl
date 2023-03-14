@@ -33,20 +33,12 @@ function __init__()
         export ZygoteAD
 
         function AdvancedVI.grad!(
-            vo,
-            alg::VariationalInference{<:AdvancedVI.ZygoteAD},
-            q,
-            model,
-            θ::AbstractVector{<:Real},
+            f::Function,
+            ::Type{<:ZygoteAD},
+            λ::AbstractVector{<:Real},
             out::DiffResults.MutableDiffResult,
-            args...
         )
-            f(θ) = if (q isa Distribution)
-                - vo(alg, update(q, θ), model, args...)
-            else
-                - vo(alg, q(θ), model, args...)
-            end
-            y, back = Zygote.pullback(f, θ)
+            y, back = Zygote.pullback(f, λ)
             dy = first(back(1.0))
             DiffResults.value!(out, y)
             DiffResults.gradient!(out, dy)
@@ -58,21 +50,13 @@ function __init__()
         export ReverseDiffAD
 
         function AdvancedVI.grad!(
-            vo,
-            alg::VariationalInference{<:AdvancedVI.ReverseDiffAD{false}},
-            q,
-            model,
-            θ::AbstractVector{<:Real},
+            f::Function,
+            ::Type{<:ReverseDiffAD},
+            λ::AbstractVector{<:Real},
             out::DiffResults.MutableDiffResult,
-            args...
         )
-            f(θ) = if (q isa Distribution)
-                - vo(alg, update(q, θ), model, args...)
-            else
-                - vo(alg, q(θ), model, args...)
-            end
-            tp = AdvancedVI.tape(f, θ)
-            ReverseDiff.gradient!(out, tp, θ)
+            tp = AdvancedVI.tape(f, λ)
+            ReverseDiff.gradient!(out, tp, λ)
             return out
         end
     end
@@ -81,26 +65,18 @@ function __init__()
         export EnzymeAD
 
         function AdvancedVI.grad!(
-            vo,
-            alg::VariationalInference{<:AdvancedVI.EnzymeAD},
-            q,
-            model,
-            θ::AbstractVector{<:Real},
+            f::Function,
+            ::Type{<:EnzymeAD},
+            λ::AbstractVector{<:Real},
             out::DiffResults.MutableDiffResult,
-            args...
         )
-            f(θ) = if (q isa Distribution)
-                - vo(alg, update(q, θ), model, args...)
-            else
-                - vo(alg, q(θ), model, args...)
-            end
             # Use `Enzyme.ReverseWithPrimal` once it is released:
             # https://github.com/EnzymeAD/Enzyme.jl/pull/598
-            y = f(θ)
+            y = f(λ)
             DiffResults.value!(out, y)
             dy = DiffResults.gradient(out)
             fill!(dy, 0)
-            Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, dy))
+            Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(λ, dy))
             return out
         end
     end
@@ -109,16 +85,8 @@ end
 export
     vi,
     ADVI,
-    ELBO,
-    elbo,
     TruncatedADAGrad,
-    DecayedADAGrad,
-    VariationalInference
-
-abstract type VariationalInference{AD} end
-
-getchunksize(::Type{<:VariationalInference{AD}}) where AD = getchunksize(AD)
-getADtype(::VariationalInference{AD}) where AD = AD
+    DecayedADAGrad
 
 abstract type VariationalObjective end
 
@@ -126,13 +94,11 @@ const VariationalPosterior = Distribution{Multivariate, Continuous}
 
 
 """
-    grad!(vo, alg::VariationalInference, q, model::Model, θ, out, args...)
+    grad!(f, λ, out)
 
-Computes the gradients used in `optimize!`. Default implementation is provided for 
+Computes the gradients of the objective f. Default implementation is provided for 
 `VariationalInference{AD}` where `AD` is either `ForwardDiffAD` or `TrackerAD`.
 This implicitly also gives a default implementation of `optimize!`.
-
-Variance reduction techniques, e.g. control variates, should be implemented in this function.
 """
 function grad! end
 
@@ -157,51 +123,36 @@ function update end
 
 # default implementations
 function grad!(
-    vo,
-    alg::VariationalInference{<:ForwardDiffAD},
-    q,
-    model,
-    θ::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult,
-    args...
+    f::Function,
+    adtype::Type{<:ForwardDiffAD},
+    λ::AbstractVector{<:Real},
+    out::DiffResults.MutableDiffResult
 )
-    f(θ_) = if (q isa Distribution)
-        - vo(alg, update(q, θ_), model, args...)
-    else
-        - vo(alg, q(θ_), model, args...)
-    end
-
     # Set chunk size and do ForwardMode.
-    chunk_size = getchunksize(typeof(alg))
+    chunk_size = getchunksize(adtype)
     config = if chunk_size == 0
-        ForwardDiff.GradientConfig(f, θ)
+        ForwardDiff.GradientConfig(f, λ)
     else
-        ForwardDiff.GradientConfig(f, θ, ForwardDiff.Chunk(length(θ), chunk_size))
+        ForwardDiff.GradientConfig(f, λ, ForwardDiff.Chunk(length(λ), chunk_size))
     end
-    ForwardDiff.gradient!(out, f, θ, config)
+    ForwardDiff.gradient!(out, f, λ, config)
 end
 
 function grad!(
-    vo,
-    alg::VariationalInference{<:TrackerAD},
-    q,
-    model,
-    θ::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult,
-    args...
+    f::Function,
+    ::Type{<:TrackerAD},
+    λ::AbstractVector{<:Real},
+    out::DiffResults.MutableDiffResult
 )
-    θ_tracked = Tracker.param(θ)
-    y = if (q isa Distribution)
-        - vo(alg, update(q, θ_tracked), model, args...)
-    else
-        - vo(alg, q(θ_tracked), model, args...)
-    end
+    λ_tracked = Tracker.param(λ)
+    y = f(λ_tracked)
     Tracker.back!(y, 1.0)
 
     DiffResults.value!(out, Tracker.data(y))
-    DiffResults.gradient!(out, Tracker.grad(θ_tracked))
+    DiffResults.gradient!(out, Tracker.grad(λ_tracked))
 end
 
+abstract type AbstractGradientEstimator end
 
 """
     optimize!(vo, alg::VariationalInference{AD}, q::VariationalPosterior, model::Model, θ; optimizer = TruncatedADAGrad())
@@ -210,61 +161,53 @@ Iteratively updates parameters by calling `grad!` and using the given `optimizer
 the steps.
 """
 function optimize!(
-    vo,
-    alg::VariationalInference,
-    q,
-    model,
-    θ::AbstractVector{<:Real};
-    optimizer = TruncatedADAGrad()
+    grad_estimator::AbstractGradientEstimator,
+    rebuild::Function,
+    ℓπ::Function,
+    n_max_iter::Int,
+    λ::AbstractVector{<:Real};
+    optimizer = TruncatedADAGrad(),
+    rng       = Random.GLOBAL_RNG
 )
-    # TODO: should we always assume `samples_per_step` and `max_iters` for all algos?
-    alg_name = alg_str(alg)
-    samples_per_step = alg.samples_per_step
-    max_iters = alg.max_iters
-    
-    num_params = length(θ)
+    obj_name = objective(grad_estimator)
 
     # TODO: really need a better way to warn the user about potentially
     # not using the correct accumulator
-    if (optimizer isa TruncatedADAGrad) && (θ ∉ keys(optimizer.acc))
+    if (optimizer isa TruncatedADAGrad) && (λ ∉ keys(optimizer.acc))
         # this message should only occurr once in the optimization process
-        @info "[$alg_name] Should only be seen once: optimizer created for θ" objectid(θ)
+        @info "[$obj_name] Should only be seen once: optimizer created for θ" objectid(λ)
     end
 
-    diff_result = DiffResults.GradientResult(θ)
+    grad_buf = DiffResults.GradientResult(λ)
 
     i = 0
-    prog = if PROGRESS[]
-        ProgressMeter.Progress(max_iters, 1, "[$alg_name] Optimizing...", 0)
-    else
-        0
-    end
+    prog = ProgressMeter.Progress(
+        n_max_iter; desc="[$obj_name] Optimizing...", barlen=0, enabled=PROGRESS[])
 
     # add criterion? A running mean maybe?
-    time_elapsed = @elapsed while (i < max_iters) # & converged
-        grad!(vo, alg, q, model, θ, diff_result, samples_per_step)
+    time_elapsed = @elapsed begin
+        for i = 1:n_max_iter
+            stats = estimate_gradient!(rng, grad_estimator, λ, rebuild, ℓπ, grad_buf)
+            
+            # apply update rule
+            Δλ = DiffResults.gradient(grad_buf)
+            Δλ = apply!(optimizer, λ, Δλ)
+            @. λ = λ - Δλ
 
-        # apply update rule
-        Δ = DiffResults.gradient(diff_result)
-        Δ = apply!(optimizer, θ, Δ)
-        @. θ = θ - Δ
+            stat′ = (Δλ=norm(Δλ),)
+            stats = merge(stats, stat′)
         
-        AdvancedVI.DEBUG && @debug "Step $i" Δ DiffResults.value(diff_result)
-        PROGRESS[] && (ProgressMeter.next!(prog))
-
-        i += 1
+            AdvancedVI.DEBUG && @debug "Step $i" stats...
+            pm_next!(prog, stats)
+        end
     end
-
-    return θ
+    return λ
 end
 
 # objectives
-include("objectives.jl")
+include("estimators/advi.jl")
 
 # optimisers
 include("optimisers.jl")
-
-# VI algorithms
-include("advi.jl")
 
 end # module
