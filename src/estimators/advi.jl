@@ -24,7 +24,7 @@ function estimate_gradient!(
         end
         𝔼logdetjac = ∑logdetjac/n_samples
 
-        elbo = 𝔼logπ + 𝔼logdetjac 
+        elbo = 𝔼logπ + 𝔼logdetjac + entropy(q)
         -elbo
     end
     nelbo = DiffResults.value(out)
