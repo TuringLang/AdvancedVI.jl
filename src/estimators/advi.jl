@@ -17,13 +17,17 @@ function estimate_gradient!(
 
     grad!(ADBackend(), λ, out) do λ′
         q = rebuild(λ′)
-        zs, ∑logjac = rand_and_logjac(rng, q, estimator.n_samples)
-        
-        elbo = mapreduce(+, eachcol(zs)) do zᵢ
-            (logπ(zᵢ) + ∑logjac)
-        end / n_samples
+        zs, ∑logdetjac = rand_and_logjac(rng, q, estimator.n_samples)
+
+        𝔼logπ = mapreduce(+, eachcol(zs)) do zᵢ
+            logπ(zᵢ) / n_samples
+        end
+        𝔼logdetjac = ∑logdetjac/n_samples
+
+        elbo = 𝔼logπ + 𝔼logdetjac 
         -elbo
     end
     nelbo = DiffResults.value(out)
     (elbo=-nelbo,)
 end
+
