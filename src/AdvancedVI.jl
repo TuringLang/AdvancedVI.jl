@@ -7,6 +7,8 @@ using DocStringExtensions
 
 using ProgressMeter, LinearAlgebra
 
+using LogDensityProblems
+
 using ForwardDiff
 using Tracker
 
@@ -163,7 +165,6 @@ the steps.
 function optimize!(
     grad_estimator::AbstractGradientEstimator,
     rebuild::Function,
-    ℓπ::Function,
     n_max_iter::Int,
     λ::AbstractVector{<:Real};
     optimizer = TruncatedADAGrad(),
@@ -187,7 +188,7 @@ function optimize!(
     # add criterion? A running mean maybe?
     time_elapsed = @elapsed begin
         for i = 1:n_max_iter
-            stats = estimate_gradient!(rng, grad_estimator, λ, rebuild, ℓπ, grad_buf)
+            stats = estimate_gradient!(rng, grad_estimator, λ, rebuild, grad_buf)
             
             # apply update rule
             Δλ = DiffResults.gradient(grad_buf)
