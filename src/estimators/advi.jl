@@ -1,5 +1,5 @@
 
-struct ADVI{Tlogπ, B <: Union{Function, Bijectors.Inverse{<:Bijectors.Bijector}}} <: AbstractGradientEstimator
+struct ADVI{Tlogπ, B} <: AbstractGradientEstimator
     # Automatic differentiation variational inference
     # 
     # Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017).
@@ -33,7 +33,7 @@ function estimate_gradient!(
     rng::Random.AbstractRNG,
     estimator::ADVI,
     λ::Vector{<:Real},
-    rebuild::Function,
+    rebuild,
     out::DiffResults.MutableDiffResult)
 
     n_samples = estimator.n_samples
