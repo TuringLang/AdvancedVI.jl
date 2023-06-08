@@ -10,7 +10,7 @@ struct ADVI{Tlogπ, B} <: AbstractGradientEstimator
     b⁻¹::B
     n_samples::Int
 
-    function ADVI(prob, b⁻¹::B, n_samples; kwargs...) where {B <: Bijectors.Inverse{<:Bijectors.Bijector}}
+    function ADVI(prob, b⁻¹, n_samples; kwargs...)
         # Could check whether the support of b⁻¹ and ℓπ match
         cap = LogDensityProblems.capabilities(prob)
         if cap === nothing
@@ -42,14 +42,12 @@ function estimate_gradient!(
         q_η = rebuild(λ′)
         ηs  = rand(rng, q_η, estimator.n_samples)
 
-        zs, ∑logdetjac = Bijectors.with_logabsdet_jacobian(estimator.b⁻¹, ηs)
-
-        𝔼logπ = mapreduce(+, eachcol(zs)) do zᵢ
-            estimator.ℓπ(zᵢ) / n_samples
+        𝔼ℓ = mapreduce(+, eachcol(ηs)) do ηᵢ
+            zᵢ, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(estimator.b⁻¹, ηᵢ)
+            (estimator.ℓπ(zᵢ) + logdetjacᵢ) / n_samples
         end
-        𝔼logdetjac = ∑logdetjac/n_samples
 
-        elbo = 𝔼logπ + 𝔼logdetjac + entropy(q_η)
+        elbo = 𝔼ℓ + entropy(q_η)
         -elbo
     end
     nelbo = DiffResults.value(out)
