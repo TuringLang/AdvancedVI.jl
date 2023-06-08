@@ -95,8 +95,6 @@ export
     TruncatedADAGrad,
     DecayedADAGrad
 
-abstract type VariationalObjective end
-
 const VariationalPosterior = Distribution{Multivariate, Continuous}
 
 
@@ -160,9 +158,11 @@ function grad!(
 end
 
 # estimators
-abstract type AbstractGradientEstimator end
+abstract type AbstractVariationalObjective end
 
-include("estimators/advi.jl")
+include("objectives/elbo/elbo.jl")
+include("objectives/elbo/advi_energy.jl")
+include("objectives/elbo/entropy.jl")
 
 # optimisers
 include("optimisers.jl")
