@@ -12,8 +12,6 @@ using LogDensityProblems
 using ForwardDiff
 using Tracker
 
-using Bijectors: Bijectors
-
 using Distributions
 using DistributionsAD
 
