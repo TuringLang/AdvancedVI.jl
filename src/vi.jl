@@ -15,7 +15,8 @@ function optimize(
     n_max_iter::Int,
     λ::AbstractVector{<:Real};
     optimizer = TruncatedADAGrad(),
-    rng       = Random.GLOBAL_RNG
+    rng       = Random.default_rng(),
+    adbackend = AD.ForwardDiffBackend()
 )
     # TODO: really need a better way to warn the user about potentially
     # not using the correct accumulator
@@ -24,8 +25,6 @@ function optimize(
         @info "[$(string(objective))] Should only be seen once: optimizer created for θ" objectid(λ)
     end
 
-    grad_buf = DiffResults.GradientResult(λ)
-
     i = 0
     prog = ProgressMeter.Progress(
         n_max_iter; desc="[$(string(objective))] Optimizing...", barlen=0, enabled=PROGRESS[])
@@ -33,10 +32,9 @@ function optimize(
     # add criterion? A running mean maybe?
     time_elapsed = @elapsed begin
         for i = 1:n_max_iter
-            stats = estimate_gradient!(rng, objective, λ, rebuild, grad_buf)
+            Δλ, stats = estimate_gradient!(adbackend, rng, objective, λ, rebuild)
             
             # apply update rule
-            Δλ = DiffResults.gradient(grad_buf)
             Δλ = apply!(optimizer, λ, Δλ)
             @. λ = λ - Δλ
 

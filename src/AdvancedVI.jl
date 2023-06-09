@@ -9,13 +9,15 @@ using ProgressMeter, LinearAlgebra
 
 using LogDensityProblems
 
-using ForwardDiff
-using Tracker
-
 using Distributions
 using DistributionsAD
 
 using StatsFuns
+
+using ForwardDiff
+import AbstractDifferentiation as AD
+
+value_and_gradient(f, xs...; adbackend) = AD.value_and_gradient(adbackend, f, xs...)
 
 const PROGRESS = Ref(true)
 function turnprogress(switch::Bool)
@@ -35,58 +37,6 @@ function __init__()
         Flux.Optimise.apply!(o::TruncatedADAGrad, x, Δ) = apply!(o, x, Δ)
         Flux.Optimise.apply!(o::DecayedADAGrad, x, Δ) = apply!(o, x, Δ)
     end
-    @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
-        include("compat/zygote.jl")
-        export ZygoteAD
-
-        function AdvancedVI.grad!(
-            f::Function,
-            ::Type{<:ZygoteAD},
-            λ::AbstractVector{<:Real},
-            out::DiffResults.MutableDiffResult,
-        )
-            y, back = Zygote.pullback(f, λ)
-            dy = first(back(1.0))
-            DiffResults.value!(out, y)
-            DiffResults.gradient!(out, dy)
-            return out
-        end
-    end
-    @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" begin
-        include("compat/reversediff.jl")
-        export ReverseDiffAD
-
-        function AdvancedVI.grad!(
-            f::Function,
-            ::Type{<:ReverseDiffAD},
-            λ::AbstractVector{<:Real},
-            out::DiffResults.MutableDiffResult,
-        )
-            tp = AdvancedVI.tape(f, λ)
-            ReverseDiff.gradient!(out, tp, λ)
-            return out
-        end
-    end
-    @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
-        include("compat/enzyme.jl")
-        export EnzymeAD
-
-        function AdvancedVI.grad!(
-            f::Function,
-            ::Type{<:EnzymeAD},
-            λ::AbstractVector{<:Real},
-            out::DiffResults.MutableDiffResult,
-        )
-            # Use `Enzyme.ReverseWithPrimal` once it is released:
-            # https://github.com/EnzymeAD/Enzyme.jl/pull/598
-            y = f(λ)
-            DiffResults.value!(out, y)
-            dy = DiffResults.gradient(out)
-            fill!(dy, 0)
-            Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(λ, dy))
-            return out
-        end
-    end
 end
 
 export
@@ -96,16 +46,6 @@ export
     DecayedADAGrad
 
 const VariationalPosterior = Distribution{Multivariate, Continuous}
-
-
-"""
-    grad!(f, λ, out)
-
-Computes the gradients of the objective f. Default implementation is provided for 
-`VariationalInference{AD}` where `AD` is either `ForwardDiffAD` or `TrackerAD`.
-This implicitly also gives a default implementation of `optimize!`.
-"""
-function grad! end
 
 """
     vi(model, alg::VariationalInference)
@@ -125,37 +65,6 @@ following the configuration of the given `VariationalInference` instance.
 function vi end
 
 function update end
-
-# default implementations
-function grad!(
-    f::Function,
-    adtype::Type{<:ForwardDiffAD},
-    λ::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult
-)
-    # Set chunk size and do ForwardMode.
-    chunk_size = getchunksize(adtype)
-    config = if chunk_size == 0
-        ForwardDiff.GradientConfig(f, λ)
-    else
-        ForwardDiff.GradientConfig(f, λ, ForwardDiff.Chunk(length(λ), chunk_size))
-    end
-    ForwardDiff.gradient!(out, f, λ, config)
-end
-
-function grad!(
-    f::Function,
-    ::Type{<:TrackerAD},
-    λ::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult
-)
-    λ_tracked = Tracker.param(λ)
-    y = f(λ_tracked)
-    Tracker.back!(y, 1.0)
-
-    DiffResults.value!(out, Tracker.data(y))
-    DiffResults.gradient!(out, Tracker.grad(λ_tracked))
-end
 
 # estimators
 abstract type AbstractVariationalObjective end
