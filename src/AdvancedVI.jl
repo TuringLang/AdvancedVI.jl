@@ -2,6 +2,8 @@ module AdvancedVI
 
 using Random: Random
 
+using Functors
+
 using Distributions, DistributionsAD, Bijectors
 using DocStringExtensions
 
@@ -13,8 +15,9 @@ using Distributions
 using DistributionsAD
 
 using StatsFuns
+import StatsBase: entropy
 
-using ForwardDiff
+using ForwardDiff, Tracker
 import AbstractDifferentiation as AD
 
 value_and_gradient(f, xs...; adbackend) = AD.value_and_gradient(adbackend, f, xs...)
@@ -40,12 +43,17 @@ function __init__()
 end
 
 export
-    vi,
+    optimize,
+    ELBO,
     ADVI,
+    ADVIEnergy,
+    ClosedFormEntropy,
+    MonteCarloEntropy,
+    LocationScale,
+    FullRankGaussian,
+    MeanFieldGaussian,
     TruncatedADAGrad,
     DecayedADAGrad
-
-const VariationalPosterior = Distribution{Multivariate, Continuous}
 
 """
     vi(model, alg::VariationalInference)
@@ -72,6 +80,9 @@ abstract type AbstractVariationalObjective end
 include("objectives/elbo/elbo.jl")
 include("objectives/elbo/advi_energy.jl")
 include("objectives/elbo/entropy.jl")
+
+# Variational Families
+include("distributions/location_scale.jl")
 
 # optimisers
 include("optimisers.jl")
