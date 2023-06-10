@@ -36,23 +36,20 @@ function optimize(
         enabled   = progress,
         showspeed = true)
 
-    # add criterion? A running mean maybe?
-    time_elapsed = @elapsed begin
-        for i = 1:n_max_iter
-            stats = estimate_gradient!(rng, objective, λ, rebuild, grad_buf)
-            g     = DiffResults.gradient(grad_buf)
+    for i = 1:n_max_iter
+        stats = estimate_gradient!(rng, objective, λ, rebuild, grad_buf)
+        g     = DiffResults.gradient(grad_buf)
 
-            optstate, Δλ = Optimisers.apply!(optimizer, optstate, λ, g)
-            Optimisers.subtract!(λ, Δλ)
+        optstate, Δλ = Optimisers.apply!(optimizer, optstate, λ, g)
+        Optimisers.subtract!(λ, Δλ)
 
-            stat′ = (Δλ=norm(Δλ),)
-            stats = merge(stats, stat′)
+        stat′ = (Δλ=norm(Δλ),)
+        stats = merge(stats, stat′)
         
-            AdvancedVI.DEBUG && @debug "Step $i" stats...
+        AdvancedVI.DEBUG && @debug "Step $i" stats...
             pm_next!(prog, stats)
-        end
     end
-    return λ
+    λ
 end
 
 # function vi(grad_estimator, q, θ_init; optimizer = TruncatedADAGrad(), rng = Random.GLOBAL_RNG)
