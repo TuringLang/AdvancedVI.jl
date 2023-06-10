@@ -21,23 +21,39 @@ function ADVI(ℓπ, b⁻¹, n_samples::Int)
     ELBO(ADVIEnergy(ℓπ, b⁻¹), ClosedFormEntropy(), n_samples)
 end
 
+function (elbo::ELBO)(q_η::ContinuousMultivariateDistribution;
+                      rng = Random.default_rng(),
+                      n_samples::Int = elbo.n_samples,
+                      q_η_entropy::ContinuousMultivariateDistribution = q_η)
+    ηs = rand(rng, q_η, n_samples)
+    𝔼ℓ = elbo.energy_estimator(q_η, ηs)
+    ℍ  = elbo.entropy_estimator(q_η_entropy, ηs)
+    𝔼ℓ + ℍ
+end
+
 function estimate_gradient!(
     rng::Random.AbstractRNG,
-    objective::ELBO,
+    elbo::ELBO{EnergyEst, EntropyEst},
     λ::Vector{<:Real},
     rebuild,
-    out::DiffResults.MutableDiffResult)
+    out::DiffResults.MutableDiffResult) where {EnergyEst  <: AbstractEnergyEstimator,
+                                               EntropyEst <: AbstractEntropyEstimator}
 
-    n_samples = objective.n_samples
+    # Gradient-stopping for computing the sticking-the-landing control variate
+    q_η_stop = if EntropyEst isa MonteCarloEntropy{true}
+        rebuild(λ)
+    else
+        nothing
+    end
 
     grad!(ADBackend(), λ, out) do λ′
         q_η = rebuild(λ′)
-        ηs  = rand(rng, q_η, n_samples)
-
-        𝔼ℓ   = objective.energy_estimator(q_η, ηs)
-        ℍ    = objective.entropy_estimator(q_η, ηs)
-        elbo = 𝔼ℓ + ℍ
-        -elbo
+        q_η_entropy = if EntropyEst isa MonteCarloEntropy{true}
+            q_η_stop
+        else
+            q_η
+        end
+        -elbo(q_η; rng, n_samples=elbo.n_samples, q_η_entropy)
     end
     nelbo = DiffResults.value(out)
     (elbo=-nelbo,)
