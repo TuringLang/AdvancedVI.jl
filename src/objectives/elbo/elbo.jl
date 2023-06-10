@@ -22,14 +22,15 @@ function ADVI(ℓπ, b⁻¹, n_samples::Int)
 end
 
 function estimate_gradient!(
-    adbackend::AD.AbstractBackend,
     rng::Random.AbstractRNG,
     objective::ELBO,
     λ::Vector{<:Real},
-    rebuild)
+    rebuild,
+    out::DiffResults.MutableDiffResult)
 
     n_samples = objective.n_samples
-    nelbo, grad = value_and_gradient(λ; adbackend) do λ′
+
+    grad!(ADBackend(), λ, out) do λ′
         q_η = rebuild(λ′)
         ηs  = rand(rng, q_η, n_samples)
 
@@ -38,5 +39,6 @@ function estimate_gradient!(
         elbo = 𝔼ℓ + ℍ
         -elbo
     end
-    first(grad), (elbo=-nelbo,)
+    nelbo = DiffResults.value(out)
+    (elbo=-nelbo,)
 end
