@@ -4,20 +4,23 @@ using Random: Random
 
 using Functors
 
-using Distributions, DistributionsAD, Bijectors
 using DocStringExtensions
 
-using ProgressMeter, LinearAlgebra
+using ProgressMeter
+using LinearAlgebra
+using LinearAlgebra: AbstractTriangular
 
 using LogDensityProblems
 
 using ForwardDiff
 using Tracker
 
-using Distributions
-using DistributionsAD
+using FillArrays
+using PDMats
+using Distributions, DistributionsAD
+using Distributions: ContinuousMultivariateDistribution
+using Bijectors
 
-using StatsFuns
 import StatsBase: entropy
 
 const PROGRESS = Ref(true)
@@ -29,7 +32,6 @@ end
 const DEBUG = Bool(parse(Int, get(ENV, "DEBUG_ADVANCEDVI", "0")))
 
 include("ad.jl")
-include("utils.jl")
 
 using Requires
 function __init__()
@@ -116,9 +118,9 @@ This implicitly also gives a default implementation of `optimize!`.
 function grad! end
 
 """
-    vi(model, alg::VariationalInference)
-    vi(model, alg::VariationalInference, q::VariationalPosterior)
-    vi(model, alg::VariationalInference, getq::Function, θ::AbstractArray)
+    optimize(model, alg::VariationalInference)
+    optimize(model, alg::VariationalInference, q::VariationalPosterior)
+    optimize(model, alg::VariationalInference, getq::Function, θ::AbstractArray)
 
 Constructs the variational posterior from the `model` and performs the optimization
 following the configuration of the given `VariationalInference` instance.
@@ -130,7 +132,7 @@ following the configuration of the given `VariationalInference` instance.
 - `getq`: function taking parameters `θ` as input and returns a `VariationalPosterior`
 - `θ`: only required if `getq` is used, in which case it is the initial parameters for the variational posterior
 """
-function vi end
+function optimize end
 
 function update end
 
@@ -178,6 +180,7 @@ include("distributions/location_scale.jl")
 # optimisers
 include("optimisers.jl")
 
+include("utils.jl")
 include("vi.jl")
 
 end # module
