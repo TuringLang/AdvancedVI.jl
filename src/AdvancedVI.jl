@@ -4,6 +4,8 @@ using Random: Random
 
 using Functors
 
+using Optimisers
+
 using DocStringExtensions
 
 using ProgressMeter
@@ -12,8 +14,7 @@ using LinearAlgebra: AbstractTriangular
 
 using LogDensityProblems
 
-using ForwardDiff
-using Tracker
+using ForwardDiff, Tracker
 
 using FillArrays
 using PDMats
@@ -23,12 +24,6 @@ using Bijectors
 
 using StatsBase
 using StatsBase: entropy
-
-const PROGRESS = Ref(true)
-function turnprogress(switch::Bool)
-    @info("[AdvancedVI]: global PROGRESS is set as $switch")
-    PROGRESS[] = switch
-end
 
 const DEBUG = Bool(parse(Int, get(ENV, "DEBUG_ADVANCEDVI", "0")))
 
