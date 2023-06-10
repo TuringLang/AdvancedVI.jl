@@ -7,11 +7,6 @@ function LocationScale(μ::AbstractVector,
     transformed(q₀, Bijectors.Shift(μ) ∘ Bijectors.Scale(L))
 end
 
-function location_scale_entropy(
-    q₀::ContinuousMultivariateDistribution,
-    locscale_bijector::Bijectors.ComposedFunction)
-end
-
 function entropy(q_trans::MultivariateTransformed{<: ContinuousMultivariateDistribution,
                                                   <: Bijectors.ComposedFunction{
                                                       <: Bijectors.Shift,
