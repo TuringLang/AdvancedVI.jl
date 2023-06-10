@@ -21,7 +21,8 @@ using Distributions, DistributionsAD
 using Distributions: ContinuousMultivariateDistribution
 using Bijectors
 
-import StatsBase: entropy
+using StatsBase
+using StatsBase: entropy
 
 const PROGRESS = Ref(true)
 function turnprogress(switch::Bool)

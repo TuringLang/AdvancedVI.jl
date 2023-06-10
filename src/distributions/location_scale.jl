@@ -7,20 +7,22 @@ function LocationScale(μ::AbstractVector,
     transformed(q₀, Bijectors.Shift(μ) ∘ Bijectors.Scale(L))
 end
 
-function entropy(q_trans::MultivariateTransformed{<: ContinuousMultivariateDistribution,
-                                                  <: Bijectors.ComposedFunction{
-                                                      <: Bijectors.Shift,
-                                                      <: Bijectors.Scale}})
+function StatsBase.entropy(
+    q_trans::MultivariateTransformed{<: ContinuousMultivariateDistribution,
+                                     <: Bijectors.ComposedFunction{
+                                         <: Bijectors.Shift,
+                                         <: Bijectors.Scale}})
     q_base = q_trans.dist
     scale  = q_trans.transform.inner.a
     entropy(q_base) + first(logabsdet(scale))
 end
 
-function logpdf(q_trans::MultivariateTransformed{<: ContinuousMultivariateDistribution,
-                                                 <: Bijectors.ComposedFunction{
-                                                     <: Bijectors.Shift,
-                                                     <: Bijectors.Scale}},
-                z::AbstractVector)
+function Distributions.logpdf(
+    q_trans::MultivariateTransformed{<: ContinuousMultivariateDistribution,
+                                     <: Bijectors.ComposedFunction{
+                                         <: Bijectors.Shift,
+                                         <: Bijectors.Scale}},
+    z::AbstractVector)
     q_base  = q_trans.dist
     reparam = q_trans.transform
     scale   = q_trans.transform.inner.a
