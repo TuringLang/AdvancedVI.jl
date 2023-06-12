@@ -16,7 +16,9 @@ function optimize(
     λ         ::AbstractVector{<:Real};
     optimizer ::Optimisers.AbstractRule = TruncatedADAGrad(),
     rng       ::Random.AbstractRNG      = Random.GLOBAL_RNG,
-    progress  ::Bool                    = true
+    progress  ::Bool                    = true,
+    callback!                           = nothing,
+    terminate                           = (args...) -> false,
 )
     # TODO: really need a better way to warn the user about potentially
     # not using the correct accumulator
@@ -28,6 +30,7 @@ function optimize(
     optstate = Optimisers.init(optimizer, λ)
     grad_buf = DiffResults.GradientResult(λ)
 
+    q = rebuild(λ)
     i = 0
     prog = ProgressMeter.Progress(
         n_max_iter;
@@ -43,11 +46,22 @@ function optimize(
         optstate, Δλ = Optimisers.apply!(optimizer, optstate, λ, g)
         Optimisers.subtract!(λ, Δλ)
 
-        stat′ = (Δλ=norm(Δλ),)
+        stat′ = (Δλ=norm(Δλ), gradient_norm=norm(g))
         stats = merge(stats, stat′)
+        q     = rebuild(λ)
+
+        if !isnothing(callback!)
+            stat′  = callback!(q, stats)
+            stats = !isnothing(stat′) ? merge(stat′, stats) : stats
+        end
         
         AdvancedVI.DEBUG && @debug "Step $i" stats...
             pm_next!(prog, stats)
+
+        # Termination decision is work in progress
+        if terminate(rng, q, objective, stats)
+            break
+        end
     end
     λ
 end
