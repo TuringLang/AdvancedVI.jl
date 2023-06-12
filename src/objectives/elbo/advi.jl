@@ -15,7 +15,8 @@ init(advi::ADVI) = init(advi.control_variate)
 Base.show(io::IO, advi::ADVI) = print(
     io,
     "ADVI(energy_estimator=$(advi.energy_estimator), " *
-    "entropy_estimator=$(advi.entropy_estimator)), " *
+    "entropy_estimator=$(advi.entropy_estimator), " *
+    (!isnothing(advi.control_variate) ? "control_variate=$(advi.control_variate), " : "") *
     "n_samples=$(advi.n_samples))")
 
 function ADVI(energy_estimator::AbstractEnergyEstimator,
