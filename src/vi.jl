@@ -34,7 +34,6 @@ function optimize(
     i = 0
     prog = ProgressMeter.Progress(
         n_max_iter;
-        desc      = "[$(string(objective))] Optimizing...",
         barlen    = 0,
         enabled   = progress,
         showspeed = true)

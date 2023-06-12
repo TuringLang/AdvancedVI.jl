@@ -26,6 +26,8 @@ end
 
 ADVIEnergy(prob) = ADVIEnergy(prob, identity)
 
+Base.show(io::IO, energy::ADVIEnergy) = print(io, "ADVIEnergy()")
+
 function (energy::ADVIEnergy)(q, ηs::AbstractMatrix)
     n_samples = size(ηs, 2)
     mapreduce(+, eachcol(ηs)) do ηᵢ

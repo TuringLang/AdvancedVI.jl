@@ -11,6 +11,8 @@ struct MonteCarloEntropy{IsStickingTheLanding} <: AbstractEntropyEstimator end
 
 MonteCarloEntropy() = MonteCarloEntropy{false}()
 
+Base.show(io::IO, entropy::MonteCarloEntropy{false}) = print(io, "MonteCarloEntropy()")
+
 """
   Sticking the Landing Control Variate
 
@@ -37,6 +39,8 @@ MonteCarloEntropy() = MonteCarloEntropy{false}()
 StickingTheLandingEntropy() = MonteCarloEntropy{true}()
 
 skip_entropy_gradient(::MonteCarloEntropy{IsStickingTheLanding}) where {IsStickingTheLanding} = IsStickingTheLanding
+
+Base.show(io::IO, entropy::MonteCarloEntropy{true}) = print(io, "StickingTheLandingEntropy()")
 
 function (::MonteCarloEntropy)(q, ηs::AbstractMatrix)
     n_samples = size(ηs, 2)

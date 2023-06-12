@@ -17,7 +17,11 @@ end
 
 skip_entropy_gradient(elbo::ELBO) = skip_entropy_gradient(elbo.entropy_estimator)
 
-Base.string(::ELBO) = "ELBO"
+Base.show(io::IO, elbo::ELBO) = print(
+    io,
+    "ELBO(energy_estimator=$(elbo.energy_estimator), " *
+    "entropy_estimator=$(elbo.entropy_estimator)), " *
+    "n_samples=$(elbo.n_samples))")
 
 function ADVI(ℓπ, b⁻¹, n_samples::Int)
     ELBO(ADVIEnergy(ℓπ, b⁻¹), ClosedFormEntropy(), n_samples)
