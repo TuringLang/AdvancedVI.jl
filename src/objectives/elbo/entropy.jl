@@ -5,6 +5,8 @@ function (::ClosedFormEntropy)(q, ::AbstractMatrix)
     entropy(q)
 end
 
+skip_entropy_gradient(::ClosedFormEntropy) = false
+
 struct MonteCarloEntropy{IsStickingTheLanding} <: AbstractEntropyEstimator end
 
 MonteCarloEntropy() = MonteCarloEntropy{false}()
@@ -33,6 +35,8 @@ MonteCarloEntropy() = MonteCarloEntropy{false}()
    Advances in Neural Information Processing Systems 30 (2017).
 """
 StickingTheLandingEntropy() = MonteCarloEntropy{true}()
+
+skip_entropy_gradient(::MonteCarloEntropy{IsStickingTheLanding}) where {IsStickingTheLanding} = IsStickingTheLanding
 
 function (::MonteCarloEntropy)(q, ηs::AbstractMatrix)
     n_samples = size(ηs, 2)

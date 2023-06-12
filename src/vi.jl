@@ -37,8 +37,8 @@ function optimize(
         showspeed = true)
 
     for i = 1:n_max_iter
-        stats = estimate_gradient!(rng, objective, λ, rebuild, grad_buf)
-        g     = DiffResults.gradient(grad_buf)
+        grad_buf, stats = estimate_gradient!(rng, objective, λ, rebuild, grad_buf)
+        g = DiffResults.gradient(grad_buf)
 
         optstate, Δλ = Optimisers.apply!(optimizer, optstate, λ, g)
         Optimisers.subtract!(λ, Δλ)

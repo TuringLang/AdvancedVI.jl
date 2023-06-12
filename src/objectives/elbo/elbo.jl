@@ -15,6 +15,8 @@ struct ELBO{EnergyEst  <: AbstractEnergyEstimator,
     n_samples::Int
 end
 
+skip_entropy_gradient(elbo::ELBO) = skip_entropy_gradient(elbo.entropy_estimator)
+
 Base.string(::ELBO) = "ELBO"
 
 function ADVI(ℓπ, b⁻¹, n_samples::Int)
@@ -33,28 +35,19 @@ end
 
 function estimate_gradient!(
     rng::Random.AbstractRNG,
-    elbo::ELBO{EnergyEst, EntropyEst},
+    elbo::ELBO,
     λ::Vector{<:Real},
     rebuild,
-    out::DiffResults.MutableDiffResult) where {EnergyEst  <: AbstractEnergyEstimator,
-                                               EntropyEst <: AbstractEntropyEstimator}
+    out::DiffResults.MutableDiffResult)
 
     # Gradient-stopping for computing the sticking-the-landing control variate
-    q_η_stop = if EntropyEst isa MonteCarloEntropy{true}
-        rebuild(λ)
-    else
-        nothing
-    end
+    q_η_stop = skip_entropy_gradient(elbo) ? rebuild(λ) : nothing
 
     grad!(ADBackend(), λ, out) do λ′
         q_η = rebuild(λ′)
-        q_η_entropy = if EntropyEst isa MonteCarloEntropy{true}
-            q_η_stop
-        else
-            q_η
-        end
+        q_η_entropy = skip_entropy_gradient(elbo) ? q_η_stop : q_η
         -elbo(q_η; rng, n_samples=elbo.n_samples, q_η_entropy)
     end
     nelbo = DiffResults.value(out)
-    (elbo=-nelbo,)
+    out, (elbo=-nelbo,)
 end
