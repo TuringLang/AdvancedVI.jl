@@ -41,14 +41,14 @@ function estimate_gradient!(
     rng::Random.AbstractRNG,
     elbo::ELBO,
     λ::Vector{<:Real},
-    rebuild,
+    restructure,
     out::DiffResults.MutableDiffResult)
 
     # Gradient-stopping for computing the sticking-the-landing control variate
-    q_η_stop = skip_entropy_gradient(elbo) ? rebuild(λ) : nothing
+    q_η_stop = skip_entropy_gradient(elbo) ? restructure(λ) : nothing
 
     grad!(ADBackend(), λ, out) do λ′
-        q_η = rebuild(λ′)
+        q_η = restructure(λ′)
         q_η_entropy = skip_entropy_gradient(elbo) ? q_η_stop : q_η
         -elbo(q_η; rng, n_samples=elbo.n_samples, q_η_entropy)
     end

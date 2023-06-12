@@ -11,9 +11,9 @@ the steps.
 """
 function optimize(
     objective ::AbstractVariationalObjective,
-    rebuild,
-    n_max_iter::Int,
-    λ         ::AbstractVector{<:Real};
+    restructure,
+    λ         ::AbstractVector{<:Real},
+    n_max_iter::Int;
     optimizer ::Optimisers.AbstractRule = TruncatedADAGrad(),
     rng       ::Random.AbstractRNG      = Random.GLOBAL_RNG,
     progress  ::Bool                    = true,
@@ -30,50 +30,47 @@ function optimize(
     optstate = Optimisers.init(optimizer, λ)
     grad_buf = DiffResults.GradientResult(λ)
 
-    q = rebuild(λ)
-    i = 0
-    prog = ProgressMeter.Progress(
-        n_max_iter;
-        barlen    = 0,
-        enabled   = progress,
-        showspeed = true)
+    prog = ProgressMeter.Progress(n_max_iter;
+                                  barlen    = 0,
+                                  enabled   = progress,
+                                  showspeed = true)
+    stats = Vector{NamedTuple}(undef, n_max_iter)
 
-    for i = 1:n_max_iter
-        grad_buf, stats = estimate_gradient!(rng, objective, λ, rebuild, grad_buf)
+    for t = 1:n_max_iter
+        grad_buf, stat = estimate_gradient!(rng, objective, λ, restructure, grad_buf)
         g = DiffResults.gradient(grad_buf)
 
         optstate, Δλ = Optimisers.apply!(optimizer, optstate, λ, g)
         Optimisers.subtract!(λ, Δλ)
 
         stat′ = (Δλ=norm(Δλ), gradient_norm=norm(g))
-        stats = merge(stats, stat′)
-        q     = rebuild(λ)
+        stat  = merge(stat, stat′)
+        q     = restructure(λ)
 
         if !isnothing(callback!)
-            stat′  = callback!(q, stats)
-            stats = !isnothing(stat′) ? merge(stat′, stats) : stats
+            stat′ = callback!(q, stat)
+            stat = !isnothing(stat′) ? merge(stat′, stat) : stat
         end
         
-        AdvancedVI.DEBUG && @debug "Step $i" stats...
-            pm_next!(prog, stats)
+        AdvancedVI.DEBUG && @debug "Step $i" stat...
+
+        pm_next!(prog, stat)
+        stats[t] = stat
 
         # Termination decision is work in progress
-        if terminate(rng, q, objective, stats)
+        if terminate(rng, q, objective, stat)
+            stats = stats[1:t]
             break
         end
     end
-    λ
+    λ, stats
 end
 
-# function vi(grad_estimator, q, θ_init; optimizer = TruncatedADAGrad(), rng = Random.GLOBAL_RNG)
-#     θ = copy(θ_init)
-#     optimize!(grad_estimator, rebuild, n_max_iter, λ, optimizer = optimizer, rng = rng)
-
-#     # If `q` is a mean-field approx we use the specialized `update` function
-#     if q isa Distribution
-#         return update(q, θ)
-#     else
-#         # Otherwise we assume it's a mapping θ → q
-#         return q(θ)
-#     end
-# end
+function optimize(objective::AbstractVariationalObjective,
+                  q,
+                  n_max_iter::Int;
+                  kwargs...)
+    λ, restructure = Optimisers.destructure(q)
+    λ, stats = optimize(objective, restructure, λ, n_max_iter; kwargs...)
+    restructure(λ), stats
+end
