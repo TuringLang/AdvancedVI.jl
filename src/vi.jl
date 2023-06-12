@@ -27,8 +27,9 @@ function optimize(
         @info "[$(string(objective))] Should only be seen once: optimizer created for θ" objectid(λ)
     end
 
-    optstate = Optimisers.init(optimizer, λ)
-    grad_buf = DiffResults.GradientResult(λ)
+    opt_state = Optimisers.init(optimizer, λ)
+    est_state = init(objective)
+    grad_buf  = DiffResults.GradientResult(λ)
 
     prog = ProgressMeter.Progress(n_max_iter;
                                   barlen    = 0,
@@ -37,22 +38,25 @@ function optimize(
     stats = Vector{NamedTuple}(undef, n_max_iter)
 
     for t = 1:n_max_iter
-        grad_buf, stat = estimate_gradient!(rng, objective, λ, restructure, grad_buf)
-        g = DiffResults.gradient(grad_buf)
+        stat = (iteration=t,)
 
-        optstate, Δλ = Optimisers.apply!(optimizer, optstate, λ, g)
+        grad_buf, est_state, stat′ = estimate_gradient(rng, objective, est_state, λ, restructure, grad_buf)
+        g    = DiffResults.gradient(grad_buf)
+        stat = merge(stat, stat′)
+
+        opt_state, Δλ = Optimisers.apply!(optimizer, opt_state, λ, g)
         Optimisers.subtract!(λ, Δλ)
+        stat′ = (iteration=t, Δλ=norm(Δλ), gradient_norm=norm(g))
+        stat = merge(stat, stat′)
 
-        stat′ = (Δλ=norm(Δλ), gradient_norm=norm(g))
-        stat  = merge(stat, stat′)
-        q     = restructure(λ)
+        q    = restructure(λ)
 
         if !isnothing(callback!)
             stat′ = callback!(q, stat)
             stat = !isnothing(stat′) ? merge(stat′, stat) : stat
         end
         
-        AdvancedVI.DEBUG && @debug "Step $i" stat...
+        AdvancedVI.DEBUG && @debug "Step $t" stat...
 
         pm_next!(prog, stat)
         stats[t] = stat

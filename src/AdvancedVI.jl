@@ -166,7 +166,17 @@ end
 # estimators
 abstract type AbstractVariationalObjective end
 
-include("objectives/elbo/elbo.jl")
+function estimate_gradient end
+
+abstract type AbstractEnergyEstimator  end
+abstract type AbstractEntropyEstimator end
+abstract type AbstractControlVariate end
+
+init(::Nothing) = nothing
+
+update(::Nothing, ::Nothing) = (nothing, nothing)
+
+include("objectives/elbo/advi.jl")
 include("objectives/elbo/advi_energy.jl")
 include("objectives/elbo/entropy.jl")
 
