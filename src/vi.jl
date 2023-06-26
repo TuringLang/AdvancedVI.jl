@@ -14,19 +14,12 @@ function optimize(
     restructure,
     λ         ::AbstractVector{<:Real},
     n_max_iter::Int;
-    optimizer ::Optimisers.AbstractRule = TruncatedADAGrad(),
-    rng       ::Random.AbstractRNG      = Random.GLOBAL_RNG,
+    optimizer ::Optimisers.AbstractRule = Optimisers.Adam(),
+    rng       ::AbstractRNG             = default_rng(),
     progress  ::Bool                    = true,
     callback!                           = nothing,
     terminate                           = (args...) -> false,
 )
-    # TODO: really need a better way to warn the user about potentially
-    # not using the correct accumulator
-    if (optimizer isa TruncatedADAGrad) && (λ ∉ keys(optimizer.acc))
-        # this message should only occurr once in the optimization process
-        @info "[$(string(objective))] Should only be seen once: optimizer created for θ" objectid(λ)
-    end
-
     opt_state = Optimisers.init(optimizer, λ)
     est_state = init(objective)
     grad_buf  = DiffResults.GradientResult(λ)

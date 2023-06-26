@@ -1,9 +1,12 @@
+
 module AdvancedVI
 
-using Random: Random
+using UnPack
+
+import Random: AbstractRNG, default_rng
+import Distributions: logpdf, _logpdf, rand, _rand!, _rand!
 
 using Functors
-
 using Optimisers
 
 using DocStringExtensions
@@ -31,11 +34,6 @@ include("ad.jl")
 
 using Requires
 function __init__()
-    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
-        apply!(o, x, Δ) = Flux.Optimise.apply!(o, x, Δ)
-        Flux.Optimise.apply!(o::TruncatedADAGrad, x, Δ) = apply!(o, x, Δ)
-        Flux.Optimise.apply!(o::DecayedADAGrad, x, Δ) = apply!(o, x, Δ)
-    end
     @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
         include("compat/zygote.jl")
         export ZygoteAD
@@ -182,9 +180,6 @@ include("objectives/elbo/entropy.jl")
 
 # Variational Families
 include("distributions/location_scale.jl")
-
-# optimisers
-include("optimisers.jl")
 
 include("utils.jl")
 include("vi.jl")
