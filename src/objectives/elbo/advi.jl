@@ -30,9 +30,9 @@ function ADVI(ℓπ, b⁻¹, n_samples::Int)
 end
 
 function (advi::ADVI)(q_η::ContinuousMultivariateDistribution;
-                      rng       ::Random.AbstractRNG = Random.default_rng(),
-                      n_samples ::Int                = advi.n_samples,
-                      ηs        ::AbstractMatrix     = rand(rng, q_η, n_samples),
+                      rng       ::AbstractRNG    = default_rng(),
+                      n_samples ::Int            = advi.n_samples,
+                      ηs        ::AbstractMatrix = rand(rng, q_η, n_samples),
                       q_η_entropy::ContinuousMultivariateDistribution = q_η)
     𝔼ℓ = advi.energy_estimator(q_η, ηs)
     ℍ  = advi.entropy_estimator(q_η_entropy, ηs)
@@ -40,7 +40,7 @@ function (advi::ADVI)(q_η::ContinuousMultivariateDistribution;
 end
 
 function estimate_gradient(
-    rng::Random.AbstractRNG,
+    rng::AbstractRNG,
     advi::ADVI,
     est_state,
     λ::Vector{<:Real},
