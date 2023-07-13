@@ -1,17 +1,21 @@
 
 using ReTest
 using ForwardDiff, ReverseDiff, Tracker, Enzyme, Zygote
-using AdvancedVI: grad!
+using ADTypes
 
 @testset "ad" begin
-    @testset "$(string(adsymbol))" for adsymbol ∈ [
-        :forwarddiff, :reversediff, :tracker, :enzyme, :zygote]
+    @testset "$(adname)" for (adname, adsymbol) ∈ Dict(
+          :ForwardDiffAuto => AutoForwardDiff(),
+          :ForwardDiff     => AutoForwardDiff(10),
+          :ReverseDiff     => AutoReverseDiff(),
+          :Zygote          => AutoZygote(),
+          :Tracker         => AutoTracker(),
+        )
         D = 10
         A = randn(D, D)
         λ = randn(D)
-        AdvancedVI.setadbackend(adsymbol)
         grad_buf = DiffResults.GradientResult(λ)
-        AdvancedVI.grad!(AdvancedVI.ADBackend(), λ, grad_buf) do λ′
+        AdvancedVI.grad!(adsymbol, λ, grad_buf) do λ′
             λ′'*A*λ′ / 2
         end
         ∇ = DiffResults.gradient(grad_buf)
