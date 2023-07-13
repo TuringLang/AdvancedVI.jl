@@ -1,7 +1,7 @@
 
 module AdvancedVI
 
-using UnPack
+using UnPack, Accessors
 
 import Random: AbstractRNG, default_rng
 import Distributions: logpdf, _logpdf, rand, _rand!, _rand!
@@ -179,6 +179,7 @@ include("objectives/elbo/advi_energy.jl")
 include("objectives/elbo/entropy.jl")
 
 # Variational Families
+
 include("distributions/location_scale.jl")
 
 include("utils.jl")
