@@ -1,6 +1,6 @@
 name = "AdvancedVI"
 uuid = "b5ca4192-6429-45e5-a2d9-87aec30a685c"
-version = "0.2.3"
+version = "0.2.4"
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
@@ -24,7 +24,7 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
-Bijectors = "0.11, 0.12"
+Bijectors = "0.11, 0.12, 0.13"
 Distributions = "0.21, 0.22, 0.23, 0.24, 0.25"
 DistributionsAD = "0.2, 0.3, 0.4, 0.5, 0.6"
 DocStringExtensions = "0.8, 0.9"
