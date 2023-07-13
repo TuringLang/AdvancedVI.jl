@@ -19,6 +19,7 @@ function optimize(
     progress  ::Bool                    = true,
     callback!                           = nothing,
     terminate                           = (args...) -> false,
+    adback::AbstractADType              = AutoForwardDiff(), 
 )
     opt_state = Optimisers.init(optimizer, λ)
     est_state = init(objective)
@@ -33,7 +34,8 @@ function optimize(
     for t = 1:n_max_iter
         stat = (iteration=t,)
 
-        grad_buf, est_state, stat′ = estimate_gradient(rng, objective, est_state, λ, restructure, grad_buf)
+        grad_buf, est_state, stat′ = estimate_gradient(
+            rng, adback, objective, est_state, λ, restructure, grad_buf)
         g    = DiffResults.gradient(grad_buf)
         stat = merge(stat, stat′)
 
@@ -50,6 +52,9 @@ function optimize(
         end
         
         AdvancedVI.DEBUG && @debug "Step $t" stat...
+
+        q    = project_domain(q)
+        λ, _ = Optimisers.destructure(q)
 
         pm_next!(prog, stat)
         stats[t] = stat
