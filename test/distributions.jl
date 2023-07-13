@@ -1,9 +1,6 @@
 
 using ReTest
-using Distributions
 using Distributions: _logpdf
-using LinearAlgebra
-using AdvancedVI: LocationScale, VIFullRankGaussian, VIMeanFieldGaussian
 
 @testset "distributions" begin
     @testset "$(string(covtype)) $(basedist) $(realtype)" for
@@ -17,7 +14,7 @@ using AdvancedVI: LocationScale, VIFullRankGaussian, VIMeanFieldGaussian
         n_montecarlo = 1000_000
 
         μ  = randn(realtype, n_dims)
-        L₀ = randn(realtype, n_dims, n_dims)
+        L₀ = randn(realtype, n_dims, n_dims) |> LowerTriangular
         Σ  = if covtype == :fullrank
             Σ = (L₀*L₀' + ϵ*I) |> Hermitian
         else
