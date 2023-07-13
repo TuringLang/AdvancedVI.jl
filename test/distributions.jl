@@ -6,8 +6,9 @@ using LinearAlgebra
 using AdvancedVI: LocationScale, VIFullRankGaussian, VIMeanFieldGaussian
 
 @testset "distributions" begin
-    @testset "$(string(covtype)) Gaussian $(realtype)" for
-        covtype  = [:diagonal, :fullrank],
+    @testset "$(string(covtype)) $(basedist) $(realtype)" for
+        basedist = [:gaussian],
+        covtype  = [:meanfield, :fullrank],
         realtype = [Float32,     Float64]
 
         realtype     = Float64
@@ -24,12 +25,14 @@ using AdvancedVI: LocationScale, VIFullRankGaussian, VIMeanFieldGaussian
         end
 
         L = cholesky(Σ).L
-        q = if covtype == :fullrank
+        q = if covtype == :fullrank  && basedist == :gaussian
             VIFullRankGaussian(μ, L |> LowerTriangular)
-        else
+        elseif covtype == :meanfield && basedist == :gaussian
             VIMeanFieldGaussian(μ, L |> Diagonal)
         end
-        q_true = MvNormal(μ, Σ)
+        q_true = if basedist == :gaussian
+            MvNormal(μ, Σ)
+        end
 
         z = randn(n_dims)
         @test logpdf(q, z)  ≈ logpdf(q_true, z)
