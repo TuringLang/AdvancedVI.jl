@@ -2,9 +2,11 @@
 const PROGRESS = length(ARGS) > 0 && ARGS[1] == "--progress" ? true : false
 
 using ReTest
-using Turing, LogDensityProblems
+using Bijectors
+using LogDensityProblems
 using Optimisers
 using Distributions
+using PDMats
 using LinearAlgebra
 using SimpleUnPack: @unpack
 
@@ -16,7 +18,7 @@ struct TestModel{M,L,S}
     is_meanfield::Bool
 end
 
-include("inference/normallognormal.jl")
+include("exact/normallognormal.jl")
 
 @testset "exact" begin
     @testset "$(modelname) $(realtype)"  for
@@ -32,7 +34,6 @@ include("inference/normallognormal.jl")
 
         b    = Bijectors.bijector(model)
         b⁻¹  = inverse(b)
-        prob = DynamicPPL.LogDensityFunction(model)
 
         μ₀ = zeros(realtype, n_dims)
         L₀ = if is_meanfield
@@ -48,7 +49,7 @@ include("inference/normallognormal.jl")
 
         Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
 
-        objective = AdvancedVI.ADVI(prob, b⁻¹, 10)
+        objective = AdvancedVI.ADVI(model, b⁻¹, 10)
         q, stats  = AdvancedVI.optimize(
             objective, q₀, T;
             optimizer = Optimisers.AdaGrad(1e-1),

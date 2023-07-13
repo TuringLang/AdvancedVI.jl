@@ -1,4 +1,31 @@
 
+struct NormalLogNormal{MX,SX,MY,SY}
+    μ_x::MX
+    σ_x::SX
+    μ_y::MY
+    Σ_y::SY
+end
+
+function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
+    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
+end
+
+function LogDensityProblems.dimension(model::NormalLogNormal)
+    length(model.μ_y) + 1
+end
+
+function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
+    LogDensityProblems.LogDensityOrder{0}()
+end
+
+function Bijectors.bijector(model::NormalLogNormal)
+    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    Bijectors.Stacked(
+        Bijectors.bijector.([LogNormal(μ_x, σ_x), MvNormal(μ_y, Σ_y)]),
+        [1:1, 2:1+length(μ_y)])
+end
+
 function normallognormal_fullrank(realtype; rng = default_rng())
     n_dims = 5
 
@@ -9,11 +36,7 @@ function normallognormal_fullrank(realtype; rng = default_rng())
     ϵ    = realtype(1.0)
     Σ_y  = (L₀_y*L₀_y' + ϵ*I) |> Hermitian
 
-    Turing.@model function normallognormal()
-        x ~ LogNormal(μ_x, σ_x)
-        y ~ MvNormal(μ_y, Σ_y)
-    end
-    model = normallognormal()
+    model = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDMat(Σ_y))
 
     Σ = Matrix{realtype}(undef, n_dims+1, n_dims+1)
     Σ[1,1]         = σ_x^2
@@ -33,20 +56,12 @@ function normallognormal_meanfield(realtype)
     σ_x  = π
     μ_y  = randn(realtype, n_dims)
     ϵ    = realtype(1.0)
-    Σ_y  = Diagonal(exp.(randn(realtype, n_dims)))
+    σ_y  = exp.(randn(realtype, n_dims))
 
-    Turing.@model function normallognormal()
-        x ~ LogNormal(μ_x, σ_x)
-        y ~ MvNormal(μ_y, Σ_y)
-    end
-    model = normallognormal()
-
-    σ²        = Vector{realtype}(undef, n_dims+1)
-    σ²[1]     = σ_x^2
-    σ²[2:end] = diag(Σ_y)
+    model = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2))
 
     μ = vcat(μ_x, μ_y)
-    L = sqrt.(σ²) |> Diagonal
+    L = vcat(σ_x, σ_y) |> Diagonal
 
     TestModel(model, μ, L, n_dims+1, true)
 end
