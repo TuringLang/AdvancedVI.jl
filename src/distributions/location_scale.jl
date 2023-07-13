@@ -23,19 +23,19 @@ Base.length(q::VILocationScale) = length(q.location)
 Base.size(q::VILocationScale) = size(q.location)
 
 function StatsBase.entropy(q::VILocationScale)
-    @unpack location, scale, dist = q
+    @unpack  location, scale, dist = q
     n_dims = length(location)
     n_dims*entropy(dist) + first(logabsdet(scale))
 end
 
 function logpdf(q::VILocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
-    mapreduce(zᵢ -> logpdf(dist, zᵢ), +, scale \ (z - location)) + first(logabsdet(scale))
+    mapreduce(zᵢ -> logpdf(dist, zᵢ), +, scale \ (z - location)) - first(logabsdet(scale))
 end
 
 function _logpdf(q::VILocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
-    mapreduce(zᵢ -> logpdf(dist, zᵢ), +, scale \ (z - location)) + first(logabsdet(scale))
+    mapreduce(zᵢ -> logpdf(dist, zᵢ), +, scale \ (z - location)) - first(logabsdet(scale))
 end
 
 function rand(q::VILocationScale)
