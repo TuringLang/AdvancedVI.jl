@@ -47,7 +47,7 @@ end
 function rand(rng::AbstractRNG, q::VILocationScale, num_samples::Int) 
     @unpack location, scale, dist = q
     n_dims = length(location)
-    scale*rand(dist, n_dims, num_samples) .+ location
+    scale*rand(rng, dist, n_dims, num_samples) .+ location
 end
 
 function _rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractVector{<:Real})
