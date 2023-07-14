@@ -19,7 +19,7 @@ function optimize(
     progress  ::Bool                    = true,
     callback!                           = nothing,
     terminate                           = (args...) -> false,
-    adback::AbstractADType              = AutoForwardDiff(), 
+    adbackend::AbstractADType           = AutoForwardDiff(), 
 )
     opt_state = Optimisers.init(optimizer, λ)
     est_state = init(objective)
