@@ -49,9 +49,9 @@ include("exact/normallognormal.jl")
             diagm(ones(realtype, n_dims)) |> LowerTriangular
         end
         q₀ = if is_meanfield
-            VIMeanFieldGaussian(μ₀, L₀, realtype(1e-8))
+            VIMeanFieldGaussian(μ₀, L₀)
         else
-            VIFullRankGaussian(μ₀, L₀, realtype(1e-8))
+            VIFullRankGaussian(μ₀, L₀)
         end
 
         obj = objective(model, b⁻¹, 10)
@@ -60,7 +60,7 @@ include("exact/normallognormal.jl")
             Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
             q, stats  = optimize(
                 obj, q₀, T;
-                optimizer = Optimisers.AdaGrad(1e-0),
+                optimizer = Optimisers.AdaGrad(1e-1),
                 progress  = PROGRESS,
                 rng       = rng,
             )
@@ -78,7 +78,7 @@ include("exact/normallognormal.jl")
             rng      = Philox4x(UInt64, seed, 8)
             q, stats = optimize(
                 obj, q₀, T;
-                optimizer = Optimisers.AdaGrad(1e-2),
+                optimizer = Optimisers.AdaGrad(1e-1),
                 progress  = PROGRESS,
                 rng       = rng,
             )
@@ -88,7 +88,7 @@ include("exact/normallognormal.jl")
             rng_repl = Philox4x(UInt64, seed, 8)
             q, stats = optimize(
                 obj, q₀, T;
-                optimizer = Optimisers.AdaGrad(1e-2),
+                optimizer = Optimisers.AdaGrad(1e-1),
                 progress  = PROGRESS,
                 rng       = rng_repl,
             )

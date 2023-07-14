@@ -41,9 +41,11 @@ function optimize(
 
         opt_state, Δλ = Optimisers.apply!(optimizer, opt_state, λ, g)
         Optimisers.subtract!(λ, Δλ)
+
         stat′ = (iteration=t, Δλ=norm(Δλ), gradient_norm=norm(g))
         stat = merge(stat, stat′)
-        q    = restructure(λ)
+
+        q = restructure(λ)
 
         if !isnothing(callback!)
             stat′ = callback!(q, stat)
@@ -56,7 +58,7 @@ function optimize(
         stats[t] = stat
 
         # Termination decision is work in progress
-        if terminate(rng, q, objective, stat)
+        if terminate(rng, λ, q, objective, stat)
             stats = stats[1:t]
             break
         end

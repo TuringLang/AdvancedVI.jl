@@ -24,6 +24,12 @@ struct ADVI{Tlogπ, B,
     end
 end
 
+Base.show(io::IO, advi::ADVI) =
+    print(io,
+          "ADVI(entropy_estimator=$(advi.entropy_estimator), " *
+          "control_variate=$(advi.control_variate), " *
+          "n_samples=$(advi.n_samples))")
+
 skip_entropy_gradient(advi::ADVI) = skip_entropy_gradient(advi.entropy_estimator)
 
 init(advi::ADVI) = init(advi.control_variate)

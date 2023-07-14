@@ -1,4 +1,16 @@
 
+"""
+
+The [location scale] variational family broadly represents various variational
+families using `location` and `scale` variational parameters.
+
+Multivariate Student-t variational family with ``\\nu``-degrees of freedom can
+be constructed as:
+```julia
+q₀ = VILocationScale(μ, L, StudentT(ν), eps(Float32))
+```
+
+"""
 struct VILocationScale{L, S, D, R} <: ContinuousMultivariateDistribution
     location::L
     scale   ::S
