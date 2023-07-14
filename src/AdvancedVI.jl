@@ -1,7 +1,7 @@
 
 module AdvancedVI
 
-using SimpleUnPack: @unpack
+using SimpleUnPack: @unpack, @pack!
 using Accessors
 
 import Random: AbstractRNG, default_rng
@@ -60,17 +60,14 @@ include("grad.jl")
 # estimators
 abstract type AbstractVariationalObjective end
 
+function init              end
 function estimate_gradient end
 
-abstract type AbstractEnergyEstimator  end
+# ADVI-specific interfaces
 abstract type AbstractEntropyEstimator end
 abstract type AbstractControlVariate end
 
-function init   end
 function update end
-
-init(::Nothing) = nothing
-
 update(::Nothing, ::Nothing) = (nothing, nothing)
 
 include("objectives/elbo/advi.jl")

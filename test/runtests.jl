@@ -8,11 +8,9 @@ using Distributions
 using LinearAlgebra
 using AdvancedVI
 
-const GROUP = get(ENV, "AHMC_TEST_GROUP", "AdvancedHMC")
-
 include("ad.jl")
 include("distributions.jl")
-include("exact.jl")
+include("advi_locscale.jl")
 
 @main function runtests(patterns...; dry::Bool = false)
     retest(patterns...; dry = dry, verbose = Inf)
