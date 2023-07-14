@@ -21,15 +21,22 @@ end
 include("exact/normallognormal.jl")
 
 @testset "exact" begin
-    @testset "$(modelname) $(realtype)"  for
+    @testset "$(modelname) $(objname) $(realtype)"  for
         realtype ∈ [Float32, Float64],
         (modelname, modelconstr) ∈ Dict(
             :NormalLogNormalMeanField => normallognormal_meanfield,
             :NormalLogNormalFullRank  => normallognormal_fullrank,
+        ),
+        (objname, objective) ∈ Dict(
+            :ADVIClosedFormEntropy  => (model, b⁻¹, M) -> ADVI(model, b⁻¹,                              M),
+            :ADVIStickingTheLanding => (model, b⁻¹, M) -> ADVI(model, b⁻¹, StickingTheLandingEntropy(), M),
+            :ADVIFullMonteCarlo     => (model, b⁻¹, M) -> ADVI(model, b⁻¹, MonteCarloEntropy(),         M),
         )
-
+        seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
+        rng  = Philox4x(UInt64, seed, 8)
+        
         T = 10000
-        modelstats = modelconstr(realtype)
+        modelstats = modelconstr(realtype; rng)
         @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
         b    = Bijectors.bijector(model)
@@ -42,24 +49,54 @@ include("exact/normallognormal.jl")
             diagm(ones(realtype, n_dims)) |> LowerTriangular
         end
         q₀ = if is_meanfield
-            AdvancedVI.VIMeanFieldGaussian(μ₀, L₀, realtype(1e-8))
+            VIMeanFieldGaussian(μ₀, L₀, realtype(1e-8))
         else
-            AdvancedVI.VIFullRankGaussian(μ₀, L₀, realtype(1e-8))
+            VIFullRankGaussian(μ₀, L₀, realtype(1e-8))
         end
 
-        Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
+        obj = objective(model, b⁻¹, 10)
 
-        objective = AdvancedVI.ADVI(model, b⁻¹, 10)
-        q, stats  = AdvancedVI.optimize(
-            objective, q₀, T;
-            optimizer = Optimisers.AdaGrad(1e-1),
-            progress  = PROGRESS,
-        )
+        @testset "convergence" begin
+            Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
+            q, stats  = optimize(
+                obj, q₀, T;
+                optimizer = Optimisers.AdaGrad(1e-0),
+                progress  = PROGRESS,
+                rng       = rng,
+            )
 
-        μ  = q.location
-        L  = q.scale
-        Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
+            μ  = q.location
+            L  = q.scale
+            Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
-        @test Δλ ≤ Δλ₀/√T
+            @test Δλ ≤ Δλ₀/√T
+            @test eltype(μ) == eltype(μ_true)
+            @test eltype(L) == eltype(L_true)
+        end
+
+        @testset "determinism" begin
+            rng      = Philox4x(UInt64, seed, 8)
+            q, stats = optimize(
+                obj, q₀, T;
+                optimizer = Optimisers.AdaGrad(1e-2),
+                progress  = PROGRESS,
+                rng       = rng,
+            )
+            μ  = q.location
+            L  = q.scale
+
+            rng_repl = Philox4x(UInt64, seed, 8)
+            q, stats = optimize(
+                obj, q₀, T;
+                optimizer = Optimisers.AdaGrad(1e-2),
+                progress  = PROGRESS,
+                rng       = rng_repl,
+            )
+            μ_repl = q.location
+            L_repl = q.scale
+            @test μ == μ_repl
+            @test L == L_repl
+        end
     end
 end
+

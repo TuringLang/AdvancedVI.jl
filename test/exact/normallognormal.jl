@@ -30,10 +30,10 @@ function normallognormal_fullrank(realtype; rng = default_rng())
     n_dims = 5
 
     μ_x  = randn(rng, realtype)
-    σ_x  = π
+    σ_x  = ℯ
     μ_y  = randn(rng, realtype, n_dims)
     L₀_y = randn(rng, realtype, n_dims, n_dims) |> LowerTriangular
-    ϵ    = realtype(1.0)
+    ϵ    = realtype(n_dims)
     Σ_y  = (L₀_y*L₀_y' + ϵ*I) |> Hermitian
 
     model = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDMat(Σ_y))
@@ -49,14 +49,13 @@ function normallognormal_fullrank(realtype; rng = default_rng())
     TestModel(model, μ, L, n_dims+1, false)
 end
 
-function normallognormal_meanfield(realtype)
+function normallognormal_meanfield(realtype; rng = default_rng())
     n_dims = 5
 
-    μ_x  = randn(realtype)
-    σ_x  = π
-    μ_y  = randn(realtype, n_dims)
-    ϵ    = realtype(1.0)
-    σ_y  = exp.(randn(realtype, n_dims))
+    μ_x  = randn(rng, realtype)
+    σ_x  = ℯ
+    μ_y  = randn(rng, realtype, n_dims)
+    σ_y  = log.(exp.(randn(rng, realtype, n_dims)) .+ 1)
 
     model = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2))
 

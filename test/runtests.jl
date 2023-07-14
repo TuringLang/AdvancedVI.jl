@@ -2,7 +2,7 @@
 using Comonicon
 using ReTest: @testset, @test
 using Random
-using Random: default_rng
+using Random123
 using Statistics
 using Distributions
 using LinearAlgebra
