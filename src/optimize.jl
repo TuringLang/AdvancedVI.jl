@@ -35,7 +35,7 @@ function optimize(
         stat = (iteration=t,)
 
         grad_buf, est_state, stat′ = estimate_gradient(
-            rng, adback, objective, est_state, λ, restructure, grad_buf)
+            rng, adbackend, objective, est_state, λ, restructure, grad_buf)
         g    = DiffResults.gradient(grad_buf)
         stat = merge(stat, stat′)
 

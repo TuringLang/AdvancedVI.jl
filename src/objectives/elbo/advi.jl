@@ -59,7 +59,7 @@ end
 
 function estimate_gradient(
     rng::AbstractRNG,
-    adback::AbstractADType,
+    adbackend::AbstractADType,
     advi::ADVI,
     est_state,
     λ::Vector{<:Real},
@@ -69,7 +69,7 @@ function estimate_gradient(
     # Gradient-stopping for computing the sticking-the-landing control variate
     q_η_stop = skip_entropy_gradient(advi.entropy_estimator) ? restructure(λ) : nothing
 
-    grad!(adback, λ, out) do λ′
+    grad!(adbackend, λ, out) do λ′
         q_η = restructure(λ′)
         q_η_entropy = skip_entropy_gradient(advi.entropy_estimator) ? q_η_stop : q_η
         -advi(q_η; rng, q_η_entropy)

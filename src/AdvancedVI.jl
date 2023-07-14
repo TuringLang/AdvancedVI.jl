@@ -63,6 +63,8 @@ abstract type AbstractVariationalObjective end
 function init              end
 function estimate_gradient end
 
+init(::Nothing) = nothing
+
 # ADVI-specific interfaces
 abstract type AbstractEntropyEstimator end
 abstract type AbstractControlVariate end
