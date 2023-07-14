@@ -43,7 +43,6 @@ function optimize(
         Optimisers.subtract!(λ, Δλ)
         stat′ = (iteration=t, Δλ=norm(Δλ), gradient_norm=norm(g))
         stat = merge(stat, stat′)
-
         q    = restructure(λ)
 
         if !isnothing(callback!)
@@ -52,9 +51,6 @@ function optimize(
         end
         
         AdvancedVI.DEBUG && @debug "Step $t" stat...
-
-        q    = project_domain(q)
-        λ, _ = Optimisers.destructure(q)
 
         pm_next!(prog, stat)
         stats[t] = stat
