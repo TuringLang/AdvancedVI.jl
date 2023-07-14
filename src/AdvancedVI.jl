@@ -74,7 +74,6 @@ init(::Nothing) = nothing
 update(::Nothing, ::Nothing) = (nothing, nothing)
 
 include("objectives/elbo/advi.jl")
-include("objectives/elbo/advi_energy.jl")
 include("objectives/elbo/entropy.jl")
 
 export
@@ -82,6 +81,7 @@ export
     ADVI,
     ADVIEnergy,
     ClosedFormEntropy,
+    StickingTheLandingEntropy,
     MonteCarloEntropy
 
 # Variational Families

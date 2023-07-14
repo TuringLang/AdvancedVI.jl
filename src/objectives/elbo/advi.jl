@@ -1,32 +1,41 @@
 
-struct ADVI{EnergyEst   <: AbstractEnergyEstimator,
+struct ADVI{Tlogπ, B,
             EntropyEst  <: AbstractEntropyEstimator,
             ControlVar  <: Union{<: AbstractControlVariate, Nothing}} <: AbstractVariationalObjective
-    energy_estimator::EnergyEst
+    ℓπ::Tlogπ
+    b⁻¹::B
     entropy_estimator::EntropyEst
     control_variate::ControlVar
     n_samples::Int
+
+    function ADVI(prob, b⁻¹, entropy_estimator, control_variate, n_samples)
+        cap = LogDensityProblems.capabilities(prob)
+        if cap === nothing
+            throw(
+                ArgumentError(
+                    "The log density function does not support the LogDensityProblems.jl interface",
+                ),
+            )
+        end
+        ℓπ = Base.Fix1(LogDensityProblems.logdensity, prob)
+        new{typeof(ℓπ), typeof(b⁻¹), typeof(entropy_estimator), typeof(control_variate)}(
+            ℓπ, b⁻¹, entropy_estimator, control_variate, n_samples
+        )
+    end
 end
 
 skip_entropy_gradient(advi::ADVI) = skip_entropy_gradient(advi.entropy_estimator)
 
 init(advi::ADVI) = init(advi.control_variate)
 
-Base.show(io::IO, advi::ADVI) = print(
-    io,
-    "ADVI(energy_estimator=$(advi.energy_estimator), " *
-    "entropy_estimator=$(advi.entropy_estimator), " *
-    "control_variate=$(advi.control_variate), " *
-    "n_samples=$(advi.n_samples))")
-
-function ADVI(energy_estimator::AbstractEnergyEstimator,
+function ADVI(ℓπ, b⁻¹,
               entropy_estimator::AbstractEntropyEstimator,
               n_samples::Int)
-    ADVI(energy_estimator, entropy_estimator, nothing, n_samples)
+    ADVI(ℓπ, b⁻¹, entropy_estimator, nothing, n_samples)
 end
 
 function ADVI(ℓπ, b⁻¹, n_samples::Int)
-    ADVI(ADVIEnergy(ℓπ, b⁻¹), ClosedFormEntropy(), n_samples)
+    ADVI(ℓπ, b⁻¹, ClosedFormEntropy(), nothing, n_samples)
 end
 
 function (advi::ADVI)(q_η::ContinuousMultivariateDistribution;
@@ -34,7 +43,10 @@ function (advi::ADVI)(q_η::ContinuousMultivariateDistribution;
                       n_samples ::Int            = advi.n_samples,
                       ηs        ::AbstractMatrix = rand(rng, q_η, n_samples),
                       q_η_entropy::ContinuousMultivariateDistribution = q_η)
-    𝔼ℓ = advi.energy_estimator(q_η, ηs)
+    𝔼ℓ = mapreduce(+, eachcol(ηs)) do ηᵢ
+        zᵢ, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(advi.b⁻¹, ηᵢ)
+        (advi.ℓπ(zᵢ) + logdetjacᵢ) / n_samples
+    end
     ℍ  = advi.entropy_estimator(q_η_entropy, ηs)
     𝔼ℓ + ℍ
 end
