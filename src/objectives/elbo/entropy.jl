@@ -14,27 +14,35 @@ MonteCarloEntropy() = MonteCarloEntropy{false}()
 Base.show(io::IO, entropy::MonteCarloEntropy{false}) = print(io, "MonteCarloEntropy()")
 
 """
-  Sticking the Landing Control Variate
+    StickingTheLandingEntropy()
 
-  # Explanation
+# Explanation
 
-  This eatimator forms a control variate of the form of
+The STL estimator forms a control variate of the form of
  
-    c(z)  = 𝔼-logq(z) + logq(z) = ℍ[q] - logq(z)
+```math
+\\mathrm{CV}_{\\mathrm{STL}}\\left(z\\right) =
+  \\mathbb{E}\\left[ -\\log q\\left(z\\right) \\right]
+  + \\log q\\left(z\\right) = \\mathbb{H}\\left(q_{\\lambda}\\right) + \\log q_{\\lambda}\\left(z\\right),
+```
+where, for the score term, the gradient is stopped from propagating.
  
-   Adding this to the closed-form entropy ELBO estimator yields:
- 
-     ELBO - c(z) = 𝔼logπ(z) + ℍ[q] - c(z) = 𝔼logπ(z) - logq(z),
+Adding this to the closed-form entropy ELBO estimator yields the STL estimator:
+```math
+\\begin{aligned}
+  \\widehat{\\mathrm{ELBO}}_{\\mathrm{STL}}\\left(\\lambda\\right)
+    &\\triangleq \\mathbb{E}\\left[ \\log \\pi \\left(z\\right) \\right] - \\log q_{\\lambda} \\left(z\\right) \\\\
+    &= \\mathbb{E}\\left[ \\log \\pi\\left(z\\right) \\right] 
+      + \\mathbb{H}\\left(q_{\\lambda}\\right) - \\mathrm{CV}_{\\mathrm{STL}}\\left(z\\right) \\\\
+    &= \\widehat{\\mathrm{ELBO}}\\left(\\lambda\\right)
+      - \\mathrm{CV}_{\\mathrm{STL}}\\left(z\\right),
+\\end{aligned}
+```
+which has the same expectation, but lower variance when ``\\pi \\approx q_{\\lambda}``,
+and higher variance when ``\\pi \\not\\approx q_{\\lambda}``.
 
-   which has the same expectation, but lower variance when π ≈ q,
-   and higher variance when π ≉ q.
-
-   # Reference
-
-   Roeder, Geoffrey, Yuhuai Wu, and David K. Duvenaud.
-   "Sticking the landing: Simple, lower-variance gradient estimators for
-   variational inference."
-   Advances in Neural Information Processing Systems 30 (2017).
+# Reference
+1. Roeder, G., Wu, Y., & Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. Advances in Neural Information Processing Systems, 30.
 """
 StickingTheLandingEntropy() = MonteCarloEntropy{true}()
 

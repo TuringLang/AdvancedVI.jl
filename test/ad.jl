@@ -5,11 +5,11 @@ using ADTypes
 
 @testset "ad" begin
     @testset "$(adname)" for (adname, adsymbol) ∈ Dict(
-          :ForwardDiffAuto => AutoForwardDiff(),
-          :ForwardDiff     => AutoForwardDiff(10),
-          :ReverseDiff     => AutoReverseDiff(),
-          :Zygote          => AutoZygote(),
-          :Tracker         => AutoTracker(),
+          :ForwardDiff => AutoForwardDiff(),
+          :ReverseDiff => AutoReverseDiff(),
+          :Zygote      => AutoZygote(),
+          :Tracker     => AutoTracker(),
+          :Enzyme      => AutoEnzyme(),
         )
         D = 10
         A = randn(D, D)

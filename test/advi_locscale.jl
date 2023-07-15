@@ -29,15 +29,15 @@ include("models/normallognormal.jl")
                 :NormalLogNormalFullRank  => normallognormal_fullrank,
             ),
             (objname, objective) ∈ Dict(
-                :ADVIClosedFormEntropy  => (model, b⁻¹, M) -> ADVI(model, b⁻¹,                              M),
-                :ADVIStickingTheLanding => (model, b⁻¹, M) -> ADVI(model, b⁻¹, StickingTheLandingEntropy(), M),
-                :ADVIFullMonteCarlo     => (model, b⁻¹, M) -> ADVI(model, b⁻¹, MonteCarloEntropy(),         M),
+                :ADVIClosedFormEntropy  => (model, b, M) -> ADVI(model, M; b),
+                :ADVIStickingTheLanding => (model, b, M) -> ADVI(model, M; b, H = StickingTheLandingEntropy()),
+                :ADVIFullMonteCarlo     => (model, b, M) -> ADVI(model, M; b, H = MonteCarloEntropy()),
             ),
             (adbackname, adbackend) ∈ Dict(
                 :ForwarDiff  => AutoForwardDiff(),
-                :ReverseDiff => AutoReverseDiff(),
-                :Zygote      => AutoZygote(),
-                :Enzyme      => AutoEnzyme(),
+                # :ReverseDiff => AutoReverseDiff(),
+                # :Zygote      => AutoZygote(),
+                # :Enzyme      => AutoEnzyme(),
             )
 
             seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
@@ -68,7 +68,7 @@ include("models/normallognormal.jl")
                 Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
                 q, stats  = optimize(
                     obj, q₀, T;
-                    optimizer = Optimisers.AdaGrad(1e-1),
+                    optimizer = Optimisers.Adam(1e-3),
                     progress  = PROGRESS,
                     rng       = rng,
                     adbackend = adbackend,
@@ -87,7 +87,7 @@ include("models/normallognormal.jl")
                 rng      = Philox4x(UInt64, seed, 8)
                 q, stats = optimize(
                     obj, q₀, T;
-                    optimizer = Optimisers.AdaGrad(1e-1),
+                    optimizer = Optimisers.Adam(1e-3),
                     progress  = PROGRESS,
                     rng       = rng,
                     adbackend = adbackend,
@@ -98,7 +98,7 @@ include("models/normallognormal.jl")
                 rng_repl = Philox4x(UInt64, seed, 8)
                 q, stats = optimize(
                     obj, q₀, T;
-                    optimizer = Optimisers.AdaGrad(1e-1),
+                    optimizer = Optimisers.Adam(1e-3),
                     progress  = PROGRESS,
                     rng       = rng_repl,
                     adbackend = adbackend,

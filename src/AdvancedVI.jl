@@ -5,7 +5,10 @@ using SimpleUnPack: @unpack, @pack!
 using Accessors
 
 import Random: AbstractRNG, default_rng
-import Distributions: logpdf, _logpdf, rand, _rand!, _rand!
+using Distributions
+import Distributions:
+    logpdf, _logpdf, rand, _rand!, _rand!,
+    ContinuousMultivariateDistribution
 
 using Functors
 using Optimisers
@@ -24,8 +27,6 @@ using ForwardDiff, Tracker
 
 using FillArrays
 using PDMats
-using Distributions, DistributionsAD
-using Distributions: ContinuousMultivariateDistribution
 using Bijectors
 
 using StatsBase
