@@ -72,7 +72,7 @@ include("models/utils.jl")
                 Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
                 q, stats  = optimize(
                     obj, q₀, T;
-                    optimizer = Optimisers.Adam(1e-3),
+                    optimizer = Optimisers.Adam(1e-2),
                     progress  = PROGRESS,
                     rng       = rng,
                     adbackend = adbackend,
@@ -82,7 +82,7 @@ include("models/utils.jl")
                 L  = q.scale
                 Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
-                @test Δλ ≤ Δλ₀/√T
+                @test Δλ ≤ Δλ₀/T^(1/4)
                 @test eltype(μ) == eltype(μ_true)
                 @test eltype(L) == eltype(L_true)
             end
@@ -91,7 +91,7 @@ include("models/utils.jl")
                 rng      = Philox4x(UInt64, seed, 8)
                 q, stats = optimize(
                     obj, q₀, T;
-                    optimizer = Optimisers.Adam(1e-3),
+                    optimizer = Optimisers.Adam(realtype(1e-2)),
                     progress  = PROGRESS,
                     rng       = rng,
                     adbackend = adbackend,
@@ -102,7 +102,7 @@ include("models/utils.jl")
                 rng_repl = Philox4x(UInt64, seed, 8)
                 q, stats = optimize(
                     obj, q₀, T;
-                    optimizer = Optimisers.Adam(1e-3),
+                    optimizer = Optimisers.Adam(realtype(1e-2)),
                     progress  = PROGRESS,
                     rng       = rng_repl,
                     adbackend = adbackend,

@@ -25,9 +25,8 @@ function normal_fullrank(realtype; rng = default_rng())
     n_dims = 5
 
     μ  = randn(rng, realtype, n_dims)
-    L₀ = sample_cholesky(rng, n_dims)
-    ϵ  = eps(realtype)*10
-    Σ  = (L₀*L₀' + ϵ*I) |> Hermitian
+    L₀ = sample_cholesky(rng, realtype, n_dims)
+    Σ  = L₀*L₀' |> Hermitian
 
     Σ_chol = cholesky(Σ)
     model  = TestMvNormal(μ, PDMats.PDMat(Σ, Σ_chol))
