@@ -19,6 +19,8 @@ struct TestModel{M,L,S}
 end
 
 include("models/normallognormal.jl")
+include("models/normal.jl")
+include("models/utils.jl")
 
 @testset "advi" begin
     @testset "locscale" begin
@@ -27,11 +29,13 @@ include("models/normallognormal.jl")
             (modelname, modelconstr) ∈ Dict(
                 :NormalLogNormalMeanField => normallognormal_meanfield,
                 :NormalLogNormalFullRank  => normallognormal_fullrank,
+                :NormalMeanField          => normal_meanfield,
+                :NormalFullRank           => normal_fullrank,
             ),
             (objname, objective) ∈ Dict(
                 :ADVIClosedFormEntropy  => (model, b, M) -> ADVI(model, M; b),
                 :ADVIStickingTheLanding => (model, b, M) -> ADVI(model, M; b, entropy = StickingTheLandingEntropy()),
-                :ADVIFullMonteCarlo     => (model, b, M) -> ADVI(model, M; b, entropy = MonteCarloEntropy()),
+                :ADVIFullMonteCarlo     => (model, b, M) -> ADVI(model, M; b, entropy = FullMonteCarloEntropy()),
             ),
             (adbackname, adbackend) ∈ Dict(
                 :ForwarDiff  => AutoForwardDiff(),

@@ -7,11 +7,9 @@ end
 
 skip_entropy_gradient(::ClosedFormEntropy) = false
 
-struct MonteCarloEntropy{IsStickingTheLanding} <: AbstractEntropyEstimator end
+abstract type MonteCarloEntropy <: AbstractEntropyEstimator end
 
-MonteCarloEntropy() = MonteCarloEntropy{false}()
-
-Base.show(io::IO, entropy::MonteCarloEntropy{false}) = print(io, "MonteCarloEntropy()")
+struct FullMonteCarloEntropy <: MonteCarloEntropy end
 
 """
     StickingTheLandingEntropy()
@@ -44,11 +42,8 @@ and higher variance when ``\\pi \\not\\approx q_{\\lambda}``.
 # Reference
 1. Roeder, G., Wu, Y., & Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. Advances in Neural Information Processing Systems, 30.
 """
-StickingTheLandingEntropy() = MonteCarloEntropy{true}()
 
-skip_entropy_gradient(::MonteCarloEntropy{IsStickingTheLanding}) where {IsStickingTheLanding} = IsStickingTheLanding
-
-Base.show(io::IO, entropy::MonteCarloEntropy{true}) = print(io, "StickingTheLandingEntropy()")
+struct StickingTheLandingEntropy <: MonteCarloEntropy end
 
 function (::MonteCarloEntropy)(q, ηs::AbstractMatrix)
     n_samples = size(ηs, 2)

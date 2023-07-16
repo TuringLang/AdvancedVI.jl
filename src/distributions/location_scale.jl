@@ -1,8 +1,8 @@
 
 """
-    VILocationScale{L,R,D}(location::L, scale::S, dist::D) <: ContinuousMultivariateDistribution
+    VILocationScale(location, scale, dist) <: ContinuousMultivariateDistribution
 
-The [location scale] variational family broadly represents various variational
+The location scale variational family broadly represents various variational
 families using `location` and `scale` variational parameters.
 
 It generally represents any distribution for which the sampling path can be
@@ -18,14 +18,14 @@ struct VILocationScale{L, S, D} <: ContinuousMultivariateDistribution
     scale   ::S
     dist    ::D
 
-    function VILocationScale(μ::AbstractVector{<:Real},
-                             L::Union{<:AbstractTriangular{<:Real},
+    function VILocationScale(location::AbstractVector{<:Real},
+                             scale::Union{<:AbstractTriangular{<:Real},
                                       <:Diagonal{<:Real}},
-                             q_base::ContinuousUnivariateDistribution)
+                             dist::ContinuousUnivariateDistribution)
         # Restricting all the arguments to have the same types creates problems 
         # with dual-variable-based AD frameworks.
-        @assert (length(μ) == size(L,1)) && (length(μ) == size(L,2))
-        new{typeof(μ), typeof(L), typeof(q_base)}(μ, L, q_base)
+        @assert (length(location) == size(scale,1)) && (length(location) == size(scale,2))
+        new{typeof(location), typeof(scale), typeof(dist)}(location, scale, dist)
     end
 end
 
@@ -87,7 +87,7 @@ function VIFullRankGaussian(μ::AbstractVector{T}, L::AbstractTriangular{T}) whe
 end
 
 """
-    VIFullRankGaussian(μ::AbstractVector{T}, L::AbstractTriangular{T})
+    VIMeanFieldGaussian(μ::AbstractVector{T}, L::Diagonal{T})
 
 This constructs a multivariate Gaussian distribution with a diagonal covariance matrix.
 """

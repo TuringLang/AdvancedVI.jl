@@ -73,8 +73,9 @@ abstract type AbstractControlVariate end
 function update end
 update(::Nothing, ::Nothing) = (nothing, nothing)
 
-include("objectives/elbo/advi.jl")
+# entropy.jl must preceed advi.jl
 include("objectives/elbo/entropy.jl")
+include("objectives/elbo/advi.jl")
 
 export
     ELBO,
@@ -82,13 +83,14 @@ export
     ADVIEnergy,
     ClosedFormEntropy,
     StickingTheLandingEntropy,
-    MonteCarloEntropy
+    FullMonteCarloEntropy
 
 # Variational Families
 
 include("distributions/location_scale.jl")
 
 export
+    VILocationScale,
     VIFullRankGaussian,
     VIMeanFieldGaussian
 
