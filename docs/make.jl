@@ -1,4 +1,5 @@
-#using AdvancedVI
+
+using AdvancedVI
 using Documenter
 
 DocMeta.setdocmeta!(
@@ -9,9 +10,9 @@ makedocs(;
     sitename = "AdvancedVI.jl",
     modules  = [AdvancedVI],
     format   = Documenter.HTML(; prettyurls = get(ENV, "CI", nothing) == "true"),
-         pages    = ["index.md",
-                     "families.md",
-                     "advi.md"],
+         pages    = ["Home"     => "index.md",
+                     "Families" => "families.md",
+                     "ADVI"     => "advi.md"],
 )
 
-deploydocs(; repo="github.com/TuringLang/AdvancedVI.jl", devbranch="main")
+deploydocs(; repo="github.com/TuringLang/AdvancedVI.jl", push_preview=true)

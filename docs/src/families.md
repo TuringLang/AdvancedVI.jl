@@ -1,5 +1,5 @@
 
-# [Variational Families](@id families)
+# Variational Families
 
 ## Location-Scale Variational Family
 
@@ -25,34 +25,42 @@ VIMeanFieldGaussian
 
 ### Examples
 
-A full-rank variational family can be formed by choosing
 ```@repl locscale
-using AdvancedVI, LinearAlgebra
+using AdvancedVI, LinearAlgebra, Distributions;
 μ = zeros(2);
-L = diagm(ones(2)) |> LowerTriangular;
-```
-
-A mean-field variational family can be formed by choosing 
-```@repl locscale
-μ = zeros(2);
-L = ones(2) |> Diagonal;
 ```
 
 Gaussian variational family:
 ```@repl locscale
+L = diagm(ones(2)) |> LowerTriangular;
 q = VIFullRankGaussian(μ, L)
+
+L = ones(2) |> Diagonal;
 q = VIMeanFieldGaussian(μ, L)
 ```
 
 Sudent-T Variational Family:
 
 ```@repl locscale
-ν = 3
-q = VILocationScale(μ, L, StudentT(ν))
+ν = 3;
+
+# Full-Rank 
+L = diagm(ones(2)) |> LowerTriangular;
+q = VILocationScale(μ, L, TDist(ν))
+
+# Mean-Field
+L = ones(2) |> Diagonal;
+q = VILocationScale(μ, L, TDist(ν))
 ```
 
 Multivariate Laplace family:
 ```@repl locscale
+# Full-Rank 
+L = diagm(ones(2)) |> LowerTriangular;
+q = VILocationScale(μ, L, Laplace())
+
+# Mean-Field
+L = ones(2) |> Diagonal;
 q = VILocationScale(μ, L, Laplace())
 ```
 
