@@ -5,7 +5,7 @@
 The [location-scale](https://en.wikipedia.org/wiki/Location%E2%80%93scale_family) variational family is a family of probability distributions, where their sampling process can be represented as
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
-z \stackrel{d}{=} z = C u + m;\quad u \sim \varphi
+z \stackrel{d}{=} C u + m;\quad u \sim \varphi
 ```
 where ``C`` is the *scale*, ``m`` is the location, and ``\varphi`` is the *base distribution*.
 ``m`` and ``C`` form the variational parameters ``\lambda = (m, C)`` of ``q_{\lambda}``. 

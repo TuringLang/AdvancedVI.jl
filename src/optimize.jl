@@ -51,7 +51,6 @@ function optimize(
     rng          ::AbstractRNG             = default_rng(),
     show_progress::Bool                    = true,
     callback!                              = nothing,
-    #convergence                           = (args...) -> (false, con_state),
     adbackend::AbstractADType              = AutoForwardDiff(), 
     prog                                   = ProgressMeter.Progress(
         n_max_iter;
@@ -64,7 +63,6 @@ function optimize(
     λ         = copy(λ₀)
     opt_state = Optimisers.setup(optimizer, λ)
     est_state = init(objective)
-    #con_state = init(convergence)
     grad_buf  = DiffResults.GradientResult(λ)
     stats     = NamedTuple[]
 
@@ -89,11 +87,6 @@ function optimize(
 
         pm_next!(prog, stat)
         push!(stats, stat)
-
-        #convergence(rng, t, restructure, λ, q, objective, stat)
-        #if terminate()
-        #    break
-        #end
     end
     λ, map(identity, stats), opt_state
 end
