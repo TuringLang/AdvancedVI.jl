@@ -1,6 +1,6 @@
 
 using ReTest
-using ForwardDiff, ReverseDiff, Tracker, Enzyme, Zygote
+using ForwardDiff, ReverseDiff, Enzyme, Zygote
 using ADTypes
 
 @testset "ad" begin
@@ -8,7 +8,6 @@ using ADTypes
           :ForwardDiff => AutoForwardDiff(),
           :ReverseDiff => AutoReverseDiff(),
           :Zygote      => AutoZygote(),
-          :Tracker     => AutoTracker(),
           # :Enzyme      => AutoEnzyme(), # Currently not tested against.
         )
         D = 10
