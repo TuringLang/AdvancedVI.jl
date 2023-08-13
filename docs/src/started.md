@@ -50,10 +50,11 @@ using ForwardDiff
 import AdvancedVI as AVI
 ```
 We now need to select 1. a variational objective, and 2. a variational family.
-Here, we will use the [ADVI objective](@ref advi), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
+Here, we will use the [`ADVI` objective](@ref advi), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
 ```julia
-prob      = DynamicPPL.LogDensityFunction(model)
-objective = AVI.ADVI(prob, b⁻¹, 10),
+prob        = DynamicPPL.LogDensityFunction(model)]
+n_montecaro = 10
+objective   = AVI.ADVI(prob, b⁻¹, n_montecaro),
 ```
 For the variational family, we will use the classic mean-field Gaussian family.
 ```julia
