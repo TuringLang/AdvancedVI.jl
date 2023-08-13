@@ -72,7 +72,6 @@ include("objectives/elbo/advi.jl")
 export
     ELBO,
     ADVI,
-    ADVIEnergy,
     ClosedFormEntropy,
     StickingTheLandingEntropy,
     FullMonteCarloEntropy
