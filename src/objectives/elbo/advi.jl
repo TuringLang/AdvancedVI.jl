@@ -1,26 +1,21 @@
 
 """
-    ADVI(
-        prob,
-        n_samples::Int;
-        entropy::AbstractEntropyEstimator = ClosedFormEntropy(),
-        cv::Union{<:AbstractControlVariate, Nothing} = nothing,
-        b = Bijectors.identity
-    )
+    ADVI(prob, n_samples; kwargs...)
 
 Automatic differentiation variational inference (ADVI; Kucukelbir *et al.* 2017) objective.
 
 # Arguments
 - `prob`: An object that implements the order `K == 0` `LogDensityProblems` interface.
-    - `logdensity` must be differentiable by the selected AD backend.
-- `n_samples`: Number of Monte Carlo samples used to estimate the ELBO.
-- `entropy`: The estimator for the entropy term.
-- `cv`: A control variate
-- `b`: A bijector mapping the support of the base distribution to that of `prob`.
+- `n_samples`: Number of Monte Carlo samples used to estimate the ELBO. (Type `<: Int`.)
+
+# Keyword Arguments
+- `entropy`: The estimator for the entropy term. (Type `<: AbstractEntropyEstimator`; Default: ClosedFormEntropy())
+- `cv`: A control variate.
+- `b`: A bijector mapping the support of the base distribution to that of `prob`. (Default: `Bijectors.identity`.)
 
 # Requirements
 - ``q_{\\lambda}`` implements `rand`.
-- ``\\pi`` must be differentiable
+- `logdensity(prob)` must be differentiable by the selected AD backend.
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
 """
@@ -106,7 +101,7 @@ function estimate_advi_gradient_maybe_stl!(
         ηs  = rand(rng, q_η, advi.n_samples)
         -advi(rng, q_η_stop, ηs)
     end
-    grad!(adbackend, f, λ, out)
+    value_and_gradient!(adbackend, f, λ, out)
 end
 
 function estimate_advi_gradient_maybe_stl!(
