@@ -10,9 +10,12 @@ makedocs(;
     sitename = "AdvancedVI.jl",
     modules  = [AdvancedVI],
     format   = Documenter.HTML(; prettyurls = get(ENV, "CI", nothing) == "true"),
-         pages    = ["Home"     => "index.md",
-                     "Families" => "families.md",
-                     "ADVI"     => "advi.md"],
+         pages    = ["AdvancedVI"        => "index.md",
+                     "Getting Started"   => "started.md",
+                     "ELBO Maximization" => [
+                         "Automatic Differentiation VI" => "advi.md",   
+                         "Location Scale Family"        => "locscale.md",
+                     ]],
 )
 
 deploydocs(; repo="github.com/TuringLang/AdvancedVI.jl", push_preview=true)

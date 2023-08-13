@@ -1,7 +1,7 @@
 
-# Location-Scale Variational Family
+# [Location-Scale Variational Family](@id locscale)
 
-## Description
+## Introduction
 The [location-scale](https://en.wikipedia.org/wiki/Location%E2%80%93scale_family) variational family is a family of probability distributions, where their sampling process can be represented as
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
