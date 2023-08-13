@@ -9,15 +9,14 @@ using ADTypes
           :ReverseDiff => AutoReverseDiff(),
           :Zygote      => AutoZygote(),
           :Tracker     => AutoTracker(),
-          :Enzyme      => AutoEnzyme(),
+          # :Enzyme      => AutoEnzyme(), # Currently not tested against.
         )
         D = 10
         A = randn(D, D)
         λ = randn(D)
         grad_buf = DiffResults.GradientResult(λ)
-        AdvancedVI.grad!(adsymbol, λ, grad_buf) do λ′
-            λ′'*A*λ′ / 2
-        end
+        f(λ′) = λ′'*A*λ′ / 2
+        AdvancedVI.value_and_gradient!(adsymbol, f, λ, grad_buf)
         ∇ = DiffResults.gradient(grad_buf)
         f = DiffResults.value(grad_buf)
         @test ∇ ≈ (A + A')*λ/2

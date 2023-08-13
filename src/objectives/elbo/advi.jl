@@ -101,11 +101,12 @@ function estimate_advi_gradient_maybe_stl!(
     out::DiffResults.MutableDiffResult
 ) where {P, B, CV}
     q_η_stop = restructure(λ)
-    grad!(adbackend, λ, out) do λ′
+    f(λ′) = begin
         q_η = restructure(λ′)
         ηs  = rand(rng, q_η, advi.n_samples)
         -advi(rng, q_η_stop, ηs)
     end
+    grad!(adbackend, f, λ, out)
 end
 
 function estimate_advi_gradient_maybe_stl!(
@@ -116,11 +117,12 @@ function estimate_advi_gradient_maybe_stl!(
     restructure,
     out::DiffResults.MutableDiffResult
 ) where {P, B, CV}
-    grad!(adbackend, λ, out) do λ′
+    f(λ′) = begin
         q_η = restructure(λ′)
         ηs  = rand(rng, q_η, advi.n_samples)
         -advi(rng, q_η, ηs)
     end
+    value_and_gradient!(adbackend, f, λ, out)
 end
 
 function estimate_gradient(

@@ -21,9 +21,9 @@ using LinearAlgebra: AbstractTriangular
 
 using LogDensityProblems
 
-using ADTypes
+using ADTypes, DiffResults
 using ADTypes: AbstractADType
-using ForwardDiff, Tracker
+
 
 using FillArrays
 using PDMats
@@ -34,29 +34,23 @@ using StatsBase: entropy
 
 const DEBUG = Bool(parse(Int, get(ENV, "DEBUG_ADVANCEDVI", "0")))
 
-using Requires
-function __init__()
-    @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
-        include("compat/zygote.jl")
-    end
-    @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" begin
-        include("compat/reversediff.jl")
-    end
-    @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
-        include("compat/enzyme.jl")
-    end
-end
-
+# derivatives
 """
-    grad!(f, λ, out)
+    value_and_gradient!(
+        ad::ADTypes.AbstractADType,
+        f,
+        θ::AbstractVector{T},
+        out::DiffResults.MutableDiffResult
+    ) where {T<:Real}
 
-Computes the gradients of the objective f. Default implementation is provided for 
-`VariationalInference{AD}` where `AD` is either `ForwardDiffAD` or `TrackerAD`.
-This implicitly also gives a default implementation of `optimize!`.
+Compute the value and gradient of a function `f` at `θ` using the automatic
+differentiation backend `ad`.  The result is stored in `out`. 
+The function `f` must return a scalar value. The gradient is stored in `out` as a
+vector of the same length as `θ`.
 """
-function grad! end
+function value_and_gradient! end
 
-include("grad.jl")
+export value_and_gradient!
 
 # estimators
 abstract type AbstractVariationalObjective end
@@ -94,21 +88,8 @@ export
     VIFullRankGaussian,
     VIMeanFieldGaussian
 
-"""
-    optimize(model, alg::VariationalInference)
-    optimize(model, alg::VariationalInference, q::VariationalPosterior)
-    optimize(model, alg::VariationalInference, getq::Function, θ::AbstractArray)
+# Optimization Routine
 
-Constructs the variational posterior from the `model` and performs the optimization
-following the configuration of the given `VariationalInference` instance.
-
-# Arguments
-- `model`: `Turing.Model` or `Function` z ↦ log p(x, z) where `x` denotes the observations
-- `alg`: the VI algorithm used
-- `q`: a `VariationalPosterior` for which it is assumed a specialized implementation of the variational objective used exists.
-- `getq`: function taking parameters `θ` as input and returns a `VariationalPosterior`
-- `θ`: only required if `getq` is used, in which case it is the initial parameters for the variational posterior
-"""
 function optimize end
 
 include("optimize.jl")
@@ -117,4 +98,28 @@ export optimize
 
 include("utils.jl")
 
+
+# optional dependencies 
+if !isdefined(Base, :get_extension) # check whether :get_extension is defined in Base
+    using Requires
+end
+
+using Requires
+function __init__()
+    @static if !isdefined(Base, :get_extension)
+        @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
+            include("../ext/AdvancedVIZygoteExt.jl")
+        end
+        @require ForwardDiff = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
+            include("../ext/AdvancedVIForwardDiffExt.jl")
+        end
+        @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" begin
+            include("../ext/AdvancedVIReverseDiffExt.jl")
+        end
+        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
+            include("../ext/AdvancedVIEnzymeExt.jl")
+        end
+    end
+end
 end # module
+
