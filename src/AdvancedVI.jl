@@ -50,8 +50,6 @@ vector of the same length as `θ`.
 """
 function value_and_gradient! end
 
-export value_and_gradient!
-
 # estimators
 abstract type AbstractVariationalObjective end
 
@@ -104,11 +102,10 @@ if !isdefined(Base, :get_extension) # check whether :get_extension is defined in
     using Requires
 end
 
-using Requires
 function __init__()
     @static if !isdefined(Base, :get_extension)
-        @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
-            include("../ext/AdvancedVIZygoteExt.jl")
+        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
+            include("../ext/AdvancedVIEnzymeExt.jl")
         end
         @require ForwardDiff = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
             include("../ext/AdvancedVIForwardDiffExt.jl")
@@ -116,10 +113,11 @@ function __init__()
         @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" begin
             include("../ext/AdvancedVIReverseDiffExt.jl")
         end
-        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
-            include("../ext/AdvancedVIEnzymeExt.jl")
+        @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
+            include("../ext/AdvancedVIZygoteExt.jl")
         end
     end
 end
-end # module
+
+end
 
