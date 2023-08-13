@@ -69,13 +69,13 @@ include("models/utils.jl")
             obj = objective(model, b⁻¹, 10)
 
             @testset "convergence" begin
-                Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
-                q, stats  = optimize(
+                Δλ₀         = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
+                q, stats, _ = optimize(
                     obj, q₀, T;
-                    optimizer = Optimisers.Adam(1e-2),
-                    progress  = PROGRESS,
-                    rng       = rng,
-                    adbackend = adbackend,
+                    optimizer     = Optimisers.Adam(1e-2),
+                    show_progress = PROGRESS,
+                    rng           = rng,
+                    adbackend     = adbackend,
                 )
 
                 μ  = q.location
@@ -88,24 +88,24 @@ include("models/utils.jl")
             end
 
             @testset "determinism" begin
-                rng      = Philox4x(UInt64, seed, 8)
-                q, stats = optimize(
+                rng         = Philox4x(UInt64, seed, 8)
+                q, stats, _ = optimize(
                     obj, q₀, T;
-                    optimizer = Optimisers.Adam(realtype(1e-2)),
-                    progress  = PROGRESS,
-                    rng       = rng,
-                    adbackend = adbackend,
+                    optimizer     = Optimisers.Adam(realtype(1e-2)),
+                    show_progress = PROGRESS,
+                    rng           = rng,
+                    adbackend     = adbackend,
                 )
                 μ  = q.location
                 L  = q.scale
 
-                rng_repl = Philox4x(UInt64, seed, 8)
-                q, stats = optimize(
+                rng_repl    = Philox4x(UInt64, seed, 8)
+                q, stats, _ = optimize(
                     obj, q₀, T;
-                    optimizer = Optimisers.Adam(realtype(1e-2)),
-                    progress  = PROGRESS,
-                    rng       = rng_repl,
-                    adbackend = adbackend,
+                    optimizer     = Optimisers.Adam(realtype(1e-2)),
+                    show_progress = PROGRESS,
+                    rng           = rng_repl,
+                    adbackend     = adbackend,
                 )
                 μ_repl = q.location
                 L_repl = q.scale

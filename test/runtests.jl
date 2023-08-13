@@ -1,6 +1,8 @@
 
-using Comonicon
+using ReTest
 using ReTest: @testset, @test
+
+using Comonicon
 using Random
 using Random123
 using Statistics

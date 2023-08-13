@@ -103,6 +103,6 @@ function optimize(objective ::AbstractVariationalObjective,
                   n_max_iter::Int;
                   kwargs...)
     λ, restructure = Optimisers.destructure(q₀)
-    λ, stats = optimize(objective, restructure, λ, n_max_iter; kwargs...)
-    restructure(λ), stats
+    λ, stats, opt_state = optimize(objective, restructure, λ, n_max_iter; kwargs...)
+    restructure(λ), stats, opt_state
 end
