@@ -11,7 +11,7 @@ using Distributions: _logpdf
         seed         = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
         rng          = Philox4x(UInt64, seed, 8)
         realtype     = Float64
-        ϵ            = 1e-2
+        ϵ            = 1f-2
         n_dims       = 10
         n_montecarlo = 1000_000
 
