@@ -31,6 +31,7 @@ Optimize the variational objective `objective` by estimating (stochastic) gradie
 - `n_max_iter`: Maximum number of iterations.
 
 # Keyword Arguments
+- `adbackend`: Automatic differentiation backend. (Type: `<: ADtypes.AbstractADType`.)
 - `optimizer`: Optimizer used for inference. (Type: `<: Optimisers.AbstractRule`; Default: `Adam`.)
 - `rng`: Random number generator. (Type: `<: AbstractRNG`; Default: `Random.default_rng()`.)
 - `show_progress`: Whether to show the progress bar. (Type: `<: Bool`; Default: `true`.)
@@ -47,11 +48,11 @@ function optimize(
     restructure,
     λ₀           ::AbstractVector{<:Real},
     n_max_iter   ::Int;
+    adbackend::AbstractADType, 
     optimizer    ::Optimisers.AbstractRule = Optimisers.Adam(),
     rng          ::AbstractRNG             = default_rng(),
     show_progress::Bool                    = true,
     callback!                              = nothing,
-    adbackend::AbstractADType              = AutoForwardDiff(), 
     prog                                   = ProgressMeter.Progress(
         n_max_iter;
         desc      = "Optimizing",

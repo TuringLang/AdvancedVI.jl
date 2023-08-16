@@ -37,7 +37,7 @@ AdvancedVIZygoteExt = "Zygote"
 [compat]
 ADTypes = "0.1"
 Bijectors = "0.11, 0.12, 0.13"
-DiffResults = "1.0.3"
+DiffResults = "1"
 Distributions = "0.21, 0.22, 0.23, 0.24, 0.25"
 DocStringExtensions = "0.8, 0.9"
 ForwardDiff = "0.10.25"
