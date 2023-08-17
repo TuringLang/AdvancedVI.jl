@@ -42,12 +42,12 @@ end
 
 function logpdf(q::VILocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
-    mapreduce(zᵢ -> logpdf(dist, zᵢ), +, scale \ (z - location)) - first(logabsdet(scale))
+    sum(zᵢ -> logpdf(dist, zᵢ), scale \ (z - location)) - first(logabsdet(scale))
 end
 
 function _logpdf(q::VILocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
-    mapreduce(zᵢ -> logpdf(dist, zᵢ), +, scale \ (z - location)) - first(logabsdet(scale))
+    sum(zᵢ -> logpdf(dist, zᵢ), scale \ (z - location)) - first(logabsdet(scale))
 end
 
 function rand(q::VILocationScale)

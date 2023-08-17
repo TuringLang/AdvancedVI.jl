@@ -23,9 +23,8 @@ The "sticking the landing" entropy estimator.
 struct StickingTheLandingEntropy <: MonteCarloEntropy end
 
 function (::MonteCarloEntropy)(q, ηs::AbstractMatrix)
-    n_samples = size(ηs, 2)
-    mapreduce(+, eachcol(ηs)) do ηᵢ
-        -logpdf(q, ηᵢ) / n_samples
+    mean(eachcol(ηs)) do ηᵢ
+        -logpdf(q, ηᵢ)
     end
 end
 

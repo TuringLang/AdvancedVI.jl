@@ -55,10 +55,9 @@ function (advi::ADVI)(
     q_η::ContinuousMultivariateDistribution,
     ηs ::AbstractMatrix
 )
-    n_samples = size(ηs, 2)
-    𝔼ℓ = mapreduce(+, eachcol(ηs)) do ηᵢ
+    𝔼ℓ = mean(eachcol(ηs)) do ηᵢ
         zᵢ, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(advi.b, ηᵢ)
-        (advi.ℓπ(zᵢ) + logdetjacᵢ) / n_samples
+        (advi.ℓπ(zᵢ) + logdetjacᵢ)
     end
     ℍ  = advi.entropy(q_η, ηs)
     𝔼ℓ + ℍ
