@@ -11,8 +11,8 @@ else
     using ..AdvancedVI: ADTypes, DiffResults
 end
 
-# extract chunk size from AutoForwardDiff
 getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
+
 function AdvancedVI.value_and_gradient!(
     ad::ADTypes.AutoForwardDiff, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
 ) where {T<:Real}

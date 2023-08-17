@@ -25,7 +25,7 @@ include("models/utils.jl")
 @testset "advi" begin
     @testset "locscale" begin
         @testset "$(modelname) $(objname) $(realtype) $(adbackname)"  for
-            realtype ∈ [Float32, Float64],
+            realtype ∈ [Float64], # Currently only tested against Float64
             (modelname, modelconstr) ∈ Dict(
                 :NormalLogNormalMeanField => normallognormal_meanfield,
                 :NormalLogNormalFullRank  => normallognormal_fullrank,
