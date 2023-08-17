@@ -106,7 +106,7 @@ function __init__()
         @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
             include("../ext/AdvancedVIEnzymeExt.jl")
         end
-        @require ForwardDiff = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
+        @require ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210" begin
             include("../ext/AdvancedVIForwardDiffExt.jl")
         end
         @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" begin
