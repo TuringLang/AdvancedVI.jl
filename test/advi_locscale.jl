@@ -35,7 +35,6 @@ include("models/utils.jl")
             (objname, objective) ∈ Dict(
                 :ADVIClosedFormEntropy  => (model, b, M) -> ADVI(model, M; b),
                 :ADVIStickingTheLanding => (model, b, M) -> ADVI(model, M; b, entropy = StickingTheLandingEntropy()),
-                :ADVIFullMonteCarlo     => (model, b, M) -> ADVI(model, M; b, entropy = FullMonteCarloEntropy()),
             ),
             (adbackname, adbackend) ∈ Dict(
                 :ForwarDiff  => AutoForwardDiff(),
