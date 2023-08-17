@@ -7,15 +7,16 @@ DocMeta.setdocmeta!(
 )
 
 makedocs(;
-    sitename = "AdvancedVI.jl",
     modules  = [AdvancedVI],
+    sitename = "AdvancedVI.jl",
+    repo     = "https://github.com/TuringLang/AdvancedVI.jl/blob/{commit}{path}#{line}",
     format   = Documenter.HTML(; prettyurls = get(ENV, "CI", nothing) == "true"),
-         pages    = ["AdvancedVI"        => "index.md",
-                     "Getting Started"   => "started.md",
-                     "ELBO Maximization" => [
-                         "Automatic Differentiation VI" => "advi.md",   
-                         "Location Scale Family"        => "locscale.md",
-                     ]],
+    pages    = ["AdvancedVI"        => "index.md",
+                "Getting Started"   => "started.md",
+                "ELBO Maximization" => [
+                    "Automatic Differentiation VI" => "advi.md",   
+                    "Location Scale Family"        => "locscale.md",
+                ]],
 )
 
 deploydocs(; repo="github.com/TuringLang/AdvancedVI.jl", push_preview=true)
