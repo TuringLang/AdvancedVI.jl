@@ -14,62 +14,119 @@ To use `AdvancedVI`, a user needs to select a `variational family`, `variational
 optimize
 ```
 
-## `ADVI` Example Using `Turing`
+## `ADVI` Example 
+In this tutorial, we will work with a basic `normal-log-normal` model.
+```math
+\begin{aligned}
+x &\sim \mathsf{log\text{-}normal}\left(\mu_x, \sigma_x^2\right) \\
+y &\sim \mathsf{normal}\left(\mu_y, \sigma_y^2\right)
+\end{aligned}
+```
+ADVI with `Bijectors.Exp` bijectors is able to infer this model exactly.
 
-In this tutorial, we'll use `Turing` to define a basic `normal-log-normal` model.
-ADVI with log bijectors is able to infer this model exactly.
-```julia
-using Turing
+Using the `LogDensityProblems` interface, we the model can be defined as follows:
+```@example advi
+using LogDensityProblems
+using SimpleUnPack
 
-μ_y, σ_y = 1.0, 1.0
-μ_z, Σ_z = [1.0, 2.0], [1.0 0.; 0. 2.0]
-
-Turing.@model function normallognormal()
-    y ~ LogNormal(μ_y, σ_y)
-    z ~ MvNormal(μ_z, Σ_z)
+struct NormalLogNormal{MX,SX,MY,SY}
+    μ_x::MX
+    σ_x::SX
+    μ_y::MY
+    Σ_y::SY
 end
-model = normallognormal()
+
+function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
+    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
+end
+
+function LogDensityProblems.dimension(model::NormalLogNormal)
+    length(model.μ_y) + 1
+end
+
+function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
+    LogDensityProblems.LogDensityOrder{0}()
+end
+```
+Let's now instantiate the model
+```@example advi
+using PDMats
+
+n_dims = 10
+μ_x    = randn()
+σ_x    = exp.(randn())
+μ_y    = randn(n_dims)
+σ_y    = exp.(randn(n_dims))
+model  = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2));
 ```
 
 Since the `y` follows a log-normal prior, its support is bounded to be the positive half-space ``\mathbb{R}_+``.
 Thus, we will use [Bijectors](https://github.com/TuringLang/Bijectors.jl) to match the support of our target posterior and the variational approximation.
-```julia
+```@example advi
 using Bijectors
 
-b     = Bijectors.bijector(model)
-b⁻¹   = inverse(b)
+function Bijectors.bijector(model::NormalLogNormal)
+    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    Bijectors.Stacked(
+        Bijectors.bijector.([LogNormal(μ_x, σ_x), MvNormal(μ_y, Σ_y)]),
+        [1:1, 2:1+length(μ_y)])
+end
+
+b   = Bijectors.bijector(model);
+b⁻¹ = inverse(b)
 ```
 
 Let's now load `AdvancedVI`.
 Since ADVI relies on automatic differentiation (AD), hence the "AD" in "ADVI", we need to load an AD library, *before* loading `AdvancedVI`.
 Also, the selected AD framework needs to be communicated to `AdvancedVI` using the [ADTypes](https://github.com/SciML/ADTypes.jl) interface.
 Here, we will use `ForwardDiff`, which can be selected by later passing `ADTypes.AutoForwardDiff()`.
-```julia
+```@example advi
 using Optimisers
-using ForwardDiff
+using ADTypes, ForwardDiff
 import AdvancedVI as AVI
 ```
 We now need to select 1. a variational objective, and 2. a variational family.
 Here, we will use the [`ADVI` objective](@ref advi), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
-```julia
-prob        = DynamicPPL.LogDensityFunction(model)]
-n_montecaro = 10
-objective   = AVI.ADVI(prob, b⁻¹, n_montecaro),
+```@example advi
+n_montecaro = 10;
+objective   = AVI.ADVI(model, n_montecaro; b = b⁻¹)
 ```
 For the variational family, we will use the classic mean-field Gaussian family.
-```julia
-d = LogDensityProblems.dimension(prob)
-μ = randn(d)
-L = Diagonal(ones(d))
+```@example advi
+using LinearAlgebra
+
+d = LogDensityProblems.dimension(model);
+μ = randn(d);
+L = Diagonal(ones(d));
 q = AVI.VIMeanFieldGaussian(μ, L)
 ```
-It now remains to run inverence!
-```
-n_max_iter = 10^4
-q, stats   = AVI.optimize(
+Passing `objective` and the initial variational approximation `q` to `optimize` performs inference.
+```@example advi
+n_max_iter  = 10^4
+q, stats, _ = AVI.optimize(
+    objective,
     q,
     n_max_iter;
     adbackend = AutoForwardDiff(),
     optimizer = Optimisers.Adam(1e-3)
-)
+); 
+```
+
+The selected inference procedure stores per-iteration statistics into `stats`.
+For instance, the ELBO can be ploted as follows:
+```@example advi
+using Plots
+
+t = [stat.iteration for stat ∈ stats]
+y = [stat.elbo for stat ∈ stats]
+plot(t[1:100:end], y[1:100:end])
+savefig("advi_example_elbo.svg"); nothing
+```
+![](advi_example_elbo.svg)
+Further information can be gathered by defining your own `callback!`.
+
+The final ELBO can be estimated by calling the objective directly with a different number of Monte Carlo samples as follows:
+```@example advi
+ELBO = objective(q; n_samples=10^4)
 ```
