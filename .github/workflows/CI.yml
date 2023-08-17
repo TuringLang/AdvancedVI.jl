@@ -20,7 +20,7 @@ jobs:
           - windows-latest
         arch:
           - x64
-          - x86
+          # - x86 # Uncomment after https://github.com/JuliaTesting/ReTest.jl/pull/52 is merged
         exclude:
           - os: macOS-latest
             arch: x86
