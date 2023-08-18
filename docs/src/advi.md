@@ -218,7 +218,7 @@ nothing
 ![](advi_stl_elbo.svg)
 
 We can see that the noise of the STL estimator becomes smaller as VI converges.
-However, the difference in speed of convergence may not always be significant.
+However, the speed of convergence may not always be significantly different.
 
 
 ## References
