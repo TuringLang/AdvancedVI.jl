@@ -5,8 +5,6 @@ function (::ClosedFormEntropy)(q, ::AbstractMatrix)
     entropy(q)
 end
 
-skip_entropy_gradient(::ClosedFormEntropy) = false
-
 abstract type MonteCarloEntropy <: AbstractEntropyEstimator end
 
 struct FullMonteCarloEntropy <: MonteCarloEntropy end
