@@ -39,7 +39,7 @@ include("models/utils.jl")
             (adbackname, adbackend) ∈ Dict(
                 :ForwarDiff  => AutoForwardDiff(),
                 :ReverseDiff => AutoReverseDiff(),
-                :Zygote      => AutoZygote(),
+                # :Zygote      => AutoZygote(), 
                 # :Enzyme      => AutoEnzyme(),
             )
 
