@@ -66,33 +66,186 @@ ADVI
 The STL control variate was proposed by Roeder *et al.* (2017).
 By slightly modifying the differentiation path, it implicitly forms a control variate of the form of
 ```math
-\mathrm{CV}_{\mathrm{STL}}\left(z\right) \triangleq \mathbb{H}\left(q_{\lambda}\right) + \log q_{\lambda}\left(z\right),
+\begin{aligned}
+  \mathrm{CV}_{\mathrm{STL}}\left(z\right) 
+  &\triangleq 
+  \nabla_{\lambda} \mathbb{H}\left(q_{\lambda}\right) + \nabla_{\lambda} \log q_{\nu}\left(z_{\lambda}\left(u\right)\right) \\
+  &=
+  -\nabla_{\lambda} \mathbb{E}_{z \sim q_{\nu}} \log q_{\nu}\left(z_{\lambda}\left(u\right)\right) + \nabla_{\lambda} \log q_{\nu}\left(z_{\lambda}\left(u\right)\right)
+\end{aligned}
 ```
-which has a mean of zero.
+where ``\nu = \lambda`` is set to avoid differentiating through the density of ``q_{\lambda}``.
+We can see that this vector-valued function has a mean of zero and is therefore a valid control variate.
  
 Adding this to the closed-form entropy ELBO estimator yields the STL estimator:
 ```math
 \begin{aligned}
-  \widehat{\mathrm{ELBO}}_{\mathrm{STL}}\left(\lambda\right)
-    &\triangleq \mathbb{E}\left[ \log \pi \left(z\right) \right] - \log q_{\lambda} \left(z\right) \\
-    &= \mathbb{E}\left[ \log \pi\left(z\right) \right] 
-      + \mathbb{H}\left(q_{\lambda}\right) - \mathrm{CV}_{\mathrm{STL}}\left(z\right) \\
-    &= \widehat{\mathrm{ELBO}}\left(\lambda\right)
-      - \mathrm{CV}_{\mathrm{STL}}\left(z\right),
+  \widehat{\nabla \mathrm{ELBO}}_{\mathrm{STL}}\left(\lambda\right)
+    &\triangleq \mathbb{E}_{u \sim \varphi}\left[ 
+	  \nabla_{\lambda} \log \pi \left(z_{\lambda}\left(u\right)\right) 
+	  - 
+	  \nabla_{\lambda} \log q_{\nu} \left(z_{\lambda}\left(u\right)\right)
+	\right] 
+	\\
+    &= 
+	\mathbb{E}\left[ \nabla_{\lambda} \log \pi\left(z_{\lambda}\left(u\right)\right) \right] 
+    + 
+	\nabla_{\lambda} \mathbb{H}\left(q_{\lambda}\right) 
+	- 
+	\mathrm{CV}_{\mathrm{STL}}\left(z\right)
+	\\
+    &= 
+	\widehat{\nabla \mathrm{ELBO}}\left(\lambda\right)
+    - 
+	\mathrm{CV}_{\mathrm{STL}}\left(z\right),
 \end{aligned}
 ```
-which has the same expectation, but lower variance when ``\pi \approx q_{\lambda}``, and higher variance when ``\pi \not\approx q_{\lambda}``.
+which has the same expectation as the original ADVI estimator, but lower variance when ``\pi \approx q_{\lambda}``, and higher variance when ``\pi \not\approx q_{\lambda}``.
 The conditions for which the STL estimator results in lower variance is still an active subject for research.
+
+The main downside of the STL estimator is that it needs to evaluate and differentiate the log density of ``q_{\lambda}`` in every iteration.
+Depending on the variational family, this might be computationally inefficient or even numerically unstable.
+For example, if ``q_{\lambda}`` is a Gaussian with a full-rank covariance, a back-substitution must be performed at every step, making the per-iteration complexity ``\mathcal{O}(d^3)`` and reducing numerical stability.
+
 
 The STL control variate can be used by changing the entropy estimator using the following object:
 ```@docs
 StickingTheLandingEntropy
 ```
 
-For example:
-```julia
-ADVI(prob, n_samples; entropy = StickingTheLandingEntropy(), b = bijector)
+```@setup stl
+using LogDensityProblems
+using SimpleUnPack
+using PDMats
+using Bijectors
+using LinearAlgebra
+using Plots
+
+using Optimisers
+using ADTypes, ForwardDiff
+import AdvancedVI as AVI
+
+struct NormalLogNormal{MX,SX,MY,SY}
+    μ_x::MX
+    σ_x::SX
+    μ_y::MY
+    Σ_y::SY
+end
+
+function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
+    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
+end
+
+function LogDensityProblems.dimension(model::NormalLogNormal)
+    length(model.μ_y) + 1
+end
+
+function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
+    LogDensityProblems.LogDensityOrder{0}()
+end
+
+n_dims = 10
+μ_x    = randn()
+σ_x    = exp.(randn())
+μ_y    = randn(n_dims)
+σ_y    = exp.(randn(n_dims))
+model  = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2));
+
+d  = LogDensityProblems.dimension(model);
+μ  = randn(d);
+L  = Diagonal(ones(d));
+q0 = AVI.VIMeanFieldGaussian(μ, L)
+
+model  = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2));
+
+function Bijectors.bijector(model::NormalLogNormal)
+    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    Bijectors.Stacked(
+        Bijectors.bijector.([LogNormal(μ_x, σ_x), MvNormal(μ_y, Σ_y)]),
+        [1:1, 2:1+length(μ_y)])
+end
 ```
+
+Let us come back to the example in [Getting Started](@ref getting_started), where a `LogDensityProblem` is given as `model`.
+In this example, the true posterior is contained within the variational family.
+This setting is known as "perfect variational family specification."
+In this case, the STL estimator is able to converge exponentially fast to the true solution.
+
+Recall that the original ADVI objective with a closed-form entropy (CFE) is given as follows:
+```@example stl
+n_montecarlo = 1;
+b            = Bijectors.bijector(model);
+b⁻¹          = inverse(b)
+
+cfe = AVI.ADVI(model, n_montecarlo; invbij = b⁻¹)
+```
+The STL estimator can instead be created as follows:
+```@example stl
+stl = AVI.ADVI(model, n_montecarlo; entropy = AVI.StickingTheLandingEntropy(), invbij = b⁻¹);
+```
+
+```@setup stl
+n_max_iter = 10^4
+
+idx = [1]
+callback!(; stat, est_state, restructure, λ) = begin
+    if mod(idx[1], 100) == 1
+	    idx[:] .+= 1
+        (elbo_accurate = cfe(restructure(λ); n_samples=10^4),)
+	else
+	    idx[:] .+= 1
+        NamedTuple()
+	end
+end
+
+_, stats_cfe, _ = AVI.optimize(
+    cfe,
+    q0,
+    n_max_iter;
+	show_progress = false,
+	callback!     = callback!,
+    adbackend     = AutoForwardDiff(),
+    optimizer     = Optimisers.Adam(1e-3)
+); 
+
+idx[:] .= 1
+_, stats_stl, _ = AVI.optimize(
+    stl,
+    q0,
+    n_max_iter;
+	show_progress = false,
+	callback!     = callback!,
+    adbackend     = AutoForwardDiff(),
+    optimizer     = Optimisers.Adam(1e-3)
+); 
+
+fmc = AVI.ADVI(model, n_montecarlo; entropy = AVI.MonteCarloEntropy(), invbij = b⁻¹)
+idx[:] .= 1
+_, stats_fmc, _ = AVI.optimize(
+    fmc,
+    q0,
+    n_max_iter;
+	show_progress = false,
+	callback!     = callback!,
+    adbackend     = AutoForwardDiff(),
+    optimizer     = Optimisers.Adam(1e-3)
+); 
+
+t     = [stat.iteration     for stat ∈ stats_cfe[1:100:end]]
+y_cfe = [stat.elbo_accurate for stat ∈ stats_cfe[1:100:end]]
+y_stl = [stat.elbo_accurate for stat ∈ stats_stl[1:100:end]]
+y_fmc = [stat.elbo_accurate for stat ∈ stats_fmc[1:100:end]]
+plot( t, y_cfe, label="ADVI CFE", xlabel="Iteration", ylabel="ELBO", ylims=[-5, 1])
+plot!(t, y_stl, label="ADVI STL", xlabel="Iteration", ylabel="ELBO", ylims=[-5, 1])
+plot!(t, y_fmc, label="ADVI FMC", xlabel="Iteration", ylabel="ELBO", ylims=[-5, 1])
+savefig("advi_stl_elbo.svg")
+nothing
+```
+![](advi_stl_elbo.svg)
+
+We can see that the noise of the STL estimator converges to a more accurate solution compared to the CFE estimator.
+
 
 ## References
 1. Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research.

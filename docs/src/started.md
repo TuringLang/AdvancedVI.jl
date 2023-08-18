@@ -90,7 +90,7 @@ We now need to select 1. a variational objective, and 2. a variational family.
 Here, we will use the [`ADVI` objective](@ref advi), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
 ```@example advi
 n_montecaro = 10;
-objective   = AVI.ADVI(model, n_montecaro; b = b⁻¹)
+objective   = AVI.ADVI(model, n_montecaro; invbij = b⁻¹)
 ```
 For the variational family, we will use the classic mean-field Gaussian family.
 ```@example advi
@@ -120,10 +120,12 @@ using Plots
 
 t = [stat.iteration for stat ∈ stats]
 y = [stat.elbo for stat ∈ stats]
-plot(t[1:100:end], y[1:100:end])
-savefig("advi_example_elbo.svg"); nothing
+plot(t, y, label="ADVI", xlabel="Iteration", ylabel="ELBO")
+savefig("advi_example_elbo.svg")
+nothing
 ```
 ![](advi_example_elbo.svg)
+
 Further information can be gathered by defining your own `callback!`.
 
 The final ELBO can be estimated by calling the objective directly with a different number of Monte Carlo samples as follows:
