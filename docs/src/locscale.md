@@ -10,6 +10,7 @@ z \stackrel{d}{=} C u + m;\quad u \sim \varphi
 where ``C`` is the *scale*, ``m`` is the location, and ``\varphi`` is the *base distribution*.
 ``m`` and ``C`` form the variational parameters ``\lambda = (m, C)`` of ``q_{\lambda}``. 
 The location-scale family encompases many practical variational families, which can be instantiated by setting the *base distribution* of ``u`` and the structure of ``C``.
+
 The probability density is given by
 ```math
   q_{\lambda}(z) = {|C|}^{-1} \varphi(C^{-1}(z - m))
@@ -19,6 +20,8 @@ and the entropy is given as
   \mathcal{H}(q_{\lambda}) = \mathcal{H}(\varphi) + \log |C|,
 ```
 where ``\mathcal{H}(\varphi)`` is the entropy of the base distribution.
+Notice the ``\mathcal{H}(\varphi)`` does not depend on ``\log |C|``.
+The derivative of the entropy with respect to ``\lambda`` is thus independent of the base distribution.
 
 ## Constructors
 
