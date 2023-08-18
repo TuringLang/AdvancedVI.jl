@@ -11,7 +11,7 @@ Automatic differentiation variational inference (ADVI; Kucukelbir *et al.* 2017)
 # Keyword Arguments
 - `entropy`: The estimator for the entropy term. (Type `<: AbstractEntropyEstimator`; Default: ClosedFormEntropy())
 - `cv`: A control variate.
-- `b`: A bijector mapping the support of the base distribution to that of `prob`. (Default: `Bijectors.identity`.)
+- `invbij`: A bijective mapping the support of the base distribution to that of `prob`. (Default: `Bijectors.identity`.)
 
 # Requirements
 - ``q_{\\lambda}`` implements `rand`.
@@ -23,7 +23,7 @@ struct ADVI{Tlogπ, B,
             EntropyEst <: AbstractEntropyEstimator,
             ControlVar <: Union{<: AbstractControlVariate, Nothing}} <: AbstractVariationalObjective
     ℓπ::Tlogπ
-    b::B
+    invbij::B
     entropy::EntropyEst
     cv::ControlVar
     n_samples::Int
@@ -31,7 +31,7 @@ struct ADVI{Tlogπ, B,
     function ADVI(prob, n_samples::Int;
                   entropy::AbstractEntropyEstimator = ClosedFormEntropy(),
                   cv::Union{<:AbstractControlVariate, Nothing} = nothing,
-                  b = Bijectors.identity)
+                  invbij = Bijectors.identity)
         cap = LogDensityProblems.capabilities(prob)
         if cap === nothing
             throw(
@@ -41,7 +41,7 @@ struct ADVI{Tlogπ, B,
             )
         end
         ℓπ = Base.Fix1(LogDensityProblems.logdensity, prob)
-        new{typeof(ℓπ), typeof(b), typeof(entropy), typeof(cv)}(ℓπ, b, entropy, cv, n_samples)
+        new{typeof(ℓπ), typeof(invbij), typeof(entropy), typeof(cv)}(ℓπ, invbij, entropy, cv, n_samples)
     end
 end
 
@@ -56,7 +56,7 @@ function (advi::ADVI)(
     ηs ::AbstractMatrix
 )
     𝔼ℓ = mean(eachcol(ηs)) do ηᵢ
-        zᵢ, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(advi.b, ηᵢ)
+        zᵢ, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(advi.invbij, ηᵢ)
         (advi.ℓπ(zᵢ) + logdetjacᵢ)
     end
     ℍ  = advi.entropy(q_η, ηs)
@@ -86,39 +86,6 @@ function (advi::ADVI)(
     advi(rng, q_η, ηs)
 end
 
-function estimate_advi_gradient_maybe_stl!(
-    rng::AbstractRNG,
-    adbackend::AbstractADType,
-    advi::ADVI{P, B, StickingTheLandingEntropy, CV},
-    λ::Vector{<:Real},
-    restructure,
-    out::DiffResults.MutableDiffResult
-) where {P, B, CV}
-    q_η_stop = restructure(λ)
-    f(λ′) = begin
-        q_η = restructure(λ′)
-        ηs  = rand(rng, q_η, advi.n_samples)
-        -advi(rng, q_η_stop, ηs)
-    end
-    value_and_gradient!(adbackend, f, λ, out)
-end
-
-function estimate_advi_gradient_maybe_stl!(
-    rng::AbstractRNG,
-    adbackend::AbstractADType,
-    advi::ADVI{P, B, <:Union{ClosedFormEntropy, FullMonteCarloEntropy}, CV},
-    λ::Vector{<:Real},
-    restructure,
-    out::DiffResults.MutableDiffResult
-) where {P, B, CV}
-    f(λ′) = begin
-        q_η = restructure(λ′)
-        ηs  = rand(rng, q_η, advi.n_samples)
-        -advi(rng, q_η, ηs)
-    end
-    value_and_gradient!(adbackend, f, λ, out)
-end
-
 function estimate_gradient(
     rng::AbstractRNG,
     adbackend::AbstractADType,
@@ -128,8 +95,13 @@ function estimate_gradient(
     restructure,
     out::DiffResults.MutableDiffResult
 )
-    estimate_advi_gradient_maybe_stl!(
-        rng, adbackend, advi, λ, restructure, out)
+    f(λ′) = begin
+        q_η = restructure(λ′)
+        ηs  = rand(rng, q_η, advi.n_samples)
+        -advi(rng, q_η, ηs)
+    end
+    value_and_gradient!(adbackend, f, λ, out)
+
     nelbo = DiffResults.value(out)
     stat  = (elbo=-nelbo,)
 

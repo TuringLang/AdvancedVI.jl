@@ -23,7 +23,7 @@ using LogDensityProblems
 
 using ADTypes, DiffResults
 using ADTypes: AbstractADType
-
+using ChainRules: @ignore_derivatives 
 
 using FillArrays
 using PDMats
@@ -74,7 +74,7 @@ export
     ADVI,
     ClosedFormEntropy,
     StickingTheLandingEntropy,
-    FullMonteCarloEntropy
+    MonteCarloEntropy
 
 # Variational Families
 

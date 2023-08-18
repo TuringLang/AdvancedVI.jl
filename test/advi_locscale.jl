@@ -33,8 +33,8 @@ include("models/utils.jl")
                 :NormalFullRank           => normal_fullrank,
             ),
             (objname, objective) ∈ Dict(
-                :ADVIClosedFormEntropy  => (model, b, M) -> ADVI(model, M; b),
-                :ADVIStickingTheLanding => (model, b, M) -> ADVI(model, M; b, entropy = StickingTheLandingEntropy()),
+                :ADVIClosedFormEntropy  => (model, b⁻¹, M) -> ADVI(model, M; invbij = b⁻¹),
+                :ADVIStickingTheLanding => (model, b⁻¹, M) -> ADVI(model, M; invbij = b⁻¹, entropy = StickingTheLandingEntropy()),
             ),
             (adbackname, adbackend) ∈ Dict(
                 :ForwarDiff  => AutoForwardDiff(),

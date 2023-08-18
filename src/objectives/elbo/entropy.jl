@@ -5,9 +5,13 @@ function (::ClosedFormEntropy)(q, ::AbstractMatrix)
     entropy(q)
 end
 
-abstract type MonteCarloEntropy <: AbstractEntropyEstimator end
+struct MonteCarloEntropy <: AbstractEntropyEstimator end
 
-struct FullMonteCarloEntropy <: MonteCarloEntropy end
+function (::MonteCarloEntropy)(q, ηs::AbstractMatrix)
+    mean(eachcol(ηs)) do ηᵢ
+        -logpdf(q, ηᵢ)
+    end
+end
 
 """
     StickingTheLandingEntropy()
@@ -18,11 +22,10 @@ The "sticking the landing" entropy estimator.
 - `q` implements `logpdf`.
 - `logpdf(q, η)` must be differentiable by the selected AD framework.
 """
-struct StickingTheLandingEntropy <: MonteCarloEntropy end
+struct StickingTheLandingEntropy <: AbstractEntropyEstimator end
 
-function (::MonteCarloEntropy)(q, ηs::AbstractMatrix)
-    mean(eachcol(ηs)) do ηᵢ
+function (::StickingTheLandingEntropy)(q, ηs::AbstractMatrix)
+    @ignore_derivatives mean(eachcol(ηs)) do ηᵢ
         -logpdf(q, ηᵢ)
     end
 end
-

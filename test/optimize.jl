@@ -33,7 +33,7 @@ include("models/utils.jl")
     μ₀  = zeros(Float64, n_dims)
     L₀  = ones(Float64, n_dims) |> Diagonal
     q₀  = VIMeanFieldGaussian(μ₀, L₀)
-    obj = ADVI(model, 10; b=b⁻¹)
+    obj = ADVI(model, 10; invbij=b⁻¹)
 
     adbackend = AutoForwardDiff()
     optimizer = Optimisers.Adam(1e-2)
