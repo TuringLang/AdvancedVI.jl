@@ -8,11 +8,13 @@ using Random123
 using Statistics
 using Distributions
 using LinearAlgebra
+
 using AdvancedVI
 
 include("ad.jl")
 include("distributions.jl")
 include("advi_locscale.jl")
+include("optimize.jl")
 
 @main function runtests(patterns...; dry::Bool = false)
     retest(patterns...; dry = dry, verbose = Inf)
