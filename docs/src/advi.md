@@ -63,6 +63,7 @@ ADVI
 ```
 
 ## The `StickingTheLanding` Control Variate
+
 The STL control variate was proposed by Roeder *et al.* (2017).
 By slightly modifying the differentiation path, it implicitly forms a control variate of the form of
 ```math
@@ -188,63 +189,36 @@ stl = AVI.ADVI(model, n_montecarlo; entropy = AVI.StickingTheLandingEntropy(), i
 ```@setup stl
 n_max_iter = 10^4
 
-idx = [1]
-callback!(; stat, est_state, restructure, λ) = begin
-    if mod(idx[1], 100) == 1
-	    idx[:] .+= 1
-        (elbo_accurate = cfe(restructure(λ); n_samples=10^4),)
-	else
-	    idx[:] .+= 1
-        NamedTuple()
-	end
-end
-
 _, stats_cfe, _ = AVI.optimize(
     cfe,
     q0,
     n_max_iter;
 	show_progress = false,
-	callback!     = callback!,
     adbackend     = AutoForwardDiff(),
     optimizer     = Optimisers.Adam(1e-3)
 ); 
 
-idx[:] .= 1
 _, stats_stl, _ = AVI.optimize(
     stl,
     q0,
     n_max_iter;
 	show_progress = false,
-	callback!     = callback!,
     adbackend     = AutoForwardDiff(),
     optimizer     = Optimisers.Adam(1e-3)
 ); 
 
-fmc = AVI.ADVI(model, n_montecarlo; entropy = AVI.MonteCarloEntropy(), invbij = b⁻¹)
-idx[:] .= 1
-_, stats_fmc, _ = AVI.optimize(
-    fmc,
-    q0,
-    n_max_iter;
-	show_progress = false,
-	callback!     = callback!,
-    adbackend     = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(1e-3)
-); 
-
-t     = [stat.iteration     for stat ∈ stats_cfe[1:100:end]]
-y_cfe = [stat.elbo_accurate for stat ∈ stats_cfe[1:100:end]]
-y_stl = [stat.elbo_accurate for stat ∈ stats_stl[1:100:end]]
-y_fmc = [stat.elbo_accurate for stat ∈ stats_fmc[1:100:end]]
-plot( t, y_cfe, label="ADVI CFE", xlabel="Iteration", ylabel="ELBO", ylims=[-5, 1])
-plot!(t, y_stl, label="ADVI STL", xlabel="Iteration", ylabel="ELBO", ylims=[-5, 1])
-plot!(t, y_fmc, label="ADVI FMC", xlabel="Iteration", ylabel="ELBO", ylims=[-5, 1])
+t     = [stat.iteration  for stat ∈ stats_cfe]
+y_cfe = [stat.elbo       for stat ∈ stats_cfe]
+y_stl = [stat.elbo       for stat ∈ stats_stl]
+plot( t, y_cfe, label="ADVI CFE", xlabel="Iteration", ylabel="ELBO")
+plot!(t, y_stl, label="ADVI STL", xlabel="Iteration", ylabel="ELBO")
 savefig("advi_stl_elbo.svg")
 nothing
 ```
 ![](advi_stl_elbo.svg)
 
-We can see that the noise of the STL estimator converges to a more accurate solution compared to the CFE estimator.
+We can see that the noise of the STL estimator becomes smaller as VI converges.
+However, the difference in speed of convergence may not always be significant.
 
 
 ## References
