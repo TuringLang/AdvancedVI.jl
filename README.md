@@ -10,6 +10,7 @@ For example, `Turing` combines `Turing.Model`s with `AdvancedVI.ADVI` and [`Bije
 
 `AdvancedVI` basically expects a `LogDensityProblem`.
 For example, for the normal-log-normal model:
+
 $$
 \begin{align*}
 x &\sim \mathsf{log\text{-}normal}\left(\mu_x, \sigma_x^2\right) \\
