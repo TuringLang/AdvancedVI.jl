@@ -11,14 +11,14 @@ For example, `Turing` combines `Turing.Model`s with `AdvancedVI.ADVI` and [`Bije
 `AdvancedVI` basically expects a `LogDensityProblem`.
 For example, for the normal-log-normal model:
 $$
-\begin{aligned}
+\begin{align*}
 x &\sim \mathsf{log\text{-}normal}\left(\mu_x, \sigma_x^2\right) \\
 y &\sim \mathsf{normal}\left(\mu_y, \sigma_y^2\right)
-\end{aligned}
-$$ 
+\end{align*}
+$$
 
 A `LogDensityProblem` can be implemented as 
-```
+```julia
 using LogDensityProblems
 
 struct NormalLogNormal{MX,SX,MY,SY}
