@@ -57,7 +57,7 @@ function (advi::ADVI)(
 )
     𝔼ℓ = mean(eachcol(ηs)) do ηᵢ
         zᵢ, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(advi.invbij, ηᵢ)
-        (advi.ℓπ(zᵢ) + logdetjacᵢ)
+        advi.ℓπ(zᵢ) + logdetjacᵢ
     end
     ℍ  = advi.entropy(q_η, ηs)
     𝔼ℓ + ℍ

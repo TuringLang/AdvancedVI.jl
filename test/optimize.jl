@@ -67,7 +67,7 @@ include("models/utils.jl")
         rng = Philox4x(UInt64, seed, 8)
         test_values = rand(rng, T)
 
-        callback!(; stat, est_state, restructure, λ) = begin
+        callback!(; stat, est_state, restructure, λ, g) = begin
             (test_value = test_values[stat.iteration],)
         end
 
