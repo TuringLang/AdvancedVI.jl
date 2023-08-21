@@ -12,10 +12,10 @@ else
 end
 
 function AdvancedVI.value_and_gradient!(
-    ad::ADTypes.AutoZygote, f, θ::AbstractVector{T}, out::DiffResults.MutableDiffResult
-) where {T<:Real}
+    ad::ADTypes.AutoZygote, f, θ::AbstractVector{<:Real}, out::DiffResults.MutableDiffResult
+)
     y, back = Zygote.pullback(f, θ)
-    ∇θ = back(one(T))
+    ∇θ = back(one(y))
     DiffResults.value!(out, y)
     DiffResults.gradient!(out, first(∇θ))
     return out
