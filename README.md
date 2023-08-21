@@ -12,10 +12,10 @@ For example, `Turing` combines `Turing.Model`s with `AdvancedVI.ADVI` and [`Bije
 For example, for the normal-log-normal model:
 
 $$
-\begin{align*}
-x &\sim \mathsf{log\text{-}normal}\left(\mu_x, \sigma_x^2\right) \\
-y &\sim \mathsf{normal}\left(\mu_y, \sigma_y^2\right)
-\end{align*}
+\begin{aligned}
+x &\sim \operatorname{LogNormal}\left(\mu_x, \sigma_x^2\right) \\
+y &\sim \mathcal{N}\left(\mu_y, \sigma_y^2\right)
+\end{aligned}
 $$
 
 A `LogDensityProblem` can be implemented as 
