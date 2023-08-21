@@ -17,7 +17,7 @@ function AdvancedVI.value_and_gradient!(
     y, back = Zygote.pullback(f, θ)
     ∇θ = back(one(y))
     DiffResults.value!(out, y)
-    DiffResults.gradient!(out, first(∇θ))
+    DiffResults.gradient!(out, only(∇θ))
     return out
 end
 
