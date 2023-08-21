@@ -84,7 +84,7 @@ function optimize(
             stat = !isnothing(stat′) ? merge(stat′, stat) : stat
         end
         
-        AdvancedVI.DEBUG && @debug "Step $t" stat...
+        @debug "Iteration $t" stat...
 
         pm_next!(prog, stat)
         push!(stats, stat)
