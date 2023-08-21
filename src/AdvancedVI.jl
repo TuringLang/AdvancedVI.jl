@@ -101,8 +101,8 @@ if !isdefined(Base, :get_extension) # check whether :get_extension is defined in
     using Requires
 end
 
-function __init__()
-    @static if !isdefined(Base, :get_extension)
+@static if !isdefined(Base, :get_extension)
+    function __init__()
         @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
             include("../ext/AdvancedVIEnzymeExt.jl")
         end
