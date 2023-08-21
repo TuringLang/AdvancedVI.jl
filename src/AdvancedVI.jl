@@ -39,9 +39,9 @@ const DEBUG = Bool(parse(Int, get(ENV, "DEBUG_ADVANCEDVI", "0")))
     value_and_gradient!(
         ad::ADTypes.AbstractADType,
         f,
-        θ::AbstractVector{T},
+        θ::AbstractVector{<:Real},
         out::DiffResults.MutableDiffResult
-    ) where {T<:Real}
+    )
 
 Compute the value and gradient of a function `f` at `θ` using the automatic
 differentiation backend `ad`.  The result is stored in `out`. 
