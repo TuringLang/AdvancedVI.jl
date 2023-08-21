@@ -4,7 +4,7 @@ module AdvancedVI
 using SimpleUnPack: @unpack, @pack!
 using Accessors
 
-import Random: AbstractRNG, default_rng
+using Random: AbstractRNG, default_rng
 using Distributions
 import Distributions:
     logpdf, _logpdf, rand, _rand!, _rand!,
