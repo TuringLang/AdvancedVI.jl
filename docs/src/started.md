@@ -18,8 +18,8 @@ optimize
 In this tutorial, we will work with a basic `normal-log-normal` model.
 ```math
 \begin{aligned}
-x &\sim \mathsf{log\text{-}normal}\left(\mu_x, \sigma_x^2\right) \\
-y &\sim \mathsf{normal}\left(\mu_y, \sigma_y^2\right)
+x &\sim \mathrm{LogNormal}\left(\mu_x, \sigma_x^2\right) \\
+y &\sim \mathcal{N}\left(\mu_y, \sigma_y^2\right)
 \end{aligned}
 ```
 ADVI with `Bijectors.Exp` bijectors is able to infer this model exactly.
