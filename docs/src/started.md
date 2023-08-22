@@ -27,7 +27,6 @@ ADVI with `Bijectors.Exp` bijectors is able to infer this model exactly.
 Using the `LogDensityProblems` interface, we the model can be defined as follows:
 ```@example advi
 using LogDensityProblems
-using SimpleUnPack
 
 struct NormalLogNormal{MX,SX,MY,SY}
     μ_x::MX
@@ -37,7 +36,7 @@ struct NormalLogNormal{MX,SX,MY,SY}
 end
 
 function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
-    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    (; μ_x, σ_x, μ_y, Σ_y) = model
     logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
@@ -51,14 +50,14 @@ end
 ```
 Let's now instantiate the model
 ```@example advi
-using PDMats
+using LinearAlgebra
 
 n_dims = 10
 μ_x    = randn()
 σ_x    = exp.(randn())
 μ_y    = randn(n_dims)
 σ_y    = exp.(randn(n_dims))
-model  = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2));
+model  = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2));
 ```
 
 Since the `y` follows a log-normal prior, its support is bounded to be the positive half-space ``\mathbb{R}_+``.
@@ -67,7 +66,7 @@ Thus, we will use [Bijectors](https://github.com/TuringLang/Bijectors.jl) to mat
 using Bijectors
 
 function Bijectors.bijector(model::NormalLogNormal)
-    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    (; μ_x, σ_x, μ_y, Σ_y) = model
     Bijectors.Stacked(
         Bijectors.bijector.([LogNormal(μ_x, σ_x), MvNormal(μ_y, Σ_y)]),
         [1:1, 2:1+length(μ_y)])
@@ -94,8 +93,6 @@ objective   = AVI.ADVI(model, n_montecaro; invbij = b⁻¹)
 ```
 For the variational family, we will use the classic mean-field Gaussian family.
 ```@example advi
-using LinearAlgebra
-
 d = LogDensityProblems.dimension(model);
 μ = randn(d);
 L = Diagonal(ones(d));

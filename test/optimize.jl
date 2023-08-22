@@ -6,7 +6,6 @@ using Optimisers
 using Distributions
 using PDMats
 using LinearAlgebra
-using SimpleUnPack: @unpack
 
 struct TestModel{M,L,S}
     model::M

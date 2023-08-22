@@ -35,42 +35,42 @@ Base.length(q::VILocationScale) = length(q.location)
 Base.size(q::VILocationScale) = size(q.location)
 
 function StatsBase.entropy(q::VILocationScale)
-    @unpack  location, scale, dist = q
+    (; location, scale, dist) = q
     n_dims = length(location)
     n_dims*entropy(dist) + first(logabsdet(scale))
 end
 
 function logpdf(q::VILocationScale, z::AbstractVector{<:Real})
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     sum(zᵢ -> logpdf(dist, zᵢ), scale \ (z - location)) - first(logabsdet(scale))
 end
 
 function _logpdf(q::VILocationScale, z::AbstractVector{<:Real})
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     sum(zᵢ -> logpdf(dist, zᵢ), scale \ (z - location)) - first(logabsdet(scale))
 end
 
 function rand(q::VILocationScale)
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     n_dims = length(location)
     scale*rand(dist, n_dims) + location
 end
 
 function rand(rng::AbstractRNG, q::VILocationScale, num_samples::Int) 
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     n_dims = length(location)
     scale*rand(rng, dist, n_dims, num_samples) .+ location
 end
 
 function _rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractVector{<:Real})
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     rand!(rng, dist, x)
     x .= scale*x
     return x += location
 end
 
 function _rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractMatrix{<:Real})
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     rand!(rng, dist, x)
     x *= scale
     return x += location
