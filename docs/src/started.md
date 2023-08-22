@@ -15,7 +15,7 @@ optimize
 ```
 
 ## `ADVI` Example 
-In this tutorial, we will work with a basic `normal-log-normal` model.
+In this tutorial, we will work with a `normal-log-normal` model.
 ```math
 \begin{aligned}
 x &\sim \mathrm{LogNormal}\left(\mu_x, \sigma_x^2\right) \\
