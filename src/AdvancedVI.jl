@@ -7,7 +7,7 @@ using Accessors
 using Random: AbstractRNG, default_rng
 using Distributions
 import Distributions:
-    logpdf, _logpdf, rand, _rand!, _rand!,
+    logpdf, _logpdf, rand, rand!, _rand!,
     ContinuousMultivariateDistribution
 
 using Functors
@@ -26,7 +26,6 @@ using ADTypes: AbstractADType
 using ChainRules: @ignore_derivatives 
 
 using FillArrays
-using PDMats
 using Bijectors
 
 using StatsBase
