@@ -10,6 +10,7 @@ using Distributions
 using LinearAlgebra
 using SimpleUnPack: @unpack
 using PDMats
+using FillArrays
 
 using Bijectors
 using LogDensityProblems
