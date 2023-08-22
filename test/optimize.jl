@@ -26,7 +26,7 @@ include("models/utils.jl")
     T = 1000
     modelstats = normallognormal_meanfield(Float64; rng)
 
-    (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
+    @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
     # Global Test Configurations
     b⁻¹ = Bijectors.bijector(model) |> inverse
