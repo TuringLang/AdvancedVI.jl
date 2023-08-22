@@ -6,12 +6,15 @@ The location scale variational family broadly represents various variational
 families using `location` and `scale` variational parameters.
 
 It generally represents any distribution for which the sampling path can be
-represented as the following:
+represented as follows:
 ```julia
   d = length(location)
   u = rand(dist, d)
   z = scale*u + location
 ```
+
+!!! note
+    For stable convergence, the initial scale needs to be sufficiently large.
 """
 struct VILocationScale{L, S, D} <: ContinuousMultivariateDistribution
     location::L
@@ -112,21 +115,37 @@ function _rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractMatrix{<:Real})
 end
 
 """
-    VIFullRankGaussian(μ::AbstractVector{T}, L::AbstractTriangular{T})
+    VIFullRankGaussian(μ::AbstractVector{T}, L::AbstractTriangular{T}; check_args = true)
 
 This constructs a multivariate Gaussian distribution with a full rank covariance matrix.
 """
-function VIFullRankGaussian(μ::AbstractVector{T}, L::AbstractTriangular{T}) where {T <: Real}
+function VIFullRankGaussian(
+    μ::AbstractVector{T},
+    L::AbstractTriangular{T};
+    check_args::Bool = true
+) where {T <: Real}
+    @assert isposdef(L) "Scale must be positive definite"
+    if check_args && (minimum(diag(L)) < sqrt(eps(eltype(L))))
+        @warn "Initial scale is too small (minimum eigenvalue is $(minimum(diag(L)))). This might result in unstable optimization behavior."
+    end
     q_base = Normal{T}(zero(T), one(T))
     VILocationScale(μ, L, q_base)
 end
 
 """
-    VIMeanFieldGaussian(μ::AbstractVector{T}, L::Diagonal{T})
+    VIMeanFieldGaussian(μ::AbstractVector{T}, L::Diagonal{T}; check_args = true)
 
 This constructs a multivariate Gaussian distribution with a diagonal covariance matrix.
 """
-function VIMeanFieldGaussian(μ::AbstractVector{T}, L::Diagonal{T}) where {T <: Real}
+function VIMeanFieldGaussian(
+    μ::AbstractVector{T},
+    L::Diagonal{T};
+    check_args::Bool = true
+) where {T <: Real}
+    @assert isposdef(L) "Scale must be positive definite"
+    if check_args && (minimum(diag(L)) < sqrt(eps(eltype(L))))
+        @warn "Initial scale is too small (minimum eigenvalue is $(minimum(diag(L)))). This might result in unstable optimization behavior."
+    end
     q_base = Normal{T}(zero(T), one(T))
     VILocationScale(μ, L, q_base)
 end
