@@ -87,6 +87,16 @@ function rand(rng::AbstractRNG, q::VILocationScale, num_samples::Int)
     scale*rand(rng, dist, n_dims, num_samples) .+ location
 end
 
+# This specialization improves AD performance of the sampling path
+function rand(
+    rng::AbstractRNG, q::VILocationScale{L, <:Diagonal, D}, num_samples::Int
+) where {L, D}
+    @unpack location, scale, dist = q
+    n_dims     = length(location)
+    scale_diag = diag(scale)
+    scale_diag.*rand(rng, dist, n_dims, num_samples) .+ location
+end
+
 function _rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractVector{<:Real})
     @unpack location, scale, dist = q
     rand!(rng, dist, x)
