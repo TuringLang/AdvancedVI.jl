@@ -2,25 +2,6 @@
 const PROGRESS = length(ARGS) > 0 && ARGS[1] == "--progress" ? true : false
 
 using ReTest
-using Bijectors
-using LogDensityProblems
-using Optimisers
-using Distributions
-using PDMats
-using LinearAlgebra
-using SimpleUnPack: @unpack
-
-struct TestModel{M,L,S}
-    model::M
-    μ_true::L
-    L_true::S
-    n_dims::Int
-    is_meanfield::Bool
-end
-
-include("models/normallognormal.jl")
-include("models/normal.jl")
-include("models/utils.jl")
 
 @testset "advi" begin
     @testset "locscale" begin
@@ -55,10 +36,11 @@ include("models/utils.jl")
 
             μ₀ = zeros(realtype, n_dims)
             L₀ = if is_meanfield
-                ones(realtype, n_dims) |> Diagonal
+                FillArrays.Eye(n_dims) |> Diagonal
             else
-                diagm(ones(realtype, n_dims)) |> LowerTriangular
+                FillArrays.Eye(n_dims) |> LowerTriangular
             end
+
             q₀ = if is_meanfield
                 VIMeanFieldGaussian(μ₀, L₀)
             else

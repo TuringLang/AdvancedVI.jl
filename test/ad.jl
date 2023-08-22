@@ -1,7 +1,5 @@
 
 using ReTest
-using ForwardDiff, ReverseDiff, Enzyme, Zygote
-using ADTypes
 
 @testset "ad" begin
     @testset "$(adname)" for (adname, adsymbol) ∈ Dict(

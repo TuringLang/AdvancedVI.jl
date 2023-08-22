@@ -1,23 +1,5 @@
 
 using ReTest
-using Bijectors
-using LogDensityProblems
-using Optimisers
-using Distributions
-using PDMats
-using LinearAlgebra
-using SimpleUnPack: @unpack
-
-struct TestModel{M,L,S}
-    model::M
-    μ_true::L
-    L_true::S
-    n_dims::Int
-    is_meanfield::Bool
-end
-
-include("models/normallognormal.jl")
-include("models/utils.jl")
 
 @testset "optimize" begin
     seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)

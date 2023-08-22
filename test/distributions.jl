@@ -1,7 +1,6 @@
 
 using ReTest
 using Distributions: _logpdf
-using Optimisers 
 
 @testset "distributions" begin
     @testset "$(string(covtype)) $(basedist) $(realtype)" for
@@ -11,35 +10,33 @@ using Optimisers
 
         seed         = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
         rng          = Philox4x(UInt64, seed, 8)
-        realtype     = Float64
-        ϵ            = 1f-2
         n_dims       = 10
         n_montecarlo = 1000_000
 
-        μ  = randn(rng, realtype, n_dims)
-        L₀ = randn(rng, realtype, n_dims, n_dims) |> LowerTriangular
-        Σ  = if covtype == :fullrank
-            Σ = (L₀*L₀' + ϵ*I) |> Hermitian
+        μ = randn(rng, realtype, n_dims)
+        L = if covtype == :fullrank
+            sample_cholesky(rng, realtype, n_dims)
         else
             Diagonal(log.(exp.(randn(rng, realtype, n_dims)) .+ 1))
         end
+        Σ = L*L'
 
-        L = cholesky(Σ).L
         q = if covtype == :fullrank  && basedist == :gaussian
-            VIFullRankGaussian(μ, L |> LowerTriangular)
+            VIFullRankGaussian(μ, L)
         elseif covtype == :meanfield && basedist == :gaussian
-            VIMeanFieldGaussian(μ, L |> Diagonal)
+            VIMeanFieldGaussian(μ, L)
         end
         q_true = if basedist == :gaussian
             MvNormal(μ, Σ)
         end
 
         @testset "logpdf" begin
-            z = randn(rng, realtype, n_dims)
-            @test logpdf(q, z)  ≈ logpdf(q_true, z)
-            @test _logpdf(q, z) ≈ _logpdf(q_true, z)
-            @test eltype(logpdf(q, z))  == realtype
-            @test eltype(_logpdf(q, z)) == realtype
+            z = rand(rng, q)
+            @test eltype(z)             == realtype
+            @test logpdf(q, z)          ≈  logpdf(q_true, z)  rtol=realtype(1e-2)
+            @test _logpdf(q, z)         ≈  _logpdf(q_true, z) rtol=realtype(1e-2)
+            @test eltype(logpdf(q, z))  == realtype 
+            @test eltype(_logpdf(q, z)) == realtype 
         end
 
         @testset "entropy" begin

@@ -8,9 +8,32 @@ using Random123
 using Statistics
 using Distributions
 using LinearAlgebra
+using SimpleUnPack: @unpack
+using PDMats
+
+using Bijectors
+using LogDensityProblems
+using Optimisers
+using ADTypes
+using ForwardDiff, ReverseDiff, Zygote
 
 using AdvancedVI
 
+# Utilities
+include("utils.jl")
+
+struct TestModel{M,L,S}
+    model::M
+    μ_true::L
+    L_true::S
+    n_dims::Int
+    is_meanfield::Bool
+end
+
+include("models/normal.jl")
+include("models/normallognormal.jl")
+
+# Tests
 include("ad.jl")
 include("distributions.jl")
 include("advi_locscale.jl")
