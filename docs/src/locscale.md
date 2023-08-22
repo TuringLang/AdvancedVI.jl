@@ -25,6 +25,10 @@ The derivative of the entropy with respect to ``\lambda`` is thus independent of
 
 ## Constructors
 
+!!! note
+    For stable convergence, the initial `scale` needs to be sufficiently large and well-conditioned. 
+	Initializing `scale` to have small eigenvalues will often result in initial divergences and numerical instabilities.
+
 ```@docs
 VILocationScale
 ```

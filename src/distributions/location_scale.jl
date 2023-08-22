@@ -12,9 +12,6 @@ represented as follows:
   u = rand(dist, d)
   z = scale*u + location
 ```
-
-!!! note
-    For stable convergence, the initial scale needs to be sufficiently large.
 """
 struct VILocationScale{L, S, D} <: ContinuousMultivariateDistribution
     location::L

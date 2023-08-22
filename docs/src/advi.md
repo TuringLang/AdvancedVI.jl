@@ -210,8 +210,8 @@ _, stats_stl, _ = AVI.optimize(
 t     = [stat.iteration  for stat ∈ stats_cfe]
 y_cfe = [stat.elbo       for stat ∈ stats_cfe]
 y_stl = [stat.elbo       for stat ∈ stats_stl]
-plot( t, y_cfe, label="ADVI CFE", xlabel="Iteration", ylabel="ELBO")
-plot!(t, y_stl, label="ADVI STL", xlabel="Iteration", ylabel="ELBO")
+plot( t, y_cfe, label="ADVI CFE", xlabel="Iteration", ylabel="ELBO", ylims=(-50, 10))
+plot!(t, y_stl, label="ADVI STL", xlabel="Iteration", ylabel="ELBO", ylims=(-50, 10))
 savefig("advi_stl_elbo.svg")
 nothing
 ```
@@ -219,7 +219,6 @@ nothing
 
 We can see that the noise of the STL estimator becomes smaller as VI converges.
 However, the speed of convergence may not always be significantly different.
-
 
 ## References
 1. Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research.
