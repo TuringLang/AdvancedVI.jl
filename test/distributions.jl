@@ -1,6 +1,7 @@
 
 using ReTest
 using Distributions: _logpdf
+using Optimisers 
 
 @testset "distributions" begin
     @testset "$(string(covtype)) $(basedist) $(realtype)" for
@@ -54,5 +55,16 @@ using Distributions: _logpdf
             @test dropdims(var(z_samples, dims=2),  dims=2) ≈ diag(Σ) rtol=realtype(1e-2)
             @test cov(z_samples, dims=2)                    ≈ Σ       rtol=realtype(1e-2)
         end
+    end
+
+    @testset "Diagonal destructure" for
+        n_dims = 10
+        μ      = zeros(n_dims)
+        L      = ones(n_dims)
+        q      = VIMeanFieldGaussian(μ, L |> Diagonal)
+        λ, re  = Optimisers.destructure(q)
+
+        @test length(λ) == 2*n_dims
+        @test q         == re(λ)
     end
 end
