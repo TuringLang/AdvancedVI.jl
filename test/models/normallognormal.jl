@@ -7,7 +7,7 @@ struct NormalLogNormal{MX,SX,MY,SY}
 end
 
 function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
-    (; μ_x, σ_x, μ_y, Σ_y) = model
+    @unpack μ_x, σ_x, μ_y, Σ_y = model
     logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
@@ -20,7 +20,7 @@ function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
 end
 
 function Bijectors.bijector(model::NormalLogNormal)
-    (; μ_x, σ_x, μ_y, Σ_y) = model
+    @unpack μ_x, σ_x, μ_y, Σ_y = model
     Bijectors.Stacked(
         Bijectors.bijector.([LogNormal(μ_x, σ_x), MvNormal(μ_y, Σ_y)]),
         [1:1, 2:1+length(μ_y)])
@@ -56,8 +56,7 @@ function normallognormal_meanfield(realtype; rng = default_rng())
     μ_y  = randn(rng, realtype, n_dims)
     σ_y  = log.(exp.(randn(rng, realtype, n_dims)) .+ 1)
 
-    #model = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2))
-    model = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2))
+    model = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2))
 
     μ = vcat(μ_x, μ_y)
     L = vcat(σ_x, σ_y) |> Diagonal

@@ -8,6 +8,7 @@ using Optimisers
 using Distributions
 using PDMats
 using LinearAlgebra
+using SimpleUnPack: @unpack
 
 struct TestModel{M,L,S}
     model::M
@@ -47,7 +48,7 @@ include("models/utils.jl")
 
             T = 10000
             modelstats = modelconstr(realtype; rng)
-            (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
+            @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
             b    = Bijectors.bijector(model)
             b⁻¹  = inverse(b)
