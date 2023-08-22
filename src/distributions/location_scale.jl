@@ -19,9 +19,8 @@ struct VILocationScale{L, S, D} <: ContinuousMultivariateDistribution
     dist    ::D
 
     function VILocationScale(location::AbstractVector{<:Real},
-                             scale::Union{<:AbstractTriangular{<:Real},
-                                      <:Diagonal{<:Real}},
-                             dist::ContinuousUnivariateDistribution)
+                             scale   ::Union{<:AbstractTriangular{<:Real}, <:Diagonal{<:Real}},
+                             dist    ::ContinuousUnivariateDistribution)
         # Restricting all the arguments to have the same types creates problems 
         # with dual-variable-based AD frameworks.
         @assert (length(location) == size(scale,1)) && (length(location) == size(scale,2))
@@ -30,6 +29,32 @@ struct VILocationScale{L, S, D} <: ContinuousMultivariateDistribution
 end
 
 Functors.@functor VILocationScale (location, scale)
+
+# Specialization of `Optimisers.destructure` for mean-field location-scale families.
+# These are necessary because we only want to extract the diagonal elements of 
+# `scale <: Diagonal`, which is not the default behavior. Otherwise, forward-mode AD
+# is very inefficient.
+# begin
+struct RestructureMeanField{L, S<:Diagonal, D}
+    q::VILocationScale{L, S, D}
+end
+
+function (re::RestructureMeanField)(flat::AbstractVector)
+    n_dims   = div(length(flat), 2)
+    location = first(flat, n_dims)
+    scale    = Diagonal(last(flat, n_dims))
+    VILocationScale(location, scale, re.q.dist)
+end
+
+function Optimisers.destructure(
+    q::VILocationScale{L, <:Diagonal, D}
+) where {L, D}
+    @unpack location, scale, dist = q
+    flat   = vcat(location, diag(scale))
+    n_dims = length(location)
+    flat, RestructureMeanField(q)
+end
+# end
 
 Base.length(q::VILocationScale) = length(q.location)
 Base.size(q::VILocationScale) = size(q.location)
@@ -42,12 +67,12 @@ end
 
 function logpdf(q::VILocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
-    sum(zᵢ -> logpdf(dist, zᵢ), scale \ (z - location)) - first(logabsdet(scale))
+    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - first(logabsdet(scale))
 end
 
 function _logpdf(q::VILocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
-    sum(zᵢ -> logpdf(dist, zᵢ), scale \ (z - location)) - first(logabsdet(scale))
+    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - first(logabsdet(scale))
 end
 
 function rand(q::VILocationScale)

@@ -23,9 +23,6 @@ where ``\mathcal{H}(\varphi)`` is the entropy of the base distribution.
 Notice the ``\mathcal{H}(\varphi)`` does not depend on ``\log |C|``.
 The derivative of the entropy with respect to ``\lambda`` is thus independent of the base distribution.
 
-!!! warning
-	`LocationScale` and its specializations such as `VIFullRankGaussian` and `VIMeanFieldGaussian` are inefficient with forward-mode differentiation packages like `ForwardDiff`. Especially, they scale poorly with the number of dimensions. Please use reverse-mode differentation packages such as `ReverseDiff` and `Zygote`.
-
 ## Constructors
 
 ```@docs
