@@ -31,6 +31,9 @@ using Distributions: _logpdf
         end
 
         @testset "logpdf" begin
+            seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
+            rng  = Philox4x(UInt64, seed, 8)
+
             z = rand(rng, q)
             @test eltype(z)             == realtype
             @test logpdf(q, z)          ≈  logpdf(q_true, z)  rtol=realtype(1e-2)
@@ -45,12 +48,38 @@ using Distributions: _logpdf
         end
 
         @testset "sampling" begin
-            z_samples  = rand(rng, q, n_montecarlo)
-            threesigma = L
-            @test eltype(z_samples) == realtype
-            @test dropdims(mean(z_samples, dims=2), dims=2) ≈ μ       rtol=realtype(1e-2)
-            @test dropdims(var(z_samples, dims=2),  dims=2) ≈ diag(Σ) rtol=realtype(1e-2)
-            @test cov(z_samples, dims=2)                    ≈ Σ       rtol=realtype(1e-2)
+            @testset "rand" begin
+                seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
+                rng  = Philox4x(UInt64, seed, 8)
+
+                z_samples  = mapreduce(x -> rand(rng, q), hcat, 1:n_montecarlo)
+                @test eltype(z_samples) == realtype
+                @test dropdims(mean(z_samples, dims=2), dims=2) ≈ μ       rtol=realtype(1e-2)
+                @test dropdims(var(z_samples, dims=2),  dims=2) ≈ diag(Σ) rtol=realtype(1e-2)
+                @test cov(z_samples, dims=2)                    ≈ Σ       rtol=realtype(1e-2)
+            end
+
+            @testset "rand batch" begin
+                seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
+                rng  = Philox4x(UInt64, seed, 8)
+
+                z_samples  = rand(rng, q, n_montecarlo)
+                @test eltype(z_samples) == realtype
+                @test dropdims(mean(z_samples, dims=2), dims=2) ≈ μ       rtol=realtype(1e-2)
+                @test dropdims(var(z_samples, dims=2),  dims=2) ≈ diag(Σ) rtol=realtype(1e-2)
+                @test cov(z_samples, dims=2)                    ≈ Σ       rtol=realtype(1e-2)
+            end
+
+            @testset "rand!" begin
+                seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
+                rng  = Philox4x(UInt64, seed, 8)
+
+                z_samples = Array{realtype}(undef, n_dims, n_montecarlo)
+                rand!(rng, q, z_samples)
+                @test dropdims(mean(z_samples, dims=2), dims=2) ≈ μ       rtol=realtype(1e-2)
+                @test dropdims(var(z_samples, dims=2),  dims=2) ≈ diag(Σ) rtol=realtype(1e-2)
+                @test cov(z_samples, dims=2)                    ≈ Σ       rtol=realtype(1e-2)
+            end
         end
     end
 
