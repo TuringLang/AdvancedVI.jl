@@ -35,7 +35,7 @@ Optimize the variational objective `objective` by estimating (stochastic) gradie
 - `optimizer`: Optimizer used for inference. (Type: `<: Optimisers.AbstractRule`; Default: `Adam`.)
 - `rng`: Random number generator. (Type: `<: AbstractRNG`; Default: `Random.default_rng()`.)
 - `show_progress`: Whether to show the progress bar. (Type: `<: Bool`; Default: `true`.)
-- `callback!`: Callback function called after every iteration. The signature is `cb(; t, est_state, stats, restructure, λ, g)`, which returns a dictionary-like object containing statistics to be displayed on the progress bar. The variational approximation can be reconstructed as `restructure(λ)`. If the estimator associated with `objective` is stateful, `est_state` contains its state. (Default: `nothing`.) `g` is the stochastic gradient.
+- `callback!`: Callback function called after every iteration. The signature is `cb(; est_state, stats, restructure, λ, g)`, which returns a dictionary-like object containing statistics to be displayed on the progress bar. The variational approximation can be reconstructed as `restructure(λ)`. If the estimator associated with `objective` is stateful, `est_state` contains its state. (Default: `nothing`.) `g` is the stochastic gradient.
 - `prog`: Progress bar configuration. (Default: `ProgressMeter.Progress(n_max_iter; desc="Optimizing", barlen=31, showspeed=true, enabled=prog)`.)
 
 # Returns
@@ -80,7 +80,7 @@ function optimize(
         stat = merge(stat, stat′)
 
         if !isnothing(callback!)
-            stat′ = callback!(; est_state, stat, λ, g, restructure)
+            stat′ = callback!(; est_state, stat, restructure, λ, g)
             stat = !isnothing(stat′) ? merge(stat′, stat) : stat
         end
         
