@@ -57,12 +57,15 @@ end
 # end
 
 Base.length(q::VILocationScale) = length(q.location)
+
 Base.size(q::VILocationScale) = size(q.location)
+
+Base.eltype(::Type{<:VILocationScale{L, S, D}}) where {L, S, D} = eltype(D)
 
 function StatsBase.entropy(q::VILocationScale)
     @unpack  location, scale, dist = q
     n_dims = length(location)
-    n_dims*entropy(dist) + first(logabsdet(scale))
+    n_dims*convert(eltype(location), entropy(dist)) + first(logabsdet(scale))
 end
 
 function logpdf(q::VILocationScale, z::AbstractVector{<:Real})
@@ -121,7 +124,7 @@ function VIFullRankGaussian(
     L::AbstractTriangular{T};
     check_args::Bool = true
 ) where {T <: Real}
-    @assert isposdef(L) "Scale must be positive definite"
+    @assert eigmin(L) > eps(eltype(L)) "Scale must be positive definite"
     if check_args && (minimum(diag(L)) < sqrt(eps(eltype(L))))
         @warn "Initial scale is too small (minimum eigenvalue is $(minimum(diag(L)))). This might result in unstable optimization behavior."
     end
@@ -139,7 +142,7 @@ function VIMeanFieldGaussian(
     L::Diagonal{T};
     check_args::Bool = true
 ) where {T <: Real}
-    @assert isposdef(L) "Scale must be positive definite"
+    @assert eigmin(L) > eps(eltype(L)) "Scale must be a Cholesky factor"
     if check_args && (minimum(diag(L)) < sqrt(eps(eltype(L))))
         @warn "Initial scale is too small (minimum eigenvalue is $(minimum(diag(L)))). This might result in unstable optimization behavior."
     end
