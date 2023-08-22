@@ -110,8 +110,8 @@ end
 function _rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractMatrix{<:Real})
     @unpack location, scale, dist = q
     rand!(rng, dist, x)
-    x *= scale
-    return x += location
+    x[:] = scale*x
+    return x .+= location
 end
 
 """
