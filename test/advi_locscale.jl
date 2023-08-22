@@ -38,7 +38,7 @@ using ReTest
             L₀ = if is_meanfield
                 FillArrays.Eye(n_dims) |> Diagonal
             else
-                FillArrays.Eye(n_dims) |> LowerTriangular
+                FillArrays.Eye(n_dims) |> Matrix |> LowerTriangular
             end
 
             q₀ = if is_meanfield
