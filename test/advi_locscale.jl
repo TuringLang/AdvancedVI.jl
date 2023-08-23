@@ -27,9 +27,10 @@ using ReTest
             seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
             rng  = Philox4x(UInt64, seed, 8)
 
-            T = 10000
             modelstats = modelconstr(realtype; rng)
             @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
+
+            T, η = is_meanfield ? (5_000, 1e-2) : (30_000, 1e-3)
 
             b    = Bijectors.bijector(model)
             b⁻¹  = inverse(b)
@@ -53,7 +54,7 @@ using ReTest
                 Δλ₀         = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
                 q, stats, _ = optimize(
                     obj, q₀, T;
-                    optimizer     = Optimisers.Adam(1e-2),
+                    optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
                     rng           = rng,
                     adbackend     = adbackend,
@@ -72,7 +73,7 @@ using ReTest
                 rng         = Philox4x(UInt64, seed, 8)
                 q, stats, _ = optimize(
                     obj, q₀, T;
-                    optimizer     = Optimisers.Adam(realtype(1e-2)),
+                    optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
                     rng           = rng,
                     adbackend     = adbackend,
@@ -83,7 +84,7 @@ using ReTest
                 rng_repl    = Philox4x(UInt64, seed, 8)
                 q, stats, _ = optimize(
                     obj, q₀, T;
-                    optimizer     = Optimisers.Adam(realtype(1e-2)),
+                    optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
                     rng           = rng_repl,
                     adbackend     = adbackend,
