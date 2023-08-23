@@ -124,7 +124,7 @@ function VIFullRankGaussian(
     L::AbstractTriangular{T};
     check_args::Bool = true
 ) where {T <: Real}
-    @assert eigmin(L) > eps(eltype(L)) "Scale must be positive definite"
+    @assert minimum(diag(L)) > eps(eltype(L)) "Scale must be positive definite"
     if check_args && (minimum(diag(L)) < sqrt(eps(eltype(L))))
         @warn "Initial scale is too small (minimum eigenvalue is $(minimum(diag(L)))). This might result in unstable optimization behavior."
     end
@@ -142,7 +142,7 @@ function VIMeanFieldGaussian(
     L::Diagonal{T};
     check_args::Bool = true
 ) where {T <: Real}
-    @assert eigmin(L) > eps(eltype(L)) "Scale must be a Cholesky factor"
+    @assert minimum(diag(L)) > eps(eltype(L)) "Scale must be a Cholesky factor"
     if check_args && (minimum(diag(L)) < sqrt(eps(eltype(L))))
         @warn "Initial scale is too small (minimum eigenvalue is $(minimum(diag(L)))). This might result in unstable optimization behavior."
     end
