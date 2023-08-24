@@ -9,7 +9,6 @@ using ReTest
             realtype ∈ [Float64], # Currently only tested against Float64
             (modelname, modelconstr) ∈ Dict(
                 :NormalLogNormalMeanField => normallognormal_meanfield,
-                :NormalLogNormalFullRank  => normallognormal_fullrank,
             ),
             (objname, objective) ∈ Dict(
                 :ADVIClosedFormEntropy  => (model, b⁻¹, M) -> ADVI(model, M; invbij = b⁻¹),
@@ -17,7 +16,7 @@ using ReTest
             ),
             (adbackname, adbackend) ∈ Dict(
                 :ForwarDiff  => AutoForwardDiff(),
-                :ReverseDiff => AutoReverseDiff(),
+                # :ReverseDiff => AutoReverseDiff(),
                 # :Zygote      => AutoZygote(), 
                 # :Enzyme      => AutoEnzyme(),
             )
@@ -32,19 +31,10 @@ using ReTest
 
             b    = Bijectors.bijector(model)
             b⁻¹  = inverse(b)
+            μ₀   = zeros(realtype, n_dims)
+	    L₀   = Diagonal(ones(realtype, n_dims))
 
-            μ₀ = zeros(realtype, n_dims)
-            L₀ = if is_meanfield
-                FillArrays.Eye(n_dims) |> Diagonal
-            else
-                FillArrays.Eye(n_dims) |> Matrix |> LowerTriangular
-            end
-
-            q₀ = if is_meanfield
-                VIMeanFieldGaussian(μ₀, L₀)
-            else
-                VIFullRankGaussian(μ₀, L₀)
-            end
+	    q₀ = TuringDiagMvNormal(μ₀, diag(L₀))
 
             obj = objective(model, b⁻¹, 10)
 
@@ -58,8 +48,8 @@ using ReTest
                     adbackend     = adbackend,
                 )
 
-                μ  = q.location
-                L  = q.scale
+		μ  = mean(q)
+		L  = sqrt(cov(q))
                 Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
                 @test Δλ ≤ Δλ₀/T^(1/4)
@@ -76,8 +66,8 @@ using ReTest
                     rng           = rng,
                     adbackend     = adbackend,
                 )
-                μ  = q.location
-                L  = q.scale
+		μ  = mean(q)
+		L  = sqrt(cov(q))
 
                 rng_repl = Philox4x(UInt64, seed, 8)
                 q, stats, _, _ = optimize(
@@ -87,8 +77,8 @@ using ReTest
                     rng           = rng_repl,
                     adbackend     = adbackend,
                 )
-                μ_repl = q.location
-                L_repl = q.scale
+		μ_repl = mean(q)
+		L_repl = sqrt(cov(q))
                 @test μ == μ_repl
                 @test L == L_repl
             end

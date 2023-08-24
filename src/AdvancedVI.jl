@@ -67,15 +67,6 @@ export
     StickingTheLandingEntropy,
     MonteCarloEntropy
 
-# Variational Families
-
-include("distributions/location_scale.jl")
-
-export
-    VILocationScale,
-    VIFullRankGaussian,
-    VIMeanFieldGaussian
-
 # Optimization Routine
 
 function optimize end

@@ -12,9 +12,7 @@ using ReTest
 
     # Global Test Configurations
     b⁻¹ = Bijectors.bijector(model) |> inverse
-    μ₀  = zeros(Float64, n_dims)
-    L₀  = ones(Float64, n_dims) |> Diagonal
-    q₀  = VIMeanFieldGaussian(μ₀, L₀)
+    q₀  = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
     obj = ADVI(model, 10; invbij=b⁻¹)
 
     adbackend = AutoForwardDiff()

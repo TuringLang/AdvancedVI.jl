@@ -12,6 +12,10 @@ using SimpleUnPack: @unpack
 using FillArrays
 using PDMats
 
+using Functors
+using DistributionsAD
+@functor TuringDiagMvNormal
+
 using Bijectors
 using LogDensityProblems
 using Optimisers
@@ -33,7 +37,6 @@ include("models/normallognormal.jl")
 
 # Tests
 include("ad.jl")
-include("distributions.jl")
 include("advi_locscale.jl")
 include("optimize.jl")
 
