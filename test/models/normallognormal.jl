@@ -32,10 +32,10 @@ function normallognormal_fullrank(realtype; rng = default_rng())
     μ_x = randn(rng, realtype)
     σ_x = ℯ
     μ_y = randn(rng, realtype, n_dims)
-    L_y = tril(I + ones(realtype, n_dims, n_dims))/2 |> LowerTriangular
+    L_y = tril(I + ones(realtype, n_dims, n_dims))/2
     Σ_y = L_y*L_y' |> Hermitian
 
-    model = NormalLogNormal(μ_x, σ_x, μ_y, PDMat(Σ_y, Cholesky(L_y)))
+    model = NormalLogNormal(μ_x, σ_x, μ_y, PDMat(Σ_y, Cholesky(L_y, 'L', 0)))
 
     Σ = Matrix{realtype}(undef, n_dims+1, n_dims+1)
     Σ[1,1]         = σ_x^2
