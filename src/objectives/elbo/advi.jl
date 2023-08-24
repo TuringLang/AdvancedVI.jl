@@ -19,18 +19,15 @@ Automatic differentiation variational inference (ADVI; Kucukelbir *et al.* 2017)
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
 """
-struct ADVI{Tlogπ, B,
-            EntropyEst <: AbstractEntropyEstimator,
-            ControlVar <: Union{<: AbstractControlVariate, Nothing}} <: AbstractVariationalObjective
-    ℓπ::Tlogπ
-    invbij::B
-    entropy::EntropyEst
-    cv::ControlVar
+struct ADVI{P, B, EntropyEst <: AbstractEntropyEstimator} <: AbstractVariationalObjective
+    prob     ::P
+    invbij   ::B
+    entropy  ::EntropyEst
     n_samples::Int
 
-    function ADVI(prob, n_samples::Int;
-                  entropy::AbstractEntropyEstimator = ClosedFormEntropy(),
-                  cv::Union{<:AbstractControlVariate, Nothing} = nothing,
+    function ADVI(prob,
+                  n_samples::Int;
+                  entropy  ::AbstractEntropyEstimator = ClosedFormEntropy(),
                   invbij = Bijectors.identity)
         cap = LogDensityProblems.capabilities(prob)
         if cap === nothing
@@ -40,15 +37,16 @@ struct ADVI{Tlogπ, B,
                 ),
             )
         end
-        ℓπ = Base.Fix1(LogDensityProblems.logdensity, prob)
-        new{typeof(ℓπ), typeof(invbij), typeof(entropy), typeof(cv)}(ℓπ, invbij, entropy, cv, n_samples)
+        new{typeof(prob), typeof(invbij), typeof(entropy)}(
+            prob, invbij, entropy, n_samples
+        )
     end
 end
 
 Base.show(io::IO, advi::ADVI) =
-    print(io, "ADVI(entropy=$(advi.entropy), cv=$(advi.cv), n_samples=$(advi.n_samples))")
+    print(io, "ADVI(entropy=$(advi.entropy), n_samples=$(advi.n_samples))")
 
-init(advi::ADVI) = init(advi.cv)
+init(rng::AbstractRNG, advi::ADVI, λ::AbstractVector, restructure) = nothing
 
 function (advi::ADVI)(
     rng::AbstractRNG,
@@ -57,7 +55,7 @@ function (advi::ADVI)(
 )
     𝔼ℓ = mean(eachcol(ηs)) do ηᵢ
         zᵢ, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(advi.invbij, ηᵢ)
-        advi.ℓπ(zᵢ) + logdetjacᵢ
+        LogDensityProblems.logdensity(advi.prob, zᵢ) + logdetjacᵢ
     end
     ℍ  = advi.entropy(q_η, ηs)
     𝔼ℓ + ℍ
@@ -78,22 +76,22 @@ Evaluate the ELBO using the ADVI formulation.
 
 """
 function (advi::ADVI)(
-    q_η::ContinuousMultivariateDistribution;
-    rng::AbstractRNG = default_rng(),
-    n_samples::Int = advi.n_samples
+    q_η      ::ContinuousMultivariateDistribution;
+    rng      ::AbstractRNG = default_rng(),
+    n_samples::Int         = advi.n_samples
 )
     ηs = rand(rng, q_η, n_samples)
     advi(rng, q_η, ηs)
 end
 
 function estimate_gradient(
-    rng::AbstractRNG,
-    adbackend::AbstractADType,
-    advi::ADVI,
+    rng          ::AbstractRNG,
+    adbackend    ::AbstractADType,
+    advi         ::ADVI,
     est_state,
-    λ::Vector{<:Real},
+    λ            ::Vector{<:Real},
     restructure,
-    out::DiffResults.MutableDiffResult
+    out          ::DiffResults.MutableDiffResult
 )
     f(λ′) = begin
         q_η = restructure(λ′)
@@ -105,8 +103,5 @@ function estimate_gradient(
     nelbo = DiffResults.value(out)
     stat  = (elbo=-nelbo,)
 
-    est_state, stat′ = update(advi.cv, est_state)
-    stat = !isnothing(stat′) ? merge(stat′, stat) : stat 
-
-    out, est_state, stat
+    out, nothing, stat
 end

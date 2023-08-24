@@ -51,8 +51,8 @@ using ReTest
             obj = objective(model, b⁻¹, 10)
 
             @testset "convergence" begin
-                Δλ₀         = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
-                q, stats, _ = optimize(
+                Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
+                q, stats, _, _ = optimize(
                     obj, q₀, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
@@ -70,8 +70,8 @@ using ReTest
             end
 
             @testset "determinism" begin
-                rng         = Philox4x(UInt64, seed, 8)
-                q, stats, _ = optimize(
+                rng = Philox4x(UInt64, seed, 8)
+                q, stats, _, _ = optimize(
                     obj, q₀, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
@@ -81,8 +81,8 @@ using ReTest
                 μ  = q.location
                 L  = q.scale
 
-                rng_repl    = Philox4x(UInt64, seed, 8)
-                q, stats, _ = optimize(
+                rng_repl = Philox4x(UInt64, seed, 8)
+                q, stats, _, _ = optimize(
                     obj, q₀, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,

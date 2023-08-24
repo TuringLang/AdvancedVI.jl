@@ -20,8 +20,8 @@ using ReTest
     adbackend = AutoForwardDiff()
     optimizer = Optimisers.Adam(1e-2)
 
-    rng                 = Philox4x(UInt64, seed, 8)
-    q_ref, stats_ref, _ = optimize(
+    rng = Philox4x(UInt64, seed, 8)
+    q_ref, stats_ref, _, _ = optimize(
         obj, q₀, T;
         optimizer,
         show_progress = false,
@@ -33,8 +33,8 @@ using ReTest
     @testset "restructure" begin
         λ₀, re  = Optimisers.destructure(q₀)
 
-        rng         = Philox4x(UInt64, seed, 8)
-        λ, stats, _ = optimize(
+        rng = Philox4x(UInt64, seed, 8)
+        λ, stats, _, _ = optimize(
             obj, re, λ₀, T;
             optimizer,
             show_progress = false,
@@ -49,12 +49,12 @@ using ReTest
         rng = Philox4x(UInt64, seed, 8)
         test_values = rand(rng, T)
 
-        callback!(; stat, est_state, restructure, λ, g) = begin
+        callback!(; stat, obj_state, restructure, λ, g) = begin
             (test_value = test_values[stat.iteration],)
         end
 
-        rng         = Philox4x(UInt64, seed, 8)
-        _, stats, _ = optimize(
+        rng = Philox4x(UInt64, seed, 8)
+        _, stats, _, _ = optimize(
             obj, q₀, T;
             show_progress = false,
             rng,

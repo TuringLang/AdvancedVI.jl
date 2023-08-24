@@ -103,8 +103,8 @@ q = AVI.VIMeanFieldGaussian(μ, L)
 ```
 Passing `objective` and the initial variational approximation `q` to `optimize` performs inference.
 ```@example advi
-n_max_iter  = 10^4
-q, stats, _ = AVI.optimize(
+n_max_iter = 10^4
+q, stats, _, _ = AVI.optimize(
     objective,
     q,
     n_max_iter;

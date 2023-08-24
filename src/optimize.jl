@@ -35,13 +35,18 @@ Optimize the variational objective `objective` by estimating (stochastic) gradie
 - `optimizer`: Optimizer used for inference. (Type: `<: Optimisers.AbstractRule`; Default: `Adam`.)
 - `rng`: Random number generator. (Type: `<: AbstractRNG`; Default: `Random.default_rng()`.)
 - `show_progress`: Whether to show the progress bar. (Type: `<: Bool`; Default: `true`.)
-- `callback!`: Callback function called after every iteration. The signature is `cb(; est_state, stats, restructure, λ, g)`, which returns a dictionary-like object containing statistics to be displayed on the progress bar. The variational approximation can be reconstructed as `restructure(λ)`. If the estimator associated with `objective` is stateful, `est_state` contains its state. (Default: `nothing`.) `g` is the stochastic gradient.
+- `callback!`: Callback function called after every iteration. The signature is `cb(; obj_state, stats, restructure, λ, g)`, which returns a dictionary-like object containing statistics to be displayed on the progress bar. The variational approximation can be reconstructed as `restructure(λ)`. If the estimator associated with `objective` is stateful, `obj_state` contains its state. (Default: `nothing`.) `g` is the stochastic gradient.
 - `prog`: Progress bar configuration. (Default: `ProgressMeter.Progress(n_max_iter; desc="Optimizing", barlen=31, showspeed=true, enabled=prog)`.)
+
+When resuming from the state of a previous run, use the following keyword arguments:
+- `opt_state`: Initial state of the optimizer.
+- `obj_state`: Initial state of the objective.
 
 # Returns
 - `λ`: Variational parameters optimizing the variational objective.
 - `stats`: Statistics gathered during inference.
 - `opt_state`: Final state of the optimiser.
+- `obj_state`: Final state of the objective.
 """
 function optimize(
     objective    ::AbstractVariationalObjective,
@@ -52,6 +57,8 @@ function optimize(
     optimizer    ::Optimisers.AbstractRule = Optimisers.Adam(),
     rng          ::AbstractRNG             = default_rng(),
     show_progress::Bool                    = true,
+    opt_state                              = nothing,
+    obj_state                              = nothing,
     callback!                              = nothing,
     prog                                   = ProgressMeter.Progress(
         n_max_iter;
@@ -62,16 +69,16 @@ function optimize(
     )              
 )
     λ         = copy(λ₀)
-    opt_state = Optimisers.setup(optimizer, λ)
-    est_state = init(objective)
+    opt_state = isnothing(opt_state) ? Optimisers.setup(optimizer, λ)       : opt_state
+    obj_state = isnothing(obj_state) ? init(rng, objective, λ, restructure) : obj_state
     grad_buf  = DiffResults.GradientResult(λ)
     stats     = NamedTuple[]
 
     for t = 1:n_max_iter
         stat = (iteration=t,)
 
-        grad_buf, est_state, stat′ = estimate_gradient(
-            rng, adbackend, objective, est_state, λ, restructure, grad_buf)
+        grad_buf, obj_state, stat′ = estimate_gradient(
+            rng, adbackend, objective, obj_state, λ, restructure, grad_buf)
         stat = merge(stat, stat′)
 
         g            = DiffResults.gradient(grad_buf)
@@ -80,7 +87,7 @@ function optimize(
         stat = merge(stat, stat′)
 
         if !isnothing(callback!)
-            stat′ = callback!(; est_state, stat, restructure, λ, g)
+            stat′ = callback!(; obj_state, stat, restructure, λ, g)
             stat = !isnothing(stat′) ? merge(stat′, stat) : stat
         end
         
@@ -89,7 +96,7 @@ function optimize(
         pm_next!(prog, stat)
         push!(stats, stat)
     end
-    λ, map(identity, stats), opt_state
+    λ, map(identity, stats), opt_state, obj_state
 end
 
 function optimize(objective ::AbstractVariationalObjective,
@@ -97,6 +104,8 @@ function optimize(objective ::AbstractVariationalObjective,
                   n_max_iter::Int;
                   kwargs...)
     λ, restructure = Optimisers.destructure(q₀)
-    λ, stats, opt_state = optimize(objective, restructure, λ, n_max_iter; kwargs...)
-    restructure(λ), stats, opt_state
+    λ, stats, opt_state, obj_state = optimize(
+        objective, restructure, λ, n_max_iter; kwargs...
+    )
+    restructure(λ), stats, opt_state, obj_state
 end

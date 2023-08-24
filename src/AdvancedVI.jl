@@ -53,14 +53,8 @@ abstract type AbstractVariationalObjective end
 function init              end
 function estimate_gradient end
 
-init(::Nothing) = nothing
-
 # ADVI-specific interfaces
 abstract type AbstractEntropyEstimator end
-abstract type AbstractControlVariate end
-
-function update end
-update(::Nothing, ::Nothing) = (nothing, nothing)
 
 # entropy.jl must preceed advi.jl
 include("objectives/elbo/entropy.jl")

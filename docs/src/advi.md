@@ -189,7 +189,7 @@ stl = AVI.ADVI(model, n_montecarlo; entropy = AVI.StickingTheLandingEntropy(), i
 ```@setup stl
 n_max_iter = 10^4
 
-_, stats_cfe, _ = AVI.optimize(
+_, stats_cfe, _, _ = AVI.optimize(
     cfe,
     q0,
     n_max_iter;
@@ -198,7 +198,7 @@ _, stats_cfe, _ = AVI.optimize(
     optimizer     = Optimisers.Adam(1e-3)
 ); 
 
-_, stats_stl, _ = AVI.optimize(
+_, stats_stl, _, _ = AVI.optimize(
     stl,
     q0,
     n_max_iter;
