@@ -23,7 +23,7 @@ using LogDensityProblems
 
 using ADTypes, DiffResults
 using ADTypes: AbstractADType
-using ChainRules: @ignore_derivatives 
+using ChainRulesCore: @ignore_derivatives 
 
 using FillArrays
 using Bijectors
