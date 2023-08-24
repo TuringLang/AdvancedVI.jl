@@ -21,7 +21,7 @@ using ReTest
     optimizer = Optimisers.Adam(1e-2)
 
     rng = Philox4x(UInt64, seed, 8)
-    q_ref, stats_ref, _, _ = optimize(
+    q_ref, stats_ref, _ = optimize(
         obj, q₀, T;
         optimizer,
         show_progress = false,
@@ -34,7 +34,7 @@ using ReTest
         λ₀, re  = Optimisers.destructure(q₀)
 
         rng = Philox4x(UInt64, seed, 8)
-        λ, stats, _, _ = optimize(
+        λ, stats, _ = optimize(
             obj, re, λ₀, T;
             optimizer,
             show_progress = false,
@@ -49,18 +49,44 @@ using ReTest
         rng = Philox4x(UInt64, seed, 8)
         test_values = rand(rng, T)
 
-        callback!(; stat, obj_state, restructure, λ, g) = begin
+        callback!(; stat, restructure, λ, g) = begin
             (test_value = test_values[stat.iteration],)
         end
 
         rng = Philox4x(UInt64, seed, 8)
-        _, stats, _, _ = optimize(
+        _, stats, _ = optimize(
             obj, q₀, T;
+            optimizer,
             show_progress = false,
             rng,
             adbackend,
             callback!
         )
         @test [stat.test_value for stat ∈ stats] == test_values
+    end
+
+    @testset "warm start" begin
+        rng = Philox4x(UInt64, seed, 8)
+
+        T_first = div(T,2)
+        T_last  = T - T_first
+
+        q_first, _, state = optimize(
+            obj, q₀, T_first;
+            optimizer,
+            show_progress = false,
+            rng,
+            adbackend
+        )
+
+        q, stats, _ = optimize(
+            obj, q_first, T_last;
+            optimizer,
+            show_progress = false,
+            state,
+            rng,
+            adbackend
+        )
+        @test q == q_ref
     end
 end
