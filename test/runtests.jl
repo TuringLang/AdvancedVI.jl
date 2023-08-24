@@ -9,8 +9,8 @@ using Statistics
 using Distributions
 using LinearAlgebra
 using SimpleUnPack: @unpack
-using PDMats
 using FillArrays
+using PDMats
 
 using Bijectors
 using LogDensityProblems

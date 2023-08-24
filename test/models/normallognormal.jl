@@ -29,13 +29,13 @@ end
 function normallognormal_fullrank(realtype; rng = default_rng())
     n_dims = 5
 
-    μ_x  = randn(rng, realtype)
-    σ_x  = ℯ
-    μ_y  = randn(rng, realtype, n_dims)
-    L₀_y = tril(I + ones(realtype, n_dims, n_dims))/2 |> LowerTriangular
-    Σ_y  = L₀_y*L₀_y' |> Hermitian
+    μ_x = randn(rng, realtype)
+    σ_x = ℯ
+    μ_y = randn(rng, realtype, n_dims)
+    L_y = tril(I + ones(realtype, n_dims, n_dims))/2 |> LowerTriangular
+    Σ_y = L_y*L_y' |> Hermitian
 
-    model = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDMat(Σ_y))
+    model = NormalLogNormal(μ_x, σ_x, μ_y, PDMat(Σ_y, Cholesky(L_y)))
 
     Σ = Matrix{realtype}(undef, n_dims+1, n_dims+1)
     Σ[1,1]         = σ_x^2
@@ -56,7 +56,7 @@ function normallognormal_meanfield(realtype; rng = default_rng())
     μ_y  = randn(rng, realtype, n_dims)
     σ_y  = log.(exp.(randn(rng, realtype, n_dims)) .+ 1)
 
-    model = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2))
+    model = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2))
 
     μ = vcat(μ_x, μ_y)
     L = vcat(σ_x, σ_y) |> Diagonal
