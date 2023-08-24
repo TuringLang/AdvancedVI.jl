@@ -37,14 +37,11 @@ function normallognormal_fullrank(realtype; rng = default_rng())
 
     model = NormalLogNormal(μ_x, σ_x, μ_y, PDMat(Σ_y, Cholesky(L_y, 'L', 0)))
 
-    Σ = Matrix{realtype}(undef, n_dims+1, n_dims+1)
-    Σ[1,1]         = σ_x^2
-    Σ[2:end,2:end] = Σ_y
-    Σ = Σ |> Hermitian
+    L = Matrix{realtype}(undef, n_dims+1, n_dims+1) |> LowerTriangular
+    L[1,1]         = σ_x
+    L[2:end,2:end] = L_y
 
     μ = vcat(μ_x, μ_y)
-    L = cholesky(Σ).L |> LowerTriangular
-
     TestModel(model, μ, L, n_dims+1, false)
 end
 
