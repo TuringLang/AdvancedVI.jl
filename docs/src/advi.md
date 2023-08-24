@@ -117,7 +117,6 @@ StickingTheLandingEntropy
 ```@setup stl
 using LogDensityProblems
 using SimpleUnPack
-using PDMats
 using Bijectors
 using LinearAlgebra
 using Plots
@@ -151,14 +150,12 @@ n_dims = 10
 σ_x    = exp.(randn())
 μ_y    = randn(n_dims)
 σ_y    = exp.(randn(n_dims))
-model  = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2));
+model  = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2));
 
 d  = LogDensityProblems.dimension(model);
 μ  = randn(d);
 L  = Diagonal(ones(d));
 q0 = AVI.VIMeanFieldGaussian(μ, L)
-
-model  = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2));
 
 function Bijectors.bijector(model::NormalLogNormal)
     @unpack μ_x, σ_x, μ_y, Σ_y = model

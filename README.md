@@ -49,7 +49,7 @@ This corresponds to the automatic differentiation VI (ADVI; Kucukelbir *et al.*,
 using Bijectors
 
 function Bijectors.bijector(model::NormalLogNormal)
-    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    (; μ_x, σ_x, μ_y, Σ_y) = model
     Bijectors.Stacked(
         Bijectors.bijector.([LogNormal(μ_x, σ_x), MvNormal(μ_y, Σ_y)]),
         [1:1, 2:1+length(μ_y)])
@@ -60,19 +60,18 @@ A simpler approach is to use `Turing`, where a `Turing.Model` can be automatical
 
 Let us instantiate a random normal-log-normal model.
 ```julia
-using PDMats
+using LinearAlgebra
 
 n_dims = 10
 μ_x    = randn()
 σ_x    = exp.(randn())
 μ_y    = randn(n_dims)
 σ_y    = exp.(randn(n_dims))
-model  = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDiagMat(σ_y.^2))
+model  = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2))
 ```
 
 ADVI can be used as follows:
 ```julia
-using LinearAlgebra
 using Optimisers
 using ADTypes, ForwardDiff
 import AdvancedVI as AVI
@@ -81,7 +80,7 @@ b     = Bijectors.bijector(model)
 b⁻¹   = inverse(b)
 
 # ADVI objective 
-objective = AVI.ADVI(model, 10; b=b⁻¹)
+objective = AVI.ADVI(model, 10; invbij=b⁻¹)
 
 # Mean-field Gaussian variational family
 d = LogDensityProblems.dimension(model)
