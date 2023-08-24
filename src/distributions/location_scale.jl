@@ -114,6 +114,18 @@ function _rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractMatrix{<:Real})
     return x .+= location
 end
 
+Distributions.mean(q::VILocationScale) = q.location
+
+function Distributions.var(q::VILocationScale)  
+    C = q.scale
+    Diagonal(C*C')
+end
+
+function Distributions.cov(q::VILocationScale)
+    C = q.scale
+    Hermitian(C*C')
+end
+
 """
     VIFullRankGaussian(μ::AbstractVector{T}, L::AbstractTriangular{T}; check_args = true)
 

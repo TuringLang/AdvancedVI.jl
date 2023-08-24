@@ -47,6 +47,21 @@ using Distributions: _logpdf
             @test entropy(q)         ≈ entropy(q_true)
         end
 
+        @testset "statistics" begin
+            @testset "mean" begin
+                 @test eltype(mean(q)) == realtype
+                 @test mean(q)         == μ
+            end
+            @testset "var" begin
+                 @test eltype(var(q)) == realtype
+		 @test var(q)         ≈  Diagonal(Σ)
+            end
+            @testset "cov" begin
+                 @test eltype(cov(q)) == realtype
+		 @test cov(q)         ≈  Σ
+            end
+        end
+
         @testset "sampling" begin
             @testset "rand" begin
                 seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
