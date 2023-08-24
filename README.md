@@ -17,6 +17,7 @@ x &\sim \mathrm{LogNormal}\left(\mu_x, \sigma_x^2\right) \\
 y &\sim \mathcal{N}\left(\mu_y, \sigma_y^2\right),
 \end{aligned}
 $$
+
 a `LogDensityProblem` can be implemented as 
 ```julia
 using LogDensityProblems
