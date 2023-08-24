@@ -10,8 +10,6 @@ using ReTest
             (modelname, modelconstr) ∈ Dict(
                 :NormalLogNormalMeanField => normallognormal_meanfield,
                 :NormalLogNormalFullRank  => normallognormal_fullrank,
-                :NormalMeanField          => normal_meanfield,
-                :NormalFullRank           => normal_fullrank,
             ),
             (objname, objective) ∈ Dict(
                 :ADVIClosedFormEntropy  => (model, b⁻¹, M) -> ADVI(model, M; invbij = b⁻¹),

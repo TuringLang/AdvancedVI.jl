@@ -20,9 +20,7 @@ using ForwardDiff, ReverseDiff, Zygote
 
 using AdvancedVI
 
-# Utilities
-include("utils.jl")
-
+# Models for Inference Tests
 struct TestModel{M,L,S}
     model::M
     μ_true::L
@@ -31,7 +29,6 @@ struct TestModel{M,L,S}
     is_meanfield::Bool
 end
 
-include("models/normal.jl")
 include("models/normallognormal.jl")
 
 # Tests

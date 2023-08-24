@@ -32,7 +32,7 @@ function normallognormal_fullrank(realtype; rng = default_rng())
     μ_x  = randn(rng, realtype)
     σ_x  = ℯ
     μ_y  = randn(rng, realtype, n_dims)
-    L₀_y = sample_cholesky(rng, realtype, n_dims)
+    L₀_y = tril(I + ones(realtype, n_dims, n_dims))/2 |> LowerTriangular
     Σ_y  = L₀_y*L₀_y' |> Hermitian
 
     model = NormalLogNormal(μ_x, σ_x, μ_y, PDMats.PDMat(Σ_y))

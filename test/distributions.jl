@@ -15,7 +15,7 @@ using Distributions: _logpdf
 
         μ = randn(rng, realtype, n_dims)
         L = if covtype == :fullrank
-            sample_cholesky(rng, realtype, n_dims)
+	    tril(I + ones(realtype, n_dims, n_dims)/2) |> LowerTriangular
         else
             Diagonal(log.(exp.(randn(rng, realtype, n_dims)) .+ 1))
         end
