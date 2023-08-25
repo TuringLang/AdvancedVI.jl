@@ -85,12 +85,8 @@ end
         n_samples::Int = advi.n_samples
     )
 
-Evaluate the ELBO using the ADVI formulation.
-
-# Arguments
-- `q_η`: Variational approximation before applying a bijector (unconstrained support).
-- `n_samples`: Number of Monte Carlo samples used to estimate the ELBO.
-
+Estimate the ELBO of the variational approximation `q_η`  using the ADVI
+formulation using `n_samples` number of Monte Carlo samples.
 """
 function (advi::ADVI)(
     q_η      ::ContinuousMultivariateDistribution;
@@ -101,7 +97,7 @@ function (advi::ADVI)(
     advi(q_η, ηs)
 end
 
-function estimate_gradient(
+function estimate_gradient!(
     rng          ::AbstractRNG,
     adbackend    ::AbstractADType,
     advi         ::ADVI,
