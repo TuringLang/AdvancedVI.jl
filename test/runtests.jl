@@ -1,28 +1,43 @@
-using Test
-using Distributions, DistributionsAD
+
+using ReTest
+using ReTest: @testset, @test
+
+using Comonicon
+using Random
+using Random123
+using Statistics
+using Distributions
+using LinearAlgebra
+using SimpleUnPack: @unpack
+using FillArrays
+using PDMats
+
+using Bijectors
+using LogDensityProblems
+using Optimisers
+using ADTypes
+using ForwardDiff, ReverseDiff, Zygote
+
 using AdvancedVI
 
-include("optimisers.jl")
-
-target = MvNormal(ones(2))
-logπ(z) = logpdf(target, z)
-advi = ADVI(10, 1000)
-
-# Using a function z ↦ q(⋅∣z)
-getq(θ) = TuringDiagMvNormal(θ[1:2], exp.(θ[3:4]))
-q = vi(logπ, advi, getq, randn(4))
-
-xs = rand(target, 10)
-@test mean(abs2, logpdf(q, xs) - logpdf(target, xs)) ≤ 0.05
-
-# OR: implement `update` and pass a `Distribution`
-function AdvancedVI.update(d::TuringDiagMvNormal, θ::AbstractArray{<:Real})
-    return TuringDiagMvNormal(θ[1:length(q)], exp.(θ[length(q) + 1:end]))
+# Models for Inference Tests
+struct TestModel{M,L,S}
+    model::M
+    μ_true::L
+    L_true::S
+    n_dims::Int
+    is_meanfield::Bool
 end
 
-q0 = TuringDiagMvNormal(zeros(2), ones(2))
-q = vi(logπ, advi, q0, randn(4))
+include("models/normallognormal.jl")
 
-xs = rand(target, 10)
-@test mean(abs2, logpdf(q, xs) - logpdf(target, xs)) ≤ 0.05
+# Tests
+include("ad.jl")
+include("distributions.jl")
+include("advi_locscale.jl")
+include("optimize.jl")
+
+@main function runtests(patterns...; dry::Bool = false)
+    retest(patterns...; dry = dry, verbose = Inf)
+end
 
