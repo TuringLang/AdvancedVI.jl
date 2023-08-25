@@ -71,7 +71,7 @@ function optimize(
     λ        = copy(λ₀)
     opt_st   = haskey(state, :opt) ? state.opt : Optimisers.setup(optimizer, λ)
     obj_st   = haskey(state, :obj) ? state.obj : init(rng, objective, λ, restructure)
-    grad_buf = DiffResults.GradientResult(λ)
+    grad_buf = DiffResults.DiffResult(zero(eltype(λ)), similar(λ))
     logstats = NamedTuple[]
 
     for t = 1:n_max_iter

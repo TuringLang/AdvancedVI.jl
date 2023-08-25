@@ -88,8 +88,8 @@ function estimate_gradient(
     rng          ::AbstractRNG,
     adbackend    ::AbstractADType,
     advi         ::ADVI,
-    est_state,
-    λ            ::Vector{<:Real},
+    obj_state,
+    λ            ::AbstractVector{<:Real},
     restructure,
     out          ::DiffResults.MutableDiffResult
 )
