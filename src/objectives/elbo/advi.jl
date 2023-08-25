@@ -3,6 +3,20 @@
     ADVI(prob, n_samples; kwargs...)
 
 Automatic differentiation variational inference (ADVI; Kucukelbir *et al.* 2017) objective.
+This computes the evidence lower-bound (ELBO) through the ADVI formulation:
+```math
+\\begin{aligned}
+\\mathrm{ADVI}\\left(\\lambda\\right)
+&\\triangleq
+\\mathbb{E}_{\\eta \\sim q_{\\lambda}}\\left[
+  \\log \\pi\\left( \\phi^{-1}\\left( \\eta \\right) \\right)
+  +
+  \\log \\lvert J_{\\phi^{-1}}\\left(\\eta\\right) \\rvert
+\\right]
++ \\mathbb{H}\\left(q_{\\lambda}\\right),
+\\end{aligned}
+```
+where ``\\phi^{-1}`` is an "inverse bijector."
 
 # Arguments
 - `prob`: An object that implements the order `K == 0` `LogDensityProblems` interface.
@@ -11,13 +25,17 @@ Automatic differentiation variational inference (ADVI; Kucukelbir *et al.* 2017)
 # Keyword Arguments
 - `entropy`: The estimator for the entropy term. (Type `<: AbstractEntropyEstimator`; Default: ClosedFormEntropy())
 - `cv`: A control variate.
-- `invbij`: A bijective mapping the support of the base distribution to that of `prob`. (Default: `Bijectors.identity`.)
+- `invbij`: An inverse bijective mapping that matches the support of the base distribution to that of `prob`. (Default: `Bijectors.identity`.)
 
 # Requirements
 - ``q_{\\lambda}`` implements `rand`.
 - `logdensity(prob)` must be differentiable by the selected AD backend.
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
+
+# References
+* Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research.
+* Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In International conference on machine learning (pp. 1971-1979). PMLR.
 """
 struct ADVI{P, B, EntropyEst <: AbstractEntropyEstimator} <: AbstractVariationalObjective
     prob     ::P
@@ -49,7 +67,6 @@ Base.show(io::IO, advi::ADVI) =
 init(rng::AbstractRNG, advi::ADVI, λ::AbstractVector, restructure) = nothing
 
 function (advi::ADVI)(
-    rng::AbstractRNG,
     q_η::ContinuousMultivariateDistribution,
     ηs ::AbstractMatrix
 )
@@ -81,7 +98,7 @@ function (advi::ADVI)(
     n_samples::Int         = advi.n_samples
 )
     ηs = rand(rng, q_η, n_samples)
-    advi(rng, q_η, ηs)
+    advi(q_η, ηs)
 end
 
 function estimate_gradient(
@@ -96,7 +113,7 @@ function estimate_gradient(
     f(λ′) = begin
         q_η = restructure(λ′)
         ηs  = rand(rng, q_η, advi.n_samples)
-        -advi(rng, q_η, ηs)
+        -advi(q_η, ηs)
     end
     value_and_gradient!(adbackend, f, λ, out)
 
