@@ -32,9 +32,9 @@ using ReTest
             b    = Bijectors.bijector(model)
             b⁻¹  = inverse(b)
             μ₀   = zeros(realtype, n_dims)
-	    L₀   = Diagonal(ones(realtype, n_dims))
+            L₀   = Diagonal(ones(realtype, n_dims))
 
-	    q₀ = TuringDiagMvNormal(μ₀, diag(L₀))
+            q₀ = TuringDiagMvNormal(μ₀, diag(L₀))
 
             obj = objective(model, b⁻¹, 10)
 
@@ -48,8 +48,8 @@ using ReTest
                     adbackend     = adbackend,
                 )
 
-		μ  = mean(q)
-		L  = sqrt(cov(q))
+                μ  = mean(q)
+                L  = sqrt(cov(q))
                 Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
                 @test Δλ ≤ Δλ₀/T^(1/4)
@@ -66,8 +66,8 @@ using ReTest
                     rng           = rng,
                     adbackend     = adbackend,
                 )
-		μ  = mean(q)
-		L  = sqrt(cov(q))
+                μ  = mean(q)
+                L  = sqrt(cov(q))
 
                 rng_repl = Philox4x(UInt64, seed, 8)
                 q, stats, _, _ = optimize(
@@ -77,8 +77,8 @@ using ReTest
                     rng           = rng_repl,
                     adbackend     = adbackend,
                 )
-		μ_repl = mean(q)
-		L_repl = sqrt(cov(q))
+                μ_repl = mean(q)
+                L_repl = sqrt(cov(q))
                 @test μ == μ_repl
                 @test L == L_repl
             end
