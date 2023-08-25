@@ -42,7 +42,8 @@ using StatsBase: entropy
 
 Evaluate the value and gradient of a function `f` at `θ` using the automatic differentiation backend `ad`.
 The result is stored in `out`. 
-The function `f` must return a scalar value. The gradient is stored in `out` as a vector of the same length as `θ`.
+The function `f` must return a scalar value.
+The gradient is stored in `out` as a vector of the same length as `θ`.
 """
 function value_and_gradient! end
 
@@ -51,7 +52,8 @@ function value_and_gradient! end
     abstract type AbstractVariationalObjective end
 
 An VI algorithm supported by `AdvancedVI` should implement a subtype of  `AbstractVariationalObjective`.
-Furthermore, it should implement the functions `init`, `estimate_gradient`.
+Furthermore, it should implement the functions `estimate_gradient`.
+If the estimator is stateful, it can implement `init` to initialize the state.
 """
 abstract type AbstractVariationalObjective end
 
@@ -64,13 +66,18 @@ abstract type AbstractVariationalObjective end
     )
 
 Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
-This is relevant only if `obj` is stateful.
+This function needs to be implemented only if `obj` is stateful.
 
 !!! warning
     This is an internal function. Thus, the signature is subject to change without
     notice.
 """
-function init              end
+init(
+    rng::AbstractRNG,
+    obj::AbstractVariationalObjective,
+    λ::AbstractVector,
+    restructure
+) = nothing
 
 """
     estimate_gradient!(
@@ -85,7 +92,7 @@ function init              end
 
 Estimate (possibly stochastic) gradients of the objective `obj` with respect to the variational parameters `λ` using the automatic differentiation backend `adbackend`.
 The estimated objective value and gradient are then stored in `out`.
-If the objective is stateful, `obj_state` is its previous state.
+If the objective is stateful, `obj_state` is its previous state, otherwise, it is `nothing`.
 
 # Returns
 - `out`: The `MutableDiffResult` containing the objective value and gradient estimates.

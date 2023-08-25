@@ -64,8 +64,6 @@ end
 Base.show(io::IO, advi::ADVI) =
     print(io, "ADVI(entropy=$(advi.entropy), n_samples=$(advi.n_samples))")
 
-init(rng::AbstractRNG, advi::ADVI, λ::AbstractVector, restructure) = nothing
-
 function (advi::ADVI)(
     q_η::ContinuousMultivariateDistribution,
     ηs ::AbstractMatrix
