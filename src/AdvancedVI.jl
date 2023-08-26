@@ -82,6 +82,7 @@ init(
 """
     estimate_gradient!(
         rng         ::AbstractRNG,
+        prob,
         adbackend   ::AbstractADType,
         obj         ::AbstractVariationalObjective,
         obj_state,
@@ -90,7 +91,7 @@ init(
         out         ::DiffResults.MutableDiffResult
     )
 
-Estimate (possibly stochastic) gradients of the objective `obj` with respect to the variational parameters `λ` using the automatic differentiation backend `adbackend`.
+Estimate (possibly stochastic) gradients of the objective `obj` targeting `prob` with respect to the variational parameters `λ` using the automatic differentiation backend `adbackend`.
 The estimated objective value and gradient are then stored in `out`.
 If the objective is stateful, `obj_state` is its previous state, otherwise, it is `nothing`.
 

@@ -11,8 +11,8 @@ using ReTest
                 :NormalLogNormalMeanField => normallognormal_meanfield,
             ),
             (objname, objective) ∈ Dict(
-                :ADVIClosedFormEntropy  => (model, b⁻¹, M) -> ADVI(model, M; invbij = b⁻¹),
-                :ADVIStickingTheLanding => (model, b⁻¹, M) -> ADVI(model, M; invbij = b⁻¹, entropy = StickingTheLandingEntropy()),
+                :ADVIClosedFormEntropy  => ADVI(10),
+                :ADVIStickingTheLanding => ADVI(10, entropy = StickingTheLandingEntropy()),
             ),
             (adbackname, adbackend) ∈ Dict(
                 :ForwarDiff  => AutoForwardDiff(),
@@ -34,22 +34,21 @@ using ReTest
             μ₀   = zeros(realtype, n_dims)
             L₀   = Diagonal(ones(realtype, n_dims))
 
-            q₀ = TuringDiagMvNormal(μ₀, diag(L₀))
-
-            obj = objective(model, b⁻¹, 10)
+            q₀_η = TuringDiagMvNormal(μ₀, diag(L₀))
+            q₀_z = Bijectors.transformed(q₀_η, b⁻¹)
 
             @testset "convergence" begin
                 Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
-                q, stats, _, _ = optimize(
-                    obj, q₀, T;
+                q, stats, _ = optimize(
+                    model, objective, q₀_z, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
                     rng           = rng,
                     adbackend     = adbackend,
                 )
 
-                μ  = mean(q)
-                L  = sqrt(cov(q))
+                μ  = mean(q.dist)
+                L  = sqrt(cov(q.dist))
                 Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
                 @test Δλ ≤ Δλ₀/T^(1/4)
@@ -59,26 +58,26 @@ using ReTest
 
             @testset "determinism" begin
                 rng = Philox4x(UInt64, seed, 8)
-                q, stats, _, _ = optimize(
-                    obj, q₀, T;
+                q, stats, _ = optimize(
+                    model, objective, q₀_z, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
                     rng           = rng,
                     adbackend     = adbackend,
                 )
-                μ  = mean(q)
-                L  = sqrt(cov(q))
+                μ  = mean(q.dist)
+                L  = sqrt(cov(q.dist))
 
                 rng_repl = Philox4x(UInt64, seed, 8)
-                q, stats, _, _ = optimize(
-                    obj, q₀, T;
+                q, stats, _ = optimize(
+                    model, objective, q₀_z, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
                     rng           = rng_repl,
                     adbackend     = adbackend,
                 )
-                μ_repl = mean(q)
-                L_repl = sqrt(cov(q))
+                μ_repl = mean(q.dist)
+                L_repl = sqrt(cov(q.dist))
                 @test μ == μ_repl
                 @test L == L_repl
             end

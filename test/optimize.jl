@@ -11,16 +11,17 @@ using ReTest
     @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
     # Global Test Configurations
-    b⁻¹ = Bijectors.bijector(model) |> inverse
-    q₀  = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
-    obj = ADVI(model, 10; invbij=b⁻¹)
+    b⁻¹  = Bijectors.bijector(model) |> inverse
+    q₀_η = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
+    q₀_z = Bijectors.transformed(q₀_η, b⁻¹)
+    obj  = ADVI(10)
 
     adbackend = AutoForwardDiff()
     optimizer = Optimisers.Adam(1e-2)
 
     rng = Philox4x(UInt64, seed, 8)
     q_ref, stats_ref, _ = optimize(
-        obj, q₀, T;
+        model, obj, q₀_z, T;
         optimizer,
         show_progress = false,
         rng,
@@ -29,11 +30,11 @@ using ReTest
     λ_ref, _ = Optimisers.destructure(q_ref)
 
     @testset "restructure" begin
-        λ₀, re  = Optimisers.destructure(q₀)
+        λ₀, re  = Optimisers.destructure(q₀_z)
 
         rng = Philox4x(UInt64, seed, 8)
         λ, stats, _ = optimize(
-            obj, re, λ₀, T;
+            model, obj, re, λ₀, T;
             optimizer,
             show_progress = false,
             rng,
@@ -47,13 +48,13 @@ using ReTest
         rng = Philox4x(UInt64, seed, 8)
         test_values = rand(rng, T)
 
-        callback!(; stat, obj_state, restructure, λ, g) = begin
+        callback!(; stat, restructure, λ, g) = begin
             (test_value = test_values[stat.iteration],)
         end
 
         rng = Philox4x(UInt64, seed, 8)
         _, stats, _ = optimize(
-            obj, q₀, T;
+            model, obj, q₀_z, T;
             show_progress = false,
             rng,
             adbackend,
@@ -69,7 +70,7 @@ using ReTest
         T_last  = T - T_first
 
         q_first, _, state = optimize(
-            obj, q₀, T_first;
+            model, obj, q₀_z, T_first;
             optimizer,
             show_progress = false,
             rng,
@@ -77,7 +78,7 @@ using ReTest
         )
 
         q, stats, _ = optimize(
-            obj, q_first, T_last;
+            model, obj, q_first, T_last;
             optimizer,
             show_progress = false,
             state,

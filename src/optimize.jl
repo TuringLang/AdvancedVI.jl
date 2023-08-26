@@ -5,6 +5,7 @@ end
 
 """
     optimize(
+        prob,
         objective    ::AbstractVariationalObjective,
         restructure,
         λ₀           ::AbstractVector{<:Real},
@@ -13,9 +14,10 @@ end
         kwargs...
     )              
 
-Optimize the variational objective `objective` by estimating (stochastic) gradients, where the variational approximation can be constructed by passing the variational parameters `λ₀` to the function `restructure`.
+Optimize the variational objective `objective` targeting `prob` by estimating (stochastic) gradients, where the variational approximation can be constructed by passing the variational parameters `λ₀` to the function `restructure`.
 
     optimize(
+        prob,
         objective ::AbstractVariationalObjective,
         q,
         n_max_iter::Int,
@@ -23,7 +25,7 @@ Optimize the variational objective `objective` by estimating (stochastic) gradie
         kwargs...
     )              
 
-Optimize the variational objective `objective` by estimating (stochastic) gradients, where the initial variational approximation `q₀` supports the `Optimisers.destructure` interface.
+Optimize the variational objective `objective` targeting `prob` by estimating (stochastic) gradients, where the initial variational approximation `q₀` supports the `Optimisers.destructure` interface.
 
 # Arguments
 - `objective`: Variational Objective.
@@ -49,6 +51,7 @@ Optimize the variational objective `objective` by estimating (stochastic) gradie
 - `states`: Collection of the final internal states of optimization. This can used later to warm-start from the last iteration of the corresponding run.
 """
 function optimize(
+    prob,
     objective    ::AbstractVariationalObjective,
     restructure,
     λ₀           ::AbstractVector{<:Real},
@@ -77,9 +80,9 @@ function optimize(
     for t = 1:n_max_iter
         stat = (iteration=t,)
 
-        grad_buf, obj_st, stat′ = estimate_gradient(
-            rng, adbackend, objective, obj_st,
-            λ, restructure, grad_buf; objargs...
+        grad_buf, obj_st, stat′ = estimate_gradient!(
+            rng, prob, adbackend, objective, obj_st,
+            λ, restructure, grad_buf, objargs...
         )
         stat = merge(stat, stat′)
 
@@ -101,13 +104,15 @@ function optimize(
     λ, logstats, state
 end
 
-function optimize(objective ::AbstractVariationalObjective,
+function optimize(prob,
+                  objective ::AbstractVariationalObjective,
                   q₀,
-                  n_max_iter::Int;
+                  n_max_iter::Int,
+                  objargs...;
                   kwargs...)
     λ, restructure = Optimisers.destructure(q₀)
     λ, logstats, state = optimize(
-        objective, restructure, λ, n_max_iter; kwargs...
+        prob, objective, restructure, λ, n_max_iter, objargs...; kwargs...
     )
     restructure(λ), logstats, state
 end
