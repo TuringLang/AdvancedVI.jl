@@ -40,18 +40,71 @@ using StatsBase: entropy
         out::DiffResults.MutableDiffResult
     )
 
-Compute the value and gradient of a function `f` at `θ` using the automatic
-differentiation backend `ad`.  The result is stored in `out`. 
-The function `f` must return a scalar value. The gradient is stored in `out` as a
-vector of the same length as `θ`.
+Evaluate the value and gradient of a function `f` at `θ` using the automatic differentiation backend `ad`.
+The result is stored in `out`. 
+The function `f` must return a scalar value.
+The gradient is stored in `out` as a vector of the same length as `θ`.
 """
 function value_and_gradient! end
 
 # estimators
+"""
+    abstract type AbstractVariationalObjective end
+
+An VI algorithm supported by `AdvancedVI` should implement a subtype of  `AbstractVariationalObjective`.
+Furthermore, it should implement the functions `estimate_gradient`.
+If the estimator is stateful, it can implement `init` to initialize the state.
+"""
 abstract type AbstractVariationalObjective end
 
-function init              end
-function estimate_gradient end
+"""
+    init(
+        rng::AbstractRNG,
+        obj::AbstractVariationalObjective,
+        λ::AbstractVector,
+        restructure
+    )
+
+Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
+This function needs to be implemented only if `obj` is stateful.
+
+!!! warning
+    This is an internal function. Thus, the signature is subject to change without
+    notice.
+"""
+init(
+    rng::AbstractRNG,
+    obj::AbstractVariationalObjective,
+    λ::AbstractVector,
+    restructure
+) = nothing
+
+"""
+    estimate_gradient!(
+        rng         ::AbstractRNG,
+        prob,
+        adbackend   ::AbstractADType,
+        obj         ::AbstractVariationalObjective,
+        obj_state,
+        λ           ::AbstractVector,
+        restructure,
+        out         ::DiffResults.MutableDiffResult
+    )
+
+Estimate (possibly stochastic) gradients of the objective `obj` targeting `prob` with respect to the variational parameters `λ` using the automatic differentiation backend `adbackend`.
+The estimated objective value and gradient are then stored in `out`.
+If the objective is stateful, `obj_state` is its previous state, otherwise, it is `nothing`.
+
+# Returns
+- `out`: The `MutableDiffResult` containing the objective value and gradient estimates.
+- `obj_state`: The updated state of the objective estimator.
+- `stat`: Statistics and logs generated during estimation. (Type: `<: NamedTuple`)
+
+!!! warning
+    This is an internal function. Thus, the signature is subject to change without
+    notice.
+"""
+function estimate_gradient! end
 
 # ADVI-specific interfaces
 abstract type AbstractEntropyEstimator end
