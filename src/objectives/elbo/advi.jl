@@ -19,7 +19,7 @@ This computes the evidence lower-bound (ELBO) through the ADVI formulation:
 where ``\\phi^{-1}`` is an "inverse bijector."
 
 # Arguments
-- `n_samples`: Number of Monte Carlo samples used to estimate the ELBO. (Type `<: Int`.)
+- `n_samples::Int`: Number of Monte Carlo samples used to estimate the ELBO.
 
 # Keyword Arguments
 - `entropy`: The estimator for the entropy term. (Type `<: AbstractEntropyEstimator`; Default: ClosedFormEntropy())
