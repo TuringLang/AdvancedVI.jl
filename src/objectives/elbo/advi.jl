@@ -49,7 +49,6 @@ Base.show(io::IO, advi::ADVI) =
 init(rng::AbstractRNG, advi::ADVI, λ::AbstractVector, restructure) = nothing
 
 function (advi::ADVI)(
-    rng::AbstractRNG,
     q_η::ContinuousMultivariateDistribution,
     ηs ::AbstractMatrix
 )
@@ -81,7 +80,7 @@ function (advi::ADVI)(
     n_samples::Int         = advi.n_samples
 )
     ηs = rand(rng, q_η, n_samples)
-    advi(rng, q_η, ηs)
+    advi(q_η, ηs)
 end
 
 function estimate_gradient(
@@ -96,7 +95,7 @@ function estimate_gradient(
     f(λ′) = begin
         q_η = restructure(λ′)
         ηs  = rand(rng, q_η, advi.n_samples)
-        -advi(rng, q_η, ηs)
+        -advi(q_η, ηs)
     end
     value_and_gradient!(adbackend, f, λ, out)
 
