@@ -4,11 +4,8 @@ module AdvancedVI
 using SimpleUnPack: @unpack, @pack!
 using Accessors
 
-using Random: AbstractRNG, default_rng
+using Random
 using Distributions
-import Distributions:
-    logpdf, _logpdf, rand, rand!, _rand!,
-    ContinuousMultivariateDistribution
 
 using Functors
 using Optimisers
@@ -17,19 +14,16 @@ using DocStringExtensions
 
 using ProgressMeter
 using LinearAlgebra
-using LinearAlgebra: AbstractTriangular
 
 using LogDensityProblems
 
 using ADTypes, DiffResults
-using ADTypes: AbstractADType
-using ChainRulesCore: @ignore_derivatives 
+using ChainRulesCore
 
 using FillArrays
 using Bijectors
 
 using StatsBase
-using StatsBase: entropy
 
 # derivatives
 """
@@ -59,7 +53,7 @@ abstract type AbstractVariationalObjective end
 
 """
     init(
-        rng::AbstractRNG,
+        rng::Random.AbstractRNG,
         obj::AbstractVariationalObjective,
         λ::AbstractVector,
         restructure
@@ -73,7 +67,7 @@ This function needs to be implemented only if `obj` is stateful.
     notice.
 """
 init(
-    rng::AbstractRNG,
+    rng::Random.AbstractRNG,
     obj::AbstractVariationalObjective,
     λ::AbstractVector,
     restructure
@@ -81,9 +75,9 @@ init(
 
 """
     estimate_gradient!(
-        rng         ::AbstractRNG,
+        rng         ::Random.AbstractRNG,
         prob,
-        adbackend   ::AbstractADType,
+        adbackend   ::ADTypes.AbstractADType,
         obj         ::AbstractVariationalObjective,
         obj_state,
         λ           ::AbstractVector,
@@ -114,7 +108,6 @@ include("objectives/elbo/entropy.jl")
 include("objectives/elbo/advi.jl")
 
 export
-    ELBO,
     ADVI,
     ClosedFormEntropy,
     StickingTheLandingEntropy,
@@ -127,9 +120,6 @@ function optimize end
 include("optimize.jl")
 
 export optimize
-
-include("utils.jl")
-
 
 # optional dependencies 
 if !isdefined(Base, :get_extension) # check whether :get_extension is defined in Base

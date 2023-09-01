@@ -48,7 +48,7 @@ Base.show(io::IO, advi::ADVI) =
 
 function (advi::ADVI)(
     prob,
-    q ::ContinuousMultivariateDistribution,
+    q ::Distributions.ContinuousMultivariateDistribution,
     zs::AbstractMatrix
 )
     𝔼ℓ = mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachcol(zs))
@@ -59,7 +59,7 @@ end
 function (advi::ADVI)(
     prob,
     q_trans::Bijectors.TransformedDistribution,
-    ηs ::AbstractMatrix
+    ηs     ::AbstractMatrix
 )
     @unpack dist, transform = q_trans
     q   = dist
@@ -84,8 +84,8 @@ Estimate the ELBO of the variational approximation `q` of the target `prob` usin
 function (advi::ADVI)(
     prob,
     q        ::ContinuousMultivariateDistribution;
-    rng      ::AbstractRNG = default_rng(),
-    n_samples::Int         = advi.n_samples
+    rng      ::Random.AbstractRNG = Random.default_rng(),
+    n_samples::Int                = advi.n_samples
 )
     zs = rand(rng, q, n_samples)
     advi(q, zs)
@@ -94,8 +94,8 @@ end
 function (advi::ADVI)(
     prob,
     q_trans  ::Bijectors.TransformedDistribution;
-    rng      ::AbstractRNG = default_rng(),
-    n_samples::Int         = advi.n_samples
+    rng      ::Random.AbstractRNG = Random.default_rng(),
+    n_samples::Int                = advi.n_samples
 )
     q  = q_trans.dist
     ηs = rand(rng, q, n_samples)
@@ -103,9 +103,9 @@ function (advi::ADVI)(
 end
 
 function estimate_gradient!(
-    rng          ::AbstractRNG,
+    rng          ::Random.AbstractRNG,
     prob,
-    adbackend    ::AbstractADType,
+    adbackend    ::ADTypes.AbstractADType,
     advi         ::ADVI,
     est_state,
     λ            ::Vector{<:Real},

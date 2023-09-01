@@ -28,7 +28,7 @@ The "sticking the landing" entropy estimator.
 struct StickingTheLandingEntropy <: AbstractEntropyEstimator end
 
 function (::StickingTheLandingEntropy)(q, ηs::AbstractMatrix)
-    @ignore_derivatives mean(eachcol(ηs)) do ηᵢ
+    ChainRulesCore.@ignore_derivatives mean(eachcol(ηs)) do ηᵢ
         -logpdf(q, ηᵢ)
     end
 end

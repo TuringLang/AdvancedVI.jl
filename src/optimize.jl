@@ -57,9 +57,9 @@ function optimize(
     λ₀           ::AbstractVector{<:Real},
     n_max_iter   ::Int,
     objargs...;
-    adbackend    ::AbstractADType, 
+    adbackend    ::ADTypes.AbstractADType, 
     optimizer    ::Optimisers.AbstractRule = Optimisers.Adam(),
-    rng          ::AbstractRNG             = default_rng(),
+    rng          ::Random.AbstractRNG      = Random.default_rng(),
     show_progress::Bool                    = true,
     state        ::NamedTuple              = NamedTuple(),
     callback!                              = nothing,
