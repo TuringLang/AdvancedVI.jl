@@ -1,7 +1,7 @@
 
 const PROGRESS = length(ARGS) > 0 && ARGS[1] == "--progress" ? true : false
 
-using ReTest
+using Test
 
 @testset "advi" begin
     @testset "locscale" begin

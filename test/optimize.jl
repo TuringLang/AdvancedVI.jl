@@ -1,5 +1,5 @@
 
-using ReTest
+using Test
 
 @testset "optimize" begin
     seed = (0x38bef07cf9cc549d)

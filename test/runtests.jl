@@ -1,6 +1,6 @@
 
-using ReTest
-using ReTest: @testset, @test
+using Test
+using Test: @testset, @test
 
 using Comonicon
 using Random, StableRNGs
@@ -38,8 +38,3 @@ include("models/normallognormal.jl")
 include("ad.jl")
 include("advi_locscale.jl")
 include("optimize.jl")
-
-@main function runtests(patterns...; dry::Bool = false)
-    retest(patterns...; dry = dry, verbose = Inf)
-end
-
