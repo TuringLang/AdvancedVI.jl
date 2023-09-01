@@ -43,7 +43,7 @@ function value_and_gradient! end
 
 # estimators
 """
-    abstract type AbstractVariationalObjective end
+    AbstractVariationalObjective
 
 An VI algorithm supported by `AdvancedVI` should implement a subtype of  `AbstractVariationalObjective`.
 Furthermore, it should implement the functions `estimate_gradient`.
