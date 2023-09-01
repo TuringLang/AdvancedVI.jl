@@ -3,8 +3,7 @@ using ReTest
 using ReTest: @testset, @test
 
 using Comonicon
-using Random
-using Random123
+using Random, StableRNGs
 using Statistics
 using Distributions
 using LinearAlgebra

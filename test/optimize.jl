@@ -2,8 +2,8 @@
 using ReTest
 
 @testset "optimize" begin
-    seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
-    rng  = Philox4x(UInt64, seed, 8)
+    seed = (0x38bef07cf9cc549d)
+    rng  = StableRNG(seed)
 
     T = 1000
     modelstats = normallognormal_meanfield(Float64; rng)
@@ -19,7 +19,7 @@ using ReTest
     adbackend = AutoForwardDiff()
     optimizer = Optimisers.Adam(1e-2)
 
-    rng = Philox4x(UInt64, seed, 8)
+    rng  = StableRNG(seed)
     q_ref, stats_ref, _ = optimize(
         model, obj, q₀_z, T;
         optimizer,
@@ -32,7 +32,7 @@ using ReTest
     @testset "restructure" begin
         λ₀, re  = Optimisers.destructure(q₀_z)
 
-        rng = Philox4x(UInt64, seed, 8)
+        rng  = StableRNG(seed)
         λ, stats, _ = optimize(
             model, obj, re, λ₀, T;
             optimizer,
@@ -45,14 +45,14 @@ using ReTest
     end
 
     @testset "callback" begin
-        rng = Philox4x(UInt64, seed, 8)
+        rng  = StableRNG(seed)
         test_values = rand(rng, T)
 
         callback!(; stat, restructure, λ, g) = begin
             (test_value = test_values[stat.iteration],)
         end
 
-        rng = Philox4x(UInt64, seed, 8)
+        rng  = StableRNG(seed)
         _, stats, _ = optimize(
             model, obj, q₀_z, T;
             show_progress = false,
@@ -64,7 +64,7 @@ using ReTest
     end
 
     @testset "warm start" begin
-        rng = Philox4x(UInt64, seed, 8)
+        rng  = StableRNG(seed)
 
         T_first = div(T,2)
         T_last  = T - T_first

@@ -21,8 +21,8 @@ using ReTest
                 # :Enzyme      => AutoEnzyme(),
             )
 
-            seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
-            rng  = Philox4x(UInt64, seed, 8)
+            seed = (0x38bef07cf9cc549d)
+            rng  = StableRNG(seed)
 
             modelstats = modelconstr(realtype; rng)
             @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
@@ -57,7 +57,7 @@ using ReTest
             end
 
             @testset "determinism" begin
-                rng = Philox4x(UInt64, seed, 8)
+                rng = StableRNG(seed)
                 q, stats, _ = optimize(
                     model, objective, q₀_z, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
@@ -68,7 +68,7 @@ using ReTest
                 μ  = mean(q.dist)
                 L  = sqrt(cov(q.dist))
 
-                rng_repl = Philox4x(UInt64, seed, 8)
+                rng_repl = StableRNG(seed)
                 q, stats, _ = optimize(
                     model, objective, q₀_z, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
