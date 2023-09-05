@@ -37,11 +37,9 @@ Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
 struct ADVI{EntropyEst <: AbstractEntropyEstimator} <: AbstractVariationalObjective
     entropy  ::EntropyEst
     n_samples::Int
-
-    function ADVI(n_samples::Int; entropy::AbstractEntropyEstimator = ClosedFormEntropy())
-        new{typeof(entropy)}(entropy, n_samples)
-    end
 end
+
+ADVI(n_samples::Int; entropy::AbstractEntropyEstimator = ClosedFormEntropy()) = ADVI(entropy, n_samples)
 
 Base.show(io::IO, advi::ADVI) =
     print(io, "ADVI(entropy=$(advi.entropy), n_samples=$(advi.n_samples))")
