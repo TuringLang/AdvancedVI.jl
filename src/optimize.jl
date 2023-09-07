@@ -9,9 +9,6 @@
         objargs...;
         kwargs...
     )              
-
-Optimize the variational objective `objective` targeting the problem `problem` by estimating (stochastic) gradients, where the variational approximation can be constructed by passing the variational parameters `param_init` to the function `restructure`.
-
     optimize(
         problem,
         objective             ::AbstractVariationalObjective,
@@ -21,7 +18,7 @@ Optimize the variational objective `objective` targeting the problem `problem` b
         kwargs...
     )              
 
-Optimize the variational objective `objective` targeting the problem `problem` by estimating (stochastic) gradients, where the initial variational approximation `variational_dist_init` supports the `Optimisers.destructure` interface.
+Optimize the variational objective `objective` targeting the problem `problem` by estimating (stochastic) gradients, where the variational approximation can be constructed by passing the variational parameters `param_init` or the initial variational approximation `variational_dist_init` to the function `restructure`.
 
 # Arguments
 - `objective`: Variational Objective.
