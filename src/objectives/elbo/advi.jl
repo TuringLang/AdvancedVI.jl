@@ -110,7 +110,7 @@ function estimate_gradient!(
     restructure,
     out          ::DiffResults.MutableDiffResult
 )
-    f(λ′) = begin
+    function f(λ′)
         q_trans = restructure(λ′)
         q       = q_trans.dist
         ηs      = rand(rng, q, advi.n_samples)
