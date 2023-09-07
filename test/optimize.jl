@@ -48,7 +48,7 @@ using Test
         rng  = StableRNG(seed)
         test_values = rand(rng, T)
 
-        callback!(; stat, restructure, λ, g) = begin
+        callback!(; stat, args...) = begin
             (test_value = test_values[stat.iteration],)
         end
 
@@ -81,7 +81,7 @@ using Test
             model, obj, q_first, T_last;
             optimizer,
             show_progress = false,
-            state,
+            state_init    = state,
             rng,
             adbackend
         )
