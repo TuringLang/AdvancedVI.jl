@@ -37,13 +37,13 @@ Optimize the variational objective `objective` targeting `prob` by estimating (s
 - `kwargs...`: Additional keywoard arguments. (See below.)
 
 # Keyword Arguments
-- `adbackend`: Automatic differentiation backend. (Type: `<: ADtypes.AbstractADType`.)
-- `optimizer`: Optimizer used for inference. (Type: `<: Optimisers.AbstractRule`; Default: `Adam`.)
-- `rng`: Random number generator. (Type: `<: AbstractRNG`; Default: `Random.default_rng()`.)
-- `show_progress`: Whether to show the progress bar. (Type: `<: Bool`; Default: `true`.)
+- `adbackend::ADtypes.AbstractADType`: Automatic differentiation backend. 
+- `optimizer::Optimisers.AbstractRule`: Optimizer used for inference. (Default: `Adam`.)
+- `rng::AbstractRNG`: Random number generator. (Default: `Random.default_rng()`.)
+- `show_progress::Bool`: Whether to show the progress bar. (Default: `true`.)
 - `callback!`: Callback function called after every iteration. The signature is `cb(; stats, restructure, λ, g)`, which returns a dictionary-like object containing statistics to be displayed on the progress bar. The variational approximation can be reconstructed as `restructure(λ)`, `g` is the stochastic estimate of the gradient. (Default: `nothing`.)
 - `prog`: Progress bar configuration. (Default: `ProgressMeter.Progress(n_max_iter; desc="Optimizing", barlen=31, showspeed=true, enabled=prog)`.)
-- `state`: Initial value for the internal state of optimization. Used to warm-start from the state of a previous run. (See the returned values below.) (Type: `<: NamedTuple`.)
+- `state::NamedTuple`: Initial value for the internal state of optimization. Used to warm-start from the state of a previous run. (See the returned values below.)
 
 # Returns
 - `λ`: Variational parameters optimizing the variational objective.
