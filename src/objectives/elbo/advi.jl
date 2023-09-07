@@ -26,7 +26,7 @@ where ``\\phi^{-1}`` is an "inverse bijector."
 
 # Requirements
 - ``q_{\\lambda}`` implements `rand`.
-- The target `logdensity(prob)` must be differentiable by the selected AD backend.
+- The target `logdensity(prob, x)` must be differentiable wrt. `x` by the selected AD backend.
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
 
