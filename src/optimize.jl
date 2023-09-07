@@ -30,7 +30,6 @@ Optimize the variational objective `objective` targeting the problem `problem` b
 - `variational_dist_init`: Initial variational distribution. The variational parameters must be extractable through `Optimisers.destructure`.
 - `max_iter`: Maximum number of iterations.
 - `objargs...`: Arguments to be passed to `objective`.
-- `kwargs...`: Additional keywoard arguments. (See below.)
 
 # Keyword Arguments
 - `adbackend::ADtypes.AbstractADType`: Automatic differentiation backend. 
