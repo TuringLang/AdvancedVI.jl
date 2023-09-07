@@ -1,8 +1,4 @@
 
-function pm_next!(pm, stats::NamedTuple)
-    ProgressMeter.next!(pm; showvalues=[tuple(s...) for s in pairs(stats)])
-end
-
 """
     optimize(
         problem,
@@ -89,8 +85,8 @@ function optimize(
     )
 )
     λ        = copy(params_init)
-    opt_st   = haskey(state_init, :opt) ? state_init.opt : Optimisers.setup(optimizer, λ)
-    obj_st   = haskey(state_init, :obj) ? state_init.obj : init(rng, objective, λ, restructure)
+    opt_st   = maybe_init_optimizer(state_init, optimizer, λ)
+    obj_st   = maybe_init_objective(state_init, rng, objective, λ, restructure)
     grad_buf = DiffResults.DiffResult(zero(eltype(λ)), similar(λ))
     stats    = NamedTuple[]
 

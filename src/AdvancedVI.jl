@@ -67,10 +67,10 @@ This function needs to be implemented only if `obj` is stateful.
     notice.
 """
 init(
-    rng::Random.AbstractRNG,
-    obj::AbstractVariationalObjective,
-    λ::AbstractVector,
-    restructure
+    ::Random.AbstractRNG,
+    ::AbstractVariationalObjective,
+    ::AbstractVector,
+    ::Any
 ) = nothing
 
 """
@@ -108,6 +108,7 @@ export
     ClosedFormEntropy,
     StickingTheLandingEntropy,
     MonteCarloEntropy
+
 # entropy.jl must preceed advi.jl
 include("objectives/elbo/entropy.jl")
 include("objectives/elbo/advi.jl")
@@ -116,9 +117,11 @@ include("objectives/elbo/advi.jl")
 
 function optimize end
 
+export optimize
+
+include("utils.jl")
 include("optimize.jl")
 
-export optimize
 
 # optional dependencies 
 if !isdefined(Base, :get_extension) # check whether :get_extension is defined in Base
