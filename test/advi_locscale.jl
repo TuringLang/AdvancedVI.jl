@@ -31,8 +31,8 @@ using Test
 
             b    = Bijectors.bijector(model)
             b⁻¹  = inverse(b)
-            μ₀   = zeros(realtype, n_dims)
-            L₀   = Diagonal(ones(realtype, n_dims))
+            μ₀   = Zeros(realtype, n_dims)
+            L₀   = Diagonal(Ones(realtype, n_dims))
 
             q₀_η = TuringDiagMvNormal(μ₀, diag(L₀))
             q₀_z = Bijectors.transformed(q₀_η, b⁻¹)
