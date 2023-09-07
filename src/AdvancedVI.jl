@@ -103,15 +103,14 @@ function estimate_gradient! end
 # ADVI-specific interfaces
 abstract type AbstractEntropyEstimator end
 
-# entropy.jl must preceed advi.jl
-include("objectives/elbo/entropy.jl")
-include("objectives/elbo/advi.jl")
-
 export
     ADVI,
     ClosedFormEntropy,
     StickingTheLandingEntropy,
     MonteCarloEntropy
+# entropy.jl must preceed advi.jl
+include("objectives/elbo/entropy.jl")
+include("objectives/elbo/advi.jl")
 
 # Optimization Routine
 
