@@ -40,10 +40,9 @@ using Test
             @testset "convergence" begin
                 Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
                 q, stats, _ = optimize(
-                    model, objective, q₀_z, T;
+                    rng, model, objective, q₀_z, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
-                    rng           = rng,
                     adbackend     = adbackend,
                 )
 
@@ -59,10 +58,9 @@ using Test
             @testset "determinism" begin
                 rng = StableRNG(seed)
                 q, stats, _ = optimize(
-                    model, objective, q₀_z, T;
+                    rng, model, objective, q₀_z, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
-                    rng           = rng,
                     adbackend     = adbackend,
                 )
                 μ  = mean(q.dist)
@@ -70,10 +68,9 @@ using Test
 
                 rng_repl = StableRNG(seed)
                 q, stats, _ = optimize(
-                    model, objective, q₀_z, T;
+                    rng_repl, model, objective, q₀_z, T;
                     optimizer     = Optimisers.Adam(realtype(η)),
                     show_progress = PROGRESS,
-                    rng           = rng_repl,
                     adbackend     = adbackend,
                 )
                 μ_repl = mean(q.dist)

@@ -62,7 +62,30 @@ This will be appended to the statistic of the current corresponding iteration.
 Otherwise, just return `nothing`.
 
 """
+
 function optimize(
+    problem,
+    objective    ::AbstractVariationalObjective,
+    restructure,
+    params_init  ::AbstractVector{<:Real},
+    max_iter     ::Int,
+    objargs...;
+    kwargs...
+)
+    optimize(
+        Random.default_rng(),
+        problem,
+        objective,
+        restructure,
+        params_init,
+        max_iter,
+        objargs...;
+        kwargs...
+    )
+end
+
+function optimize(
+    rng          ::Random.AbstractRNG,
     problem,
     objective    ::AbstractVariationalObjective,
     restructure,
@@ -71,7 +94,6 @@ function optimize(
     objargs...;
     adbackend    ::ADTypes.AbstractADType, 
     optimizer    ::Optimisers.AbstractRule = Optimisers.Adam(),
-    rng          ::Random.AbstractRNG      = Random.default_rng(),
     show_progress::Bool                    = true,
     state_init   ::NamedTuple              = NamedTuple(),
     callback!                              = nothing,
@@ -120,15 +142,57 @@ function optimize(
     params, stats, state
 end
 
-function optimize(problem,
-                  objective ::AbstractVariationalObjective,
+function optimize(
+    problem,
+    objective    ::AbstractVariationalObjective,
+    restructure,
+    params_init  ::AbstractVector{<:Real},
+    max_iter     ::Int,
+    objargs...;
+    kwargs...
+)
+    optimize(
+        Random.default_rng(),
+        problem,
+        objective,
+        restructure,
+        params_init,
+        max_iter,
+        objargs...;
+        kwargs...
+    )
+end
+
+function optimize(rng                   ::Random.AbstractRNG,
+                  problem,
+                  objective             ::AbstractVariationalObjective,
                   variational_dist_init,
-                  n_max_iter::Int,
+                  n_max_iter            ::Int,
                   objargs...;
                   kwargs...)
     λ, restructure = Optimisers.destructure(variational_dist_init)
     λ, logstats, state = optimize(
-        problem, objective, restructure, λ, n_max_iter, objargs...; kwargs...
+        rng, problem, objective, restructure, λ, n_max_iter, objargs...; kwargs...
     )
     restructure(λ), logstats, state
+end
+
+
+function optimize(
+    problem,
+    objective              ::AbstractVariationalObjective,
+    variational_dist_init,
+    max_iter               ::Int,
+    objargs...;
+    kwargs...
+)
+    optimize(
+        Random.default_rng(),
+        problem,
+        objective,
+        variational_dist_init,
+        max_iter,
+        objargs...;
+        kwargs...
+    )
 end

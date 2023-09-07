@@ -21,23 +21,38 @@ using Test
 
     rng  = StableRNG(seed)
     q_ref, stats_ref, _ = optimize(
-        model, obj, q₀_z, T;
+        rng, model, obj, q₀_z, T;
         optimizer,
         show_progress = false,
-        rng,
         adbackend,
     )
     λ_ref, _ = Optimisers.destructure(q_ref)
+
+    @testset "default_rng" begin
+        optimize(
+            model, obj, q₀_z, T;
+            optimizer,
+            show_progress = false,
+            adbackend,
+        )
+
+        λ₀, re  = Optimisers.destructure(q₀_z)
+        optimize(
+            model, obj, re, λ₀, T;
+            optimizer,
+            show_progress = false,
+            adbackend,
+        )
+    end
 
     @testset "restructure" begin
         λ₀, re  = Optimisers.destructure(q₀_z)
 
         rng  = StableRNG(seed)
         λ, stats, _ = optimize(
-            model, obj, re, λ₀, T;
+            rng, model, obj, re, λ₀, T;
             optimizer,
             show_progress = false,
-            rng,
             adbackend,
         )
         @test λ     == λ_ref
@@ -54,9 +69,8 @@ using Test
 
         rng  = StableRNG(seed)
         _, stats, _ = optimize(
-            model, obj, q₀_z, T;
+            rng, model, obj, q₀_z, T;
             show_progress = false,
-            rng,
             adbackend,
             callback!
         )
@@ -70,19 +84,17 @@ using Test
         T_last  = T - T_first
 
         q_first, _, state = optimize(
-            model, obj, q₀_z, T_first;
+            rng, model, obj, q₀_z, T_first;
             optimizer,
             show_progress = false,
-            rng,
             adbackend
         )
 
         q, stats, _ = optimize(
-            model, obj, q_first, T_last;
+            rng, model, obj, q_first, T_last;
             optimizer,
             show_progress = false,
             state_init    = state,
-            rng,
             adbackend
         )
         @test q == q_ref

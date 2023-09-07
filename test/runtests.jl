@@ -36,5 +36,5 @@ include("models/normallognormal.jl")
 
 # Tests
 include("ad.jl")
-include("advi_locscale.jl")
 include("optimize.jl")
+include("advi_locscale.jl")
