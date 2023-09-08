@@ -2,7 +2,6 @@
 using Test
 using Test: @testset, @test
 
-using Comonicon
 using Random, StableRNGs
 using Statistics
 using Distributions
