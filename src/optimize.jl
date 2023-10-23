@@ -63,27 +63,6 @@ Otherwise, just return `nothing`.
 """
 
 function optimize(
-    problem,
-    objective    ::AbstractVariationalObjective,
-    restructure,
-    params_init,
-    max_iter     ::Int,
-    objargs...;
-    kwargs...
-)
-    optimize(
-        Random.default_rng(),
-        problem,
-        objective,
-        restructure,
-        params_init,
-        max_iter,
-        objargs...;
-        kwargs...
-    )
-end
-
-function optimize(
     rng          ::Random.AbstractRNG,
     problem,
     objective    ::AbstractVariationalObjective,
