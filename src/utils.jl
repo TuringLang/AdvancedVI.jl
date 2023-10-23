@@ -4,7 +4,7 @@ function pm_next!(pm, stats::NamedTuple)
 end
 
 function maybe_init_optimizer(
-    state_init::Union{Nothing, NamedTuple},
+    state_init::NamedTuple,
     optimizer ::Optimisers.AbstractRule,
     λ         ::AbstractVector
 )
@@ -12,7 +12,7 @@ function maybe_init_optimizer(
 end
 
 function maybe_init_objective(
-    state_init::Union{Nothing, NamedTuple},
+    state_init::NamedTuple,
     rng       ::Random.AbstractRNG,
     objective ::AbstractVariationalObjective,
     λ         ::AbstractVector,
