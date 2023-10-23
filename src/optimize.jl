@@ -43,9 +43,9 @@ Optimize the variational objective `objective` targeting the problem `problem` b
 - `state`: Collection of the final internal states of optimization. This can used later to warm-start from the last iteration of the corresponding run.
 
 # Callback
-The callback function `callback!` has a signature of
+The callback function `callback` has a signature of
 
-    callback!(; stat, state, param, restructure, gradient)
+    callback(; stat, state, param, restructure, gradient)
 
 The arguments are as follows:
 - `stat`: Statistics gathered during the current iteration. The content will vary depending on `objective`.
@@ -93,7 +93,7 @@ function optimize(
     optimizer    ::Optimisers.AbstractRule = Optimisers.Adam(),
     show_progress::Bool                    = true,
     state_init   ::NamedTuple              = NamedTuple(),
-    callback!                              = nothing,
+    callback                               = nothing,
     prog                                   = ProgressMeter.Progress(
         max_iter;
         desc      = "Optimizing",
@@ -120,8 +120,8 @@ function optimize(
         g         = DiffResults.gradient(grad_buf)
         opt_st, λ = Optimisers.update!(opt_st, λ, g)
 
-        if !isnothing(callback!)
-            stat′ = callback!(
+        if !isnothing(callback)
+            stat′ = callback(
                 ; stat, restructure, params=λ, gradient=g,
                 state=(optimizer=opt_st, objective=obj_st)
             )
