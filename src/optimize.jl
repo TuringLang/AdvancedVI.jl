@@ -4,7 +4,7 @@
         problem,
         objective   ::AbstractVariationalObjective,
         restructure,
-        param_init  ::AbstractVector{<:Real},
+        param_init,
         max_iter    ::Int,
         objargs...;
         kwargs...
@@ -66,7 +66,7 @@ function optimize(
     problem,
     objective    ::AbstractVariationalObjective,
     restructure,
-    params_init  ::AbstractVector{<:Real},
+    params_init,
     max_iter     ::Int,
     objargs...;
     kwargs...
@@ -88,7 +88,7 @@ function optimize(
     problem,
     objective    ::AbstractVariationalObjective,
     restructure,
-    params_init  ::AbstractVector{<:Real},
+    params_init,
     max_iter     ::Int,
     objargs...;
     adbackend    ::ADTypes.AbstractADType, 
@@ -145,7 +145,7 @@ function optimize(
     problem,
     objective    ::AbstractVariationalObjective,
     restructure,
-    params_init  ::AbstractVector{<:Real},
+    params_init,
     max_iter     ::Int,
     objargs...;
     kwargs...
