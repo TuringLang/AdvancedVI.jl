@@ -44,6 +44,13 @@ ADVI(n_samples::Int; entropy::AbstractEntropyEstimator = ClosedFormEntropy()) = 
 Base.show(io::IO, advi::ADVI) =
     print(io, "ADVI(entropy=$(advi.entropy), n_samples=$(advi.n_samples))")
 
+"""
+    (advi::ADVI)(
+        [rng], prob, q, zs::AbstractMatrix
+    )
+
+Estimate the ELBO of the variational approximation `q` of the target `prob` using the ADVI formulation over the Monte Carlo samples `zs` (each column is a sample).
+"""
 function (advi::ADVI)(
     prob,
     q ::Distributions.ContinuousMultivariateDistribution,
