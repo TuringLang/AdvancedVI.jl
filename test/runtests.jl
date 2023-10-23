@@ -32,8 +32,11 @@ struct TestModel{M,L,S}
 end
 
 include("models/normallognormal.jl")
+include("models/normal.jl")
 
 # Tests
-include("ad.jl")
-include("optimize.jl")
-include("advi_locscale.jl")
+include("interface/ad.jl")
+include("interface/optimize.jl")
+include("interface/advi.jl")
+
+include("inference/advi_distributionsad.jl")

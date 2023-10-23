@@ -63,7 +63,7 @@ using Test
         rng  = StableRNG(seed)
         test_values = rand(rng, T)
 
-        callback!(; stat, args...) = begin
+        callback(; stat, args...) = begin
             (test_value = test_values[stat.iteration],)
         end
 
@@ -72,7 +72,7 @@ using Test
             rng, model, obj, q₀_z, T;
             show_progress = false,
             adbackend,
-            callback!
+            callback
         )
         @test [stat.test_value for stat ∈ stats] == test_values
     end
