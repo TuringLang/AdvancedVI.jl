@@ -72,13 +72,13 @@ init(
 """
     estimate_gradient!(
         rng         ::Random.AbstractRNG,
-        prob,
-        adbackend   ::ADTypes.AbstractADType,
         obj         ::AbstractVariationalObjective,
-        obj_state,
-        λ           ::AbstractVector,
-        restructure,
+        adbackend   ::ADTypes.AbstractADType,
         out         ::DiffResults.MutableDiffResult
+        prob,
+        λ,
+        restructure,
+        obj_state,
     )
 
 Estimate (possibly stochastic) gradients of the objective `obj` targeting `prob` with respect to the variational parameters `λ` using the automatic differentiation backend `adbackend`.
