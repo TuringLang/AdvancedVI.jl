@@ -102,14 +102,14 @@ end
     advi(Random.default_rng(), prob, q; n_samples)
 
 function estimate_gradient!(
-    rng          ::Random.AbstractRNG,
+    rng       ::Random.AbstractRNG,
+    advi      ::ADVI,
+    adbackend ::ADTypes.AbstractADType,
+    out       ::DiffResults.MutableDiffResult,
     prob,
-    adbackend    ::ADTypes.AbstractADType,
-    advi         ::ADVI,
-    est_state,
-    λ            ::Vector{<:Real},
+    λ,
     restructure,
-    out          ::DiffResults.MutableDiffResult
+    est_state,
 )
     function f(λ′)
         q_trans = restructure(λ′)
