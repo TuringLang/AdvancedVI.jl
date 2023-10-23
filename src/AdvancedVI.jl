@@ -61,10 +61,6 @@ abstract type AbstractVariationalObjective end
 
 Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
 This function needs to be implemented only if `obj` is stateful.
-
-!!! warning
-    This is an internal function. Thus, the signature is subject to change without
-    notice.
 """
 init(
     ::Random.AbstractRNG,
@@ -93,10 +89,6 @@ If the objective is stateful, `obj_state` is its previous state, otherwise, it i
 - `out`: The `MutableDiffResult` containing the objective value and gradient estimates.
 - `obj_state`: The updated state of the objective estimator.
 - `stat`: Statistics and logs generated during estimation. (Type: `<: NamedTuple`)
-
-!!! warning
-    This is an internal function. Thus, the signature is subject to change without
-    notice.
 """
 function estimate_gradient! end
 
