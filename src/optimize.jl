@@ -45,7 +45,7 @@ Optimize the variational objective `objective` targeting the problem `problem` b
 # Callback
 The callback function `callback!` has a signature of
 
-    cb(; stat, state, param, restructure, gradient)
+    callback!(; stat, state, param, restructure, gradient)
 
 The arguments are as follows:
 - `stat`: Statistics gathered during the current iteration. The content will vary depending on `objective`.
