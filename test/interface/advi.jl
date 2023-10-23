@@ -16,16 +16,16 @@ using Test
         obj  = ADVI(10)
 
         rng      = StableRNG(seed)
-        elbo_ref = obj(rng, model, q₀_z; n_samples=1024)
+        elbo_ref = obj(rng, model, q₀_z; n_samples=10^4)
 
         @testset "determinism" begin
             rng  = StableRNG(seed)
-            elbo = obj(rng, model, q₀_z; n_samples=1024)
+            elbo = obj(rng, model, q₀_z; n_samples=10^4)
             @test elbo == elbo_ref
         end
 
         @testset "default_rng" begin
-            elbo = obj(model, q₀_z; n_samples=1024)
+            elbo = obj(model, q₀_z; n_samples=10^4)
             @test elbo ≈ elbo_ref rtol=0.1
         end
     end
@@ -39,16 +39,16 @@ using Test
 
         obj      = ADVI(10)
         rng      = StableRNG(seed)
-        elbo_ref = obj(rng, model, q₀_z; n_samples=1024)
+        elbo_ref = obj(rng, model, q₀_z; n_samples=10^4)
 
         @testset "determinism" begin
             rng  = StableRNG(seed)
-            elbo = obj(rng, model, q₀_z; n_samples=1024)
+            elbo = obj(rng, model, q₀_z; n_samples=10^4)
             @test elbo == elbo_ref
         end
 
         @testset "default_rng" begin
-            elbo = obj(model, q₀_z; n_samples=1024)
+            elbo = obj(model, q₀_z; n_samples=10^4)
             @test elbo ≈ elbo_ref rtol=0.1
         end
     end
