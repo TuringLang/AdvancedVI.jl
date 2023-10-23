@@ -72,33 +72,34 @@ end
 
 """
     (advi::ADVI)(
-        prob, q;
-        rng::AbstractRNG = Random.default_rng(),
-        n_samples::Int = advi.n_samples
+        [rng], prob, q; n_samples::Int = advi.n_samples
     )
 
 Estimate the ELBO of the variational approximation `q` of the target `prob` using the ADVI formulation using `n_samples` number of Monte Carlo samples.
 """
 function (advi::ADVI)(
+    rng      ::Random.AbstractRNG,
     prob,
-    q        ::ContinuousMultivariateDistribution;
-    rng      ::Random.AbstractRNG = Random.default_rng(),
-    n_samples::Int                = advi.n_samples
+    q        ::ContinuousDistribution;
+    n_samples::Int = advi.n_samples
 )
     zs = rand(rng, q, n_samples)
-    advi(q, zs)
+    advi(prob, q, zs)
 end
 
 function (advi::ADVI)(
+    rng      ::Random.AbstractRNG,
     prob,
     q_trans  ::Bijectors.TransformedDistribution;
-    rng      ::Random.AbstractRNG = Random.default_rng(),
-    n_samples::Int                = advi.n_samples
+    n_samples::Int  = advi.n_samples
 )
     q  = q_trans.dist
     ηs = rand(rng, q, n_samples)
-    advi(q_trans, ηs)
+    advi(prob, q_trans, ηs)
 end
+
+(advi::ADVI)(prob, q::Distribution; n_samples::Int = advi.n_samples) =
+    advi(Random.default_rng(), prob, q; n_samples)
 
 function estimate_gradient!(
     rng          ::Random.AbstractRNG,
