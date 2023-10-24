@@ -63,9 +63,7 @@ using Test
         rng  = StableRNG(seed)
         test_values = rand(rng, T)
 
-        callback(; stat, args...) = begin
-            (test_value = test_values[stat.iteration],)
-        end
+        callback(; stat, args...) = (test_value = test_values[stat.iteration],)
 
         rng  = StableRNG(seed)
         _, stats, _ = optimize(
