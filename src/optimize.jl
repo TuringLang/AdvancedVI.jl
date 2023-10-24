@@ -1,33 +1,18 @@
 
 """
-    optimize(
-        problem,
-        objective   ::AbstractVariationalObjective,
-        restructure,
-        param_init,
-        max_iter    ::Int,
-        objargs...;
-        kwargs...
-    )              
-    optimize(
-        problem,
-        objective             ::AbstractVariationalObjective,
-        variational_dist_init,
-        max_iter              ::Int,
-        objargs...;
-        kwargs...
-    )              
+    optimize(problem, objective, restructure, param_init, max_iter, objargs...; kwargs...)              
+    optimize(problem, objective, variational_dist_init, max_iter, objargs...; kwargs...)              
 
 Optimize the variational objective `objective` targeting the problem `problem` by estimating (stochastic) gradients.
 
 The variational approximation can be constructed by passing the variational parameters `param_init` or the initial variational approximation `variational_dist_init` to the function `restructure`.
 
 # Arguments
-- `objective`: Variational Objective.
+- `objective::AbstractVariationalObjective`: Variational Objective.
 - `param_init`: Initial value of the variational parameters.
 - `restruct`: Function that reconstructs the variational approximation from the flattened parameters.
 - `variational_dist_init`: Initial variational distribution. The variational parameters must be extractable through `Optimisers.destructure`.
-- `max_iter`: Maximum number of iterations.
+- `max_iter::Int`: Maximum number of iterations.
 - `objargs...`: Arguments to be passed to `objective`.
 
 # Keyword Arguments
