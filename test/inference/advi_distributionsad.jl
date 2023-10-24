@@ -3,8 +3,8 @@ const PROGRESS = length(ARGS) > 0 && ARGS[1] == "--progress" ? true : false
 
 using Test
 
-@testset "advi" begin
-    @testset "locscale" begin
+@testset "inference_advi" begin
+    @testset "distributionsad" begin
         @testset "$(modelname) $(objname) $(realtype) $(adbackname)"  for
             realtype ∈ [Float64], # Currently only tested against Float64
             (modelname, modelconstr) ∈ Dict(
