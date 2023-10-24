@@ -35,7 +35,7 @@ The variational approximation can be constructed by passing the variational para
 - `optimizer::Optimisers.AbstractRule`: Optimizer used for inference. (Default: `Adam`.)
 - `rng::AbstractRNG`: Random number generator. (Default: `Random.default_rng()`.)
 - `show_progress::Bool`: Whether to show the progress bar. (Default: `true`.)
-- `callback!`: Callback function called after every iteration. See further information below. (Default: `nothing`.)
+- `callback`: Callback function called after every iteration. See further information below. (Default: `nothing`.)
 - `prog`: Progress bar configuration. (Default: `ProgressMeter.Progress(n_max_iter; desc="Optimizing", barlen=31, showspeed=true, enabled=prog)`.)
 - `state::NamedTuple`: Initial value for the internal state of optimization. Used to warm-start from the state of a previous run. (See the returned values below.)
 
