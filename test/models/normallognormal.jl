@@ -26,7 +26,7 @@ function Bijectors.bijector(model::NormalLogNormal)
         [1:1, 2:1+length(μ_y)])
 end
 
-function normallognormal_fullrank(realtype; rng = default_rng())
+function normallognormal_fullrank(rng::Random.AbstractRNG, realtype::Type)
     n_dims = 5
 
     μ_x = randn(rng, realtype)
@@ -43,12 +43,12 @@ function normallognormal_fullrank(realtype; rng = default_rng())
     Σ = Σ |> Hermitian
 
     μ = vcat(μ_x, μ_y)
-    L = cholesky(Σ).L |> LowerTriangular
+    L = cholesky(Σ).L
 
     TestModel(model, μ, L, n_dims+1, false)
 end
 
-function normallognormal_meanfield(realtype; rng = default_rng())
+function normallognormal_meanfield(rng::Random.AbstractRNG, realtype::Type)
     n_dims = 5
 
     μ_x  = randn(rng, realtype)

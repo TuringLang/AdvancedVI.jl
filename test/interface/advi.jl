@@ -6,7 +6,7 @@ using Test
     rng  = StableRNG(seed)
 
     @testset "with bijector"  begin
-        modelstats = normallognormal_meanfield(Float64; rng)
+        modelstats = normallognormal_meanfield(rng, Float64)
 
         @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
@@ -31,7 +31,7 @@ using Test
     end
 
     @testset "without bijector"  begin
-        modelstats = normal_meanfield(Float64; rng)
+        modelstats = normal_meanfield(rng, Float64)
 
         @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 

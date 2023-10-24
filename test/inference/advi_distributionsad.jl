@@ -24,7 +24,7 @@ using Test
             seed = (0x38bef07cf9cc549d)
             rng  = StableRNG(seed)
 
-            modelstats = modelconstr(realtype; rng)
+            modelstats = modelconstr(rng, realtype)
             @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
             T, η = is_meanfield ? (5_000, 1e-2) : (30_000, 1e-3)

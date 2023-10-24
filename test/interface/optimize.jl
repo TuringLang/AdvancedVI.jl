@@ -6,7 +6,7 @@ using Test
     rng  = StableRNG(seed)
 
     T = 1000
-    modelstats = normallognormal_meanfield(Float64; rng)
+    modelstats = normallognormal_meanfield(rng, Float64)
 
     @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 

@@ -17,7 +17,7 @@ function LogDensityProblems.capabilities(::Type{<:TestNormal})
     LogDensityProblems.LogDensityOrder{0}()
 end
 
-function normal_fullrank(realtype; rng = default_rng())
+function normal_fullrank(rng::Random.AbstractRNG, realtype::Type)
     n_dims = 5
 
     μ = randn(rng, realtype, n_dims)
@@ -29,7 +29,7 @@ function normal_fullrank(realtype; rng = default_rng())
     TestModel(model, μ, L, n_dims, false)
 end
 
-function normal_meanfield(realtype; rng = default_rng())
+function normal_meanfield(rng::Random.AbstractRNG, realtype::Type)
     n_dims = 5
 
     μ = randn(rng, realtype, n_dims)
