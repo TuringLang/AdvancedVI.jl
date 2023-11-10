@@ -45,20 +45,28 @@ Base.show(io::IO, advi::ADVI) =
     print(io, "ADVI(entropy=$(advi.entropy), n_samples=$(advi.n_samples))")
 
 """
-    (advi::ADVI)(
-        [rng], prob, q, zs::AbstractMatrix
-    )
+    estimate_objective_with_samples(obj, prob, q, zs)
 
-Estimate the ELBO of the variational approximation `q` of the target `prob` using the ADVI formulation over the Monte Carlo samples `zs` (each column is a sample).
+Estimate the ELBO using the ADVI formulation over a set of given Monte Carlo samples.
+
+# Arguments
+- `advi::ADVI`: ADVI objective.
+- `q`: Variational approximation
+- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
+- `mc_samples::AbstractMatrix`: Samples to be used to estimate the energy. (Each column is a single sample.)
+
+# Returns
+- `obj_est`: Estimate of the objective value.
+
 """
 function estimate_objective_with_samples(
-    advi::ADVI,
-    q   ::Distributions.ContinuousMultivariateDistribution,
+    advi      ::ADVI,
+    q         ::Distributions.ContinuousMultivariateDistribution,
     prob,
-    zs  ::AbstractMatrix
+    mc_samples::AbstractMatrix
 )
-    𝔼ℓ = mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachcol(zs))
-    ℍ  = advi.entropy(q, zs)
+    𝔼ℓ = mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachcol(mc_samples))
+    ℍ  = estimate_entropy(advi.entropy, mc_samples, q)
     𝔼ℓ + ℍ
 end
 
@@ -66,25 +74,34 @@ function estimate_objective_with_samples(
     advi   ::ADVI,
     q_trans::Bijectors.TransformedDistribution,
     prob,
-    ηs     ::AbstractMatrix
+    mc_samples_unconstr::AbstractMatrix
 )
     @unpack dist, transform = q_trans
     q   = dist
     b⁻¹ = transform
-    𝔼ℓ = mean(eachcol(ηs)) do ηᵢ
-        zᵢ, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(b⁻¹, ηᵢ)
-        LogDensityProblems.logdensity(prob, zᵢ) + logdetjacᵢ
+    𝔼ℓ = mean(eachcol(mc_samples_unconstr)) do mc_sample_unconstr
+        mc_sample, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(b⁻¹, mc_sample_unconstr)
+        LogDensityProblems.logdensity(prob, mc_sample) + logdetjacᵢ
     end
-    ℍ  = advi.entropy(q, ηs)
+    ℍ  = estimate_entropy(advi.entropy, mc_samples_unconstr, q)
     𝔼ℓ + ℍ
 end
 
 """
-    estimate_objective(
-        advi::ADVI, [rng], prob, q; n_samples::Int = advi.n_samples
-    )
+    estimate_objective([rng,] advi, q, prob; n_samples)
 
-Estimate the ELBO of the variational approximation `q` of the target `prob` using the ADVI formulation using `n_samples` number of Monte Carlo samples.
+Estimate the ELBO using the ADVI formulation.
+
+# Arguments
+- `advi::ADVI`: ADVI objective.
+- `q`: Variational approximation
+- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
+
+# Keyword Arguments
+- `n_samples::Int = advi.n_samples`: Number of samples to be used to estimate the objective.
+
+# Returns
+- `obj_est`: Estimate of the objective value.
 """
 function estimate_objective(
     rng      ::Random.AbstractRNG,
@@ -93,8 +110,8 @@ function estimate_objective(
     prob;
     n_samples::Int = advi.n_samples
 )
-    zs = rand(rng, q, n_samples)
-    estimate_objective_with_samples(advi, q, prob, zs)
+    mc_samples = rand(rng, q, n_samples)
+    estimate_objective_with_samples(advi, q, prob, mc_samples)
 end
 
 function estimate_objective(
@@ -105,8 +122,8 @@ function estimate_objective(
     n_samples::Int  = advi.n_samples
 )
     q  = q_trans.dist
-    ηs = rand(rng, q, n_samples)
-    estimate_objective_with_samples(advi, q_trans, prob, ηs)
+    mc_unconstr_samples = rand(rng, q, n_samples)
+    estimate_objective_with_samples(advi, q_trans, prob, mc_unconstr_samples)
 end
 
 estimate_objective(advi::ADVI, q::Distribution, prob; n_samples::Int = advi.n_samples) =
@@ -122,6 +139,7 @@ function estimate_gradient!(
     restructure,
     est_state,
 )
+    q_trans_stop = restructure(λ)
     function f(λ′)
         q_trans = restructure(λ′)
         q       = q_trans.dist
