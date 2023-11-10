@@ -51,7 +51,7 @@ Estimate the ELBO using the ADVI formulation over a set of given Monte Carlo sam
 
 # Arguments
 - `advi::ADVI`: ADVI objective.
-- `q`: Variational approximation
+- `q`: Variational approximation.
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 - `mc_samples::AbstractMatrix`: Samples to be used to estimate the energy. (Each column is a single sample.)
 
@@ -61,30 +61,60 @@ Estimate the ELBO using the ADVI formulation over a set of given Monte Carlo sam
 """
 function estimate_objective_with_samples(
     advi      ::ADVI,
+    q         ::Union{Distributions.ContinuousMultivariateDistribution,
+                      Bijectors.TransformedDistribution},
+    prob,
+    mc_samples::AbstractMatrix
+)
+    estimate_objective_with_samples(advi, q, q, prob, mc_samples)
+end
+
+
+function estimate_objective_with_samples(
+    advi      ::ADVI,
     q         ::Distributions.ContinuousMultivariateDistribution,
+    q_stop    ::Distributions.ContinuousMultivariateDistribution,
     prob,
     mc_samples::AbstractMatrix
 )
     𝔼ℓ = mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachcol(mc_samples))
-    ℍ  = estimate_entropy(advi.entropy, mc_samples, q)
+    ℍ  = estimate_entropy(advi.entropy, mc_samples, q, q_stop)
     𝔼ℓ + ℍ
 end
 
 function estimate_objective_with_samples(
-    advi   ::ADVI,
-    q_trans::Bijectors.TransformedDistribution,
+    advi        ::ADVI,
+    q_trans     ::Bijectors.TransformedDistribution,
+    q_trans_stop::Bijectors.TransformedDistribution,
     prob,
     mc_samples_unconstr::AbstractMatrix
 )
     @unpack dist, transform = q_trans
-    q   = dist
-    b⁻¹ = transform
-    𝔼ℓ = mean(eachcol(mc_samples_unconstr)) do mc_sample_unconstr
+    q      = dist
+    q_stop = q_trans_stop.dist
+    b⁻¹    = transform
+    𝔼ℓ     = mean(eachcol(mc_samples_unconstr)) do mc_sample_unconstr
         mc_sample, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(b⁻¹, mc_sample_unconstr)
         LogDensityProblems.logdensity(prob, mc_sample) + logdetjacᵢ
     end
-    ℍ  = estimate_entropy(advi.entropy, mc_samples_unconstr, q)
+    ℍ  = estimate_entropy(advi.entropy, mc_samples_unconstr, q, q_stop)
     𝔼ℓ + ℍ
+end
+
+function rand_uncontrained_samples(
+    rng      ::Random.AbstractRNG,
+    q        ::ContinuousDistribution,
+    n_samples::Int,
+)
+    rand(rng, q, n_samples)
+end
+
+function rand_uncontrained_samples(
+    rng      ::Random.AbstractRNG,
+    q_trans  ::Bijectors.TransformedDistribution,
+    n_samples::Int,
+)
+    rand(rng, q_trans.dist, n_samples)
 end
 
 """
@@ -106,24 +136,12 @@ Estimate the ELBO using the ADVI formulation.
 function estimate_objective(
     rng      ::Random.AbstractRNG,
     advi     ::ADVI,
-    q        ::ContinuousDistribution,
+    q,
     prob;
     n_samples::Int = advi.n_samples
 )
-    mc_samples = rand(rng, q, n_samples)
-    estimate_objective_with_samples(advi, q, prob, mc_samples)
-end
-
-function estimate_objective(
-    rng      ::Random.AbstractRNG,
-    advi     ::ADVI,
-    q_trans  ::Bijectors.TransformedDistribution,
-    prob;
-    n_samples::Int  = advi.n_samples
-)
-    q  = q_trans.dist
-    mc_unconstr_samples = rand(rng, q, n_samples)
-    estimate_objective_with_samples(advi, q_trans, prob, mc_unconstr_samples)
+    mc_samples_unconstr = rand_uncontrained_samples(rng, q, n_samples)
+    estimate_objective_with_samples(advi, q, prob, mc_samples_unconstr)
 end
 
 estimate_objective(advi::ADVI, q::Distribution, prob; n_samples::Int = advi.n_samples) =
@@ -139,12 +157,11 @@ function estimate_gradient!(
     restructure,
     est_state,
 )
-    q_trans_stop = restructure(λ)
+    q_stop = restructure(λ)
     function f(λ′)
-        q_trans = restructure(λ′)
-        q       = q_trans.dist
-        ηs      = rand(rng, q, advi.n_samples)
-        -estimate_objective_with_samples(advi, q_trans, prob, ηs)
+        q = restructure(λ′)
+        mc_samples_unconstr = rand_uncontrained_samples(rng, q, advi.n_samples)
+        -estimate_objective_with_samples(advi, q, q_stop, prob, mc_samples_unconstr)
     end
     value_and_gradient!(adbackend, f, λ, out)
 

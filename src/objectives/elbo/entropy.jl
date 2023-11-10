@@ -1,12 +1,13 @@
 
 """
-    estimate_entropy(entropy_estimator, mc_samples, q)
+    estimate_entropy(entropy_estimator, mc_samples, q, q_stop)
 
 Estimate the entropy of `q`.
 
 # Arguments
 - `entropy_estimator`: Entropy estimation strategy.
 - `q`: Variational approximation.
+- `q_stop`: Variational approximation with "stopped gradients".
 - `mc_samples`: Monte Carlo samples used to estimate the entropy. (Only used for Monte Carlo strategies.)
 
 # Returns
@@ -30,13 +31,13 @@ Use closed-form expression of entropy.
 """
 struct ClosedFormEntropy <: AbstractEntropyEstimator end
 
-function estimate_entropy(::ClosedFormEntropy, ::Any, q)
+function estimate_entropy(::ClosedFormEntropy, ::Any, q, ::Any)
     entropy(q)
 end
 
 struct MonteCarloEntropy <: AbstractEntropyEstimator end
 
-function estimate_entropy(::MonteCarloEntropy, mc_samples::AbstractMatrix, q)
+function estimate_entropy(::MonteCarloEntropy, mc_samples::AbstractMatrix, q, ::Any)
     mean(eachcol(mc_samples)) do mc_sample
         -logpdf(q, mc_sample)
     end
@@ -56,8 +57,8 @@ The "sticking the landing" entropy estimator.
 """
 struct StickingTheLandingEntropy <: AbstractEntropyEstimator end
 
-function estimate_entropy(::StickingTheLandingEntropy, mc_samples::AbstractMatrix, q)
-    ChainRulesCore.@ignore_derivatives mean(eachcol(mc_samples)) do mc_sample
-        -logpdf(q, mc_sample)
+function estimate_entropy(::StickingTheLandingEntropy, mc_samples::AbstractMatrix, ::Any, q_stop)
+    mean(eachcol(mc_samples)) do mc_sample
+        -logpdf(q_stop, mc_sample)
     end
 end
