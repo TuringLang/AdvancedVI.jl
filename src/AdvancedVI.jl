@@ -46,7 +46,7 @@ function value_and_gradient! end
 Abstract type for the VI algorithms supported by `AdvancedVI`.
 
 # Implementations
-To be supported by `AdvancedVI`, a VI algorithm must implement `AbstractVariationalObjective`.
+To be supported by `AdvancedVI`, a VI algorithm must implement `AbstractVariationalObjective` and `estimate_objective`.
 Also, it should provide gradients by implementing the function `estimate_gradient!`.
 If the estimator is stateful, it can implement `init` to initialize the state.
 """
@@ -70,6 +70,28 @@ init(
     ::AbstractVector,
     ::Any
 ) = nothing
+
+"""
+    estimate_objective([rng,] obj, q, prob, kwargs...)
+
+Estimate the variational objective `obj` targeting `prob` with respect to the variational approximation `q`.
+
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `obj::AbstractVariationalObjective`: Variational objective.
+- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
+- `q`: Variational approximation.
+
+# Keyword Arguments
+For the keywword arguments, refer to the respective documentation for each variational objective.
+
+# Returns
+- `obj_est`: Estimate of the objective value.
+"""
+function estimate_objective end
+
+export estimate_objective
+
 
 """
     estimate_gradient!(rng, obj, adbackend, out, prob, λ, restructure, obj_state)

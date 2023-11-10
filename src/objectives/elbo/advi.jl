@@ -51,19 +51,21 @@ Base.show(io::IO, advi::ADVI) =
 
 Estimate the ELBO of the variational approximation `q` of the target `prob` using the ADVI formulation over the Monte Carlo samples `zs` (each column is a sample).
 """
-function (advi::ADVI)(
+function estimate_objective_with_samples(
+    advi::ADVI,
+    q   ::Distributions.ContinuousMultivariateDistribution,
     prob,
-    q ::Distributions.ContinuousMultivariateDistribution,
-    zs::AbstractMatrix
+    zs  ::AbstractMatrix
 )
     𝔼ℓ = mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachcol(zs))
     ℍ  = advi.entropy(q, zs)
     𝔼ℓ + ℍ
 end
 
-function (advi::ADVI)(
-    prob,
+function estimate_objective_with_samples(
+    advi   ::ADVI,
     q_trans::Bijectors.TransformedDistribution,
+    prob,
     ηs     ::AbstractMatrix
 )
     @unpack dist, transform = q_trans
@@ -78,35 +80,37 @@ function (advi::ADVI)(
 end
 
 """
-    (advi::ADVI)(
-        [rng], prob, q; n_samples::Int = advi.n_samples
+    estimate_objective(
+        advi::ADVI, [rng], prob, q; n_samples::Int = advi.n_samples
     )
 
 Estimate the ELBO of the variational approximation `q` of the target `prob` using the ADVI formulation using `n_samples` number of Monte Carlo samples.
 """
-function (advi::ADVI)(
+function estimate_objective(
     rng      ::Random.AbstractRNG,
-    prob,
-    q        ::ContinuousDistribution;
+    advi     ::ADVI,
+    q        ::ContinuousDistribution,
+    prob;
     n_samples::Int = advi.n_samples
 )
     zs = rand(rng, q, n_samples)
-    advi(prob, q, zs)
+    estimate_objective_with_samples(advi, q, prob, zs)
 end
 
-function (advi::ADVI)(
+function estimate_objective(
     rng      ::Random.AbstractRNG,
-    prob,
-    q_trans  ::Bijectors.TransformedDistribution;
+    advi     ::ADVI,
+    q_trans  ::Bijectors.TransformedDistribution,
+    prob;
     n_samples::Int  = advi.n_samples
 )
     q  = q_trans.dist
     ηs = rand(rng, q, n_samples)
-    advi(prob, q_trans, ηs)
+    estimate_objective_with_samples(advi, q_trans, prob, ηs)
 end
 
-(advi::ADVI)(prob, q::Distribution; n_samples::Int = advi.n_samples) =
-    advi(Random.default_rng(), prob, q; n_samples)
+estimate_objective(advi::ADVI, q::Distribution, prob; n_samples::Int = advi.n_samples) =
+    estimate_objective(Random.default_rng(), advi, q, prob; n_samples)
 
 function estimate_gradient!(
     rng       ::Random.AbstractRNG,
@@ -122,7 +126,7 @@ function estimate_gradient!(
         q_trans = restructure(λ′)
         q       = q_trans.dist
         ηs      = rand(rng, q, advi.n_samples)
-        -advi(prob, q_trans, ηs)
+        -estimate_objective_with_samples(advi, q_trans, prob, ηs)
     end
     value_and_gradient!(adbackend, f, λ, out)
 
