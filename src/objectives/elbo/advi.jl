@@ -39,82 +39,76 @@ struct ADVI{EntropyEst <: AbstractEntropyEstimator} <: AbstractVariationalObject
     n_samples::Int
 end
 
-ADVI(n_samples::Int; entropy::AbstractEntropyEstimator = ClosedFormEntropy()) = ADVI(entropy, n_samples)
+ADVI(
+    n_samples::Int;
+    entropy  ::AbstractEntropyEstimator = ClosedFormEntropy()
+) = ADVI(entropy, n_samples)
 
 Base.show(io::IO, advi::ADVI) =
     print(io, "ADVI(entropy=$(advi.entropy), n_samples=$(advi.n_samples))")
 
-"""
-    estimate_objective_with_samples(obj, prob, q, zs)
+maybe_stop_entropy_score(::StickingTheLandingEntropy, q, q_stop) = q_stop
 
-Estimate the ELBO using the ADVI formulation over a set of given Monte Carlo samples.
+maybe_stop_entropy_score(::AbstractEntropyEstimator, q, q_stop) = q
 
-# Arguments
-- `advi::ADVI`: ADVI objective.
-- `q`: Variational approximation.
-- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
-- `mc_samples::AbstractMatrix`: Samples to be used to estimate the energy. (Each column is a single sample.)
-
-# Returns
-- `obj_est`: Estimate of the objective value.
-
-"""
-function estimate_objective_with_samples(
-    advi      ::ADVI,
-    q         ::Union{Distributions.ContinuousMultivariateDistribution,
-                      Bijectors.TransformedDistribution},
-    prob,
-    mc_samples::AbstractMatrix
-)
-    estimate_objective_with_samples(advi, q, q, prob, mc_samples)
+function estimate_entropy_maybe_stl(entropy_estimator::AbstractEntropyEstimator, mc_samples, q, q_stop)
+    q_maybe_stop = maybe_stop_entropy_score(entropy_estimator, q, q_stop)
+    estimate_entropy(entropy_estimator, mc_samples, q_maybe_stop)
 end
 
-
-function estimate_objective_with_samples(
-    advi      ::ADVI,
-    q         ::Distributions.ContinuousMultivariateDistribution,
-    q_stop    ::Distributions.ContinuousMultivariateDistribution,
-    prob,
-    mc_samples::AbstractMatrix
-)
-    𝔼ℓ = mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachcol(mc_samples))
-    ℍ  = estimate_entropy(advi.entropy, mc_samples, q, q_stop)
-    𝔼ℓ + ℍ
+function estimate_energy_with_samples(::ADVI, mc_samples::AbstractMatrix, prob)
+    mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachcol(mc_samples))
 end
 
-function estimate_objective_with_samples(
+function estimate_energy_with_samples_bijector(::ADVI, mc_samples::AbstractMatrix, invbij, prob)
+    mean(eachcol(mc_samples)) do mc_sample
+        mc_sample, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(invbij, mc_sample)
+        LogDensityProblems.logdensity(prob, mc_sample) + logdetjacᵢ
+    end
+end
+
+function estimate_advi_maybe_stl_with_samples(
+    advi      ::ADVI,
+    q         ::ContinuousDistribution,
+    q_stop    ::ContinuousDistribution,
+    mc_samples::AbstractMatrix,
+    prob
+)
+    energy  = estimate_energy_with_samples(advi, mc_samples, prob)
+    entropy = estimate_entropy_maybe_stl(advi.entropy, mc_samples, q, q_stop)
+    energy + entropy
+end
+
+function estimate_advi_maybe_stl_with_samples(
     advi        ::ADVI,
     q_trans     ::Bijectors.TransformedDistribution,
     q_trans_stop::Bijectors.TransformedDistribution,
-    prob,
-    mc_samples_unconstr::AbstractMatrix
+    mc_samples  ::AbstractMatrix,
+    prob
 )
-    @unpack dist, transform = q_trans
-    q      = dist
-    q_stop = q_trans_stop.dist
-    b⁻¹    = transform
-    𝔼ℓ     = mean(eachcol(mc_samples_unconstr)) do mc_sample_unconstr
-        mc_sample, logdetjacᵢ = Bijectors.with_logabsdet_jacobian(b⁻¹, mc_sample_unconstr)
-        LogDensityProblems.logdensity(prob, mc_sample) + logdetjacᵢ
-    end
-    ℍ  = estimate_entropy(advi.entropy, mc_samples_unconstr, q, q_stop)
-    𝔼ℓ + ℍ
+    q       = q_trans.dist
+    invbij  = q_trans.transform
+    q_stop  = q_trans_stop.dist
+    energy  = estimate_energy_with_samples_bijector(advi, mc_samples, invbij, prob)
+    entropy = estimate_entropy_maybe_stl(advi.entropy, mc_samples, q, q_stop)
+    energy + entropy
 end
 
-function rand_uncontrained_samples(
+rand_unconstrained(
     rng      ::Random.AbstractRNG,
     q        ::ContinuousDistribution,
-    n_samples::Int,
-)
-    rand(rng, q, n_samples)
-end
+    n_samples::Int
+) = rand(rng, q, n_samples)
 
-function rand_uncontrained_samples(
+rand_unconstrained(
     rng      ::Random.AbstractRNG,
-    q_trans  ::Bijectors.TransformedDistribution,
-    n_samples::Int,
-)
-    rand(rng, q_trans.dist, n_samples)
+    q        ::Bijectors.TransformedDistribution,
+    n_samples::Int
+) = rand(rng, q.dist, n_samples)
+
+function estimate_advi_maybe_stl(rng::Random.AbstractRNG, advi::ADVI, q, q_stop, prob)
+    mc_samples = rand_unconstrained(rng, q, advi.n_samples)
+    estimate_advi_maybe_stl_with_samples(advi, q, q_stop, mc_samples, prob)
 end
 
 """
@@ -140,8 +134,8 @@ function estimate_objective(
     prob;
     n_samples::Int = advi.n_samples
 )
-    mc_samples_unconstr = rand_uncontrained_samples(rng, q, n_samples)
-    estimate_objective_with_samples(advi, q, prob, mc_samples_unconstr)
+    mc_samples = rand_unconstrained(rng, q, n_samples)
+    estimate_advi_maybe_stl_with_samples(advi, q, q, mc_samples, prob)
 end
 
 estimate_objective(advi::ADVI, q::Distribution, prob; n_samples::Int = advi.n_samples) =
@@ -160,8 +154,8 @@ function estimate_gradient!(
     q_stop = restructure(λ)
     function f(λ′)
         q = restructure(λ′)
-        mc_samples_unconstr = rand_uncontrained_samples(rng, q, advi.n_samples)
-        -estimate_objective_with_samples(advi, q, q_stop, prob, mc_samples_unconstr)
+        elbo = estimate_advi_maybe_stl(rng, advi, q, q_stop, prob)
+        -elbo
     end
     value_and_gradient!(adbackend, f, λ, out)
 
