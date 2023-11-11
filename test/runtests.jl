@@ -40,3 +40,4 @@ include("interface/optimize.jl")
 include("interface/advi.jl")
 
 include("inference/advi_distributionsad.jl")
+include("inference/advi_distributionsad_bijectors.jl")
