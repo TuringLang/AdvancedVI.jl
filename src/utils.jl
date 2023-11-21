@@ -21,3 +21,6 @@ function maybe_init_objective(
     haskey(state_init, :objective) ? state_init.objective : init(rng, objective, λ, restructure)
 end
 
+eachsample(samples::AbstractMatrix) = eachcol(samples)
+
+eachsample(samples::AbstractVector) = samples

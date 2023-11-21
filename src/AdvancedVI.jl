@@ -11,7 +11,6 @@ using Functors
 using Optimisers
 
 using DocStringExtensions
-
 using ProgressMeter
 using LinearAlgebra
 
@@ -21,7 +20,6 @@ using ADTypes, DiffResults
 using ChainRulesCore
 
 using FillArrays
-using Bijectors
 
 using StatsBase
 
@@ -115,18 +113,17 @@ Estimate (possibly stochastic) gradients of the variational objective `obj` targ
 """
 function estimate_gradient! end
 
-# ADVI-specific interfaces
+# ELBO-specific interfaces
 abstract type AbstractEntropyEstimator end
 
 export
-    ADVI,
+    RepGradELBO,
     ClosedFormEntropy,
     StickingTheLandingEntropy,
     MonteCarloEntropy
 
-# entropy.jl must preceed advi.jl
 include("objectives/elbo/entropy.jl")
-include("objectives/elbo/advi.jl")
+include("objectives/elbo/repgradelbo.jl")
 
 # Optimization Routine
 

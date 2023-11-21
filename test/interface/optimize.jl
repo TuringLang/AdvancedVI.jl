@@ -1,27 +1,25 @@
 
 using Test
 
-@testset "optimize" begin
+@testset "interface optimize" begin
     seed = (0x38bef07cf9cc549d)
     rng  = StableRNG(seed)
 
     T = 1000
-    modelstats = normallognormal_meanfield(rng, Float64)
+    modelstats = normal_meanfield(rng, Float64)
 
     @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
     # Global Test Configurations
-    b⁻¹  = Bijectors.bijector(model) |> inverse
-    q₀_η = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
-    q₀_z = Bijectors.transformed(q₀_η, b⁻¹)
-    obj  = ADVI(10)
+    q0  = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
+    obj = RepGradELBO(10)
 
     adbackend = AutoForwardDiff()
     optimizer = Optimisers.Adam(1e-2)
 
     rng  = StableRNG(seed)
     q_ref, stats_ref, _ = optimize(
-        rng, model, obj, q₀_z, T;
+        rng, model, obj, q0, T;
         optimizer,
         show_progress = false,
         adbackend,
@@ -30,13 +28,13 @@ using Test
 
     @testset "default_rng" begin
         optimize(
-            model, obj, q₀_z, T;
+            model, obj, q0, T;
             optimizer,
             show_progress = false,
             adbackend,
         )
 
-        λ₀, re  = Optimisers.destructure(q₀_z)
+        λ₀, re  = Optimisers.destructure(q0)
         optimize(
             model, obj, re, λ₀, T;
             optimizer,
@@ -46,7 +44,7 @@ using Test
     end
 
     @testset "restructure" begin
-        λ₀, re  = Optimisers.destructure(q₀_z)
+        λ₀, re  = Optimisers.destructure(q0)
 
         rng  = StableRNG(seed)
         λ, stats, _ = optimize(
@@ -67,7 +65,7 @@ using Test
 
         rng  = StableRNG(seed)
         _, stats, _ = optimize(
-            rng, model, obj, q₀_z, T;
+            rng, model, obj, q0, T;
             show_progress = false,
             adbackend,
             callback
@@ -82,7 +80,7 @@ using Test
         T_last  = T - T_first
 
         q_first, _, state = optimize(
-            rng, model, obj, q₀_z, T_first;
+            rng, model, obj, q0, T_first;
             optimizer,
             show_progress = false,
             adbackend

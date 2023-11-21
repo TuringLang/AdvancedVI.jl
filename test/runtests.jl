@@ -14,7 +14,6 @@ using Functors
 using DistributionsAD
 @functor TuringDiagMvNormal
 
-using Bijectors
 using LogDensityProblems
 using Optimisers
 using ADTypes
@@ -30,14 +29,11 @@ struct TestModel{M,L,S}
     n_dims::Int
     is_meanfield::Bool
 end
-
-include("models/normallognormal.jl")
 include("models/normal.jl")
 
 # Tests
 include("interface/ad.jl")
 include("interface/optimize.jl")
-include("interface/advi.jl")
+include("interface/repgradelbo.jl")
 
-include("inference/advi_distributionsad.jl")
-include("inference/advi_distributionsad_bijectors.jl")
+include("inference/repgradelbo_distributionsad.jl")
