@@ -2,6 +2,7 @@
 using Test
 using Test: @testset, @test
 
+using Bijectors
 using Random, StableRNGs
 using Statistics
 using Distributions
@@ -30,6 +31,7 @@ struct TestModel{M,L,S}
     is_meanfield::Bool
 end
 include("models/normal.jl")
+include("models/normallognormal.jl")
 
 # Tests
 include("interface/ad.jl")
@@ -37,3 +39,4 @@ include("interface/optimize.jl")
 include("interface/repgradelbo.jl")
 
 include("inference/repgradelbo_distributionsad.jl")
+include("inference/repgradelbo_distributionsad_bijectors.jl")

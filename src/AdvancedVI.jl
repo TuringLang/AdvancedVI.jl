@@ -158,6 +158,9 @@ end
 
 @static if !isdefined(Base, :get_extension)
     function __init__()
+        @require Bijectors = "76274a88-744f-5084-9051-94815aaf08c4" begin
+            include("../ext/AdvancedVIBijectorsExt.jl")
+        end
         @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
             include("../ext/AdvancedVIEnzymeExt.jl")
         end
