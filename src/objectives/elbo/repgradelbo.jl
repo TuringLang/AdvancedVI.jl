@@ -50,21 +50,32 @@ function estimate_entropy_maybe_stl(entropy_estimator::AbstractEntropyEstimator,
     estimate_entropy(entropy_estimator, samples, q_maybe_stop)
 end
 
-function estimate_energy_with_samples(::RepGradELBO, samples, prob)
+function estimate_energy_with_samples(prob, samples)
     mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
 end
 
-function estimate_repgradelbo_maybe_stl_with_samples(
-    obj::RepGradELBO, q, q_stop, samples::AbstractMatrix, prob
-)
-    energy  = estimate_energy_with_samples(obj, samples, prob)
-    entropy = estimate_entropy_maybe_stl(obj.entropy, samples, q, q_stop)
-    energy + entropy
-end
+"""
+    reparam_with_entropy(rng, n_samples, q, q_stop, ent_est)
 
-function estimate_repgradelbo_maybe_stl(rng::Random.AbstractRNG, obj::RepGradELBO, q, q_stop, prob)
-    samples = rand(rng, q, obj.n_samples)
-    estimate_repgradelbo_maybe_stl_with_samples(obj, q, q_stop, samples, prob)
+Draw `n_samples` from `q` and compute its entropy.
+
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `n_samples::Int`: Number of Monte Carlo samples 
+- `q`: Variational approximation.
+- `q_stop`: `q` but with its gradient stopped.
+- `ent_est`: The entropy estimation strategy. (See `estimate_entropy`.)
+
+# Returns
+- `samples`: Monte Carlo samples generated through reparameterization. Their support matches that of the target distribution.
+- `entropy`: An estimate (or exact value) of the differential entropy of `q`.
+"""
+function reparam_with_entropy(
+    rng::Random.AbstractRNG, n_samples::Int, q, q_stop, ent_est
+)
+    samples = rand(rng, q, n_samples)
+    entropy = estimate_entropy_maybe_stl(ent_est, samples, q, q_stop)
+    samples, entropy
 end
 
 function estimate_objective(
@@ -74,8 +85,9 @@ function estimate_objective(
     prob;
     n_samples::Int = obj.n_samples
 )
-    samples = rand(rng, q, n_samples)
-    estimate_repgradelbo_maybe_stl_with_samples(obj, q, q, samples, prob)
+    samples, entropy =  reparam_with_entropy(rng, n_samples, q, q, obj.entropy)
+    energy = estimate_energy_with_samples(prob, samples)
+    energy + entropy
 end
 
 estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int = obj.n_samples) =
@@ -89,12 +101,14 @@ function estimate_gradient!(
     prob,
     λ,
     restructure,
-    est_state,
+    state,
 )
     q_stop = restructure(λ)
     function f(λ′)
         q = restructure(λ′)
-        elbo = estimate_repgradelbo_maybe_stl(rng, obj, q, q_stop, prob)
+        samples, entropy = reparam_with_entropy(rng, obj.n_samples, q, q_stop, obj.entropy)
+        energy = estimate_energy_with_samples(prob, samples)
+        elbo = energy + entropy
         -elbo
     end
     value_and_gradient!(adbackend, f, λ, out)

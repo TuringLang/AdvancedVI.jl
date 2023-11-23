@@ -1,21 +1,5 @@
 
 """
-    estimate_entropy(entropy_estimator, mc_samples, q)
-
-Estimate the entropy of `q`.
-
-# Arguments
-- `entropy_estimator`: Entropy estimation strategy.
-- `q`: Variational approximation.
-- `mc_samples`: Monte Carlo samples used to estimate the entropy. (Only used for Monte Carlo strategies.)
-
-# Returns
-- `obj_est`: Estimate of the objective value.
-"""
-
-function estimate_entropy end
-
-"""
     ClosedFormEntropy()
 
 Use closed-form expression of entropy.
@@ -28,6 +12,8 @@ Use closed-form expression of entropy.
 * Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research.
 """
 struct ClosedFormEntropy <: AbstractEntropyEstimator end
+
+maybe_stop_entropy_score(::AbstractEntropyEstimator, q, q_stop) = q
 
 function estimate_entropy(::ClosedFormEntropy, ::Any, q)
     entropy(q)
@@ -48,6 +34,8 @@ The "sticking the landing" entropy estimator.
 struct StickingTheLandingEntropy <: AbstractEntropyEstimator end
 
 struct MonteCarloEntropy <: AbstractEntropyEstimator end
+
+maybe_stop_entropy_score(::StickingTheLandingEntropy, q, q_stop) = q_stop
 
 function estimate_entropy(
     ::Union{MonteCarloEntropy, StickingTheLandingEntropy},
