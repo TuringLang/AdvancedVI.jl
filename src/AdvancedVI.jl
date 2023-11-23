@@ -70,7 +70,7 @@ init(
 ) = nothing
 
 """
-    estimate_objective([rng,] obj, q, prob, kwargs...)
+    estimate_objective([rng,] obj, q, prob; kwargs...)
 
 Estimate the variational objective `obj` targeting `prob` with respect to the variational approximation `q`.
 
@@ -81,7 +81,8 @@ Estimate the variational objective `obj` targeting `prob` with respect to the va
 - `q`: Variational approximation.
 
 # Keyword Arguments
-For the keywword arguments, refer to the respective documentation for each variational objective.
+Depending on the objective, additional keyword arguments may apply.
+Please refer to the respective documentation of each variational objective for more info.
 
 # Returns
 - `obj_est`: Estimate of the objective value.
@@ -115,6 +116,21 @@ function estimate_gradient! end
 
 # ELBO-specific interfaces
 abstract type AbstractEntropyEstimator end
+
+"""
+    estimate_entropy(entropy_estimator, mc_samples, q)
+
+Estimate the entropy of `q`.
+
+# Arguments
+- `entropy_estimator`: Entropy estimation strategy.
+- `q`: Variational approximation.
+- `mc_samples`: Monte Carlo samples used to estimate the entropy. (Only used for Monte Carlo strategies.)
+
+# Returns
+- `obj_est`: Estimate of the objective value.
+"""
+function estimate_entropy end
 
 export
     RepGradELBO,

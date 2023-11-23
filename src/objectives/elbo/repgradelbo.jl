@@ -45,10 +45,6 @@ RepGradELBO(
 Base.show(io::IO, obj::RepGradELBO) =
     print(io, "RepGradELBO(entropy=$(obj.entropy), n_samples=$(obj.n_samples))")
 
-maybe_stop_entropy_score(::StickingTheLandingEntropy, q, q_stop) = q_stop
-
-maybe_stop_entropy_score(::AbstractEntropyEstimator, q, q_stop) = q
-
 function estimate_entropy_maybe_stl(entropy_estimator::AbstractEntropyEstimator, samples, q, q_stop)
     q_maybe_stop = maybe_stop_entropy_score(entropy_estimator, q, q_stop)
     estimate_entropy(entropy_estimator, samples, q_maybe_stop)
@@ -71,22 +67,6 @@ function estimate_repgradelbo_maybe_stl(rng::Random.AbstractRNG, obj::RepGradELB
     estimate_repgradelbo_maybe_stl_with_samples(obj, q, q_stop, samples, prob)
 end
 
-"""
-    estimate_objective([rng,] obj, q, prob; n_samples)
-
-Estimate the ELBO using the reparameterization gradient formulation.
-
-# Arguments
-- `obj::RepGradELBO`: The ELBO objective.
-- `q`: Variational approximation
-- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
-
-# Keyword Arguments
-- `n_samples::Int = obj.n_samples`: Number of samples to be used to estimate the objective.
-
-# Returns
-- `obj_est`: Estimate of the objective value.
-"""
 function estimate_objective(
     rng::Random.AbstractRNG,
     obj::RepGradELBO,
