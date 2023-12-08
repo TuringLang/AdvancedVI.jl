@@ -43,7 +43,11 @@ RepGradELBO(
 ) = RepGradELBO(entropy, n_samples)
 
 Base.show(io::IO, obj::RepGradELBO) =
-    print(io, "RepGradELBO(entropy=$(obj.entropy), n_samples=$(obj.n_samples))")
+    print(io, "RepGradELBO(entropy=")
+    print(io, obj.entropy)
+    print(io, ", n_samples=")
+    print(io, obj.n_samples)
+    print(io, ")")
 
 function estimate_entropy_maybe_stl(entropy_estimator::AbstractEntropyEstimator, samples, q, q_stop)
     q_maybe_stop = maybe_stop_entropy_score(entropy_estimator, q, q_stop)
