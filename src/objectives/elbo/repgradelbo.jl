@@ -42,8 +42,13 @@ RepGradELBO(
     entropy  ::AbstractEntropyEstimator = ClosedFormEntropy()
 ) = RepGradELBO(entropy, n_samples)
 
-Base.show(io::IO, obj::RepGradELBO) =
-    print(io, "RepGradELBO(entropy=$(obj.entropy), n_samples=$(obj.n_samples))")
+function Base.show(io::IO, obj::RepGradELBO)
+    print(io, "RepGradELBO(entropy=")
+    print(io, obj.entropy)
+    print(io, ", n_samples=")
+    print(io, obj.n_samples)
+    print(io, ")")
+end
 
 function estimate_entropy_maybe_stl(entropy_estimator::AbstractEntropyEstimator, samples, q, q_stop)
     q_maybe_stop = maybe_stop_entropy_score(entropy_estimator, q, q_stop)
@@ -55,15 +60,15 @@ function estimate_energy_with_samples(prob, samples)
 end
 
 """
-    reparam_with_entropy(rng, n_samples, q, q_stop, ent_est)
+    reparam_with_entropy(rng, q, q_stop, n_samples, ent_est)
 
 Draw `n_samples` from `q` and compute its entropy.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
-- `n_samples::Int`: Number of Monte Carlo samples 
 - `q`: Variational approximation.
 - `q_stop`: `q` but with its gradient stopped.
+- `n_samples::Int`: Number of Monte Carlo samples 
 - `ent_est`: The entropy estimation strategy. (See `estimate_entropy`.)
 
 # Returns
@@ -71,7 +76,7 @@ Draw `n_samples` from `q` and compute its entropy.
 - `entropy`: An estimate (or exact value) of the differential entropy of `q`.
 """
 function reparam_with_entropy(
-    rng::Random.AbstractRNG, n_samples::Int, q, q_stop, ent_est
+    rng::Random.AbstractRNG, q, q_stop, n_samples::Int, ent_est::AbstractEntropyEstimator
 )
     samples = rand(rng, q, n_samples)
     entropy = estimate_entropy_maybe_stl(ent_est, samples, q, q_stop)
@@ -85,7 +90,7 @@ function estimate_objective(
     prob;
     n_samples::Int = obj.n_samples
 )
-    samples, entropy =  reparam_with_entropy(rng, n_samples, q, q, obj.entropy)
+    samples, entropy = reparam_with_entropy(rng, q, q, n_samples, obj.entropy)
     energy = estimate_energy_with_samples(prob, samples)
     energy + entropy
 end
@@ -106,7 +111,7 @@ function estimate_gradient!(
     q_stop = restructure(λ)
     function f(λ′)
         q = restructure(λ′)
-        samples, entropy = reparam_with_entropy(rng, obj.n_samples, q, q_stop, obj.entropy)
+        samples, entropy = reparam_with_entropy(rng, q, q_stop, obj.n_samples, obj.entropy)
         energy = estimate_energy_with_samples(prob, samples)
         elbo = energy + entropy
         -elbo
