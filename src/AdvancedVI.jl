@@ -1,270 +1,180 @@
+
 module AdvancedVI
 
-using Random: Random
+using SimpleUnPack: @unpack, @pack!
+using Accessors
 
-using Distributions, DistributionsAD, Bijectors
+using Random
+using Distributions
+
+using Functors
+using Optimisers
+
 using DocStringExtensions
+using ProgressMeter
+using LinearAlgebra
 
-using ProgressMeter, LinearAlgebra
+using LogDensityProblems
 
-using ForwardDiff
-using Tracker
+using ADTypes, DiffResults
+using ChainRulesCore
 
-const PROGRESS = Ref(true)
-function turnprogress(switch::Bool)
-    @info("[AdvancedVI]: global PROGRESS is set as $switch")
-    PROGRESS[] = switch
-end
+using FillArrays
 
-const DEBUG = Bool(parse(Int, get(ENV, "DEBUG_ADVANCEDVI", "0")))
+using StatsBase
 
-include("ad.jl")
-include("utils.jl")
-
-using Requires
-function __init__()
-    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
-        apply!(o, x, Δ) = Flux.Optimise.apply!(o, x, Δ)
-        Flux.Optimise.apply!(o::TruncatedADAGrad, x, Δ) = apply!(o, x, Δ)
-        Flux.Optimise.apply!(o::DecayedADAGrad, x, Δ) = apply!(o, x, Δ)
-    end
-    @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
-        include("compat/zygote.jl")
-        export ZygoteAD
-
-        function AdvancedVI.grad!(
-            vo,
-            alg::VariationalInference{<:AdvancedVI.ZygoteAD},
-            q,
-            model,
-            θ::AbstractVector{<:Real},
-            out::DiffResults.MutableDiffResult,
-            args...
-        )
-            f(θ) = if (q isa Distribution)
-                - vo(alg, update(q, θ), model, args...)
-            else
-                - vo(alg, q(θ), model, args...)
-            end
-            y, back = Zygote.pullback(f, θ)
-            dy = first(back(1.0))
-            DiffResults.value!(out, y)
-            DiffResults.gradient!(out, dy)
-            return out
-        end
-    end
-    @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" begin
-        include("compat/reversediff.jl")
-        export ReverseDiffAD
-
-        function AdvancedVI.grad!(
-            vo,
-            alg::VariationalInference{<:AdvancedVI.ReverseDiffAD{false}},
-            q,
-            model,
-            θ::AbstractVector{<:Real},
-            out::DiffResults.MutableDiffResult,
-            args...
-        )
-            f(θ) = if (q isa Distribution)
-                - vo(alg, update(q, θ), model, args...)
-            else
-                - vo(alg, q(θ), model, args...)
-            end
-            tp = AdvancedVI.tape(f, θ)
-            ReverseDiff.gradient!(out, tp, θ)
-            return out
-        end
-    end
-    @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
-        include("compat/enzyme.jl")
-        export EnzymeAD
-
-        function AdvancedVI.grad!(
-            vo,
-            alg::VariationalInference{<:AdvancedVI.EnzymeAD},
-            q,
-            model,
-            θ::AbstractVector{<:Real},
-            out::DiffResults.MutableDiffResult,
-            args...
-        )
-            f(θ) = if (q isa Distribution)
-                - vo(alg, update(q, θ), model, args...)
-            else
-                - vo(alg, q(θ), model, args...)
-            end
-            # Use `Enzyme.ReverseWithPrimal` once it is released:
-            # https://github.com/EnzymeAD/Enzyme.jl/pull/598
-            y = f(θ)
-            DiffResults.value!(out, y)
-            dy = DiffResults.gradient(out)
-            fill!(dy, 0)
-            Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, dy))
-            return out
-        end
-    end
-end
-
-export
-    vi,
-    ADVI,
-    ELBO,
-    elbo,
-    TruncatedADAGrad,
-    DecayedADAGrad,
-    VariationalInference
-
-abstract type VariationalInference{AD} end
-
-getchunksize(::Type{<:VariationalInference{AD}}) where AD = getchunksize(AD)
-getADtype(::VariationalInference{AD}) where AD = AD
-
-abstract type VariationalObjective end
-
-const VariationalPosterior = Distribution{Multivariate, Continuous}
-
-
+# derivatives
 """
-    grad!(vo, alg::VariationalInference, q, model::Model, θ, out, args...)
+    value_and_gradient!(ad, f, θ, out)
 
-Computes the gradients used in `optimize!`. Default implementation is provided for 
-`VariationalInference{AD}` where `AD` is either `ForwardDiffAD` or `TrackerAD`.
-This implicitly also gives a default implementation of `optimize!`.
-
-Variance reduction techniques, e.g. control variates, should be implemented in this function.
-"""
-function grad! end
-
-"""
-    vi(model, alg::VariationalInference)
-    vi(model, alg::VariationalInference, q::VariationalPosterior)
-    vi(model, alg::VariationalInference, getq::Function, θ::AbstractArray)
-
-Constructs the variational posterior from the `model` and performs the optimization
-following the configuration of the given `VariationalInference` instance.
+Evaluate the value and gradient of a function `f` at `θ` using the automatic differentiation backend `ad` and store the result in `out`.
 
 # Arguments
-- `model`: `Turing.Model` or `Function` z ↦ log p(x, z) where `x` denotes the observations
-- `alg`: the VI algorithm used
-- `q`: a `VariationalPosterior` for which it is assumed a specialized implementation of the variational objective used exists.
-- `getq`: function taking parameters `θ` as input and returns a `VariationalPosterior`
-- `θ`: only required if `getq` is used, in which case it is the initial parameters for the variational posterior
+- `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
+- `f`: Function subject to differentiation.
+- `θ`: The point to evaluate the gradient.
+- `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
-function vi end
+function value_and_gradient! end
 
-function update end
+# estimators
+"""
+    AbstractVariationalObjective
 
-# default implementations
-function grad!(
-    vo,
-    alg::VariationalInference{<:ForwardDiffAD},
-    q,
-    model,
-    θ::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult,
-    args...
-)
-    f(θ_) = if (q isa Distribution)
-        - vo(alg, update(q, θ_), model, args...)
-    else
-        - vo(alg, q(θ_), model, args...)
-    end
+Abstract type for the VI algorithms supported by `AdvancedVI`.
 
-    # Set chunk size and do ForwardMode.
-    chunk_size = getchunksize(typeof(alg))
-    config = if chunk_size == 0
-        ForwardDiff.GradientConfig(f, θ)
-    else
-        ForwardDiff.GradientConfig(f, θ, ForwardDiff.Chunk(length(θ), chunk_size))
-    end
-    ForwardDiff.gradient!(out, f, θ, config)
-end
-
-function grad!(
-    vo,
-    alg::VariationalInference{<:TrackerAD},
-    q,
-    model,
-    θ::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult,
-    args...
-)
-    θ_tracked = Tracker.param(θ)
-    y = if (q isa Distribution)
-        - vo(alg, update(q, θ_tracked), model, args...)
-    else
-        - vo(alg, q(θ_tracked), model, args...)
-    end
-    Tracker.back!(y, 1.0)
-
-    DiffResults.value!(out, Tracker.data(y))
-    DiffResults.gradient!(out, Tracker.grad(θ_tracked))
-end
-
+# Implementations
+To be supported by `AdvancedVI`, a VI algorithm must implement `AbstractVariationalObjective` and `estimate_objective`.
+Also, it should provide gradients by implementing the function `estimate_gradient!`.
+If the estimator is stateful, it can implement `init` to initialize the state.
+"""
+abstract type AbstractVariationalObjective end
 
 """
-    optimize!(vo, alg::VariationalInference{AD}, q::VariationalPosterior, model::Model, θ; optimizer = TruncatedADAGrad())
+    init(rng, obj, λ, restructure)
 
-Iteratively updates parameters by calling `grad!` and using the given `optimizer` to compute
-the steps.
+Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
+This function needs to be implemented only if `obj` is stateful.
+
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `obj::AbstractVariationalObjective`: Variational objective.
+- `λ`: Initial variational parameters.
+- `restructure`: Function that reconstructs the variational approximation from `λ`.
 """
-function optimize!(
-    vo,
-    alg::VariationalInference,
-    q,
-    model,
-    θ::AbstractVector{<:Real};
-    optimizer = TruncatedADAGrad()
-)
-    # TODO: should we always assume `samples_per_step` and `max_iters` for all algos?
-    alg_name = alg_str(alg)
-    samples_per_step = alg.samples_per_step
-    max_iters = alg.max_iters
-    
-    num_params = length(θ)
+init(
+    ::Random.AbstractRNG,
+    ::AbstractVariationalObjective,
+    ::AbstractVector,
+    ::Any
+) = nothing
 
-    # TODO: really need a better way to warn the user about potentially
-    # not using the correct accumulator
-    if (optimizer isa TruncatedADAGrad) && (θ ∉ keys(optimizer.acc))
-        # this message should only occurr once in the optimization process
-        @info "[$alg_name] Should only be seen once: optimizer created for θ" objectid(θ)
-    end
+"""
+    estimate_objective([rng,] obj, q, prob; kwargs...)
 
-    diff_result = DiffResults.GradientResult(θ)
+Estimate the variational objective `obj` targeting `prob` with respect to the variational approximation `q`.
 
-    i = 0
-    prog = if PROGRESS[]
-        ProgressMeter.Progress(max_iters, 1, "[$alg_name] Optimizing...", 0)
-    else
-        0
-    end
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `obj::AbstractVariationalObjective`: Variational objective.
+- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
+- `q`: Variational approximation.
 
-    # add criterion? A running mean maybe?
-    time_elapsed = @elapsed while (i < max_iters) # & converged
-        grad!(vo, alg, q, model, θ, diff_result, samples_per_step)
+# Keyword Arguments
+Depending on the objective, additional keyword arguments may apply.
+Please refer to the respective documentation of each variational objective for more info.
 
-        # apply update rule
-        Δ = DiffResults.gradient(diff_result)
-        Δ = apply!(optimizer, θ, Δ)
-        @. θ = θ - Δ
-        
-        AdvancedVI.DEBUG && @debug "Step $i" Δ DiffResults.value(diff_result)
-        PROGRESS[] && (ProgressMeter.next!(prog))
+# Returns
+- `obj_est`: Estimate of the objective value.
+"""
+function estimate_objective end
 
-        i += 1
-    end
+export estimate_objective
 
-    return θ
+
+"""
+    estimate_gradient!(rng, obj, adbackend, out, prob, λ, restructure, obj_state)
+
+Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
+
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `obj::AbstractVariationalObjective`: Variational objective.
+- `adbackend::ADTypes.AbstractADType`: Automatic differentiation backend. 
+- `out::DiffResults.MutableDiffResult`: Buffer containing the objective value and gradient estimates. 
+- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
+- `λ`: Variational parameters to evaluate the gradient on.
+- `restructure`: Function that reconstructs the variational approximation from `λ`.
+- `obj_state`: Previous state of the objective.
+
+# Returns
+- `out::MutableDiffResult`: Buffer containing the objective value and gradient estimates.
+- `obj_state`: The updated state of the objective.
+- `stat::NamedTuple`: Statistics and logs generated during estimation.
+"""
+function estimate_gradient! end
+
+# ELBO-specific interfaces
+abstract type AbstractEntropyEstimator end
+
+"""
+    estimate_entropy(entropy_estimator, mc_samples, q)
+
+Estimate the entropy of `q`.
+
+# Arguments
+- `entropy_estimator`: Entropy estimation strategy.
+- `q`: Variational approximation.
+- `mc_samples`: Monte Carlo samples used to estimate the entropy. (Only used for Monte Carlo strategies.)
+
+# Returns
+- `obj_est`: Estimate of the objective value.
+"""
+function estimate_entropy end
+
+export
+    RepGradELBO,
+    ClosedFormEntropy,
+    StickingTheLandingEntropy,
+    MonteCarloEntropy
+
+include("objectives/elbo/entropy.jl")
+include("objectives/elbo/repgradelbo.jl")
+
+# Optimization Routine
+
+function optimize end
+
+export optimize
+
+include("utils.jl")
+include("optimize.jl")
+
+
+# optional dependencies 
+if !isdefined(Base, :get_extension) # check whether :get_extension is defined in Base
+    using Requires
 end
 
-# objectives
-include("objectives.jl")
+@static if !isdefined(Base, :get_extension)
+    function __init__()
+        @require Bijectors = "76274a88-744f-5084-9051-94815aaf08c4" begin
+            include("../ext/AdvancedVIBijectorsExt.jl")
+        end
+        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
+            include("../ext/AdvancedVIEnzymeExt.jl")
+        end
+        @require ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210" begin
+            include("../ext/AdvancedVIForwardDiffExt.jl")
+        end
+        @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" begin
+            include("../ext/AdvancedVIReverseDiffExt.jl")
+        end
+        @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
+            include("../ext/AdvancedVIZygoteExt.jl")
+        end
+    end
+end
 
-# optimisers
-include("optimisers.jl")
+end
 
-# VI algorithms
-include("advi.jl")
-
-end # module
