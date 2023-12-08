@@ -5,7 +5,7 @@
 Use closed-form expression of entropy.
 
 # Requirements
-- `q` implements `entropy`.
+- The variational approximation implements `entropy`.
 
 # References
 * Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In International conference on machine learning (pp. 1971-1979). PMLR.
@@ -25,7 +25,7 @@ end
 The "sticking the landing" entropy estimator.
 
 # Requirements
-- `q` implements `logpdf`.
+- The variational approximation `q` implements `logpdf`.
 - `logpdf(q, η)` must be differentiable by the selected AD framework.
 
 # References
