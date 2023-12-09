@@ -37,6 +37,8 @@ include("models/normallognormal.jl")
 include("interface/ad.jl")
 include("interface/optimize.jl")
 include("interface/repgradelbo.jl")
+include("interface/location_scale.jl")
 
 include("inference/repgradelbo_distributionsad.jl")
+include("inference/repgradelbo_locationscale.jl")
 include("inference/repgradelbo_locationscale_bijectors.jl")
