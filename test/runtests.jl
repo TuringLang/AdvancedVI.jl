@@ -39,4 +39,5 @@ include("interface/optimize.jl")
 include("interface/repgradelbo.jl")
 
 include("inference/repgradelbo_distributionsad.jl")
+include("inference/repgradelbo_locationscale.jl")
 include("inference/repgradelbo_distributionsad_bijectors.jl")
