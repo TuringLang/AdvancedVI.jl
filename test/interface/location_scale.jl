@@ -12,7 +12,7 @@
         L = if covtype == :fullrank
 	    tril(I + ones(realtype, n_dims, n_dims)/2) |> LowerTriangular
         else
-            Diagonal(realtype.(1:10))
+            Diagonal(ones(realtype, n_dims))
         end
         Σ = L*L'
 
