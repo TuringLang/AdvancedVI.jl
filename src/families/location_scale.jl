@@ -90,14 +90,7 @@ function Distributions.rand(
     scale_diag.*rand(rng, dist, n_dims, num_samples) .+ location
 end
 
-function Distributions._rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractVector{<:Real})
-    @unpack location, scale, dist = q
-    rand!(rng, dist, x)
-    x .= scale*x
-    return x += location
-end
-
-function Distributions._rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractMatrix{<:Real})
+function Distributions._rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractVecOrMat{<:Real})
     @unpack location, scale, dist = q
     rand!(rng, dist, x)
     x[:] = scale*x
