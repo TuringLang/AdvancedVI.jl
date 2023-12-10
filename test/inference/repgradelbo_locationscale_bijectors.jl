@@ -77,8 +77,8 @@ using Test
                 show_progress = PROGRESS,
                 adbackend     = adbackend,
             )
-            μ_repl = mean(q.dist)
-            L_repl = sqrt(cov(q.dist))
+            μ_repl = q.dist.location
+            L_repl = q.dist.scale
             @test μ == μ_repl
             @test L == L_repl
         end
