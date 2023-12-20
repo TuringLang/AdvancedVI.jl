@@ -1,6 +1,6 @@
 
 """
-    VILocationScale(location, scale, dist) <: ContinuousMultivariateDistribution
+    MvLocationScale(location, scale, dist) <: ContinuousMultivariateDistribution
 
 The location scale variational family broadly represents various variational
 families using `location` and `scale` variational parameters.
@@ -13,68 +13,72 @@ represented as follows:
   z = scale*u + location
 ```
 """
-struct VILocationScale{L, S, D} <: ContinuousMultivariateDistribution
+struct MvLocationScale{
+    S, D <: ContinuousDistribution, L
+} <: ContinuousMultivariateDistribution
     location::L
     scale   ::S
     dist    ::D
 end
 
-Functors.@functor VILocationScale (location, scale)
+Functors.@functor MvLocationScale (location, scale)
 
 # Specialization of `Optimisers.destructure` for mean-field location-scale families.
 # These are necessary because we only want to extract the diagonal elements of 
 # `scale <: Diagonal`, which is not the default behavior. Otherwise, forward-mode AD
 # is very inefficient.
 # begin
-struct RestructureMeanField{L, S<:Diagonal, D}
-    q::VILocationScale{L, S, D}
+struct RestructureMeanField{S <: Diagonal, D, L}
+    q::MvLocationScale{S, D, L}
 end
 
 function (re::RestructureMeanField)(flat::AbstractVector)
     n_dims   = div(length(flat), 2)
     location = first(flat, n_dims)
     scale    = Diagonal(last(flat, n_dims))
-    VILocationScale(location, scale, re.q.dist)
+    MvLocationScale(location, scale, re.q.dist)
 end
 
 function Optimisers.destructure(
-    q::VILocationScale{L, <:Diagonal, D}
-) where {L, D}
+    q::MvLocationScale{<:Diagonal, D, L}
+) where {D, L}
     @unpack location, scale, dist = q
     flat   = vcat(location, diag(scale))
     flat, RestructureMeanField(q)
 end
 # end
 
-Base.length(q::VILocationScale) = length(q.location)
+Base.length(q::MvLocationScale) = length(q.location)
 
-Base.size(q::VILocationScale) = size(q.location)
+Base.size(q::MvLocationScale) = size(q.location)
 
-Base.eltype(::Type{<:VILocationScale{L, S, D}}) where {L, S, D} = eltype(D)
+Base.eltype(::Type{<:MvLocationScale{S, D, L}}) where {S, D, L} = eltype(D)
 
-function StatsBase.entropy(q::VILocationScale)
+function StatsBase.entropy(q::MvLocationScale)
     @unpack  location, scale, dist = q
     n_dims = length(location)
     n_dims*convert(eltype(location), entropy(dist)) + first(logabsdet(scale))
 end
 
-function Distributions.logpdf(q::VILocationScale, z::AbstractVector{<:Real})
+function Distributions.logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
     sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - first(logabsdet(scale))
 end
 
-function Distributions._logpdf(q::VILocationScale, z::AbstractVector{<:Real})
+function Distributions._logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
     sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - first(logabsdet(scale))
 end
 
-function Distributions.rand(q::VILocationScale)
+function Distributions.rand(q::MvLocationScale)
     @unpack location, scale, dist = q
     n_dims = length(location)
     scale*rand(dist, n_dims) + location
 end
 
-function Distributions.rand(rng::AbstractRNG, q::VILocationScale, num_samples::Int) 
+function Distributions.rand(
+    rng::AbstractRNG, q::MvLocationScale{S, D, L}, num_samples::Int
+)  where {S, D, L}
     @unpack location, scale, dist = q
     n_dims = length(location)
     scale*rand(rng, dist, n_dims, num_samples) .+ location
@@ -82,7 +86,7 @@ end
 
 # This specialization improves AD performance of the sampling path
 function Distributions.rand(
-    rng::AbstractRNG, q::VILocationScale{L, <:Diagonal, D}, num_samples::Int
+    rng::AbstractRNG, q::MvLocationScale{<:Diagonal, D, L}, num_samples::Int
 ) where {L, D}
     @unpack location, scale, dist = q
     n_dims     = length(location)
@@ -90,21 +94,21 @@ function Distributions.rand(
     scale_diag.*rand(rng, dist, n_dims, num_samples) .+ location
 end
 
-function Distributions._rand!(rng::AbstractRNG, q::VILocationScale, x::AbstractVecOrMat{<:Real})
+function Distributions._rand!(rng::AbstractRNG, q::MvLocationScale, x::AbstractVecOrMat{<:Real})
     @unpack location, scale, dist = q
     rand!(rng, dist, x)
     x[:] = scale*x
     return x .+= location
 end
 
-Distributions.mean(q::VILocationScale) = q.location
+Distributions.mean(q::MvLocationScale) = q.location
 
-function Distributions.var(q::VILocationScale)  
+function Distributions.var(q::MvLocationScale)  
     C = q.scale
     Diagonal(C*C')
 end
 
-function Distributions.cov(q::VILocationScale)
+function Distributions.cov(q::MvLocationScale)
     C = q.scale
     Hermitian(C*C')
 end
@@ -131,7 +135,7 @@ function FullRankGaussian(
         @warn "Initial scale is too small (minimum eigenvalue is $(minimum(diag(L)))). This might result in unstable optimization behavior."
     end
     q_base = Normal{T}(zero(T), one(T))
-    VILocationScale(μ, L, q_base)
+    MvLocationScale(μ, L, q_base)
 end
 
 """
@@ -156,5 +160,5 @@ function MeanFieldGaussian(
         @warn "Initial scale is too small (minimum eigenvalue is $(minimum(diag(L)))). This might result in unstable optimization behavior."
     end
     q_base = Normal{T}(zero(T), one(T))
-    VILocationScale(μ, L, q_base)
+    MvLocationScale(μ, L, q_base)
 end
