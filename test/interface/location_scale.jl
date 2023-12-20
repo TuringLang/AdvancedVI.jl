@@ -25,16 +25,18 @@
             MvNormal(μ, Σ)
         end
 
+        @testset "eltype" begin
+            @test eltype(q) == realtype
+        end
+
         @testset "logpdf" begin
             z = rand(q)
-            @test eltype(z)             == realtype
             @test logpdf(q, z)          ≈  logpdf(q_true, z)  rtol=realtype(1e-2)
             @test eltype(logpdf(q, z))  == realtype 
         end
 
         @testset "_logpdf" begin
             z = rand(q)
-            @test eltype(z)                           == realtype
             @test Distributions._logpdf(q, z)          ≈ logpdf(q_true, z)  rtol=realtype(1e-2)
             @test eltype(Distributions.logpdf(q, z))  == realtype 
         end
@@ -46,10 +48,6 @@
 
         @testset "length" begin
             @test length(q) == n_dims
-        end
-
-        @testset "eltype" begin
-            @test eltype(q) == realtype
         end
 
         @testset "statistics" begin
@@ -129,7 +127,7 @@
         end
     end
 
-    @testset "Diagonal destructure" for
+    @testset "Diagonal destructure" begin
         n_dims = 10
         μ      = zeros(n_dims)
         L      = ones(n_dims)
