@@ -3,7 +3,7 @@ const PROGRESS = length(ARGS) > 0 && ARGS[1] == "--progress" ? true : false
 
 using Test
 
-@testset "inference RepGradELBO DistributionsAD Bijectors" begin
+@testset "inference RepGradELBO VILocationScale Bijectors" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)"  for
         realtype ∈ [Float64, Float32],
         (modelname, modelconstr) ∈ Dict(
@@ -15,7 +15,7 @@ using Test
         ),
         (adbackname, adbackend) ∈ Dict(
             :ForwarDiff  => AutoForwardDiff(),
-            #:ReverseDiff => AutoReverseDiff(),
+            :ReverseDiff => AutoReverseDiff(),
             #:Zygote      => AutoZygote(), 
             #:Enzyme      => AutoEnzyme(),
         )
@@ -30,23 +30,28 @@ using Test
 
         b    = Bijectors.bijector(model)
         b⁻¹  = inverse(b)
-        μ₀   = Zeros(realtype, n_dims)
-        L₀   = Diagonal(Ones(realtype, n_dims))
+        μ0   = Zeros(realtype, n_dims)
+        L0   = Diagonal(Ones(realtype, n_dims))
 
-        q₀_η = TuringDiagMvNormal(μ₀, diag(L₀))
-        q₀_z = Bijectors.transformed(q₀_η, b⁻¹)
+        q0_η = if is_meanfield
+            MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))
+        else
+            L0 = Matrix{realtype}(I, n_dims, n_dims) |> LowerTriangular
+            FullRankGaussian(zeros(realtype, n_dims), L0)
+        end
+        q0_z = Bijectors.transformed(q0_η, b⁻¹)
 
         @testset "convergence" begin
-            Δλ₀ = sum(abs2, μ₀ - μ_true) + sum(abs2, L₀ - L_true)
+            Δλ₀ = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
             q, stats, _ = optimize(
-                rng, model, objective, q₀_z, T;
+                rng, model, objective, q0_z, T;
                 optimizer     = Optimisers.Adam(realtype(η)),
                 show_progress = PROGRESS,
                 adbackend     = adbackend,
             )
 
-            μ  = mean(q.dist)
-            L  = sqrt(cov(q.dist))
+            μ  = q.dist.location
+            L  = q.dist.scale
             Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
             @test Δλ ≤ Δλ₀/T^(1/4)
@@ -57,23 +62,23 @@ using Test
         @testset "determinism" begin
             rng = StableRNG(seed)
             q, stats, _ = optimize(
-                rng, model, objective, q₀_z, T;
+                rng, model, objective, q0_z, T;
                 optimizer     = Optimisers.Adam(realtype(η)),
                 show_progress = PROGRESS,
                 adbackend     = adbackend,
             )
-            μ  = mean(q.dist)
-            L  = sqrt(cov(q.dist))
+            μ  = q.dist.location
+            L  = q.dist.scale
 
             rng_repl = StableRNG(seed)
             q, stats, _ = optimize(
-                rng_repl, model, objective, q₀_z, T;
+                rng_repl, model, objective, q0_z, T;
                 optimizer     = Optimisers.Adam(realtype(η)),
                 show_progress = PROGRESS,
                 adbackend     = adbackend,
             )
-            μ_repl = mean(q.dist)
-            L_repl = sqrt(cov(q.dist))
+            μ_repl = q.dist.location
+            L_repl = q.dist.scale
             @test μ == μ_repl
             @test L == L_repl
         end

@@ -141,6 +141,16 @@ export
 include("objectives/elbo/entropy.jl")
 include("objectives/elbo/repgradelbo.jl")
 
+
+# Variational Families
+export
+    VILocationScale,
+    MeanFieldGaussian,
+    FullRankGaussian
+
+include("families/location_scale.jl")
+
+
 # Optimization Routine
 
 function optimize end
