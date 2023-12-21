@@ -44,8 +44,8 @@ function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
 end
 ```
 
-Since the support of `x` is constrained to be $\mathbb{R}_+$, and inference is best done in the unconstrained space $\mathbb{R}_+$, we need to use a *bijector* to match support.
-This corresponds to the automatic differentiation VI (ADVI; Kucukelbir *et al.*, 2015).
+Since the support of `x` is constrained to be positive, and inference is best done in the unconstrained Euclidean space, we need to use a *bijector* to match support.
+This corresponds to the automatic differentiation variational inference (ADVI) formulation[^KTRGB2017].
 ```julia
 using Bijectors
 
@@ -71,7 +71,7 @@ n_dims = 10
 model  = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2))
 ```
 
-We can perform VI with stochastic gradient descent (SGD) using reparameterization gradient estimates of the ELBO[^TL2014][^KTRGB2017] as follows:
+We can perform VI with stochastic gradient descent (SGD) using reparameterization gradient estimates of the ELBO[^TL2014][^RMW2014][[^KW2014]] as follows:
 ```julia
 using Optimisers
 using ADTypes, ForwardDiff
@@ -88,7 +88,6 @@ L = Diagonal(ones(d))
 q = AdvancedVI.MeanFieldGaussian(μ, L)
 
 # Match the support of `model` by applying the bijector
-# (a.k.a automatic differentiation variational inference)
 b       = Bijectors.bijector(model)
 binv    = inverse(b)
 q_trans = Bijectors.TransformedDistribution(q, binv)
@@ -112,5 +111,7 @@ estimate_objective(elbo, q, model; n_samples=10^4)
 For more examples and details, please refer to the documentation.
 
 ## References
-[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In International conference on machine learning (pp. 1971-1979). PMLR.
+[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
+[^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
+[^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research.
