@@ -31,7 +31,7 @@ struct NormalLogNormal{MX,SX,MY,SY}
 end
 
 function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
-    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    (; μ_x, σ_x, μ_y, Σ_y) = model
     logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
@@ -99,7 +99,7 @@ q, stats, _ = AdvancedVI.optimize(
 	model,
     elbo,
     q_trans,
-    n_max_iter;
+    max_iter;
     adbackend = ADTypes.AutoForwardDiff(),
     optimizer = Optimisers.Adam(1e-3)
 )
