@@ -44,7 +44,7 @@ function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
 end
 ```
 
-Since the support of `x` is constrained to be $$\mathbb{R}_+$$, and inference is best done in the unconstrained space $$\mathbb{R}_+$$, we need to use a *bijector* to match support.
+Since the support of `x` is constrained to be $\mathbb{R}_+$, and inference is best done in the unconstrained space $\mathbb{R}_+$, we need to use a *bijector* to match support.
 This corresponds to the automatic differentiation VI (ADVI; Kucukelbir *et al.*, 2015).
 ```julia
 using Bijectors
@@ -109,5 +109,8 @@ q, stats, _ = AdvancedVI.optimize(
 estimate_objective(elbo, q, model; n_samples=10^4)
 ```
 
+For more examples and details, please refer to the documentation.
+
+## References
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In International conference on machine learning (pp. 1971-1979). PMLR.
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research.
