@@ -9,9 +9,10 @@ using Test
         (modelname, modelconstr) ∈ Dict(
             :Normal=> normal_meanfield,
         ),
-        (objname, objective) ∈ Dict(
-            :RepGradELBOClosedFormEntropy  => RepGradELBO(10),
-            :RepGradELBOStickingTheLanding => RepGradELBO(10, entropy = StickingTheLandingEntropy()),
+        n_montecarlo in [1, 10],
+        (objname, objective) in Dict(
+            :RepGradELBOClosedFormEntropy  => RepGradELBO(n_montecarlo),
+            :RepGradELBOStickingTheLanding => RepGradELBO(n_montecarlo, entropy = StickingTheLandingEntropy()),
         ),
         (adbackname, adbackend) ∈ Dict(
             :ForwarDiff  => AutoForwardDiff(),
@@ -33,7 +34,7 @@ using Test
         q0 = TuringDiagMvNormal(μ0, diag(L0))
 
         @testset "convergence" begin
-            Δλ₀ = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
+            Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
             q, stats, _ = optimize(
                 rng, model, objective, q0, T;
                 optimizer     = Optimisers.Adam(realtype(η)),
@@ -45,7 +46,7 @@ using Test
             L  = sqrt(cov(q))
             Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
-            @test Δλ ≤ Δλ₀/T^(1/4)
+            @test Δλ ≤ Δλ0/T^(1/4)
             @test eltype(μ) == eltype(μ_true)
             @test eltype(L) == eltype(L_true)
         end
