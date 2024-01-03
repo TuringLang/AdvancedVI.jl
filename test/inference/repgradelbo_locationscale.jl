@@ -5,16 +5,17 @@ using Test
 
 @testset "inference RepGradELBO VILocationScale" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)"  for
-        realtype ∈ [Float64, Float32],
-        (modelname, modelconstr) ∈ Dict(
+        realtype in [Float64, Float32],
+        (modelname, modelconstr) in Dict(
             :Normal=> normal_meanfield,
             :Normal=> normal_fullrank,
         ),
-        (objname, objective) ∈ Dict(
-            :RepGradELBOClosedFormEntropy  => RepGradELBO(10),
-            :RepGradELBOStickingTheLanding => RepGradELBO(10, entropy = StickingTheLandingEntropy()),
+        n_montecarlo in [1, 10],
+        (objname, objective) in Dict(
+            :RepGradELBOClosedFormEntropy  => RepGradELBO(n_montecarlo),
+            :RepGradELBOStickingTheLanding => RepGradELBO(n_montecarlo, entropy = StickingTheLandingEntropy()),
         ),
-        (adbackname, adbackend) ∈ Dict(
+        (adbackname, adbackend) in Dict(
             :ForwarDiff  => AutoForwardDiff(),
             :ReverseDiff => AutoReverseDiff(),
             :Zygote      => AutoZygote(), 
@@ -37,7 +38,7 @@ using Test
         end
 
         @testset "convergence" begin
-            Δλ₀ = sum(abs2, q0.location - μ_true) + sum(abs2, q0.scale - L_true)
+            Δλ0 = sum(abs2, q0.location - μ_true) + sum(abs2, q0.scale - L_true)
             q, stats, _ = optimize(
                 rng, model, objective, q0, T;
                 optimizer     = Optimisers.Adam(realtype(η)),
@@ -49,7 +50,7 @@ using Test
             L  = q.scale
             Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
-            @test Δλ ≤ Δλ₀/T^(1/4)
+            @test Δλ ≤ Δλ0/T^(1/4)
             @test eltype(μ) == eltype(μ_true)
             @test eltype(L) == eltype(L_true)
         end
