@@ -23,8 +23,6 @@ end
 
 eachsample(samples::AbstractMatrix) = eachcol(samples)
 
-eachsample(samples::AbstractVector) = samples
-
 function catsamples_and_acc(
     state_curr::Tuple{<:AbstractArray,  <:Real},
     state_new ::Tuple{<:AbstractVector, <:Real}
