@@ -19,18 +19,14 @@ This computes the evidence lower-bound (ELBO) through the formulation:
 - `n_samples::Int`: Number of Monte Carlo samples used to estimate the ELBO.
 
 # Keyword Arguments
-- `entropy`: The estimator for the entropy term. (Type `<: AbstractEntropyEstimator`; Default: ClosedFormEntropy())
+- `entropy`: The estimator for the entropy term. (Type `<: AbstractEntropyEstimator`; Default: `ClosedFormEntropy()`)
 
 # Requirements
-- ``q_{\\lambda}`` implements `rand`.
-- The target `logdensity(prob, x)` must be differentiable wrt. `x` by the selected AD backend.
+- The variational approximation ``q_{\\lambda}`` implements `rand`.
+- The target distribution and the variational approximation have the same support.
+- The target `logdensity(prob, x)` must be differentiable with respect to `x` by the selected AD backend.
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
-
-# References
-[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In ICML.
-[^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In ICML.
-[^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In ICLR.
 """
 struct RepGradELBO{EntropyEst <: AbstractEntropyEstimator} <: AbstractVariationalObjective
     entropy  ::EntropyEst
