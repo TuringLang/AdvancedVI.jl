@@ -71,7 +71,7 @@ n_dims = 10
 model  = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2))
 ```
 
-We can perform VI with stochastic gradient descent (SGD) using reparameterization gradient estimates of the ELBO[^TL2014][^RMW2014][[^KW2014]] as follows:
+We can perform VI with stochastic gradient descent (SGD) using reparameterization gradient estimates of the ELBO[^TL2014][^RMW2014][^KW2014] as follows:
 ```julia
 using Optimisers
 using ADTypes, ForwardDiff
@@ -96,7 +96,7 @@ q_trans = Bijectors.TransformedDistribution(q, binv)
 # Run inference
 max_iter = 10^3
 q, stats, _ = AdvancedVI.optimize(
-	model,
+    model,
     elbo,
     q_trans,
     max_iter;
