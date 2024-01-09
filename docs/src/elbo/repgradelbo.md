@@ -288,4 +288,4 @@ nothing
 
 We can see that quasi-Monte Carlo results in much lower variance than naive Monte Carlo.
 
-[^BWM2018:] Buchholz, A., Wenzel, F., & Mandt, S. (2018). Quasi-monte carlo variational inference. In *International Conference on Machine Learning*.
+[^BWM2018]: Buchholz, A., Wenzel, F., & Mandt, S. (2018). Quasi-monte carlo variational inference. In *International Conference on Machine Learning*.
