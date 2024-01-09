@@ -1,20 +1,5 @@
 
-# [Getting Started with `AdvancedVI`](@id getting_started)
-
-## General Usage
-Each VI algorithm provides the followings:
-1. Variational families supported by each VI algorithm.
-2. A variational objective corresponding to the VI algorithm.
-Note that each variational family is subject to its own constraints.
-Thus, please refer to the documentation of the variational inference algorithm of interest. 
-
-To use `AdvancedVI`, a user needs to select a `variational family`, `variational objective`,  and feed them into `optimize`.
-
-```@docs
-optimize
-```
-
-## `BBVI` Example 
+## [Evidence Lower Bound Maximization](@id examples)
 In this tutorial, we will work with a `normal-log-normal` model.
 ```math
 \begin{aligned}
@@ -25,7 +10,7 @@ y &\sim \mathcal{N}\left(\mu_y, \sigma_y^2\right)
 BBVI with `Bijectors.Exp` bijectors is able to infer this model exactly.
 
 Using the `LogDensityProblems` interface, we the model can be defined as follows:
-```@example advi
+```@example elboexample
 using LogDensityProblems
 using SimpleUnPack
 
@@ -50,7 +35,7 @@ function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
 end
 ```
 Let's now instantiate the model
-```@example advi
+```@example elboexample
 using LinearAlgebra
 
 n_dims = 10
@@ -59,11 +44,12 @@ n_dims = 10
 μ_y    = randn(n_dims)
 σ_y    = exp.(randn(n_dims))
 model  = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2));
+nothing
 ```
 
 Since the `y` follows a log-normal prior, its support is bounded to be the positive half-space ``\mathbb{R}_+``.
 Thus, we will use [Bijectors](https://github.com/TuringLang/Bijectors.jl) to match the support of our target posterior and the variational approximation.
-```@example advi
+```@example elboexample
 using Bijectors
 
 function Bijectors.bijector(model::NormalLogNormal)
@@ -82,19 +68,19 @@ Let's now load `AdvancedVI`.
 Since BBVI relies on automatic differentiation (AD), we need to load an AD library, *before* loading `AdvancedVI`.
 Also, the selected AD framework needs to be communicated to `AdvancedVI` using the [ADTypes](https://github.com/SciML/ADTypes.jl) interface.
 Here, we will use `ForwardDiff`, which can be selected by later passing `ADTypes.AutoForwardDiff()`.
-```@example advi
+```@example elboexample
 using Optimisers
 using ADTypes, ForwardDiff
 using AdvancedVI
 ```
 We now need to select 1. a variational objective, and 2. a variational family.
-Here, we will use the [`ADVI` objective](@ref advi), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
-```@example advi
+Here, we will use the [`RepGradELBO` objective](@ref repgradelbo), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
+```@example elboexample
 n_montecaro = 10;
 objective   = RepGradELBO(n_montecaro)
 ```
 For the variational family, we will use the classic mean-field Gaussian family.
-```@example advi
+```@example elboexample
 d  = LogDensityProblems.dimension(model);
 μ  = randn(d);
 L  = Diagonal(ones(d));
@@ -102,13 +88,13 @@ q0 = AdvancedVI.MeanFieldGaussian(μ, L)
 nothing
 ```
 And then, we now apply the bijector to the variational family. 
-```@example advi
+```@example elboexample
 q0_trans = Bijectors.TransformedDistribution(q0, binv)
 nothing
 ```
 
 Passing `objective` and the initial variational approximation `q` to `optimize` performs inference.
-```@example advi
+```@example elboexample
 n_max_iter = 10^4
 q_trans, stats, _ = AdvancedVI.optimize(
     model,
@@ -124,7 +110,7 @@ nothing
 
 The selected inference procedure stores per-iteration statistics into `stats`.
 For instance, the ELBO can be ploted as follows:
-```@example advi
+```@example elboexample
 using Plots
 
 t = [stat.iteration for stat ∈ stats]
@@ -138,6 +124,6 @@ nothing
 Further information can be gathered by defining your own `callback!`.
 
 The final ELBO can be estimated by calling the objective directly with a different number of Monte Carlo samples as follows:
-```@example advi
+```@example elboexample
 estimate_objective(objective, q_trans, model; n_samples=10^4)
 ```

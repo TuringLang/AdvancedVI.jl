@@ -17,10 +17,10 @@ The probability density is given by
 ```
 and the entropy is given as
 ```math
-  \mathcal{H}(q_{\lambda}) = \mathcal{H}(\varphi) + \log |C|,
+  \mathbb{H}(q_{\lambda}) = \mathbb{H}(\varphi) + \log |C|,
 ```
-where ``\mathcal{H}(\varphi)`` is the entropy of the base distribution.
-Notice the ``\mathcal{H}(\varphi)`` does not depend on ``\log |C|``.
+where ``\mathbb{H}(\varphi)`` is the entropy of the base distribution.
+Notice the ``\mathbb{H}(\varphi)`` does not depend on ``\log |C|``.
 The derivative of the entropy with respect to ``\lambda`` is thus independent of the base distribution.
 
 ## Constructors
@@ -39,8 +39,6 @@ MeanFieldGaussian
 ```
 
 ## Gaussian Variational Families
-
-Gaussian variational family:
 ```julia
 using AdvancedVI, LinearAlgebra, Distributions;
 μ = zeros(2);
@@ -52,9 +50,7 @@ L = ones(2) |> Diagonal;
 q = MeanFieldGaussian(μ, L)
 ```
 
-## Non-Gaussian Variational Families
-Sudent-$$t$$ Variational Family:
-
+## Sudent-$$t$$ Variational Families
 ```julia
 using AdvancedVI, LinearAlgebra, Distributions;
 μ = zeros(2);
@@ -62,14 +58,14 @@ using AdvancedVI, LinearAlgebra, Distributions;
 
 # Full-Rank 
 L = diagm(ones(2)) |> LowerTriangular;
-q = LocationScale(μ, L, TDist(ν))
+q = MvLocationScale(μ, L, TDist(ν))
 
 # Mean-Field
 L = ones(2) |> Diagonal;
-q = LocationScale(μ, L, TDist(ν))
+q = MvLocationScale(μ, L, TDist(ν))
 ```
 
-Multivariate Laplace family:
+## Laplace Variational families
 ```julia
 using AdvancedVI, LinearAlgebra, Distributions;
 μ = zeros(2);
@@ -80,5 +76,5 @@ q = MvLocationScale(μ, L, Laplace())
 
 # Mean-Field
 L = ones(2) |> Diagonal;
-q = LocationScale(μ, L, Laplace())
+q = MvLocationScale(μ, L, Laplace())
 ```

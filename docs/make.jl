@@ -12,10 +12,12 @@ makedocs(;
     repo     = "https://github.com/TuringLang/AdvancedVI.jl/blob/{commit}{path}#{line}",
     format   = Documenter.HTML(; prettyurls = get(ENV, "CI", nothing) == "true"),
     pages    = ["AdvancedVI"        => "index.md",
-                "Getting Started"   => "started.md",
+                "General Usage"     => "general.md",
+                "Examples"          => "examples.md",
                 "ELBO Maximization" => [
-                    "Black-Box Variational Inference" => "bbvi.md",   
-                    "Location Scale Family"           => "locscale.md",
+                    "Overview"                          => "elbo/overview.md",   
+                    "Reparameterization Gradient"       => "elbo/repgradelbo.md",   
+                    "Location-Scale Variational Family" => "locscale.md",
                 ]],
 )
 

@@ -11,4 +11,4 @@ VI algorithms perform scalable and computationally efficient Bayesian inference 
 
 ## Provided Algorithms
 `AdvancedVI` currently provides the following algorithm for evidence lower bound maximization:
-- [Black-Box Variational Inference](@ref bbvi)
+- [Evidence Lower-Bound Maximization](@ref elbomax)
