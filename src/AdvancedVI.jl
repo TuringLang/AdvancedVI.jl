@@ -144,7 +144,7 @@ include("objectives/elbo/repgradelbo.jl")
 
 # Variational Families
 export
-    VILocationScale,
+    MvLocationScale,
     MeanFieldGaussian,
     FullRankGaussian
 

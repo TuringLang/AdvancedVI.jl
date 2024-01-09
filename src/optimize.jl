@@ -46,7 +46,6 @@ This will be appended to the statistic of the current corresponding iteration.
 Otherwise, just return `nothing`.
 
 """
-
 function optimize(
     rng          ::Random.AbstractRNG,
     problem,

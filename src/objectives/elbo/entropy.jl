@@ -2,14 +2,10 @@
 """
     ClosedFormEntropy()
 
-Use closed-form expression of entropy.
+Use closed-form expression of entropy[^TL2014][^KTRGB2017].
 
 # Requirements
 - The variational approximation implements `entropy`.
-
-# References
-* Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In International conference on machine learning (pp. 1971-1979). PMLR.
-* Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research.
 """
 struct ClosedFormEntropy <: AbstractEntropyEstimator end
 
@@ -22,14 +18,11 @@ end
 """
     StickingTheLandingEntropy()
 
-The "sticking the landing" entropy estimator.
+The "sticking the landing" entropy estimator[^RWD2017].
 
 # Requirements
 - The variational approximation `q` implements `logpdf`.
 - `logpdf(q, η)` must be differentiable by the selected AD framework.
-
-# References
-* Roeder, G., Wu, Y., & Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. Advances in Neural Information Processing Systems, 30.
 """
 struct StickingTheLandingEntropy <: AbstractEntropyEstimator end
 
