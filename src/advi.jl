@@ -2,7 +2,6 @@ using StatsFuns
 using DistributionsAD
 using Bijectors
 using Bijectors: TransformedDistribution
-using Random: AbstractRNG, GLOBAL_RNG
 
 
 """
@@ -22,7 +21,6 @@ struct ADVI{AD} <: VariationalInference{AD}
     max_iters::Int
     "AD backend used for automatic differentiation."
     adtype::AD
-    
 end
 
 function ADVI(samples_per_step::Int=1, max_iters::Int=1000; adtype::ADTypes.AbstractADType=ADTypes.AutoForwardDiff())
@@ -56,7 +54,7 @@ end
 
 # WITHOUT updating parameters inside ELBO
 function (elbo::ELBO)(
-    rng::AbstractRNG,
+    rng::Random.AbstractRNG,
     alg::ADVI,
     q::VariationalPosterior,
     logπ::Function,
@@ -84,8 +82,8 @@ function (elbo::ELBO)(
     #      = 𝔼[log p(x, f⁻¹(z̃)) + logabsdet(J(f⁻¹(z̃)))] + ℍ(q̃(z̃))
     #      = 𝔼[log p(x, z) - logabsdetjac(J(f(z)))] + ℍ(q̃(z̃))
 
-    # But our `forward(q)` is using f⁻¹: ℝ → supp(p(z | x)) going forward → `+ logjac`
-    _, z, logjac, _ = forward(rng, q)
+    # But our `rand_and_logjac(q)` is using f⁻¹: ℝ → supp(p(z | x)) going forward → `+ logjac`
+    z, logjac = rand_and_logjac(rng, q)
     res = (logπ(z) + logjac) / num_samples
 
     if q isa TransformedDistribution
@@ -95,7 +93,7 @@ function (elbo::ELBO)(
     end
     
     for i = 2:num_samples
-        _, z, logjac, _ = forward(rng, q)
+        z, logjac = rand_and_logjac(rng, q)
         res += (logπ(z) + logjac) / num_samples
     end
 
