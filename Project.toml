@@ -3,7 +3,9 @@ uuid = "b5ca4192-6429-45e5-a2d9-87aec30a685c"
 version = "0.2.4"
 
 [deps]
+ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
+DiffResults = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DistributionsAD = "ced4e74d-a319-5a8a-b0ac-84af2272839c"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
@@ -15,6 +17,14 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
+
+[weakdeps]
+ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+[extensions]
+AdvancedVIReverseDiffExt = ["ReverseDiff"]
+AdvancedVIZygoteExt = ["Zygote"]
 
 [compat]
 Bijectors = "0.11, 0.12, 0.13"
