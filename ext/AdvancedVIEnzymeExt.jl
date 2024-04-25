@@ -4,7 +4,7 @@ if isdefined(Base, :get_extension)
     using AdvancedVI: AdvancedVI, ADTypes, DiffResults, Distributions
     using Enzyme: Enzyme
 else
-    using ..AdvancedVI: ADTypes, AdvancedVI
+    using ..AdvancedVI: AdvancedVI, ADTypes, DiffResults, Distributions
     using ..Enzyme: Enzyme
 end
 

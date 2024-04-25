@@ -193,7 +193,7 @@ end
         @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" include(
             "../ext/AdvancedVIReverseDiffExt.jl"
         )
-        @require ZygoteRules = "700de1a5-db45-46bc-99cf-38207098b444" include(
+        @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" include(
             "../ext/AdvancedVIZygoteExt.jl"
         )
         @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" include(
