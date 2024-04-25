@@ -25,7 +25,7 @@ function AdvancedVI.grad!(
 )
     f(θ) =
         if (q isa Distributions.Distribution)
-            -vo(alg, update(q, θ), model, args...)
+            -vo(alg, AdvancedVI.update(q, θ), model, args...)
         else
             -vo(alg, q(θ), model, args...)
         end

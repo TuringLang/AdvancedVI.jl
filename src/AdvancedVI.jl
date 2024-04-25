@@ -192,6 +192,12 @@ include("advi.jl")
         @require ZygoteRules = "700de1a5-db45-46bc-99cf-38207098b444" include(
             "../ext/AdvancedVIZygoteExt.jl"
         )
+        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" include(
+            "../ext/AdvancedVIEnzymeExt.jl"
+        )
+        @require Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c" include(
+            "../ext/AdvancedVIFluxExt.jl"
+        )
     end
 end
 

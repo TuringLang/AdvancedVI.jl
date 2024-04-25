@@ -8,6 +8,6 @@ else
     using ..Flux: Flux
 end
 
-AdvancedVI.apply!(o::Flux.Optimise.AbstractOptimizer, x, Δ) = Flux.Optimise.apply!(o, x, Δ)
+AdvancedVI.apply!(o::Flux.Optimise.AbstractOptimiser, x, Δ) = Flux.Optimise.apply!(o, x, Δ)
 
 end
