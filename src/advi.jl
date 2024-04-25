@@ -20,10 +20,13 @@ struct ADVI{AD} <: VariationalInference{AD}
     samples_per_step::Int
     "Maximum number of gradient steps."
     max_iters::Int
+    "AD backend used for automatic differentiation."
+    adtype::AD
+    
 end
 
-function ADVI(samples_per_step::Int=1, max_iters::Int=1000)
-    return ADVI{ADBackend()}(samples_per_step, max_iters)
+function ADVI(samples_per_step::Int=1, max_iters::Int=1000; adtype::ADTypes.AbstractADType=ADTypes.AutoForwardDiff())
+    return ADVI(samples_per_step, max_iters, adtype)
 end
 
 alg_str(::ADVI) = "ADVI"

@@ -3,7 +3,9 @@ uuid = "b5ca4192-6429-45e5-a2d9-87aec30a685c"
 version = "0.1.6"
 
 [deps]
+ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
+DiffResults = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DistributionsAD = "ced4e74d-a319-5a8a-b0ac-84af2272839c"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
@@ -16,22 +18,30 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 
+[weakdeps]
+ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+[extensions]
+AdvancedVIReverseDiffExt = ["ReverseDiff"]
+AdvancedVIZygoteExt = ["Zygote"]
+
 [compat]
-Bijectors = "0.4.0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10"
+ADTypes = "0.2, 1"
+Bijectors = "0.4.0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10, 0.13"
 Distributions = "0.21, 0.22, 0.23, 0.24, 0.25"
 DistributionsAD = "0.2, 0.3, 0.4, 0.5, 0.6"
 DocStringExtensions = "0.8, 0.9"
 ForwardDiff = "0.10.3"
 ProgressMeter = "1.0.0"
 Requires = "0.5, 1.0"
+ReverseDiff = "1"
 StatsBase = "0.32, 0.33"
 StatsFuns = "0.8, 0.9, 1"
 Tracker = "0.2.3"
+Zygote = "0.6"
 julia = "1"
 
 [extras]
-Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[targets]
-test = ["Pkg", "Test"]
+ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"

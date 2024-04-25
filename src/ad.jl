@@ -1,6 +1,4 @@
-##############################
-# Global variables/constants #
-##############################
+# FIXME: All this should go away.
 const ADBACKEND = Ref(:forwarddiff)
 setadbackend(backend_sym::Symbol) = setadbackend(Val(backend_sym))
 function setadbackend(::Val{:forward_diff})
@@ -8,6 +6,7 @@ function setadbackend(::Val{:forward_diff})
     setadbackend(Val(:forwarddiff))
 end
 function setadbackend(::Val{:forwarddiff})
+    Base.depwarn("`setadbackend` is deprecated. Please pass a `ADTypes.AbstractADType` as a keyword argument to the VI algorithm.", :setadbackend)
     ADBACKEND[] = :forwarddiff
 end
 
@@ -16,6 +15,7 @@ function setadbackend(::Val{:reverse_diff})
     setadbackend(Val(:tracker))
 end
 function setadbackend(::Val{:tracker})
+    Base.depwarn("`setadbackend` is deprecated. Please pass a `ADTypes.AbstractADType` as a keyword argument to the VI algorithm.", :setadbackend)
     ADBACKEND[] = :tracker
 end
 
@@ -32,15 +32,11 @@ function setchunksize(chunk_size::Int)
     CHUNKSIZE[] = chunk_size
 end
 
-abstract type ADBackend end
-struct ForwardDiffAD{chunk} <: ADBackend end
-getchunksize(::Type{<:ForwardDiffAD{chunk}}) where chunk = chunk
-
-struct TrackerAD <: ADBackend end
+getchunksize(::Type{<:ADTypes.AutoForwardDiff{chunk}}) where chunk = chunk
 
 ADBackend() = ADBackend(ADBACKEND[])
 ADBackend(T::Symbol) = ADBackend(Val(T))
 
-ADBackend(::Val{:forwarddiff}) = ForwardDiffAD{CHUNKSIZE[]}
-ADBackend(::Val{:tracker}) = TrackerAD
+ADBackend(::Val{:forwarddiff}) = ADTypes.AutoForwardDiff(chunksize=CHUNKSIZE[])
+ADBackend(::Val{:tracker}) = ADTypes.AutoTracker()
 ADBackend(::Val) = error("The requested AD backend is not available. Make sure to load all required packages.")
