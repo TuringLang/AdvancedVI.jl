@@ -184,6 +184,10 @@ include("optimisers.jl")
 # VI algorithms
 include("advi.jl")
 
+if !isdefined(Base, :get_extension)
+    using Requires
+end
+
 @static if !isdefined(Base, :get_extension)
     function __init__()
         @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" include(
