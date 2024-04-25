@@ -5,6 +5,10 @@ using ForwardDiff: ForwardDiff
 using ReverseDiff: ReverseDiff
 using Tracker: Tracker
 using Zygote: Zygote
+using Enzyme: Enzyme
+Enzyme.API.runtimeActivity!(true);
+Enzyme.API.typeWarning!(false);
+
 using AdvancedVI
 
 include("optimisers.jl")
@@ -13,7 +17,8 @@ include("optimisers.jl")
     AutoForwardDiff(),
     AutoReverseDiff(),
     AutoTracker(),
-    AutoZygote()
+    AutoZygote(),
+    AutoEnzyme()
 ]
     target = MvNormal(ones(2))
     logπ(z) = logpdf(target, z)
