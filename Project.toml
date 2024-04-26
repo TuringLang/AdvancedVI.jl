@@ -31,7 +31,9 @@ AdvancedVIReverseDiffExt = ["ReverseDiff"]
 AdvancedVIZygoteExt = ["Zygote"]
 
 [compat]
+ADTypes = "0.2, 1"
 Bijectors = "0.11, 0.12, 0.13"
+DiffResults = "1"
 Distributions = "0.21, 0.22, 0.23, 0.24, 0.25"
 DistributionsAD = "0.2, 0.3, 0.4, 0.5, 0.6"
 DocStringExtensions = "0.8, 0.9"
