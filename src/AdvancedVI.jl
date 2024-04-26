@@ -7,8 +7,11 @@ using DocStringExtensions
 
 using ProgressMeter, LinearAlgebra
 
-using ForwardDiff
-using Tracker
+using ADTypes: ADTypes
+using DiffResults: DiffResults
+
+using ForwardDiff: ForwardDiff
+using Tracker: Tracker
 
 const PROGRESS = Ref(true)
 function turnprogress(switch::Bool)
@@ -17,94 +20,6 @@ function turnprogress(switch::Bool)
 end
 
 const DEBUG = Bool(parse(Int, get(ENV, "DEBUG_ADVANCEDVI", "0")))
-
-include("ad.jl")
-include("utils.jl")
-
-using Requires
-function __init__()
-    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
-        apply!(o, x, Δ) = Flux.Optimise.apply!(o, x, Δ)
-        Flux.Optimise.apply!(o::TruncatedADAGrad, x, Δ) = apply!(o, x, Δ)
-        Flux.Optimise.apply!(o::DecayedADAGrad, x, Δ) = apply!(o, x, Δ)
-    end
-    @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" begin
-        include("compat/zygote.jl")
-        export ZygoteAD
-
-        function AdvancedVI.grad!(
-            vo,
-            alg::VariationalInference{<:AdvancedVI.ZygoteAD},
-            q,
-            model,
-            θ::AbstractVector{<:Real},
-            out::DiffResults.MutableDiffResult,
-            args...
-        )
-            f(θ) = if (q isa Distribution)
-                - vo(alg, update(q, θ), model, args...)
-            else
-                - vo(alg, q(θ), model, args...)
-            end
-            y, back = Zygote.pullback(f, θ)
-            dy = first(back(1.0))
-            DiffResults.value!(out, y)
-            DiffResults.gradient!(out, dy)
-            return out
-        end
-    end
-    @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" begin
-        include("compat/reversediff.jl")
-        export ReverseDiffAD
-
-        function AdvancedVI.grad!(
-            vo,
-            alg::VariationalInference{<:AdvancedVI.ReverseDiffAD{false}},
-            q,
-            model,
-            θ::AbstractVector{<:Real},
-            out::DiffResults.MutableDiffResult,
-            args...
-        )
-            f(θ) = if (q isa Distribution)
-                - vo(alg, update(q, θ), model, args...)
-            else
-                - vo(alg, q(θ), model, args...)
-            end
-            tp = AdvancedVI.tape(f, θ)
-            ReverseDiff.gradient!(out, tp, θ)
-            return out
-        end
-    end
-    @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
-        include("compat/enzyme.jl")
-        export EnzymeAD
-
-        function AdvancedVI.grad!(
-            vo,
-            alg::VariationalInference{<:AdvancedVI.EnzymeAD},
-            q,
-            model,
-            θ::AbstractVector{<:Real},
-            out::DiffResults.MutableDiffResult,
-            args...
-        )
-            f(θ) = if (q isa Distribution)
-                - vo(alg, update(q, θ), model, args...)
-            else
-                - vo(alg, q(θ), model, args...)
-            end
-            # Use `Enzyme.ReverseWithPrimal` once it is released:
-            # https://github.com/EnzymeAD/Enzyme.jl/pull/598
-            y = f(θ)
-            DiffResults.value!(out, y)
-            dy = DiffResults.gradient(out)
-            fill!(dy, 0)
-            Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, dy))
-            return out
-        end
-    end
-end
 
 export
     vi,
@@ -115,10 +30,12 @@ export
     DecayedADAGrad,
     VariationalInference
 
+include("utils.jl")
+include("ad.jl")
+
 abstract type VariationalInference{AD} end
 
-getchunksize(::Type{<:VariationalInference{AD}}) where AD = getchunksize(AD)
-getADtype(::VariationalInference{AD}) where AD = AD
+getchunksize(::ADTypes.AutoForwardDiff{chunk}) where chunk = chunk === nothing ? 0 : chunk
 
 abstract type VariationalObjective end
 
@@ -129,7 +46,7 @@ const VariationalPosterior = Distribution{Multivariate, Continuous}
     grad!(vo, alg::VariationalInference, q, model::Model, θ, out, args...)
 
 Computes the gradients used in `optimize!`. Default implementation is provided for 
-`VariationalInference{AD}` where `AD` is either `ForwardDiffAD` or `TrackerAD`.
+`VariationalInference{AD}` where `AD` is either `ADTypes.AutoForwardDiff` or `ADTypes.AutoTracker`.
 This implicitly also gives a default implementation of `optimize!`.
 
 Variance reduction techniques, e.g. control variates, should be implemented in this function.
@@ -158,7 +75,7 @@ function update end
 # default implementations
 function grad!(
     vo,
-    alg::VariationalInference{<:ForwardDiffAD},
+    alg::VariationalInference{<:ADTypes.AutoForwardDiff},
     q,
     model,
     θ::AbstractVector{<:Real},
@@ -172,7 +89,7 @@ function grad!(
     end
 
     # Set chunk size and do ForwardMode.
-    chunk_size = getchunksize(typeof(alg))
+    chunk_size = getchunksize(alg.adtype)
     config = if chunk_size == 0
         ForwardDiff.GradientConfig(f, θ)
     else
@@ -183,7 +100,7 @@ end
 
 function grad!(
     vo,
-    alg::VariationalInference{<:TrackerAD},
+    alg::VariationalInference{<:ADTypes.AutoTracker},
     q,
     model,
     θ::AbstractVector{<:Real},
@@ -266,5 +183,26 @@ include("optimisers.jl")
 
 # VI algorithms
 include("advi.jl")
+
+if !isdefined(Base, :get_extension)
+    using Requires
+end
+
+@static if !isdefined(Base, :get_extension)
+    function __init__()
+        @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" include(
+            "../ext/AdvancedVIReverseDiffExt.jl"
+        )
+        @require Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f" include(
+            "../ext/AdvancedVIZygoteExt.jl"
+        )
+        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" include(
+            "../ext/AdvancedVIEnzymeExt.jl"
+        )
+        @require Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c" include(
+            "../ext/AdvancedVIFluxExt.jl"
+        )
+    end
+end
 
 end # module
