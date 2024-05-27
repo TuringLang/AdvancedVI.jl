@@ -87,7 +87,7 @@ d = LogDensityProblems.dimension(model)
 L = Diagonal(ones(d))
 q = AdvancedVI.MeanFieldGaussian(μ, L)
 
-# Match the support of `model` by applying the bijector
+# Match support by applying the `model`'s inverse bijector
 b       = Bijectors.bijector(model)
 binv    = inverse(b)
 q_trans = Bijectors.TransformedDistribution(q, binv)
