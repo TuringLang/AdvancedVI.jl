@@ -87,9 +87,9 @@ L = Diagonal(ones(d))
 q = AdvancedVI.MeanFieldGaussian(μ, L)
 
 # Match support by applying the `model`'s inverse bijector
-b       = Bijectors.bijector(model)
-binv    = inverse(b)
-q_trans = Bijectors.TransformedDistribution(q, binv)
+b             = Bijectors.bijector(model)
+binv          = inverse(b)
+q_transformed = Bijectors.TransformedDistribution(q, binv)
 
 
 # Run inference
@@ -97,7 +97,7 @@ max_iter = 10^3
 q, stats, _ = AdvancedVI.optimize(
     model,
     elbo,
-    q_trans,
+    q_transformed,
     max_iter;
     adbackend = ADTypes.AutoForwardDiff(),
     optimizer = Optimisers.Adam(1e-3)
