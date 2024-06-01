@@ -20,7 +20,7 @@ Overall, we solve the problem
   \mathrm{maximize}_{q \in \mathcal{Q}}\quad \mathrm{ELBO}\left(q\right).
 ```
 
-There are multiple ways to solve this problem, corresponding to different variational inference algorithms.
+Multiple ways to solve this problem exist, leading to different variational inference algorithms.
 
 ## Algorithms
 Currently, `AdvancedVI` only provides the approach known as black-box variational inference (also known as Monte Carlo VI, Stochastic Gradient VI).
