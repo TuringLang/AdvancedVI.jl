@@ -161,7 +161,7 @@ end
 Let us come back to the example in [Examples](@ref examples), where a `LogDensityProblem` is given as `model`.
 In this example, the true posterior is contained within the variational family.
 This setting is known as "perfect variational family specification."
-In this case, the repgradelbo estimator is the only estimator known to converge exponentially fast to the true solution.
+In this case, the `RepGradELBO` estimator with `StickingTheLandingEntropy` is the only estimator known to converge exponentially fast ("linear convergence") to the true solution.
 
 Recall that the original ADVI objective with a closed-form entropy (CFE) is given as follows:
 ```@example repgradelbo
