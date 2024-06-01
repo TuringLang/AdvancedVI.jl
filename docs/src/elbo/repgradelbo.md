@@ -1,5 +1,5 @@
 
-# [Reparameterization Gradient](@id repgradelbo)
+# [Reparameterization Gradient Estimator](@id repgradelbo)
 ## Overview
 
 The reparameterization gradient[^TL2014][^RMW2014][^KW2014] is an unbiased gradient estimator of the ELBO.
