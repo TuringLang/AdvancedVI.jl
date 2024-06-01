@@ -32,7 +32,3 @@ function catsamples_and_acc(
     return (x, ∑y)
 end
 
-function samples_expand_dim(x::AbstractVector)
-    reshape(x, (:,1))
-end
-
