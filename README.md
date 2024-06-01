@@ -43,7 +43,7 @@ function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
 end
 ```
 
-Since the support of `x` is constrained to be positive, and inference is best done in the unconstrained Euclidean space, we need to use a *bijector* to match support.
+Since the support of `x` is constrained to be positive, and VI is best done in the unconstrained Euclidean space, we need to use a *bijector* to transform `x` into unconstrained Euclidean space. We will use the [`Bijectors.jl`](https://github.com/TuringLang/Bijectors.jl) package for this purpose. 
 This corresponds to the automatic differentiation variational inference (ADVI) formulation[^KTRGB2017].
 ```julia
 using Bijectors
