@@ -8,7 +8,7 @@ For example, `Turing` combines `Turing.Model`s with `AdvancedVI.ADVI` and [`Bije
 
 ## Examples
 
-`AdvancedVI` expects a `LogDensityProblem`.
+`AdvancedVI` works with differentiable models specified as a [`LogDensityProblem`](https://github.com/tpapp/LogDensityProblems.jl).
 For example, for the normal-log-normal model:
 
 $$
