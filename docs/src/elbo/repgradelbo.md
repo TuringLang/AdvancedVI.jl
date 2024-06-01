@@ -65,12 +65,12 @@ This is automatically handled by `AdvancedVI` through `TransformedDistribution` 
 See the following example:
 ```julia
 using Bijectors
-q       = MeanFieldGaussian(μ, L)
-b       = Bijectors.bijector(dist)
-binv    = inverse(b)
-q_trans = Bijectors.TransformedDistribution(q, binv)
+q             = MeanFieldGaussian(μ, L)
+b             = Bijectors.bijector(dist)
+binv          = inverse(b)
+q_transformed = Bijectors.TransformedDistribution(q, binv)
 ```
-By passing `q_trans` to `optimize`, the Jacobian adjustment for the bijector `b` is automatically applied.
+By passing `q_transformed` to `optimize`, the Jacobian adjustment for the bijector `b` is automatically applied.
 (See [Examples](@ref examples) for a full working example.)
 
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of Machine Learning Research*.
