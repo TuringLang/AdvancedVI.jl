@@ -15,7 +15,7 @@ z \stackrel{d}{=} \mathcal{T}_{\lambda}\left(\epsilon\right);\quad \epsilon \sim
 ```
 we can effectively estimate the gradient of the ELBO by directly differentiating 
 ```math
-  \widehat{\operatorname{ELBO}}\left(\lambda\right) = \frac{1}{M}\sum^M_{m=1} \log \pi\left(\mathcal{T}_{\lambda}\left(\epsilon_m\right)\right) + \mathbb{H}\left(q_{\lambda}\right),
+  \widehat{\mathrm{ELBO}}\left(\lambda\right) = \frac{1}{M}\sum^M_{m=1} \log \pi\left(\mathcal{T}_{\lambda}\left(\epsilon_m\right)\right) + \mathbb{H}\left(q_{\lambda}\right),
 ```
 where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples, with respect to $$\lambda$$.
 This estimator is called the reparameterization gradient estimator.

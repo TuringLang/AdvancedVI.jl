@@ -12,7 +12,7 @@ where $$\mathcal{Q}$$ is some family of distributions, often called a variationa
 Since the target distributions of interest are intractable in general, the KL divergence is also intractable.
 Instead, the ELBO maximization strategy maximizes a surrogate objective, the *ELBO*, defined as
 ```math
-  \operatorname{ELBO}\left(q\right) \triangleq \mathbb{E}_{\theta \sim q} \log \pi\left(\theta\right) + \mathbb{H}\left(q\right),
+  \mathrm{ELBO}\left(q\right) \triangleq \mathbb{E}_{\theta \sim q} \log \pi\left(\theta\right) + \mathbb{H}\left(q\right),
 ```
 which can be readily estimated through various strategies.
 Overall, we solve the problem 
