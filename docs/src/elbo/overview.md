@@ -8,7 +8,7 @@ More generally, they aim to solve the following problem:
 ```math
   \mathrm{minimize}_{q \in \mathcal{Q}}\quad \mathrm{KL}\left(q, \pi\right),
 ```
-where $$\mathcal{Q}$$ is some family of distributions, often called a variational family.
+where $$\mathcal{Q}$$ is some family of distributions, often called the variational family.
 Since the target distributions of interest are intractable in general, the KL divergence is also intractable.
 Instead, the ELBO maximization strategy maximizes a surrogate objective, the *ELBO*, defined as
 ```math
