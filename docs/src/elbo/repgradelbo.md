@@ -233,7 +233,7 @@ Thus, it is the most general way to override the behavior of `RepGradELBO`.
 AdvancedVI.reparam_with_entropy
 ```
 
-To illustrate, we will implement quasi Monte-Carlo variational inference [^BWM2018:].
+To illustrate how we can customize the `rand(q)` function, we will implement quasi-Monte-Carlo variational inference [^BWM2018:].
 Consider the case where we use the `MeanFieldGaussian` variational family.
 In this case, it suffices to override its `rand` specialization as follows:
 

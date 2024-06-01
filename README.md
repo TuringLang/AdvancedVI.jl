@@ -8,7 +8,7 @@ For example, integrating `Turing` with  `AdvancedVI.ADVI` only involves converti
 
 ## Examples
 
-`AdvancedVI` expects a `LogDensityProblem`.
+`AdvancedVI` works with differentiable models specified as a [`LogDensityProblem`](https://github.com/tpapp/LogDensityProblems.jl).
 For example, for the normal-log-normal model:
 
 $$
@@ -87,7 +87,7 @@ d = LogDensityProblems.dimension(model)
 L = Diagonal(ones(d))
 q = AdvancedVI.MeanFieldGaussian(μ, L)
 
-# Match the support of `model` by applying the bijector
+# Match support by applying the `model`'s inverse bijector
 b       = Bijectors.bijector(model)
 binv    = inverse(b)
 q_trans = Bijectors.TransformedDistribution(q, binv)
