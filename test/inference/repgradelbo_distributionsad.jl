@@ -14,7 +14,7 @@ using Test
             :RepGradELBOClosedFormEntropy  => RepGradELBO(n_montecarlo),
             :RepGradELBOStickingTheLanding => RepGradELBO(n_montecarlo, entropy = StickingTheLandingEntropy()),
         ),
-        (adbackname, adbackend) ∈ Dict(
+        (adbackname, adtype) ∈ Dict(
             :ForwarDiff  => AutoForwardDiff(),
             #:ReverseDiff => AutoReverseDiff(),
             :Zygote      => AutoZygote(), 
@@ -39,7 +39,7 @@ using Test
                 rng, model, objective, q0, T;
                 optimizer     = Optimisers.Adam(realtype(η)),
                 show_progress = PROGRESS,
-                adbackend     = adbackend,
+                adtype        = adtype,
             )
 
             μ  = mean(q)
@@ -57,7 +57,7 @@ using Test
                 rng, model, objective, q0, T;
                 optimizer     = Optimisers.Adam(realtype(η)),
                 show_progress = PROGRESS,
-                adbackend     = adbackend,
+                adtype        = adtype,
             )
             μ  = mean(q)
             L  = sqrt(cov(q))
@@ -67,7 +67,7 @@ using Test
                 rng_repl, model, objective, q0, T;
                 optimizer     = Optimisers.Adam(realtype(η)),
                 show_progress = PROGRESS,
-                adbackend     = adbackend,
+                adtype        = adtype,
             )
             μ_repl = mean(q)
             L_repl = sqrt(cov(q))

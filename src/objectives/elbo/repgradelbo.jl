@@ -95,10 +95,10 @@ estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int = obj.n_samples) =
     estimate_objective(Random.default_rng(), obj, q, prob; n_samples)
 
 function estimate_gradient!(
-    rng      ::Random.AbstractRNG,
-    obj      ::RepGradELBO,
-    adbackend::ADTypes.AbstractADType,
-    out      ::DiffResults.MutableDiffResult,
+    rng   ::Random.AbstractRNG,
+    obj   ::RepGradELBO,
+    adtype::ADTypes.AbstractADType,
+    out   ::DiffResults.MutableDiffResult,
     prob,
     λ,
     restructure,
@@ -112,7 +112,7 @@ function estimate_gradient!(
         elbo = energy + entropy
         -elbo
     end
-    value_and_gradient!(adbackend, f, λ, out)
+    value_and_gradient!(adtype, f, λ, out)
 
     nelbo = DiffResults.value(out)
     stat  = (elbo=-nelbo,)

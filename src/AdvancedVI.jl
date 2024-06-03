@@ -93,14 +93,14 @@ export estimate_objective
 
 
 """
-    estimate_gradient!(rng, obj, adbackend, out, prob, λ, restructure, obj_state)
+    estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state)
 
 Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `obj::AbstractVariationalObjective`: Variational objective.
-- `adbackend::ADTypes.AbstractADType`: Automatic differentiation backend. 
+- `adtype::ADTypes.AbstractADType`: Automatic differentiation backend. 
 - `out::DiffResults.MutableDiffResult`: Buffer containing the objective value and gradient estimates. 
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 - `λ`: Variational parameters to evaluate the gradient on.
