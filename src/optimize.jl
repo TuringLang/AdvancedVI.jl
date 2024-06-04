@@ -32,12 +32,12 @@ The variational approximation can be constructed by passing the variational para
 # Callback
 The callback function `callback` has a signature of
 
-    callback(; stat, state, param, restructure, gradient)
+    callback(; stat, state, params, restructure, gradient)
 
 The arguments are as follows:
 - `stat`: Statistics gathered during the current iteration. The content will vary depending on `objective`.
 - `state`: Collection of the internal states used for optimization.
-- `param`: Variational parameters.
+- `params`: Variational parameters.
 - `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(param)` reconstructs the variational approximation. 
 - `gradient`: The estimated (possibly stochastic) gradient.
 
