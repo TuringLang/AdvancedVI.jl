@@ -189,7 +189,7 @@ _, stats_cfe, _ = AdvancedVI.optimize(
     q0_trans,
     max_iter;
     show_progress = false,
-    adbackend     = AutoForwardDiff(),
+    adtype        = AutoForwardDiff(),
     optimizer     = Optimisers.Adam(1e-3)
 ); 
 
@@ -199,7 +199,7 @@ _, stats_stl, _ = AdvancedVI.optimize(
     q0_trans,
     max_iter;
     show_progress = false,
-    adbackend     = AutoForwardDiff(),
+    adtype        = AutoForwardDiff(),
     optimizer     = Optimisers.Adam(1e-3)
 ); 
 
@@ -264,7 +264,7 @@ _, stats_qmc, _ = AdvancedVI.optimize(
     q0_trans,
     max_iter;
     show_progress = false,
-    adbackend     = AutoForwardDiff(),
+    adtype        = AutoForwardDiff(),
     optimizer     = Optimisers.Adam(1e-3)
 ); 
 

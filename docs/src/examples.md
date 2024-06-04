@@ -102,7 +102,7 @@ q_trans, stats, _ = AdvancedVI.optimize(
     q0_trans,
     n_max_iter;
     show_progress = false,
-    adbackend     = AutoForwardDiff(),
+    adtype        = AutoForwardDiff(),
     optimizer     = Optimisers.Adam(1e-3)
 ); 
 nothing

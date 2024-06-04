@@ -14,7 +14,7 @@ using Test
     q0  = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
     obj = RepGradELBO(10)
 
-    adbackend = AutoForwardDiff()
+    adtype    = AutoForwardDiff()
     optimizer = Optimisers.Adam(1e-2)
 
     rng  = StableRNG(seed)
@@ -22,7 +22,7 @@ using Test
         rng, model, obj, q0, T;
         optimizer,
         show_progress = false,
-        adbackend,
+        adtype,
     )
     λ_ref, _ = Optimisers.destructure(q_ref)
 
@@ -31,7 +31,7 @@ using Test
             model, obj, q0, T;
             optimizer,
             show_progress = false,
-            adbackend,
+            adtype,
         )
 
         λ₀, re  = Optimisers.destructure(q0)
@@ -39,7 +39,7 @@ using Test
             model, obj, re, λ₀, T;
             optimizer,
             show_progress = false,
-            adbackend,
+            adtype,
         )
     end
 
@@ -51,7 +51,7 @@ using Test
             rng, model, obj, re, λ₀, T;
             optimizer,
             show_progress = false,
-            adbackend,
+            adtype,
         )
         @test λ     == λ_ref
         @test stats == stats_ref
@@ -67,7 +67,7 @@ using Test
         _, stats, _ = optimize(
             rng, model, obj, q0, T;
             show_progress = false,
-            adbackend,
+            adtype,
             callback
         )
         @test [stat.test_value for stat ∈ stats] == test_values
@@ -83,7 +83,7 @@ using Test
             rng, model, obj, q0, T_first;
             optimizer,
             show_progress = false,
-            adbackend
+            adtype
         )
 
         q, stats, _ = optimize(
@@ -91,7 +91,7 @@ using Test
             optimizer,
             show_progress = false,
             state_init    = state,
-            adbackend
+            adtype
         )
         @test q == q_ref
     end

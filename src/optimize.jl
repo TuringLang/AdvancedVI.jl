@@ -16,7 +16,7 @@ The variational approximation can be constructed by passing the variational para
 - `objargs...`: Arguments to be passed to `objective`.
 
 # Keyword Arguments
-- `adbackend::ADtypes.AbstractADType`: Automatic differentiation backend. 
+- `adtype::ADtypes.AbstractADType`: Automatic differentiation backend. 
 - `optimizer::Optimisers.AbstractRule`: Optimizer used for inference. (Default: `Adam`.)
 - `rng::AbstractRNG`: Random number generator. (Default: `Random.default_rng()`.)
 - `show_progress::Bool`: Whether to show the progress bar. (Default: `true`.)
@@ -54,7 +54,7 @@ function optimize(
     params_init,
     max_iter     ::Int,
     objargs...;
-    adbackend    ::ADTypes.AbstractADType, 
+    adtype       ::ADTypes.AbstractADType, 
     optimizer    ::Optimisers.AbstractRule = Optimisers.Adam(),
     show_progress::Bool                    = true,
     state_init   ::NamedTuple              = NamedTuple(),
@@ -77,7 +77,7 @@ function optimize(
         stat = (iteration=t,)
 
         grad_buf, obj_st, stat′ = estimate_gradient!(
-            rng, objective, adbackend, grad_buf, problem,
+            rng, objective, adtype, grad_buf, problem,
             λ, restructure,  obj_st, objargs...
         )
         stat = merge(stat, stat′)
