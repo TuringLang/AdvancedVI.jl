@@ -107,12 +107,13 @@ For example, if ``q_{\lambda}`` is a Gaussian with a full-rank covariance, a bac
 The STL control variate can be used by changing the entropy estimator using the following object:
 
 ```@setup repgradelbo
-using LogDensityProblems
-using SimpleUnPack
 using Bijectors
+using FillArrays
 using LinearAlgebra
+using LogDensityProblems
 using Plots
 using Random
+using SimpleUnPack
 
 using Optimisers
 using ADTypes, ForwardDiff
@@ -139,10 +140,10 @@ function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
 end
 
 n_dims = 10
-μ_x    = randn()
-σ_x    = exp.(randn())
-μ_y    = randn(n_dims)
-σ_y    = exp.(randn(n_dims))
+μ_x    = 2.0
+σ_x    = 0.3
+μ_y    = Fill(2.0, n_dims)
+σ_y    = Fill(1.0, n_dims)
 model  = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2));
 
 d  = LogDensityProblems.dimension(model);
@@ -183,6 +184,13 @@ nothing
 ```@setup repgradelbo
 max_iter = 3*10^3
 
+function callback(; stat, state, params, restructure, gradient)
+    q = restructure(params).dist
+    dist2 = sum(abs2, q.location - vcat([μ_x], μ_y)) 
+        + sum(abs2, diag(q.scale) - vcat(σ_x, σ_y))
+    (dist = sqrt(dist2),)
+end
+
 _, stats_cfe, _ = AdvancedVI.optimize(
     model,
     cfe,
@@ -190,7 +198,8 @@ _, stats_cfe, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(1e-3)
+    optimizer     = Optimisers.Adam(3e-3),
+    callback      = callback,
 ); 
 
 _, stats_stl, _ = AdvancedVI.optimize(
@@ -200,23 +209,40 @@ _, stats_stl, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(1e-3)
+    optimizer     = Optimisers.Adam(3e-3),
+    callback      = callback,
 ); 
 
-t     = [stat.iteration  for stat in stats_cfe]
-y_cfe = [stat.elbo       for stat in stats_cfe]
-y_stl = [stat.elbo       for stat in stats_stl]
-plot( t, y_cfe, label="BBVI CFE", xlabel="Iteration", ylabel="ELBO", ylims=[-50,5])
-plot!(t, y_stl, label="BBVI repgradelbo", xlabel="Iteration", ylabel="ELBO", ylims=[-50,5])
+t        = [stat.iteration for stat in stats_cfe]
+elbo_cfe = [stat.elbo      for stat in stats_cfe]
+elbo_stl = [stat.elbo      for stat in stats_stl]
+dist_cfe = [stat.dist      for stat in stats_cfe]
+dist_stl = [stat.dist      for stat in stats_stl]
+plot( t, elbo_cfe, label="BBVI CFE", xlabel="Iteration", ylabel="ELBO")
+plot!(t, elbo_stl, label="BBVI STL", xlabel="Iteration", ylabel="ELBO")
 savefig("advi_stl_elbo.svg")
+
+plot( t, dist_cfe, label="BBVI CFE", xlabel="Iteration", ylabel="distance to optimum", yscale=:log10)
+plot!(t, dist_stl, label="BBVI STL", xlabel="Iteration", ylabel="distance to optimum", yscale=:log10)
+savefig("advi_stl_dist.svg")
 nothing
 ```
 ![](advi_stl_elbo.svg)
 
 We can see that the noise of the repgradelbo estimator becomes smaller as VI converges.
 However, the speed of convergence may not always be significantly different.
+Also, due to noise, just looking at the ELBO may not be sufficient to judge which algorithm is better.
+This can be made apparent if we measure convergence through the distance to the optimum:
+
+![](advi_stl_dist.svg)
+
+We can see that STL kicks-in at later stages of optimization.
+Therefore, when STL "works", it yields a higher accuracy solution even on large stepsizes.
+However, whether STL works or not highly depends on the problem[^KMG2024].
+Furthermore, in a lot of cases, a low-accuracy solution may be sufficient.
 
 [^RWD2017]: Roeder, G., Wu, Y., & Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. Advances in Neural Information Processing Systems, 30.
+[^KMG2024]: Kim, K., Ma, Y., & Gardner, J. (2024). Linear Convergence of Black-Box Variational Inference: Should We Stick the Landing?. In International Conference on Artificial Intelligence and Statistics (pp. 235-243). PMLR.
 
 ## Advanced Usage
 There are two major ways to customize the behavior of `RepGradELBO`
@@ -258,6 +284,8 @@ nothing
 (Note that this is a quick-and-dirty example, and there are more sophisticated ways to implement this.)
 
 ```@setup repgradelbo
+repgradelbo = AdvancedVI.RepGradELBO(n_montecarlo);
+
 _, stats_qmc, _ = AdvancedVI.optimize(
     model,
     repgradelbo,
@@ -265,15 +293,23 @@ _, stats_qmc, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(1e-3)
+    optimizer     = Optimisers.Adam(3e-3),
+    callback      = callback,
 ); 
 
-t     = [stat.iteration  for stat in stats_qmc]
-y_qmc = [stat.elbo       for stat in stats_qmc]
-plot( t, y_stl, label="BBVI STL.",     xlabel="Iteration", ylabel="ELBO", ylims=[-50,5])
-plot!(t, y_qmc, label="BBVI STL QMC",  xlabel="Iteration", ylabel="ELBO", ylims=[-50,5])
+t        = [stat.iteration for stat in stats_qmc]
+elbo_qmc = [stat.elbo      for stat in stats_qmc]
+dist_qmc = [stat.dist      for stat in stats_qmc]
+plot( t, elbo_cfe, label="BBVI CFE",     xlabel="Iteration", ylabel="ELBO")
+plot!(t, elbo_qmc, label="BBVI CFE QMC", xlabel="Iteration", ylabel="ELBO")
 savefig("advi_qmc_elbo.svg")
 
+plot( t, dist_cfe, label="BBVI CFE",     xlabel="Iteration", ylabel="distance to optimum", yscale=:log10)
+plot!(t, dist_qmc, label="BBVI CFE QMC", xlabel="Iteration", ylabel="distance to optimum", yscale=:log10)
+savefig("advi_qmc_dist.svg")
+
+# The following definition is necessary to revert the behavior of `rand` so that 
+# the example in example.md works with the regular non-QMC estimator.
 function Distributions.rand(
     rng::AbstractRNG, q::MvLocationScale{<:Diagonal, D, L}, num_samples::Int
 ) where {L, D}
@@ -284,8 +320,17 @@ function Distributions.rand(
 end
 nothing
 ```
-![](advi_qmc_elbo.svg)
 
+By plotting the ELBO, we can see the effect of quasi-Monte Carlo.
+![](advi_qmc_elbo.svg)
 We can see that quasi-Monte Carlo results in much lower variance than naive Monte Carlo.
+However, similarly to the STL example, just looking at the ELBO is often insufficient to really judge performance.
+Instead, let's look at the distance to the global optimum:
+
+![](advi_qmc_dist.svg)
+
+QMC yields an additional order of magnitude in accuracy.
+Also, unlike STL, it ever-so slightly accelerates convergence.
+This is because quasi-Monte Carlo uniformly reduces variance, unlike STL, which reduces variance only near the optimum.
 
 [^BWM2018]: Buchholz, A., Wenzel, F., & Mandt, S. (2018). Quasi-monte carlo variational inference. In *International Conference on Machine Learning*.
