@@ -67,10 +67,10 @@ function optimize(
         enabled   = show_progress
     )
 )
-    λ        = copy(params_init)
-    opt_st   = maybe_init_optimizer(state_init, optimizer, λ)
-    obj_st   = maybe_init_objective(state_init, rng, objective, λ, restructure)
-    grad_buf = DiffResults.DiffResult(zero(eltype(λ)), similar(λ))
+    params   = copy(params_init)
+    opt_st   = maybe_init_optimizer(state_init, optimizer, params)
+    obj_st   = maybe_init_objective(state_init, rng, objective, params, restructure)
+    grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
     stats    = NamedTuple[]
 
     for t = 1:max_iter
@@ -78,16 +78,16 @@ function optimize(
 
         grad_buf, obj_st, stat′ = estimate_gradient!(
             rng, objective, adtype, grad_buf, problem,
-            λ, restructure,  obj_st, objargs...
+            params, restructure,  obj_st, objargs...
         )
         stat = merge(stat, stat′)
 
-        g         = DiffResults.gradient(grad_buf)
-        opt_st, λ = Optimisers.update!(opt_st, λ, g)
+        grad = DiffResults.gradient(grad_buf)
+        opt_st, params = Optimisers.update!(opt_st, params, grad)
 
         if !isnothing(callback)
             stat′ = callback(
-                ; stat, restructure, params=λ, gradient=g,
+                ; stat, restructure, params=params, gradient=grad,
                 state=(optimizer=opt_st, objective=obj_st)
             )
             stat = !isnothing(stat′) ? merge(stat′, stat) : stat
@@ -100,7 +100,6 @@ function optimize(
     end
     state  = (optimizer=opt_st, objective=obj_st)
     stats  = map(identity, stats)
-    params = λ
     params, stats, state
 end
 
