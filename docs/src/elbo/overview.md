@@ -10,17 +10,18 @@ More generally, they aim to solve the following problem:
 ```
 where $$\mathcal{Q}$$ is some family of distributions, often called the variational family.
 Since the target distribution ``\pi`` is intractable in general, the KL divergence is also intractable.
-Instead, the ELBO maximization strategy maximizes a surrogate objective, the *ELBO*, which serves as a lower bound to the KL. ELBO is defined as
+Instead, the ELBO maximization strategy maximizes a surrogate objective, the *ELBO*:
 ```math
   \mathrm{ELBO}\left(q\right) \triangleq \mathbb{E}_{\theta \sim q} \log \pi\left(\theta\right) + \mathbb{H}\left(q\right),
 ```
-which can be readily estimated through various strategies.
-Overall, we solve the problem 
+which serves as a lower bound to the KL.
+The ELBO and its gradient can be readily estimated through various strategies.
+Overall, ELBO maximization algorithms aim to solve the problem:
 ```math
   \mathrm{maximize}_{q \in \mathcal{Q}}\quad \mathrm{ELBO}\left(q\right).
 ```
 
-Multiple ways to solve this problem exist, leading to different variational inference algorithms.
+Multiple ways to solve this problem exist, each leading to a different variational inference algorithm.
 
 ## Algorithms
 Currently, `AdvancedVI` only provides the approach known as black-box variational inference (also known as Monte Carlo VI, Stochastic Gradient VI).
