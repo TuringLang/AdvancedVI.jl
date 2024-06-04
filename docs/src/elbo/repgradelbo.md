@@ -71,7 +71,7 @@ binv          = inverse(b)
 q_transformed = Bijectors.TransformedDistribution(q, binv)
 ```
 By passing `q_transformed` to `optimize`, the Jacobian adjustment for the bijector `b` is automatically applied.
-(See [Examples](@ref examples) for a full working example.)
+(See [Examples](@ref examples) for a fully working example.)
 
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of Machine Learning Research*.
 [^DLTBV2017]: Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... & Saurous, R. A. (2017). Tensorflow distributions. arXiv.
@@ -206,8 +206,8 @@ _, stats_stl, _ = AdvancedVI.optimize(
 t     = [stat.iteration  for stat in stats_cfe]
 y_cfe = [stat.elbo       for stat in stats_cfe]
 y_stl = [stat.elbo       for stat in stats_stl]
-plot( t, y_cfe, label="BBVI CFE", xlabel="Iteration", ylabel="ELBO", ylims=[-20,5])
-plot!(t, y_stl, label="BBVI repgradelbo", xlabel="Iteration", ylabel="ELBO", ylims=[-20,5])
+plot( t, y_cfe, label="BBVI CFE", xlabel="Iteration", ylabel="ELBO", ylims=[-50,5])
+plot!(t, y_stl, label="BBVI repgradelbo", xlabel="Iteration", ylabel="ELBO", ylims=[-50,5])
 savefig("advi_stl_elbo.svg")
 nothing
 ```
@@ -270,8 +270,8 @@ _, stats_qmc, _ = AdvancedVI.optimize(
 
 t     = [stat.iteration  for stat in stats_qmc]
 y_qmc = [stat.elbo       for stat in stats_qmc]
-plot( t, y_stl, label="BBVI STL.",     xlabel="Iteration", ylabel="ELBO", ylims=[-20,5])
-plot!(t, y_qmc, label="BBVI STL QMC",  xlabel="Iteration", ylabel="ELBO", ylims=[-20,5])
+plot( t, y_stl, label="BBVI STL.",     xlabel="Iteration", ylabel="ELBO", ylims=[-50,5])
+plot!(t, y_qmc, label="BBVI STL QMC",  xlabel="Iteration", ylabel="ELBO", ylims=[-50,5])
 savefig("advi_qmc_elbo.svg")
 
 function Distributions.rand(
