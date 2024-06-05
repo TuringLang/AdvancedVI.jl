@@ -22,15 +22,16 @@ include("normallognormal.jl")
 
 const SUITES = BenchmarkGroup()
 
-SUITES["normal + bijector"]["meanfield"]["Zygote"] =
-    @benchmarkable normallognormal(
-        ;
-        fptype       = Float64,
-        adtype       = AutoZygote(),
-        family       = :meanfield,
-        objective    = :RepGradELBO,
-        n_montecarlo = 4,
-    )
+# Comment until https://github.com/TuringLang/Bijectors.jl/pull/315 is merged
+# SUITES["normal + bijector"]["meanfield"]["Zygote"] =
+#     @benchmarkable normallognormal(
+#         ;
+#         fptype       = Float64,
+#         adtype       = AutoZygote(),
+#         family       = :meanfield,
+#         objective    = :RepGradELBO,
+#         n_montecarlo = 4,
+#     )
 
 SUITES["normal + bijector"]["meanfield"]["ReverseDiff"] =
     @benchmarkable normallognormal(
