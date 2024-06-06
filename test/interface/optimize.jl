@@ -33,28 +33,6 @@ using Test
             show_progress = false,
             adtype,
         )
-
-        λ₀, re  = Optimisers.destructure(q0)
-        optimize(
-            model, obj, re, λ₀, T;
-            optimizer,
-            show_progress = false,
-            adtype,
-        )
-    end
-
-    @testset "restructure" begin
-        λ₀, re  = Optimisers.destructure(q0)
-
-        rng  = StableRNG(seed)
-        λ, stats, _ = optimize(
-            rng, model, obj, re, λ₀, T;
-            optimizer,
-            show_progress = false,
-            adtype,
-        )
-        @test λ     == λ_ref
-        @test stats == stats_ref
     end
 
     @testset "callback" begin
