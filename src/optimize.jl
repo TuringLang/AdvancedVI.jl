@@ -1,19 +1,13 @@
 
 """
-    optimize(problem, objective, restructure, param_init, max_iter, objargs...; kwargs...)              
-    optimize(problem, objective, variational_dist_init, max_iter, objargs...; kwargs...)              
+    optimize(problem, objective, variational_dist_init, max_iter; kwargs...)              
 
 Optimize the variational objective `objective` targeting the problem `problem` by estimating (stochastic) gradients.
 
-The variational approximation can be constructed by passing the variational parameters `param_init` or the initial variational approximation `variational_dist_init` to the function `restructure`.
-
 # Arguments
 - `objective::AbstractVariationalObjective`: Variational Objective.
-- `param_init`: Initial value of the variational parameters.
-- `restruct`: Function that reconstructs the variational approximation from the flattened parameters.
 - `variational_dist_init`: Initial variational distribution. The variational parameters must be extractable through `Optimisers.destructure`.
 - `max_iter::Int`: Maximum number of iterations.
-- `objargs...`: Arguments to be passed to `objective`.
 
 # Keyword Arguments
 - `adtype::ADtypes.AbstractADType`: Automatic differentiation backend. 
@@ -24,8 +18,10 @@ The variational approximation can be constructed by passing the variational para
 - `prog`: Progress bar configuration. (Default: `ProgressMeter.Progress(n_max_iter; desc="Optimizing", barlen=31, showspeed=true, enabled=prog)`.)
 - `state::NamedTuple`: Initial value for the internal state of optimization. Used to warm-start from the state of a previous run. (See the returned values below.)
 
+Additional keyword arguments may apply depending on `objective`.
+
 # Returns
-- `params`: Variational parameters optimizing the variational objective.
+- `variational_dist`: Variational distribution optimizing the variational objective.
 - `stats`: Statistics gathered during optimization.
 - `state`: Collection of the final internal states of optimization. This can used later to warm-start from the last iteration of the corresponding run.
 
@@ -45,15 +41,20 @@ The arguments are as follows:
 This will be appended to the statistic of the current corresponding iteration.
 Otherwise, just return `nothing`.
 
+!!! info
+    Some AD backends may only operator on "flattened" vectors.
+    In this case, `AdvancedVI` will leverage `Optimisers.destructure` to flatten the variational distribution.
+    (This is determined according to the value of `adtype`.)
+    For this to automatically work however, `variational_dist_init` must be marked as a functor through `Functors.@functor`.
+    Variational families provided by `AdvancedVI` will all be marked as functors already.
+    Otherwise, one can simply use an AD backend that supported structured gradients such as `Zygote`.
 """
 function optimize(
     rng          ::Random.AbstractRNG,
     problem,
     objective    ::AbstractVariationalObjective,
-    restructure,
-    params_init,
-    max_iter     ::Int,
-    objargs...;
+    q_init,
+    max_iter     ::Int;
     adtype       ::ADTypes.AbstractADType, 
     optimizer    ::Optimisers.AbstractRule = Optimisers.Adam(),
     show_progress::Bool                    = true,
@@ -65,29 +66,37 @@ function optimize(
         barlen    = 31,
         showspeed = true,
         enabled   = show_progress
-    )
+    ),
+    kwargs...
 )
-    params   = copy(params_init)
-    opt_st   = maybe_init_optimizer(state_init, optimizer, params)
-    obj_st   = maybe_init_objective(state_init, rng, objective, params, restructure)
-    grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
-    stats    = NamedTuple[]
+    q          = deepcopy(q_init)
+    params, re = maybe_destructure(adtype, q)
+    opt_st     = maybe_init_optimizer(state_init, optimizer, params)
+    obj_st     = maybe_init_objective(state_init, rng, objective, params, q; kwargs...)
+    stats      = NamedTuple[]
 
     for t = 1:max_iter
         stat = (iteration=t,)
 
-        grad_buf, obj_st, stat′ = estimate_gradient!(
-            rng, objective, adtype, grad_buf, problem,
-            params, restructure,  obj_st, objargs...
+        grad, obj_st, stat′ = estimate_gradient(
+            rng,
+            objective,
+            adtype,
+            problem,
+            params,
+            re,
+            obj_st;
+            kwargs...
         )
         stat = merge(stat, stat′)
 
-        grad = DiffResults.gradient(grad_buf)
-        opt_st, params = Optimisers.update!(opt_st, params, grad)
+        opt_st, params = update_variational_params!(
+            typeof(q), opt_st, params, re, grad
+        )
 
         if !isnothing(callback)
             stat′ = callback(
-                ; stat, restructure, params=params, gradient=grad,
+                ; stat, restructure=re, params=params, gradient=grad,
                 state=(optimizer=opt_st, objective=obj_st)
             )
             stat = !isnothing(stat′) ? merge(stat′, stat) : stat
@@ -98,46 +107,10 @@ function optimize(
         pm_next!(prog, stat)
         push!(stats, stat)
     end
-    state  = (optimizer=opt_st, objective=obj_st)
-    stats  = map(identity, stats)
-    params, stats, state
+    state = (optimizer=opt_st, objective=obj_st)
+    stats = map(identity, stats)
+    re(params), stats, state
 end
-
-function optimize(
-    problem,
-    objective    ::AbstractVariationalObjective,
-    restructure,
-    params_init,
-    max_iter     ::Int,
-    objargs...;
-    kwargs...
-)
-    optimize(
-        Random.default_rng(),
-        problem,
-        objective,
-        restructure,
-        params_init,
-        max_iter,
-        objargs...;
-        kwargs...
-    )
-end
-
-function optimize(rng                   ::Random.AbstractRNG,
-                  problem,
-                  objective             ::AbstractVariationalObjective,
-                  variational_dist_init,
-                  n_max_iter            ::Int,
-                  objargs...;
-                  kwargs...)
-    λ, restructure = Optimisers.destructure(variational_dist_init)
-    λ, logstats, state = optimize(
-        rng, problem, objective, restructure, λ, n_max_iter, objargs...; kwargs...
-    )
-    restructure(λ), logstats, state
-end
-
 
 function optimize(
     problem,

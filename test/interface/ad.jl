@@ -11,11 +11,8 @@ using Test
         D = 10
         A = randn(D, D)
         λ = randn(D)
-        grad_buf = DiffResults.GradientResult(λ)
         f(λ′) = λ′'*A*λ′ / 2
-        AdvancedVI.value_and_gradient!(adsymbol, f, λ, grad_buf)
-        ∇ = DiffResults.gradient(grad_buf)
-        f = DiffResults.value(grad_buf)
+        ∇, f = AdvancedVI.value_and_gradient(adsymbol, f, λ)
         @test ∇ ≈ (A + A')*λ/2
         @test f ≈ λ'*A*λ / 2
     end

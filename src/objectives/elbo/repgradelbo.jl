@@ -91,31 +91,27 @@ function estimate_objective(
     energy + entropy
 end
 
-estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int = obj.n_samples) =
+estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int = obj.n_samples, kwargs...) =
     estimate_objective(Random.default_rng(), obj, q, prob; n_samples)
 
-function estimate_gradient!(
+function estimate_gradient(
     rng   ::Random.AbstractRNG,
     obj   ::RepGradELBO,
     adtype::ADTypes.AbstractADType,
-    out   ::DiffResults.MutableDiffResult,
     prob,
-    λ,
+    params,
     restructure,
-    state,
+    state;
+    kwargs...
 )
-    q_stop = restructure(λ)
-    function f(λ′)
-        q = restructure(λ′)
+    q_stop = restructure(params)
+    function f(params′)
+        q = restructure(params′)
         samples, entropy = reparam_with_entropy(rng, q, q_stop, obj.n_samples, obj.entropy)
         energy = estimate_energy_with_samples(prob, samples)
         elbo = energy + entropy
         -elbo
     end
-    value_and_gradient!(adtype, f, λ, out)
-
-    nelbo = DiffResults.value(out)
-    stat  = (elbo=-nelbo,)
-
-    out, nothing, stat
+    grad, nelbo = value_and_gradient(adtype, f, params)
+    grad, nothing, (elbo=-nelbo,)
 end

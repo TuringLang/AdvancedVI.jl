@@ -29,8 +29,8 @@ using Test
 
         T, η = is_meanfield ? (5_000, 1e-2) : (30_000, 1e-3)
 
-        μ0 = Zeros(realtype, n_dims)
-        L0 = Diagonal(Ones(realtype, n_dims))
+        μ0 = zeros(realtype, n_dims)
+        L0 = Diagonal(ones(realtype, n_dims))
         q0 = TuringDiagMvNormal(μ0, diag(L0))
 
         @testset "convergence" begin

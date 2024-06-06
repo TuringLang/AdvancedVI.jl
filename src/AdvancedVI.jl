@@ -16,7 +16,7 @@ using LinearAlgebra
 
 using LogDensityProblems
 
-using ADTypes, DiffResults
+using ADTypes
 using ChainRulesCore
 
 using FillArrays
@@ -25,17 +25,43 @@ using StatsBase
 
 # derivatives
 """
-    value_and_gradient!(ad, f, θ, out)
+    value_and_gradient(ad, f, θ)
 
-Evaluate the value and gradient of a function `f` at `θ` using the automatic differentiation backend `ad` and store the result in `out`.
+Evaluate the value and gradient of a function `f` at `θ` using the automatic differentiation backend `ad`.
 
 # Arguments
 - `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
 - `f`: Function subject to differentiation.
 - `θ`: The point to evaluate the gradient.
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
+
+# Returns
+- `grad`: Gradient of `f` evaluated on `θ`
+- `fval`: Function value `f` evaluated on `θ`
 """
-function value_and_gradient! end
+function value_and_gradient end
+
+maybe_destructure(::ADTypes.AutoZygote, q) = (q, identity)
+
+maybe_destructure(::ADTypes.AbstractADType, q) = Optimisers.destructure(q)
+
+"""
+    update_variational_params!(family_type, opt_st, params, re, grad)
+
+Update variational family according to 
+Essentially an indirection for `Optimisers.update!`.
+
+# Arguments
+- `family_type::Type`: 
+
+# Returns
+- `opt_st`: Updated optimizer state.
+- `params`: Updated params.
+"""
+function update_variational_params! end
+
+update_variational_params!(::Type, opt_st, params, re, grad) =
+    Optimisers.update!(opt_st, params, grad)
 
 # estimators
 """
@@ -51,7 +77,7 @@ If the estimator is stateful, it can implement `init` to initialize the state.
 abstract type AbstractVariationalObjective end
 
 """
-    init(rng, obj, λ, restructure)
+    init(rng, obj, params, q_init; kwargs...)
 
 Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
 This function needs to be implemented only if `obj` is stateful.
@@ -59,15 +85,10 @@ This function needs to be implemented only if `obj` is stateful.
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `obj::AbstractVariationalObjective`: Variational objective.
-- `λ`: Initial variational parameters.
-- `restructure`: Function that reconstructs the variational approximation from `λ`.
+- `params`: Initial variational parameters.
+- `q_init`: Initial variational distribution.
 """
-init(
-    ::Random.AbstractRNG,
-    ::AbstractVariationalObjective,
-    ::AbstractVector,
-    ::Any
-) = nothing
+init(::Random.AbstractRNG, ::AbstractVariationalObjective, ::Any, ::Any; kwargs...) = nothing
 
 """
     estimate_objective([rng,] obj, q, prob; kwargs...)
@@ -91,9 +112,8 @@ function estimate_objective end
 
 export estimate_objective
 
-
 """
-    estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state)
+    estimate_gradient(rng, obj, adtype, prob, params, restructure, obj_state; kwargs...)
 
 Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
 
@@ -101,18 +121,17 @@ Estimate (possibly stochastic) gradients of the variational objective `obj` targ
 - `rng::Random.AbstractRNG`: Random number generator.
 - `obj::AbstractVariationalObjective`: Variational objective.
 - `adtype::ADTypes.AbstractADType`: Automatic differentiation backend. 
-- `out::DiffResults.MutableDiffResult`: Buffer containing the objective value and gradient estimates. 
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
-- `λ`: Variational parameters to evaluate the gradient on.
+- `params`: Variational parameters to evaluate the gradient on.
 - `restructure`: Function that reconstructs the variational approximation from `λ`.
 - `obj_state`: Previous state of the objective.
 
 # Returns
-- `out::MutableDiffResult`: Buffer containing the objective value and gradient estimates.
+- `grad`: Gradient estimate.
 - `obj_state`: The updated state of the objective.
 - `stat::NamedTuple`: Statistics and logs generated during estimation.
 """
-function estimate_gradient! end
+function estimate_gradient end
 
 # ELBO-specific interfaces
 abstract type AbstractEntropyEstimator end

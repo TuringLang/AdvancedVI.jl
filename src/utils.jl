@@ -6,19 +6,24 @@ end
 function maybe_init_optimizer(
     state_init::NamedTuple,
     optimizer ::Optimisers.AbstractRule,
-    λ         ::AbstractVector
+    params,
 )
-    haskey(state_init, :optimizer) ? state_init.optimizer : Optimisers.setup(optimizer, λ)
+    haskey(state_init, :optimizer) ? state_init.optimizer : Optimisers.setup(optimizer, params)
 end
 
 function maybe_init_objective(
     state_init::NamedTuple,
     rng       ::Random.AbstractRNG,
     objective ::AbstractVariationalObjective,
-    λ         ::AbstractVector,
-    restructure
+    params,
+    q;
+    kwargs...
 )
-    haskey(state_init, :objective) ? state_init.objective : init(rng, objective, λ, restructure)
+    if haskey(state_init, :objective)
+        state_init.objective
+    else
+        init(rng, objective, params, q; kwargs...)
+    end
 end
 
 eachsample(samples::AbstractMatrix) = eachcol(samples)
