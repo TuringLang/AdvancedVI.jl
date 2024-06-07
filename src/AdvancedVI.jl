@@ -37,6 +37,33 @@ Evaluate the value and gradient of a function `f` at `θ` using the automatic di
 """
 function value_and_gradient! end
 
+# Update for gradient descent step
+"""
+    update_variational_params!(family_type, opt_st, params, restructure, grad)
+
+Update variational distribution according to the update rule in the optimizer state `opt_st` and the variational family `family_type`.
+
+This is a wrapper around `Optimisers.update!` to provide some indirection.
+For example, depending on the optimizer and the variational family, this may do additional things such as applying projection or proximal mappings.
+Same as the default behavior of `Optimisers.update!`, `params` and `opt_st` may be updated by the routine and are no longer valid after calling this functino.
+Instead, the return values should be used.
+
+# Arguments
+- `family_type::Type`: Type of the variational family `typeof(restructure(params))`.
+- `opt_st`: Optimizer state returned by `Optimisers.setup`.
+- `params`: Current set of parameters to be updated.
+- `restructure`: Callable for restructuring the varitional distribution from `params`.
+- `grad`: Gradient to be used by the update rule of `opt_st`.
+
+# Returns
+- `opt_st`: Updated optimizer state.
+- `params`: Updated parameters.
+"""
+function update_variational_params! end
+
+update_variational_params!(::Type, opt_st, params, restructure, grad) =
+    Optimisers.update!(opt_st, params, grad)
+
 # estimators
 """
     AbstractVariationalObjective
