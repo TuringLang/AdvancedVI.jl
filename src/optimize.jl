@@ -64,8 +64,7 @@ function optimize(
         enabled   = show_progress
     ),
 )
-    params, restructure = Optimisers.destructure(q_init)
-
+    params, restructure = Optimisers.destructure(deepcopy(q_init))
     opt_st   = maybe_init_optimizer(state_init, optimizer, params)
     obj_st   = maybe_init_objective(state_init, rng, objective, params, restructure)
     grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
@@ -76,7 +75,7 @@ function optimize(
 
         grad_buf, obj_st, stat′ = estimate_gradient!(
             rng, objective, adtype, grad_buf, problem,
-            params, restructure,  obj_st, objargs...
+            params, restructure, obj_st, objargs...
         )
         stat = merge(stat, stat′)
 
@@ -96,9 +95,9 @@ function optimize(
         pm_next!(prog, stat)
         push!(stats, stat)
     end
-    state  = (optimizer=opt_st, objective=obj_st)
-    stats  = map(identity, stats)
-    params, stats, state
+    state = (optimizer=opt_st, objective=obj_st)
+    stats = map(identity, stats)
+    restructure(params), stats, state
 end
 
 function optimize(
