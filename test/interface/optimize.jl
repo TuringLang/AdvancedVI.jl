@@ -24,7 +24,6 @@ using Test
         show_progress = false,
         adtype,
     )
-    λ_ref, _ = Optimisers.destructure(q_ref)
 
     @testset "default_rng" begin
         optimize(
