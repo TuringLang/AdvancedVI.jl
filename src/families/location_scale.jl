@@ -57,17 +57,17 @@ Base.eltype(::Type{<:MvLocationScale{S, D, L}}) where {S, D, L} = eltype(D)
 function StatsBase.entropy(q::MvLocationScale)
     @unpack  location, scale, dist = q
     n_dims = length(location)
-    n_dims*convert(eltype(location), entropy(dist)) + first(logabsdet(scale))
+    n_dims*convert(eltype(location), entropy(dist)) + first(logdet(scale))
 end
 
 function Distributions.logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
-    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - first(logabsdet(scale))
+    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - first(logdet(scale))
 end
 
 function Distributions._logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
-    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - first(logabsdet(scale))
+    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - first(logdet(scale))
 end
 
 function Distributions.rand(q::MvLocationScale)
