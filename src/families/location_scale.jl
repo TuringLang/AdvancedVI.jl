@@ -168,7 +168,7 @@ function MeanFieldGaussian(
 end
 
 function update_variational_params!(
-    ::MvLocationScale, opt_st, params, restructure, grad
+    ::Type{<:MvLocationScale}, opt_st, params, restructure, grad
 )
     opt_st, params = Optimisers.update!(opt_st, params, grad)
     q = restructure(params)
