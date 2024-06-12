@@ -46,14 +46,14 @@ function (re::RestructureMeanField)(flat::AbstractVector)
     n_dims   = div(length(flat), 2)
     location = first(flat, n_dims)
     scale    = Diagonal(last(flat, n_dims))
-    MvLocationScale(location, scale, re.q.dist)
+    MvLocationScale(location, scale, re.q.dist, re.q.scale_eps)
 end
 
 function Optimisers.destructure(
     q::MvLocationScale{<:Diagonal, D, L}
 ) where {D, L}
     @unpack location, scale, dist = q
-    flat   = vcat(location, diag(scale))
+    flat = vcat(location, diag(scale))
     flat, RestructureMeanField(q)
 end
 # end
