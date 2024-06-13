@@ -78,7 +78,7 @@ If the estimator is stateful, it can implement `init` to initialize the state.
 abstract type AbstractVariationalObjective end
 
 """
-    init(rng, obj, λ, restructure)
+    init(rng, obj, prob, params, restructure)
 
 Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
 This function needs to be implemented only if `obj` is stateful.
@@ -86,13 +86,14 @@ This function needs to be implemented only if `obj` is stateful.
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `obj::AbstractVariationalObjective`: Variational objective.
-- `λ`: Initial variational parameters.
+- `params`: Initial variational parameters.
 - `restructure`: Function that reconstructs the variational approximation from `λ`.
 """
 init(
     ::Random.AbstractRNG,
     ::AbstractVariationalObjective,
-    ::AbstractVector,
+    ::Any
+    ::Any,
     ::Any
 ) = nothing
 
