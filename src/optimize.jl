@@ -80,7 +80,9 @@ function optimize(
         stat = merge(stat, stat′)
 
         grad = DiffResults.gradient(grad_buf)
-        opt_st, params = Optimisers.update!(opt_st, params, grad)
+        opt_st, params = update_variational_params!(
+            typeof(q_init), opt_st, params, restructure, grad
+        )
 
         if !isnothing(callback)
             stat′ = callback(

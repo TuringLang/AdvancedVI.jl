@@ -14,11 +14,21 @@ represented as follows:
 ```
 """
 struct MvLocationScale{
-    S, D <: ContinuousDistribution, L
+    S, D <: ContinuousDistribution, L, E <: Real
 } <: ContinuousMultivariateDistribution
-    location::L
-    scale   ::S
-    dist    ::D
+    location ::L
+    scale    ::S
+    dist     ::D
+    scale_eps::E
+end
+
+function MvLocationScale(
+    location ::AbstractVector{T},
+    scale    ::AbstractMatrix{T},
+    dist     ::ContinuousDistribution;
+    scale_eps::T = sqrt(eps(T))
+) where {T <: Real}
+    MvLocationScale(location, scale, dist, scale_eps)
 end
 
 Functors.@functor MvLocationScale (location, scale)
@@ -36,14 +46,14 @@ function (re::RestructureMeanField)(flat::AbstractVector)
     n_dims   = div(length(flat), 2)
     location = first(flat, n_dims)
     scale    = Diagonal(last(flat, n_dims))
-    MvLocationScale(location, scale, re.q.dist)
+    MvLocationScale(location, scale, re.q.dist, re.q.scale_eps)
 end
 
 function Optimisers.destructure(
     q::MvLocationScale{<:Diagonal, D, L}
 ) where {D, L}
     @unpack location, scale, dist = q
-    flat   = vcat(location, diag(scale))
+    flat = vcat(location, diag(scale))
     flat, RestructureMeanField(q)
 end
 # end
@@ -57,17 +67,17 @@ Base.eltype(::Type{<:MvLocationScale{S, D, L}}) where {S, D, L} = eltype(D)
 function StatsBase.entropy(q::MvLocationScale)
     @unpack  location, scale, dist = q
     n_dims = length(location)
-    n_dims*convert(eltype(location), entropy(dist)) + first(logdet(scale))
+    n_dims*convert(eltype(location), entropy(dist)) + logdet(scale)
 end
 
 function Distributions.logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
-    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - first(logdet(scale))
+    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - logdet(scale)
 end
 
 function Distributions._logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
     @unpack location, scale, dist = q
-    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - first(logdet(scale))
+    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - logdet(scale)
 end
 
 function Distributions.rand(q::MvLocationScale)
@@ -128,14 +138,11 @@ Construct a Gaussian variational approximation with a dense covariance matrix.
 function FullRankGaussian(
     μ::AbstractVector{T},
     L::LinearAlgebra.AbstractTriangular{T};
-    check_args::Bool = true
+    scale_eps::T = sqrt(eps(T))
 ) where {T <: Real}
-    @assert minimum(diag(L)) > eps(eltype(L)) "Scale must be positive definite"
-    if check_args && (minimum(diag(L)) < sqrt(eps(eltype(L))))
-        @warn "Initial scale is too small (minimum eigenvalue is $(minimum(diag(L)))). This might result in unstable optimization behavior."
-    end
+    @assert minimum(diag(L)) ≥ sqrt(scale_eps) "Initial scale is too small (smallest diagonal value is $(minimum(diag(L)))). This might result in unstable optimization behavior."
     q_base = Normal{T}(zero(T), one(T))
-    MvLocationScale(μ, L, q_base)
+    MvLocationScale(μ, L, q_base, scale_eps)
 end
 
 """
@@ -153,12 +160,25 @@ Construct a Gaussian variational approximation with a diagonal covariance matrix
 function MeanFieldGaussian(
     μ::AbstractVector{T},
     L::Diagonal{T};
-    check_args::Bool = true
+    scale_eps::T = sqrt(eps(T)),
 ) where {T <: Real}
-    @assert minimum(diag(L)) > eps(eltype(L)) "Scale must be a Cholesky factor"
-    if check_args && (minimum(diag(L)) < sqrt(eps(eltype(L))))
-        @warn "Initial scale is too small (minimum eigenvalue is $(minimum(diag(L)))). This might result in unstable optimization behavior."
-    end
+    @assert minimum(diag(L)) ≥ sqrt(eps(eltype(L))) "Initial scale is too small (smallest diagonal value is $(minimum(diag(L)))). This might result in unstable optimization behavior."
     q_base = Normal{T}(zero(T), one(T))
-    MvLocationScale(μ, L, q_base)
+    MvLocationScale(μ, L, q_base, scale_eps)
+end
+
+function update_variational_params!(
+    ::Type{<:MvLocationScale}, opt_st, params, restructure, grad
+)
+    opt_st, params = Optimisers.update!(opt_st, params, grad)
+    q = restructure(params)
+    ϵ = q.scale_eps
+
+    # Project the scale matrix to the set of positive definite triangular matrices
+    diag_idx = diagind(q.scale)
+    @. q.scale[diag_idx] = max(q.scale[diag_idx], ϵ)
+
+    params, _ = Optimisers.destructure(q)
+
+    opt_st, params
 end
