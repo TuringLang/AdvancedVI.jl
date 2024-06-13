@@ -25,11 +25,12 @@ using AdvancedVI
 const GROUP = get(ENV, "GROUP", "All")
 
 # Models for Inference Tests
-struct TestModel{M,L,S}
+struct TestModel{M,L,S,SC}
     model::M
     μ_true::L
     L_true::S
     n_dims::Int
+    strong_convexity::SC
     is_meanfield::Bool
 end
 include("models/normal.jl")

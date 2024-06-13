@@ -21,9 +21,11 @@
         rng  = StableRNG(seed)
 
         modelstats = modelconstr(rng, realtype)
-        @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
+        @unpack model, μ_true, L_true, n_dims, strong_convexity, is_meanfield = modelstats
 
-        T, η = is_meanfield ? (5_000, 1e-2) : (30_000, 1e-3)
+        T   = 1000
+        η   = 1e-3
+        opt = Optimisers.Descent(realtype(η))
 
         b    = Bijectors.bijector(model)
         b⁻¹  = inverse(b)
@@ -38,11 +40,16 @@
         end
         q0_z = Bijectors.transformed(q0_η, b⁻¹)
 
+        # For small enough η, the error of SGD, Δλ, is bounded as
+        #     Δλ ≤ ρ^T Δλ0 + O(η),
+        # where ρ = 1 - ημ, μ is the strong convexity constant.
+        contraction_rate = 1 - η*strong_convexity
+
         @testset "convergence" begin
             Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
             q, stats, _ = optimize(
                 rng, model, objective, q0_z, T;
-                optimizer     = Optimisers.Adam(realtype(η)),
+                optimizer     = opt,
                 show_progress = PROGRESS,
                 adtype        = adtype,
             )
@@ -51,7 +58,7 @@
             L  = q.dist.scale
             Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
-            @test Δλ ≤ Δλ0/T^(1/4)
+            @test Δλ ≤ contraction_rate^(T/2)*Δλ0
             @test eltype(μ) == eltype(μ_true)
             @test eltype(L) == eltype(L_true)
         end
@@ -60,7 +67,7 @@
             rng = StableRNG(seed)
             q, stats, _ = optimize(
                 rng, model, objective, q0_z, T;
-                optimizer     = Optimisers.Adam(realtype(η)),
+                optimizer     = opt,
                 show_progress = PROGRESS,
                 adtype        = adtype,
             )
@@ -70,7 +77,7 @@
             rng_repl = StableRNG(seed)
             q, stats, _ = optimize(
                 rng_repl, model, objective, q0_z, T;
-                optimizer     = Optimisers.Adam(realtype(η)),
+                optimizer     = opt 
                 show_progress = PROGRESS,
                 adtype        = adtype,
             )

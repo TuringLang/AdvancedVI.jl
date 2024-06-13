@@ -26,40 +26,29 @@ function Bijectors.bijector(model::NormalLogNormal)
         [1:1, 2:1+length(μ_y)])	
 end	
 
-function normallognormal_fullrank(rng::Random.AbstractRNG, realtype::Type)	
-    n_dims = 5	
+function normallognormal_fullrank(::Random.AbstractRNG, realtype::Type)	
+    n_y_dims = 5	
 
-    μ_x = randn(rng, realtype)	
-    σ_x = ℯ	
-    μ_y = randn(rng, realtype, n_dims)	
-    L_y = tril(I + ones(realtype, n_dims, n_dims))/2	
-    Σ_y = L_y*L_y' |> Hermitian	
+    σ0 = realtype(0.3)
+    μ  = Fill(realtype(5.0), n_y_dims+1)
+    L  = Matrix(σ0*I, n_y_dims+1, n_y_dims+1)
+    Σ  = L*L' |> Hermitian
 
-    model = NormalLogNormal(μ_x, σ_x, μ_y, PDMat(Σ_y, Cholesky(L_y, 'L', 0)))	
-
-    Σ = Matrix{realtype}(undef, n_dims+1, n_dims+1)	
-    Σ[1,1]         = σ_x^2	
-    Σ[2:end,2:end] = Σ_y	
-    Σ = Σ |> Hermitian	
-
-    μ = vcat(μ_x, μ_y)	
-    L = cholesky(Σ).L	
-
-    TestModel(model, μ, L, n_dims+1, false)	
+    model = NormalLogNormal(
+        μ[1], L[1,1], μ[2:end], PDMat(Σ[2:end,2:end], Cholesky(L[2:end,2:end], 'L', 0))
+    )
+    TestModel(model, μ, LowerTriangular(L), n_y_dims+1, 1/σ0^2, false)	
 end	
 
-function normallognormal_meanfield(rng::Random.AbstractRNG, realtype::Type)	
-    n_dims = 5	
+function normallognormal_meanfield(::Random.AbstractRNG, realtype::Type)	
+    n_y_dims = 5	
 
-    μ_x  = randn(rng, realtype)	
-    σ_x  = ℯ	
-    μ_y  = randn(rng, realtype, n_dims)	
-    σ_y  = log.(exp.(randn(rng, realtype, n_dims)) .+ 1)	
+    σ0 = realtype(0.3)
+    μ  = Fill(realtype(5), n_y_dims + 1)
+    σ  = Fill(σ0, n_y_dims + 1)
+    L  = Diagonal(σ)
 
-    model = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2))	
+    model = NormalLogNormal(μ[1], σ[1], μ[2:end], Diagonal(σ[2:end].^2))	
 
-    μ = vcat(μ_x, μ_y)	
-    L = vcat(σ_x, σ_y) |> Diagonal	
-
-    TestModel(model, μ, L, n_dims+1, true)	
+    TestModel(model, μ, L, n_y_dims+1, 1/σ0^2, true)	
 end	
