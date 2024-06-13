@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717719819682,
+  "lastUpdate": 1718239862845,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -72,6 +72,42 @@ window.BENCHMARK_DATA = {
             "value": 141700614.5,
             "unit": "ns",
             "extra": "gctime=8378886.5\nmemory=89566656\nallocs=1899672\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "msca8h@naver.com",
+            "name": "Kyurae Kim",
+            "username": "Red-Portal"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5ced9c2dae5bb7c78b005a0b4684afc0def9b76b",
+          "message": "add indirection for update step, add projection for `LocationScale` (#65)\n\n* add indirection for update step, add projection for `LocationScale`\r\n* add projection for `Bijectors` with `MvLocationScale`",
+          "timestamp": "2024-06-13T01:48:32+01:00",
+          "tree_id": "24250832e7d38a3adf8f5bf445cab91d9255cc43",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/commit/5ced9c2dae5bb7c78b005a0b4684afc0def9b76b"
+        },
+        "date": 1718239862313,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 535462845,
+            "unit": "ns",
+            "extra": "gctime=28419173.5\nmemory=861934528\nallocs=3387669\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 192925746.5,
+            "unit": "ns",
+            "extra": "gctime=7137156.5\nmemory=98894592\nallocs=2053670\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
