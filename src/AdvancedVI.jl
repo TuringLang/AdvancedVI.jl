@@ -37,6 +37,9 @@ Evaluate the value and gradient of a function `f` at `θ` using the automatic di
 """
 function value_and_gradient! end
 
+stop_gradient(x) = x
+
+
 # Update for gradient descent step
 """
     update_variational_params!(family_type, opt_st, params, restructure, grad)
@@ -92,9 +95,9 @@ This function needs to be implemented only if `obj` is stateful.
 init(
     ::Random.AbstractRNG,
     ::AbstractVariationalObjective,
-    ::Any
     ::Any,
-    ::Any
+    ::Any,
+    ::Any,
 ) = nothing
 
 """
