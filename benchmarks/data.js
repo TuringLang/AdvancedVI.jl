@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718241784890,
+  "lastUpdate": 1718245024783,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -144,6 +144,42 @@ window.BENCHMARK_DATA = {
             "value": 190422991,
             "unit": "ns",
             "extra": "gctime=7982450\nmemory=98894592\nallocs=2053670\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "msca8h@naver.com",
+            "name": "Ray Kim",
+            "username": "Red-Portal"
+          },
+          "committer": {
+            "email": "msca8h@naver.com",
+            "name": "Ray Kim",
+            "username": "Red-Portal"
+          },
+          "distinct": true,
+          "id": "b927e806b55f29c686eb2aaa57d39491572c8555",
+          "message": "fix reduce computational cost of tests, use more sophisticated tests",
+          "timestamp": "2024-06-13T03:14:09+01:00",
+          "tree_id": "6091968cd8cb18c1a8d5383f9462a452532c27ea",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/commit/b927e806b55f29c686eb2aaa57d39491572c8555"
+        },
+        "date": 1718245023906,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 558006515.5,
+            "unit": "ns",
+            "extra": "gctime=32716098.5\nmemory=861934528\nallocs=3387669\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 189274695,
+            "unit": "ns",
+            "extra": "gctime=7994632\nmemory=98894592\nallocs=2053670\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
