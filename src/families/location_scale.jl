@@ -75,11 +75,6 @@ function Distributions.logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
     sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - logdet(scale)
 end
 
-function Distributions._logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
-    @unpack location, scale, dist = q
-    sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - logdet(scale)
-end
-
 function Distributions.rand(q::MvLocationScale)
     @unpack location, scale, dist = q
     n_dims = length(location)

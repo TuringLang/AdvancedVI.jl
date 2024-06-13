@@ -35,12 +35,6 @@
             @test eltype(logpdf(q, z))  == realtype 
         end
 
-        @testset "_logpdf" begin
-            z = rand(q)
-            @test Distributions._logpdf(q, z)          ≈ logpdf(q_true, z)  rtol=realtype(1e-2)
-            @test eltype(Distributions.logpdf(q, z))  == realtype 
-        end
-
         @testset "entropy" begin
             @test eltype(entropy(q)) == realtype
             @test entropy(q)         ≈ entropy(q_true)
