@@ -77,7 +77,7 @@
             rng_repl = StableRNG(seed)
             q, stats, _ = optimize(
                 rng_repl, model, objective, q0_z, T;
-                optimizer     = opt 
+                optimizer     = opt,
                 show_progress = PROGRESS,
                 adtype        = adtype,
             )
