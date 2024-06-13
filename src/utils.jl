@@ -8,8 +8,11 @@ function maybe_init_optimizer(
     optimizer ::Optimisers.AbstractRule,
     params
 )
-    haskey(state_init, :optimizer) ?
-        state_init.optimizer : Optimisers.setup(optimizer, params)
+    if haskey(state_init, :optimizer)
+        state_init.optimizer
+    else
+        Optimisers.setup(optimizer, params)
+    end
 end
 
 function maybe_init_objective(
@@ -20,8 +23,11 @@ function maybe_init_objective(
     params,
     restructure
 )
-    haskey(state_init, :objective) ?
-        state_init.objective : init(rng, objective, params, problem, restructure)
+    if haskey(state_init, :objective)
+        state_init.objective
+    else
+        init(rng, objective, problem, params, restructure)
+    end
 end
 
 eachsample(samples::AbstractMatrix) = eachcol(samples)
