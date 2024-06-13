@@ -1,8 +1,4 @@
 
-const PROGRESS = length(ARGS) > 0 && ARGS[1] == "--progress" ? true : false
-
-using Test
-
 @testset "inference RepGradELBO VILocationScale Bijectors" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)"  for
         realtype in [Float64, Float32],
