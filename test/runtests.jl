@@ -18,9 +18,11 @@ using DistributionsAD
 using LogDensityProblems
 using Optimisers
 using ADTypes
-using ForwardDiff, ReverseDiff, Zygote, Enzyme
+using ForwardDiff, ReverseDiff, Zygote
 
 using AdvancedVI
+
+const GROUP = get(ENV, "GROUP", "All")
 
 # Models for Inference Tests
 struct TestModel{M,L,S}
@@ -34,11 +36,15 @@ include("models/normal.jl")
 include("models/normallognormal.jl")
 
 # Tests
-include("interface/ad.jl")
-include("interface/optimize.jl")
-include("interface/repgradelbo.jl")
-include("interface/location_scale.jl")
+if GROUP == "All" || GROUP == "Interface"
+    include("interface/ad.jl")
+    include("interface/optimize.jl")
+    include("interface/repgradelbo.jl")
+    include("interface/location_scale.jl")
+end
 
-include("inference/repgradelbo_distributionsad.jl")
-include("inference/repgradelbo_locationscale.jl")
-include("inference/repgradelbo_locationscale_bijectors.jl")
+if GROUP == "All" || GROUP == "Inference"
+    include("inference/repgradelbo_distributionsad.jl")
+    include("inference/repgradelbo_locationscale.jl")
+    include("inference/repgradelbo_locationscale_bijectors.jl")
+end
