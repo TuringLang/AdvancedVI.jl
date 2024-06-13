@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718245024783,
+  "lastUpdate": 1718245681317,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -180,6 +180,42 @@ window.BENCHMARK_DATA = {
             "value": 189274695,
             "unit": "ns",
             "extra": "gctime=7994632\nmemory=98894592\nallocs=2053670\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "msca8h@naver.com",
+            "name": "Ray Kim",
+            "username": "Red-Portal"
+          },
+          "committer": {
+            "email": "msca8h@naver.com",
+            "name": "Ray Kim",
+            "username": "Red-Portal"
+          },
+          "distinct": true,
+          "id": "ec4db7e7480c43330b0c8d06d0f2d65841b862b5",
+          "message": "fix bug in test",
+          "timestamp": "2024-06-13T03:22:52+01:00",
+          "tree_id": "6ff0ad61ba7c5b1124278c423af73853ab281afd",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/commit/ec4db7e7480c43330b0c8d06d0f2d65841b862b5"
+        },
+        "date": 1718245678904,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 537087137.5,
+            "unit": "ns",
+            "extra": "gctime=26687253.5\nmemory=861934528\nallocs=3387669\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 189969735,
+            "unit": "ns",
+            "extra": "gctime=7276601\nmemory=98894592\nallocs=2053670\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
