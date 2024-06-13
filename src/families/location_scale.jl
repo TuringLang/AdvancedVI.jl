@@ -67,6 +67,7 @@ Base.eltype(::Type{<:MvLocationScale{S, D, L}}) where {S, D, L} = eltype(D)
 function StatsBase.entropy(q::MvLocationScale)
     @unpack  location, scale, dist = q
     n_dims = length(location)
+    # `convert` is necessary because `entropy` is not type stable upstream
     n_dims*convert(eltype(location), entropy(dist)) + logdet(scale)
 end
 
