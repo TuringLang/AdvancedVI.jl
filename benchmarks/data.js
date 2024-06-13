@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718246126600,
+  "lastUpdate": 1718247480339,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -252,6 +252,42 @@ window.BENCHMARK_DATA = {
             "value": 195508939,
             "unit": "ns",
             "extra": "gctime=8269472\nmemory=98894592\nallocs=2053670\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "msca8h@naver.com",
+            "name": "Ray Kim",
+            "username": "Red-Portal"
+          },
+          "committer": {
+            "email": "msca8h@naver.com",
+            "name": "Ray Kim",
+            "username": "Red-Portal"
+          },
+          "distinct": true,
+          "id": "c93b5d71cf025aacbdf94d83467fd8a218eac1e3",
+          "message": "add comment for `entropy` on `LocationScale`",
+          "timestamp": "2024-06-13T03:55:12+01:00",
+          "tree_id": "f8be87990ca35dc7ade1644662451727f6f8400f",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/commit/c93b5d71cf025aacbdf94d83467fd8a218eac1e3"
+        },
+        "date": 1718247479487,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 529221525.5,
+            "unit": "ns",
+            "extra": "gctime=25323331.5\nmemory=861934528\nallocs=3387669\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 187259407,
+            "unit": "ns",
+            "extra": "gctime=7058396\nmemory=98894592\nallocs=2053670\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
