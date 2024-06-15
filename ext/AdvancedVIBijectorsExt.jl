@@ -42,9 +42,9 @@ function AdvancedVI.reparam_with_entropy(
     n_samples::Int,
     ent_est  ::AdvancedVI.AbstractEntropyEstimator
 )
-    transform       = q.transform
-    q_unconst       = q.dist
-    q_unconst_stop  = q_stop.dist
+    transform      = q.transform
+    q_unconst      = q.dist
+    q_unconst_stop = q_stop.dist
 
     # Draw samples and compute entropy of the uncontrained distribution
     unconstr_samples, unconst_entropy = AdvancedVI.reparam_with_entropy(

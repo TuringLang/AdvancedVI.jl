@@ -13,11 +13,24 @@ end
 
 # ReverseDiff without compiled tape
 function AdvancedVI.value_and_gradient!(
-    ad::ADTypes.AutoReverseDiff, f, θ::AbstractVector{<:Real}, out::DiffResults.MutableDiffResult
+    ad::ADTypes.AutoReverseDiff,
+    f,
+    x::AbstractVector{<:Real},
+    out::DiffResults.MutableDiffResult
 )
-    tp = ReverseDiff.GradientTape(f, θ)
-    ReverseDiff.gradient!(out, tp, θ)
+    tp = ReverseDiff.GradientTape(f, x)
+    ReverseDiff.gradient!(out, tp, x)
     return out
+end
+
+function AdvancedVI.value_and_gradient!(
+    ad::ADTypes.AutoReverseDiff,
+    f,
+    x::AbstractVector{<:Real},
+    aux,
+    out::DiffResults.MutableDiffResult
+)
+    AdvancedVI.value_and_gradient!(ad, x′ -> f(x′, aux), x, out)
 end
 
 end

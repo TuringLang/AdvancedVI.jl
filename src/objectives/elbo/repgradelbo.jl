@@ -56,14 +56,13 @@ function estimate_energy_with_samples(prob, samples)
 end
 
 """
-    reparam_with_entropy(rng, q, q_stop, n_samples, ent_est)
+    reparam_with_entropy(rng, q, n_samples, ent_est)
 
 Draw `n_samples` from `q` and compute its entropy.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `q`: Variational approximation.
-- `q_stop`: `q` but with its gradient stopped.
 - `n_samples::Int`: Number of Monte Carlo samples 
 - `ent_est`: The entropy estimation strategy. (See `estimate_entropy`.)
 
@@ -72,7 +71,11 @@ Draw `n_samples` from `q` and compute its entropy.
 - `entropy`: An estimate (or exact value) of the differential entropy of `q`.
 """
 function reparam_with_entropy(
-    rng::Random.AbstractRNG, q, q_stop, n_samples::Int, ent_est::AbstractEntropyEstimator
+    rng      ::Random.AbstractRNG,
+    q,
+    q_stop,
+    n_samples::Int,
+    ent_est  ::AbstractEntropyEstimator
 )
     samples = rand(rng, q, n_samples)
     entropy = estimate_entropy_maybe_stl(ent_est, samples, q, q_stop)
@@ -94,28 +97,31 @@ end
 estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int = obj.n_samples) =
     estimate_objective(Random.default_rng(), obj, q, prob; n_samples)
 
+function estimate_repgradelbo_ad_forward(params′, aux)
+    @unpack rng, obj, problem, restructure, q_stop = aux
+    q = restructure(params′)
+    samples, entropy = reparam_with_entropy(rng, q, q_stop, obj.n_samples, obj.entropy)
+    energy = estimate_energy_with_samples(problem, samples)
+    elbo = energy + entropy
+    -elbo
+end
+
 function estimate_gradient!(
     rng   ::Random.AbstractRNG,
     obj   ::RepGradELBO,
     adtype::ADTypes.AbstractADType,
     out   ::DiffResults.MutableDiffResult,
     prob,
-    λ,
+    params,
     restructure,
     state,
 )
-    q_stop = restructure(λ)
-    function f(λ′)
-        q = restructure(λ′)
-        samples, entropy = reparam_with_entropy(rng, q, q_stop, obj.n_samples, obj.entropy)
-        energy = estimate_energy_with_samples(prob, samples)
-        elbo = energy + entropy
-        -elbo
-    end
-    value_and_gradient!(adtype, f, λ, out)
-
+    q_stop = restructure(params)
+    aux = (rng=rng, obj=obj, problem=prob, restructure=restructure, q_stop=q_stop)
+    value_and_gradient!(
+        adtype, estimate_repgradelbo_ad_forward, params, aux, out
+    )
     nelbo = DiffResults.value(out)
     stat  = (elbo=-nelbo,)
-
     out, nothing, stat
 end

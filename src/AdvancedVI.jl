@@ -25,17 +25,34 @@ using StatsBase
 
 # derivatives
 """
-    value_and_gradient!(ad, f, θ, out)
+    value_and_gradient!(ad, f, x, out)
+    value_and_gradient!(ad, f, x, aux, out)
 
-Evaluate the value and gradient of a function `f` at `θ` using the automatic differentiation backend `ad` and store the result in `out`.
+Evaluate the value and gradient of a function `f` at `x` using the automatic differentiation backend `ad` and store the result in `out`.
+`f` may receive auxiliary input as `f(x,aux)`.
 
 # Arguments
 - `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
 - `f`: Function subject to differentiation.
-- `θ`: The point to evaluate the gradient.
+- `x`: The point to evaluate the gradient.
+- `aux`: Auxiliary input passed to `f`.
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
 function value_and_gradient! end
+
+"""
+    stop_gradient(x)
+
+Stop the gradient from propagating to `x` if the selected ad backend supports it.
+Otherwise, it is equivalent to `identity`.
+
+# Arguments
+- `x`: Input
+
+# Returns
+- `x`: Same value as the input.
+"""
+function stop_gradient end
 
 # Update for gradient descent step
 """
@@ -78,7 +95,7 @@ If the estimator is stateful, it can implement `init` to initialize the state.
 abstract type AbstractVariationalObjective end
 
 """
-    init(rng, obj, λ, restructure)
+    init(rng, obj, prob, params, restructure)
 
 Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
 This function needs to be implemented only if `obj` is stateful.
@@ -86,14 +103,15 @@ This function needs to be implemented only if `obj` is stateful.
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `obj::AbstractVariationalObjective`: Variational objective.
-- `λ`: Initial variational parameters.
+- `params`: Initial variational parameters.
 - `restructure`: Function that reconstructs the variational approximation from `λ`.
 """
 init(
     ::Random.AbstractRNG,
     ::AbstractVariationalObjective,
-    ::AbstractVector,
-    ::Any
+    ::Any,
+    ::Any,
+    ::Any,
 ) = nothing
 
 """
