@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718247480339,
+  "lastUpdate": 1718411390492,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -288,6 +288,42 @@ window.BENCHMARK_DATA = {
             "value": 187259407,
             "unit": "ns",
             "extra": "gctime=7058396\nmemory=98894592\nallocs=2053670\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "msca8h@naver.com",
+            "name": "Kyurae Kim",
+            "username": "Red-Portal"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cb3b8380ad03ed8e84f7a8bc679cc076ba4ede2e",
+          "message": "fix avoid re-defining the differentiation objective to support AD pre-compilation (#66)\n\n* update interface for objective initialization\r\n* improve `RepGradELBO` to not redefine AD forward path\r\n* add auxiliary argument to `value_and_gradient!`",
+          "timestamp": "2024-06-15T01:27:18+01:00",
+          "tree_id": "cc4b7ef89f7c04110c6b3d4942e71c3d3e3c62b9",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/commit/cb3b8380ad03ed8e84f7a8bc679cc076ba4ede2e"
+        },
+        "date": 1718411389220,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 468762711,
+            "unit": "ns",
+            "extra": "gctime=23744277\nmemory=816894528\nallocs=2732669\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 185732693,
+            "unit": "ns",
+            "extra": "gctime=7398695\nmemory=98462592\nallocs=2030670\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
