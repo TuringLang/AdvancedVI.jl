@@ -18,6 +18,7 @@ end
 function maybe_init_objective(
     state_init::NamedTuple,
     rng       ::Random.AbstractRNG,
+    adtype    ::ADTypes.AbstractADType,
     objective ::AbstractVariationalObjective,
     problem,
     params,
@@ -26,7 +27,7 @@ function maybe_init_objective(
     if haskey(state_init, :objective)
         state_init.objective
     else
-        init(rng, objective, problem, params, restructure)
+        init(rng, objective, adtype, problem, params, restructure)
     end
 end
 

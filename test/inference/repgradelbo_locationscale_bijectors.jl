@@ -13,7 +13,8 @@
         (adbackname, adtype) in Dict(
             :ForwarDiff  => AutoForwardDiff(),
             :ReverseDiff => AutoReverseDiff(),
-            #:Zygote      => AutoZygote(), 
+            :Zygote      => AutoZygote(), 
+            :Tapir       => AutoTapir(safe_mode=false), 
             #:Enzyme      => AutoEnzyme(),
         )
 
