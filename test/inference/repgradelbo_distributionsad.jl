@@ -14,6 +14,7 @@
             :ForwarDiff  => AutoForwardDiff(),
             #:ReverseDiff => AutoReverseDiff(),
             :Zygote      => AutoZygote(), 
+            :Tapir       => AutoTapir(), 
             #:Enzyme      => AutoEnzyme(),
         )
 

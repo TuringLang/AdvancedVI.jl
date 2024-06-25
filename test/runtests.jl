@@ -18,7 +18,7 @@ using DistributionsAD
 using LogDensityProblems
 using Optimisers
 using ADTypes
-using ForwardDiff, ReverseDiff, Zygote
+using ForwardDiff, ReverseDiff, Zygote, Tapir
 
 using AdvancedVI
 

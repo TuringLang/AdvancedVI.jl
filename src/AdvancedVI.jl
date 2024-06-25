@@ -25,14 +25,15 @@ using StatsBase
 
 # derivatives
 """
-    value_and_gradient!(ad, f, x, out)
-    value_and_gradient!(ad, f, x, aux, out)
+    value_and_gradient!(adtype, ad_st, f, x, out)
+    value_and_gradient!(adtype, ad_st, f, x, aux, out)
 
-Evaluate the value and gradient of a function `f` at `x` using the automatic differentiation backend `ad` and store the result in `out`.
+Evaluate the value and gradient of a function `f` at `x` using the automatic differentiation (AD) backend `ad` and store the result in `out`.
 `f` may receive auxiliary input as `f(x,aux)`.
 
 # Arguments
-- `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
+- `adtype::ADTypes.AbstractADType`: AD backend. 
+- `ad_st`: State used by the AD backend. (This will often be pre-compiled tapes/caches.)
 - `f`: Function subject to differentiation.
 - `x`: The point to evaluate the gradient.
 - `aux`: Auxiliary input passed to `f`.
@@ -41,18 +42,22 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 function value_and_gradient! end
 
 """
-    stop_gradient(x)
+    init_adbackend(adtype, f, x)
+    init_adbackend(adtype, f, x, aux)
 
-Stop the gradient from propagating to `x` if the selected ad backend supports it.
-Otherwise, it is equivalent to `identity`.
+Initialize the AD backend and setup states necessary.
 
 # Arguments
-- `x`: Input
+- `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
+- `f`: Function subject to differentiation.
+- `x`: The point to evaluate the gradient.
+- `aux`: Auxiliary input passed to `f`.
 
 # Returns
-- `x`: Same value as the input.
+- `ad_st`: State of the AD backend. (This will often be pre-compiled tapes/caches.)
 """
-function stop_gradient end
+init_adbackend(::ADTypes.AbstractADType, ::Any, ::Any)        = nothing
+init_adbackend(::ADTypes.AbstractADType, ::Any, ::Any, ::Any) = nothing
 
 # Update for gradient descent step
 """
@@ -95,20 +100,24 @@ If the estimator is stateful, it can implement `init` to initialize the state.
 abstract type AbstractVariationalObjective end
 
 """
-    init(rng, obj, prob, params, restructure)
+    init(rng, obj, adtype, prob, params, restructure)
 
-Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
+Initialize a state of the variational objective `obj`.
 This function needs to be implemented only if `obj` is stateful.
+The state of the AD backend `adtype` shall also be initialized here.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `obj::AbstractVariationalObjective`: Variational objective.
+- `adtype::ADTypes.ADType`:Automatic differentiation backend.
+- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 - `params`: Initial variational parameters.
 - `restructure`: Function that reconstructs the variational approximation from `λ`.
 """
 init(
     ::Random.AbstractRNG,
     ::AbstractVariationalObjective,
+    ::Any,
     ::Any,
     ::Any,
     ::Any,

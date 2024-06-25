@@ -34,7 +34,7 @@ end
     modelstats = normal_meanfield(rng, Float64)
     @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
-    @testset for ad in [
+    @testset for adtype in [
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(),
         ADTypes.AutoZygote()
@@ -44,12 +44,14 @@ end
             Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
         params, re = Optimisers.destructure(q_true)
-        obj = RepGradELBO(10; entropy=StickingTheLandingEntropy())
-        out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
-
-        aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true)
+        obj   = RepGradELBO(10; entropy=StickingTheLandingEntropy())
+        out   = DiffResults.DiffResult(zero(eltype(params)), similar(params))
+        aux   = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true)
+        ad_st = AdvancedVI.init_adbackend(
+            adtype, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux
+        )
         AdvancedVI.value_and_gradient!(
-            ad, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux, out
+            adtype, ad_st, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux, out
         )
         grad = DiffResults.gradient(out)
         @test norm(grad) ≈ 0 atol=1e-5

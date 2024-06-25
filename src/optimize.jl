@@ -66,7 +66,9 @@ function optimize(
 )
     params, restructure = Optimisers.destructure(deepcopy(q_init))
     opt_st   = maybe_init_optimizer(state_init, optimizer, params)
-    obj_st   = maybe_init_objective(state_init, rng, objective, problem, params, restructure)
+    obj_st   = maybe_init_objective(
+        state_init, rng, adtype, objective, problem, params, restructure
+    )
     grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
     stats    = NamedTuple[]
 
