@@ -106,6 +106,20 @@ function estimate_repgradelbo_ad_forward(params′, aux)
     -elbo
 end
 
+function init(
+    rng         ::Random.AbstractRNG,
+    obj         ::RepGradELBO,
+    adtype      ::ADTypes.AbstractADType,
+    prob,
+    params,
+    restructure,
+)
+    q_stop = restructure(params)
+    aux = (rng=rng, obj=obj, problem=prob, restructure=restructure, q_stop=q_stop)
+    ad_st = init_adbackend(adtype, estimate_repgradelbo_ad_forward, params, aux)
+    (ad_st=ad_st,)
+end
+
 function estimate_gradient!(
     rng   ::Random.AbstractRNG,
     obj   ::RepGradELBO,
@@ -117,11 +131,12 @@ function estimate_gradient!(
     state,
 )
     q_stop = restructure(params)
+    ad_st  = state.ad_st
     aux = (rng=rng, obj=obj, problem=prob, restructure=restructure, q_stop=q_stop)
     value_and_gradient!(
-        adtype, estimate_repgradelbo_ad_forward, params, aux, out
+        adtype, ad_st, estimate_repgradelbo_ad_forward, params, aux, out
     )
     nelbo = DiffResults.value(out)
     stat  = (elbo=-nelbo,)
-    out, nothing, stat
+    out, state, stat
 end

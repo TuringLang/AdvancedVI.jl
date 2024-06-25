@@ -14,6 +14,7 @@
         (adbackname, adtype) in Dict(
             :ForwarDiff  => AutoForwardDiff(),
             :ReverseDiff => AutoReverseDiff(),
+            :Tapir       => AutoTapir(safe_mode=false), 
             :Zygote      => AutoZygote(), 
             #:Enzyme      => AutoEnzyme(),
         )
