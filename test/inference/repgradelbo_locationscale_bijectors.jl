@@ -13,8 +13,8 @@
         (adbackname, adtype) in Dict(
             :ForwarDiff  => AutoForwardDiff(),
             :ReverseDiff => AutoReverseDiff(),
-            #:Zygote      => AutoZygote(), 
-            #:Enzyme      => AutoEnzyme(),
+            :Zygote      => AutoZygote(), 
+            :Enzyme      => AutoEnzyme(),
         )
 
         seed = (0x38bef07cf9cc549d)
