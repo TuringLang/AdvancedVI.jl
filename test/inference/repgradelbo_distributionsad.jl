@@ -14,7 +14,7 @@
             :ForwarDiff  => AutoForwardDiff(),
             #:ReverseDiff => AutoReverseDiff(),
             :Zygote      => AutoZygote(), 
-            #:Enzyme      => AutoEnzyme(),
+            :Enzyme      => AutoEnzyme(),
         )
 
         seed = (0x38bef07cf9cc549d)

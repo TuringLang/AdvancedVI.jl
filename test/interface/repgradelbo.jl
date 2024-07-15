@@ -37,7 +37,8 @@ end
     @testset for ad in [
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(),
-        ADTypes.AutoZygote()
+        ADTypes.AutoZygote(),
+        ADTypes.AutoEnzyme()
     ]
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true),
@@ -47,7 +48,7 @@ end
         obj = RepGradELBO(10; entropy=StickingTheLandingEntropy())
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
-        aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true)
+        aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=ad)
         AdvancedVI.value_and_gradient!(
             ad, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux, out
         )
