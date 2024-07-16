@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718411390492,
+  "lastUpdate": 1721138439456,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -324,6 +324,42 @@ window.BENCHMARK_DATA = {
             "value": 185732693,
             "unit": "ns",
             "extra": "gctime=7398695\nmemory=98462592\nallocs=2030670\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "3279477+yebai@users.noreply.github.com",
+            "name": "Hong Ge",
+            "username": "yebai"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b25d572fd28567c9c5ea0be575d28489b29bb6a7",
+          "message": "Create DocNav.yml",
+          "timestamp": "2024-07-16T14:58:05+01:00",
+          "tree_id": "f079970f8e867f6aa61c5b4313b2530a1a915ca9",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/commit/b25d572fd28567c9c5ea0be575d28489b29bb6a7"
+        },
+        "date": 1721138437769,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 479588113,
+            "unit": "ns",
+            "extra": "gctime=24019708\nmemory=816942384\nallocs=2733667\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 180341322.5,
+            "unit": "ns",
+            "extra": "gctime=7403416.5\nmemory=98510448\nallocs=2031668\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
