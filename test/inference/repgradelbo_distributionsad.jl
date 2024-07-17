@@ -3,7 +3,7 @@
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)"  for
         realtype ∈ [Float64, Float32],
         (modelname, modelconstr) ∈ Dict(
-            :Normal=> normal_meanfield,
+            :Normal => normal_meanfield,
         ),
         n_montecarlo in [1, 10],
         (objname, objective) in Dict(
@@ -12,7 +12,7 @@
         ),
         (adbackname, adtype) ∈ Dict(
             :ForwarDiff  => AutoForwardDiff(),
-            #:ReverseDiff => AutoReverseDiff(),
+            #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
             :Zygote      => AutoZygote(), 
             :Enzyme      => AutoEnzyme(),
         )
@@ -32,8 +32,8 @@
         # where ρ = 1 - ημ, μ is the strong convexity constant.
         contraction_rate = 1 - η*strong_convexity
 
-        μ0 = Zeros(realtype, n_dims)
-        L0 = Diagonal(Ones(realtype, n_dims))
+        μ0 = zeros(realtype, n_dims)
+        L0 = Diagonal(ones(realtype, n_dims))
         q0 = TuringDiagMvNormal(μ0, diag(L0))
 
         @testset "convergence" begin
