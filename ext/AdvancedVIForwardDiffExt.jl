@@ -13,6 +13,11 @@ end
 
 getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
 
+function ADvancedVI.stop_gradient(::ADTypes.AutoForwardDiff, x)
+    return ForwardDiff.value.(x)
+end
+
+
 function AdvancedVI.value_and_gradient!(
     ad ::ADTypes.AutoForwardDiff,
     f,

@@ -13,6 +13,10 @@ else
     using ..Zygote
 end
 
+function ADvancedVI.stop_gradient(::ADTypes.AutoZygote, x)
+    return ChainRulesCore.ignore_derivatives(x)
+end
+
 function AdvancedVI.value_and_gradient!(
     ::ADTypes.AutoZygote,
     f,
