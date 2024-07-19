@@ -11,7 +11,7 @@ else
     using ..AdvancedVI: ADTypes, DiffResults
 end
 
-function ADvancedVI.stop_gradient(::ADTypes.AutoEnzyme, x)
+function AdvancedVI.stop_gradient(::ADTypes.AutoEnzyme, x)
     throw("Score function estimator with Enzyme is not supported yet.")
 end
 

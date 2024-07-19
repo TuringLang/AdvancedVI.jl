@@ -13,7 +13,7 @@ else
     using ..Zygote
 end
 
-function ADvancedVI.stop_gradient(::ADTypes.AutoZygote, x)
+function AdvancedVI.stop_gradient(::ADTypes.AutoZygote, x)
     return ChainRulesCore.ignore_derivatives(x)
 end
 
@@ -25,8 +25,15 @@ function AdvancedVI.value_and_gradient!(
 )
     y, back = Zygote.pullback(f, x)
     ∇x = back(one(y))
+    if only(∇x) === nothing
+        # this is necessary in case of non-diff function
+        # since nothing can't be stored in DiffResults
+        grad = zeros(length(x))
+    else
+        grad = only(∇x)
+    end
     DiffResults.value!(out, y)
-    DiffResults.gradient!(out, only(∇x))
+    DiffResults.gradient!(out, grad)
     return out
 end
 

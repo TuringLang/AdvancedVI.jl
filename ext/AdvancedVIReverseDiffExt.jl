@@ -11,7 +11,7 @@ else
     using ..ReverseDiff
 end
 
-function ADvancedVI.stop_gradient(::ADTypes.AutoEnzyme, x)
+function AdvancedVI.stop_gradient(::ADTypes.AutoEnzyme, x)
     throw("Score function estimator with ReverseDiff is not supported yet.")
 end
 
