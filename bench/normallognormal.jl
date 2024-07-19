@@ -26,7 +26,7 @@ function Bijectors.bijector(model::NormalLogNormal)
         [1:1, 2:1+length(μ_y)])
 end
 
-function normallognormal(; fptype, adtype, family, objective, kwargs...)
+function normallognormal(; fptype, adtype, family, objective, max_iter=10^3, kwargs...)
     n_dims = 10
     μ_x    = fptype(5.0)
     σ_x    = fptype(0.3)
@@ -43,8 +43,7 @@ function normallognormal(; fptype, adtype, family, objective, kwargs...)
     binv          = inverse(b)
     q_transformed = Bijectors.TransformedDistribution(q, binv)
 
-    max_iter = 10^3
-    AdvancedVI.optimize(
+    return AdvancedVI.optimize(
         model,
         obj,
         q_transformed,

@@ -41,12 +41,13 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 function value_and_gradient! end
 
 """
-    stop_gradient(x)
+    stop_gradient(adtype, x)
 
-Stop the gradient from propagating to `x` if the selected ad backend supports it.
+Stop the gradient from propagating to `x` if the selected ad backend `adtype` supports it.
 Otherwise, it is equivalent to `identity`.
 
 # Arguments
+- `adtype::ADTypes.AbstractADType`: Automatic differentiation backend.
 - `x`: Input
 
 # Returns
@@ -179,12 +180,14 @@ function estimate_entropy end
 
 export
     RepGradELBO,
+    ScoreELBO,
     ClosedFormEntropy,
     StickingTheLandingEntropy,
     MonteCarloEntropy
 
 include("objectives/elbo/entropy.jl")
 include("objectives/elbo/repgradelbo.jl")
+include("objectives/elbo/scoreelbo.jl")
 
 
 # Variational Families
