@@ -58,7 +58,6 @@ end
 function compute_elbo(q, samples, entropy, problem, adtype)
     samples_nograd = stop_gradient(adtype, samples)
     samples_logprob = logpdf.(Ref(q), AdvancedVI.eachsample(samples_nograd)) 
-    # this is necessary to keep the elbo negative and of the same value as the pathwise
     energy = estimate_energy_with_samples(problem, samples_nograd, samples_logprob, adtype)
     elbo = energy + entropy
     return elbo
