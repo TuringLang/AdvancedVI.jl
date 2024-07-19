@@ -24,7 +24,7 @@
         @unpack model, μ_true, L_true, n_dims, strong_convexity, is_meanfield = modelstats
 
         T   = 1000
-        η   = 1e-20 # not sure such small value makes sense??
+        η   = 1e-5
         opt = Optimisers.Descent(realtype(η))
 
         # For small enough η, the error of SGD, Δλ, is bounded as
