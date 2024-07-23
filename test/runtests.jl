@@ -41,7 +41,7 @@ if GROUP == "All" || GROUP == "Interface"
     include("interface/ad.jl")
     include("interface/optimize.jl")
     include("interface/repgradelbo.jl")
-    include("interface/scoreelbo.jl")
+    include("interface/scoregradelbo.jl")
     include("interface/location_scale.jl")
 end
 
@@ -52,5 +52,5 @@ if GROUP == "All" || GROUP == "Inference"
     include("inference/repgradelbo_distributionsad.jl")
     include("inference/repgradelbo_locationscale.jl")
     include("inference/repgradelbo_locationscale_bijectors.jl")
-    include("inference/scoreelbo_distributionsad.jl")
+    include("inference/scoregradelbo_distributionsad.jl")
 end

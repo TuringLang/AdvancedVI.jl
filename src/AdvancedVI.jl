@@ -180,14 +180,14 @@ function estimate_entropy end
 
 export
     RepGradELBO,
-    ScoreELBO,
+    ScoreGradELBO,
     ClosedFormEntropy,
     StickingTheLandingEntropy,
     MonteCarloEntropy
 
 include("objectives/elbo/entropy.jl")
 include("objectives/elbo/repgradelbo.jl")
-include("objectives/elbo/scoreelbo.jl")
+include("objectives/elbo/scoregradelbo.jl")
 
 
 # Variational Families

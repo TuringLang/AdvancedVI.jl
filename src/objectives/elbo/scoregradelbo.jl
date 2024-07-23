@@ -1,5 +1,5 @@
 """
-    ScoreELBO(n_samples; kwargs...)
+    ScoreGradELBO(n_samples; kwargs...)
 
 Evidence lower-bound objective computed with score function gradients.
 ```math
@@ -27,20 +27,20 @@ To reduce the variance of the gradient estimator, we substract ``\\mathbb{E}_{z 
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
 """
-struct ScoreELBO{EntropyEst <: AbstractEntropyEstimator} <:
+struct ScoreGradELBO{EntropyEst <: AbstractEntropyEstimator} <:
        AdvancedVI.AbstractVariationalObjective
     entropy::EntropyEst
     n_samples::Int
 end
 
-function ScoreELBO(
+function ScoreGradELBO(
         n_samples::Int;
         entropy::AbstractEntropyEstimator = ClosedFormEntropy()
 )
-    ScoreELBO(entropy, n_samples)
+    ScoreGradELBO(entropy, n_samples)
 end
-function Base.show(io::IO, obj::ScoreELBO)
-    print(io, "ScoreELBO(entropy=")
+function Base.show(io::IO, obj::ScoreGradELBO)
+    print(io, "ScoreGradELBO(entropy=")
     print(io, obj.entropy)
     print(io, ", n_samples=")
     print(io, obj.n_samples)
@@ -63,7 +63,7 @@ function compute_elbo(q, samples, entropy, problem, adtype)
     return elbo
 end
 
-function estimate_scoreelbo_ad_forward(params′, aux)
+function estimate_scoregradelbo_ad_forward(params′, aux)
     @unpack rng, obj, problem, restructure, q_stop, adtype = aux
     q = restructure(params′)
     samples, entropy = reparam_with_entropy(
@@ -74,7 +74,7 @@ end
 
 function estimate_objective(
         rng::Random.AbstractRNG,
-        obj::ScoreELBO,
+        obj::ScoreGradELBO,
         q,
         prob;
         n_samples::Int = obj.n_samples
@@ -85,13 +85,13 @@ function estimate_objective(
 end
 
 function estimate_objective(
-        obj::ScoreELBO, q, prob; n_samples::Int = obj.n_samples)
+        obj::ScoreGradELBO, q, prob; n_samples::Int = obj.n_samples)
     estimate_objective(Random.default_rng(), obj, q, prob; n_samples)
 end
 
 function AdvancedVI.estimate_gradient!(
         rng::Random.AbstractRNG,
-        obj::ScoreELBO,
+        obj::ScoreGradELBO,
         adtype::ADTypes.AbstractADType,
         out::DiffResults.MutableDiffResult,
         prob,
@@ -102,7 +102,7 @@ function AdvancedVI.estimate_gradient!(
     q_stop = restructure(params)
     aux = (rng = rng, obj = obj, problem = prob, restructure = restructure, q_stop = q_stop, adtype = adtype)
     AdvancedVI.value_and_gradient!(
-        adtype, estimate_scoreelbo_ad_forward, params, aux, out
+        adtype, estimate_scoregradelbo_ad_forward, params, aux, out
     )
     nelbo = DiffResults.value(out)
     stat = (elbo = -nelbo,)

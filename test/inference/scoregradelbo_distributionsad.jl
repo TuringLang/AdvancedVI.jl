@@ -1,5 +1,5 @@
 
-@testset "inference ScoreELBO DistributionsAD" begin
+@testset "inference ScoreGradELBO DistributionsAD" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)"  for
         realtype ∈ [Float64, Float32],
         (modelname, modelconstr) ∈ Dict(
@@ -7,8 +7,8 @@
         ),
         n_montecarlo in [1, 10],
         (objname, objective) in Dict(
-            :ScoreELBOClosedFormEntropy  => ScoreELBO(n_montecarlo),
-            :ScoreELBOStickingTheLanding => ScoreELBO(n_montecarlo, entropy = StickingTheLandingEntropy()),
+            :ScoreGradELBOClosedFormEntropy  => ScoreGradELBO(n_montecarlo),
+            :ScoreGradELBOStickingTheLanding => ScoreGradELBO(n_montecarlo, entropy = StickingTheLandingEntropy()),
         ),
         (adbackname, adtype) ∈ Dict(
             :ForwarDiff  => AutoForwardDiff(),

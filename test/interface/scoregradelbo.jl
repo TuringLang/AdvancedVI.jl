@@ -1,7 +1,7 @@
 
 using Test
 
-@testset "interface ScoreELBO" begin
+@testset "interface ScoreGradELBO" begin
     seed = (0x38bef07cf9cc549d)
     rng  = StableRNG(seed)
 
@@ -11,7 +11,7 @@ using Test
 
     q0 = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
 
-    obj      = ScoreELBO(10)
+    obj      = ScoreGradELBO(10)
     rng      = StableRNG(seed)
     elbo_ref = estimate_objective(rng, obj, q0, model; n_samples=10^4)
 
@@ -27,7 +27,7 @@ using Test
     end
 end
 
-@testset "interface ScoreELBO STL variance reduction" begin
+@testset "interface ScoreGradELBO STL variance reduction" begin
     seed = (0x38bef07cf9cc549d)
     rng  = StableRNG(seed)
 
@@ -44,12 +44,12 @@ end
             Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
         params, re = Optimisers.destructure(q_true)
-        obj = ScoreELBO(10000; entropy=StickingTheLandingEntropy())
+        obj = ScoreGradELBO(10000; entropy=StickingTheLandingEntropy())
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
         aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=ad)
         AdvancedVI.value_and_gradient!(
-            ad, AdvancedVI.estimate_scoreelbo_ad_forward, params, aux, out
+            ad, AdvancedVI.estimate_scoregradelbo_ad_forward, params, aux, out
         )
         grad = DiffResults.gradient(out)
         @test norm(grad) ≈ 0 atol=0.5
