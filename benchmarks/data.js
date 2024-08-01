@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721138439456,
+  "lastUpdate": 1722518225863,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -360,6 +360,42 @@ window.BENCHMARK_DATA = {
             "value": 180341322.5,
             "unit": "ns",
             "extra": "gctime=7403416.5\nmemory=98510448\nallocs=2031668\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "123811742+shravanngoswamii@users.noreply.github.com",
+            "name": "Shravan Goswami",
+            "username": "shravanngoswamii"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d4aed1d8bdac3d46dbb3a505e575c96fa957f556",
+          "message": "Create Format.yml (#73)",
+          "timestamp": "2024-08-01T14:14:30+01:00",
+          "tree_id": "6226cc47b134859323bf3b5d24c89190bbf004e7",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/commit/d4aed1d8bdac3d46dbb3a505e575c96fa957f556"
+        },
+        "date": 1722518225165,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 479736724,
+            "unit": "ns",
+            "extra": "gctime=28244728\nmemory=816847104\nallocs=2729712\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 179131994,
+            "unit": "ns",
+            "extra": "gctime=8341961\nmemory=98415168\nallocs=2027713\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
