@@ -194,6 +194,7 @@ export
     FullRankGaussian
 
 include("families/location_scale.jl")
+include("families/location_lowrank_scale.jl")
 
 
 # Optimization Routine
