@@ -129,7 +129,7 @@ function update_variational_params!(
     q = restructure(params)
     ϵ = q.scale_eps
 
-    # Project the scale matrix to the set of positive definite triangular matrices
+    # Clip diagonal to guarantee positive definite covariance
     @. q.scale_diag = max(q.scale_diag, ϵ)
 
     params, _ = Optimisers.destructure(q)
