@@ -99,13 +99,11 @@ function Distributions._rand!(
 )
     @unpack location, scale_diag, scale_factors, dist = q
 
-    n_factors = size(scale_factors, 2)
-
     rand!(rng, dist, x)
     x[:] = scale_diag.*x
 
-    u_fact = rand(rng, dist, n_factors, size(x,2))
-    x    .+= scale_factors*u_fact
+    u_fact = rand(rng, dist, size(scale_factors, 2), size(x,2))
+    x[:,:] += scale_factors*u_fact
 
     return x .+= location
 end
