@@ -41,9 +41,12 @@ if GROUP == "All" || GROUP == "Interface"
     include("interface/ad.jl")
     include("interface/optimize.jl")
     include("interface/repgradelbo.jl")
-    include("interface/location_scale.jl")
 end
 
+if GROUP == "All" || GROUP == "Families"
+    include("families/location_scale.jl")
+    include("families/location_scale_low_rank.jl")
+end
 
 const PROGRESS = haskey(ENV, "PROGRESS")
 

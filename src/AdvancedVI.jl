@@ -191,10 +191,11 @@ include("objectives/elbo/repgradelbo.jl")
 export
     MvLocationScale,
     MeanFieldGaussian,
-    FullRankGaussian
+    FullRankGaussian,
+    MvLocationScaleLowRank
 
 include("families/location_scale.jl")
-include("families/location_lowrank_scale.jl")
+include("families/location_scale_low_rank.jl")
 
 
 # Optimization Routine
