@@ -40,8 +40,6 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 """
 function value_and_gradient! end
 
-
-# derivatives
 """
     restructure_ad_forward(adtype, restructure, params)
 
