@@ -5,8 +5,8 @@ using Test
     @testset "$(adname)" for (adname, adsymbol) ∈ Dict(
           :ForwardDiff => AutoForwardDiff(),
           :ReverseDiff => AutoReverseDiff(),
-          :Zygote      => AutoZygote(),
-          :Enzyme      => AutoEnzyme(),
+          :Zygote => AutoZygote(),
+          :Enzyme => AutoEnzyme(),
         )
         D = 10
         A = randn(D, D)
