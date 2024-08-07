@@ -68,7 +68,7 @@ function Distributions.logpdf(q::MvLocationScaleLowRank, z::AbstractVector{<:Rea
     #     lowrankupdate!(Σchol, factor)
     # end
 
-    Σ = Diagonal(scale_diag) + scale_factors*scale_factors'
+    Σ = Diagonal(scale_diag.*scale_diag) + scale_factors*scale_factors'
     Σchol = cholesky(Σ)
     sum(Base.Fix1(logpdf, dist), Σchol.L \ (z - location)) - logdet(Σchol.L)
 end
@@ -113,12 +113,12 @@ Distributions.mean(q::MvLocationScaleLowRank) = q.location
 
 function Distributions.var(q::MvLocationScaleLowRank)  
     @unpack scale_diag, scale_factors = q
-    Diagonal(scale_diag.^2 + sum(scale_factors.^2, dims=2)[:,1])
+    Diagonal(scale_diag.*scale_diag + sum(scale_factors.*scale_factors, dims=2)[:,1])
 end
 
 function Distributions.cov(q::MvLocationScaleLowRank)
     @unpack scale_diag, scale_factors = q
-    Diagonal(scale_diag.^2) + scale_factors*scale_factors'
+    Diagonal(scale_diag.*scale_diag) + scale_factors*scale_factors'
 end
 
 function update_variational_params!(
