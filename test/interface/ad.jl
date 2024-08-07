@@ -3,11 +3,11 @@ using Test
 
 @testset "ad" begin
     @testset "$(adname)" for (adname, adsymbol) ∈ Dict(
-          :ForwardDiff => AutoForwardDiff(),
-          :ReverseDiff => AutoReverseDiff(),
-          :Zygote => AutoZygote(),
-          :Enzyme => AutoEnzyme(),
-        )
+        :ForwardDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Enzyme => AutoEnzyme(),
+    )
         D = 10
         A = randn(D, D)
         λ = randn(D)
