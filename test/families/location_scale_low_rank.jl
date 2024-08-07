@@ -11,7 +11,7 @@
         μ = randn(realtype, n_dims)
         D = ones(realtype, n_dims)
         U = randn(realtype, n_dims, rank)
-        Σ = Diagonal(D) + U*U'
+        Σ = Diagonal(D.^2) + U*U'
 
         q = if basedist == :gaussian
             MvLocationScaleLowRank(

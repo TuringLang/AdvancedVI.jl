@@ -49,10 +49,11 @@ Base.eltype(::Type{<:MvLocationScaleLowRank{S, D, L}}) where {S, D, L} = eltype(
 
 function StatsBase.entropy(q::MvLocationScaleLowRank)
     @unpack location, scale_diag, scale_factors, dist = q
-    n_dims = length(location)
-    UtDinvU = Hermitian(scale_factors'*(scale_factors./scale_diag))
-    logdetΣ = (sum(log.(scale_diag)) + logdet(I + UtDinvU))/2
-    n_dims*convert(eltype(location), entropy(dist)) + logdetΣ
+    n_dims  = length(location)
+    scale_diag2 = scale_diag.*scale_diag
+    UtDinvU = Hermitian(scale_factors'*(scale_factors./scale_diag2))
+    logdetΣ = 2*sum(log.(scale_diag)) + logdet(I + UtDinvU)
+    n_dims*convert(eltype(location), entropy(dist)) + logdetΣ/2
 end
 
 function Distributions.logpdf(q::MvLocationScaleLowRank, z::AbstractVector{<:Real})
@@ -112,12 +113,12 @@ Distributions.mean(q::MvLocationScaleLowRank) = q.location
 
 function Distributions.var(q::MvLocationScaleLowRank)  
     @unpack scale_diag, scale_factors = q
-    Diagonal(scale_diag + sum(scale_factors.^2, dims=2)[:,1])
+    Diagonal(scale_diag.^2 + sum(scale_factors.^2, dims=2)[:,1])
 end
 
 function Distributions.cov(q::MvLocationScaleLowRank)
     @unpack scale_diag, scale_factors = q
-    Diagonal(scale_diag) + scale_factors*scale_factors'
+    Diagonal(scale_diag.^2) + scale_factors*scale_factors'
 end
 
 function update_variational_params!(
