@@ -12,7 +12,7 @@ struct ClosedFormEntropy <: AbstractEntropyEstimator end
 maybe_stop_entropy_score(::AbstractEntropyEstimator, q, q_stop) = q
 
 function estimate_entropy(::ClosedFormEntropy, ::Any, q)
-    entropy(q)
+    return entropy(q)
 end
 
 """
@@ -31,9 +31,7 @@ struct MonteCarloEntropy <: AbstractEntropyEstimator end
 maybe_stop_entropy_score(::StickingTheLandingEntropy, q, q_stop) = q_stop
 
 function estimate_entropy(
-    ::Union{MonteCarloEntropy, StickingTheLandingEntropy},
-    mc_samples::AbstractMatrix,
-    q
+    ::Union{MonteCarloEntropy,StickingTheLandingEntropy}, mc_samples::AbstractMatrix, q
 )
     mean(eachcol(mc_samples)) do mc_sample
         -logpdf(q, mc_sample)
