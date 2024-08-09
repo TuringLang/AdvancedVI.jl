@@ -7,7 +7,7 @@ using Test
           :ReverseDiff => AutoReverseDiff(),
           :Zygote      => AutoZygote(),
           :Tapir       => AutoTapir(),
-          # :Enzyme      => AutoEnzyme() # Currently not tested against
+          :Enzyme      => AutoEnzyme() 
         )
         D = 10
         A = randn(D, D)
