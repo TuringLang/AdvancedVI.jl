@@ -45,39 +45,42 @@ Otherwise, just return `nothing`.
 
 """
 function optimize(
-    rng          ::Random.AbstractRNG,
+    rng::Random.AbstractRNG,
     problem,
-    objective    ::AbstractVariationalObjective,
+    objective::AbstractVariationalObjective,
     q_init,
-    max_iter     ::Int,
+    max_iter::Int,
     objargs...;
-    adtype       ::ADTypes.AbstractADType, 
-    optimizer    ::Optimisers.AbstractRule = Optimisers.Adam(),
-    show_progress::Bool                    = true,
-    state_init   ::NamedTuple              = NamedTuple(),
-    callback                               = nothing,
-    prog                                   = ProgressMeter.Progress(
-        max_iter;
-        desc      = "Optimizing",
-        barlen    = 31,
-        showspeed = true,
-        enabled   = show_progress
+    adtype::ADTypes.AbstractADType,
+    optimizer::Optimisers.AbstractRule=Optimisers.Adam(),
+    show_progress::Bool=true,
+    state_init::NamedTuple=NamedTuple(),
+    callback=nothing,
+    prog=ProgressMeter.Progress(
+        max_iter; desc="Optimizing", barlen=31, showspeed=true, enabled=show_progress
     ),
 )
     params, restructure = Optimisers.destructure(deepcopy(q_init))
-    opt_st   = maybe_init_optimizer(state_init, optimizer, params)
-    obj_st   = maybe_init_objective(
+    opt_st = maybe_init_optimizer(state_init, optimizer, params)
+    obj_st = maybe_init_objective(
         state_init, rng, adtype, objective, problem, params, restructure
     )
     grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
-    stats    = NamedTuple[]
+    stats = NamedTuple[]
 
-    for t = 1:max_iter
+    for t in 1:max_iter
         stat = (iteration=t,)
 
         grad_buf, obj_st, stat′ = estimate_gradient!(
-            rng, objective, adtype, grad_buf, problem,
-            params, restructure, obj_st, objargs...
+            rng,
+            objective,
+            adtype,
+            grad_buf,
+            problem,
+            params,
+            restructure,
+            obj_st,
+            objargs...,
         )
         stat = merge(stat, stat′)
 
@@ -87,13 +90,16 @@ function optimize(
         )
 
         if !isnothing(callback)
-            stat′ = callback(
-                ; stat, restructure, params=params, gradient=grad,
-                state=(optimizer=opt_st, objective=obj_st)
+            stat′ = callback(;
+                stat,
+                restructure,
+                params=params,
+                gradient=grad,
+                state=(optimizer=opt_st, objective=obj_st),
             )
             stat = !isnothing(stat′) ? merge(stat′, stat) : stat
         end
-        
+
         @debug "Iteration $t" stat...
 
         pm_next!(prog, stat)
@@ -101,24 +107,18 @@ function optimize(
     end
     state = (optimizer=opt_st, objective=obj_st)
     stats = map(identity, stats)
-    restructure(params), stats, state
+    return restructure(params), stats, state
 end
 
 function optimize(
     problem,
     objective::AbstractVariationalObjective,
     q_init,
-    max_iter ::Int,
+    max_iter::Int,
     objargs...;
-    kwargs...
+    kwargs...,
 )
-    optimize(
-        Random.default_rng(),
-        problem,
-        objective,
-        q_init,
-        max_iter,
-        objargs...;
-        kwargs...
+    return optimize(
+        Random.default_rng(), problem, objective, q_init, max_iter, objargs...; kwargs...
     )
 end

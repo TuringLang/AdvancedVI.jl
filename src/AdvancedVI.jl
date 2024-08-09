@@ -56,7 +56,7 @@ Initialize the AD backend and setup states necessary.
 # Returns
 - `ad_st`: State of the AD backend. (This will often be pre-compiled tapes/caches.)
 """
-init_adbackend(::ADTypes.AbstractADType, ::Any, ::Any)        = nothing
+init_adbackend(::ADTypes.AbstractADType, ::Any, ::Any) = nothing
 init_adbackend(::ADTypes.AbstractADType, ::Any, ::Any, ::Any) = nothing
 
 # Update for gradient descent step
@@ -83,8 +83,9 @@ Instead, the return values should be used.
 """
 function update_variational_params! end
 
-update_variational_params!(::Type, opt_st, params, restructure, grad) =
-    Optimisers.update!(opt_st, params, grad)
+function update_variational_params!(::Type, opt_st, params, restructure, grad)
+    return Optimisers.update!(opt_st, params, grad)
+end
 
 # estimators
 """
@@ -114,14 +115,8 @@ The state of the AD backend `adtype` shall also be initialized here.
 - `params`: Initial variational parameters.
 - `restructure`: Function that reconstructs the variational approximation from `λ`.
 """
-init(
-    ::Random.AbstractRNG,
-    ::AbstractVariationalObjective,
-    ::Any,
-    ::Any,
-    ::Any,
-    ::Any,
-) = nothing
+init(::Random.AbstractRNG, ::AbstractVariationalObjective, ::Any, ::Any, ::Any, ::Any) =
+    nothing
 
 """
     estimate_objective([rng,] obj, q, prob; kwargs...)
@@ -144,7 +139,6 @@ Please refer to the respective documentation of each variational objective for m
 function estimate_objective end
 
 export estimate_objective
-
 
 """
     estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state)
@@ -186,24 +180,15 @@ Estimate the entropy of `q`.
 """
 function estimate_entropy end
 
-export
-    RepGradELBO,
-    ClosedFormEntropy,
-    StickingTheLandingEntropy,
-    MonteCarloEntropy
+export RepGradELBO, ClosedFormEntropy, StickingTheLandingEntropy, MonteCarloEntropy
 
 include("objectives/elbo/entropy.jl")
 include("objectives/elbo/repgradelbo.jl")
 
-
 # Variational Families
-export
-    MvLocationScale,
-    MeanFieldGaussian,
-    FullRankGaussian
+export MvLocationScale, MeanFieldGaussian, FullRankGaussian
 
 include("families/location_scale.jl")
-
 
 # Optimization Routine
 
@@ -213,7 +198,6 @@ export optimize
 
 include("utils.jl")
 include("optimize.jl")
-
 
 # optional dependencies 
 if !isdefined(Base, :get_extension) # check whether :get_extension is defined in Base
@@ -241,4 +225,3 @@ end
 end
 
 end
-
