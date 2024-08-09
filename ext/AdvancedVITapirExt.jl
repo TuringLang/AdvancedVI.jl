@@ -14,11 +14,11 @@ end
 AdvancedVI.init_adbackend(::ADTypes.AutoTapir, f, x) = Tapir.build_rrule(f, x)
 
 function AdvancedVI.value_and_gradient!(
-          ::ADTypes.AutoTapir,
+    ::ADTypes.AutoTapir,
     st_ad,
     f,
-    x     ::AbstractVector{<:Real},
-    out   ::DiffResults.MutableDiffResult
+    x::AbstractVector{<:Real},
+    out::DiffResults.MutableDiffResult,
 )
     rule = st_ad
     y, g = Tapir.value_and_gradient!!(rule, f, x)
@@ -30,12 +30,12 @@ end
 AdvancedVI.init_adbackend(::ADTypes.AutoTapir, f, x, aux) = Tapir.build_rrule(f, x, aux)
 
 function AdvancedVI.value_and_gradient!(
-          ::ADTypes.AutoTapir,
+    ::ADTypes.AutoTapir,
     st_ad,
     f,
-    x     ::AbstractVector{<:Real},
+    x::AbstractVector{<:Real},
     aux,
-    out   ::DiffResults.MutableDiffResult
+    out::DiffResults.MutableDiffResult,
 )
     rule = st_ad
     y, g = Tapir.value_and_gradient!!(rule, f, x, aux)

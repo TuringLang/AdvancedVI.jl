@@ -20,7 +20,7 @@ function AdvancedVI.update_variational_params!(
     opt_st,
     params,
     restructure,
-    grad
+    grad,
 )
     opt_st, params = Optimisers.update!(opt_st, params, grad)
     q = restructure(params)
@@ -32,18 +32,18 @@ function AdvancedVI.update_variational_params!(
 
     params, _ = Optimisers.destructure(q)
 
-    opt_st, params
+    return opt_st, params
 end
 
 function AdvancedVI.reparam_with_entropy(
-    rng      ::Random.AbstractRNG,
-    q        ::Bijectors.TransformedDistribution,
-    q_stop   ::Bijectors.TransformedDistribution,
+    rng::Random.AbstractRNG,
+    q::Bijectors.TransformedDistribution,
+    q_stop::Bijectors.TransformedDistribution,
     n_samples::Int,
-    ent_est  ::AdvancedVI.AbstractEntropyEstimator
+    ent_est::AdvancedVI.AbstractEntropyEstimator,
 )
-    transform      = q.transform
-    q_unconst      = q.dist
+    transform = q.transform
+    q_unconst = q.dist
     q_unconst_stop = q_stop.dist
 
     # Draw samples and compute entropy of the uncontrained distribution
@@ -58,14 +58,14 @@ function AdvancedVI.reparam_with_entropy(
     samples_and_logjac = mapreduce(
         AdvancedVI.catsamples_and_acc,
         Iterators.drop(unconstr_iter, 1);
-        init=(reshape(samples_init, (:,1)), logjac_init)
+        init=(reshape(samples_init, (:, 1)), logjac_init),
     ) do sample
         with_logabsdet_jacobian(transform, sample)
     end
     samples = first(samples_and_logjac)
-    logjac  = last(samples_and_logjac)/n_samples
+    logjac = last(samples_and_logjac) / n_samples
 
     entropy = unconst_entropy + logjac
-    samples, entropy
+    return samples, entropy
 end
 end
