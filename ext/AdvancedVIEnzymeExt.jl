@@ -11,6 +11,7 @@ else
     using ..AdvancedVI: ADTypes, DiffResults
 end
 
+
 AdvancedVI.restructure_ad_forward(
     ::ADTypes.AutoEnzyme, restructure, params
 ) = restructure(params)::typeof(restructure.model)
