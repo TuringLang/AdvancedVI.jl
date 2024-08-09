@@ -15,9 +15,9 @@ makedocs(;
                 "General Usage"     => "general.md",
                 "Examples"          => "examples.md",
                 "ELBO Maximization" => [
-                    "Overview"                          => "elbo/overview.md",   
-                    "Reparameterization Gradient Estimator"       => "elbo/repgradelbo.md",   
-                    "Location-Scale Variational Family" => "locscale.md",
+                    "Overview"                               => "elbo/overview.md",   
+                    "Reparameterization Gradient Estimator"  => "elbo/repgradelbo.md",   
+                    "Variational Families"                   => "elbo/families.md",
                 ]],
 )
 
