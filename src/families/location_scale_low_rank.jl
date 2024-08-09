@@ -3,6 +3,7 @@
     MvLocationLowRankScale(location, scale_diag, scale_factors, dist) <: ContinuousMultivariateDistribution
 
 Variational family with a covariance in the form of a diagonal matrix plus a squared low-rank matrix.
+The rank is given by `size(scale_factors, 2)`.
 
 It generally represents any distribution for which the sampling path can be
 represented as follows:
@@ -134,4 +135,28 @@ function update_variational_params!(
     params, _ = Optimisers.destructure(q)
 
     opt_st, params
+end
+
+"""
+    LowRankGaussian(location, scale_diag, scale_factors; check_args = true)
+
+Construct a Gaussian variational approximation with a diagonal plus low-rank covariance matrix.
+
+# Arguments
+- `μ::AbstractVector{T}`: Mean of the Gaussian.
+- `D::Vector{T}`: Diagonal of the scale.
+- `U::Matrix{T}`: Low-rank factors of the scale, where `size(U,2)` is the rank.
+
+# Keyword Arguments
+- `check_args`: Check the conditioning of the initial scale (default: `true`).
+"""
+function LowRankGaussian(
+    μ::AbstractVector{T},
+    D::Vector{T},
+    U::Matrix{T};
+    scale_eps::T = sqrt(eps(T))
+) where {T <: Real}
+    @assert minimum(D) ≥ sqrt(scale_eps) "Initial scale is too small (smallest diagonal scale value is $(minimum(D)). This might result in unstable optimization behavior."
+    q_base = Normal{T}(zero(T), one(T))
+    MvLocationScaleLowRank(μ, D, U, q_base, scale_eps)
 end

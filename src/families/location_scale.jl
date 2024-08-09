@@ -120,13 +120,13 @@ function Distributions.cov(q::MvLocationScale)
 end
 
 """
-    FullRankGaussian(location, scale; check_args = true)
+    FullRankGaussian(μ, L; check_args = true)
 
 Construct a Gaussian variational approximation with a dense covariance matrix.
 
 # Arguments
-- `location::AbstractVector{T}`: Mean of the Gaussian.
-- `scale::LinearAlgebra.AbstractTriangular{T}`: Cholesky factor of the covariance of the Gaussian.
+- `μ::AbstractVector{T}`: Mean of the Gaussian.
+- `L::LinearAlgebra.AbstractTriangular{T}`: Cholesky factor of the covariance of the Gaussian.
 
 # Keyword Arguments
 - `check_args`: Check the conditioning of the initial scale (default: `true`).
@@ -142,13 +142,13 @@ function FullRankGaussian(
 end
 
 """
-    MeanFieldGaussian(location, scale; check_args = true)
+    MeanFieldGaussian(μ, L; check_args = true)
 
 Construct a Gaussian variational approximation with a diagonal covariance matrix.
 
 # Arguments
-- `location::AbstractVector{T}`: Mean of the Gaussian.
-- `scale::Diagonal{T}`: Diagonal Cholesky factor of the covariance of the Gaussian.
+- `μ::AbstractVector{T}`: Mean of the Gaussian.
+- `L::Diagonal{T}`: Diagonal Cholesky factor of the covariance of the Gaussian.
 
 # Keyword Arguments
 - `check_args`: Check the conditioning of the initial scale (default: `true`).

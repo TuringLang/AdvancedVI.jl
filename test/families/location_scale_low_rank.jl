@@ -14,9 +14,7 @@
         Σ = Diagonal(D.^2) + U*U'
 
         q = if basedist == :gaussian
-            MvLocationScaleLowRank(
-                μ, D, U, Normal{realtype}(zero(realtype), one(realtype))
-            )
+            LowRankGaussian(μ, D, U)
         end
         q_true = if basedist == :gaussian
             MvNormal(μ, Σ)
