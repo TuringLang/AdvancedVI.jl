@@ -30,12 +30,13 @@ This requires the variational approximation to be marked as a functor through `F
 # Callback
 The callback function `callback` has a signature of
 
-    callback(; stat, state, params, restructure, gradient)
+    callback(; stat, state, params, params_average, restructure, gradient)
 
 The arguments are as follows:
 - `stat`: Statistics gathered during the current iteration. The content will vary depending on `objective`.
 - `state`: Collection of the internal states used for optimization.
 - `params`: Variational parameters.
+- `params_average`: Variational parameters computed by the averaging strategy.
 - `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(param)` reconstructs the variational approximation. 
 - `gradient`: The estimated (possibly stochastic) gradient.
 
@@ -53,6 +54,7 @@ function optimize(
     objargs...;
     adtype::ADTypes.AbstractADType,
     optimizer::Optimisers.AbstractRule=Optimisers.Adam(),
+    averager::AbstractAverager=NoAveraging(),
     show_progress::Bool=true,
     state_init::NamedTuple=NamedTuple(),
     callback=nothing,
@@ -63,6 +65,7 @@ function optimize(
     params, restructure = Optimisers.destructure(deepcopy(q_init))
     opt_st = maybe_init_optimizer(state_init, optimizer, params)
     obj_st = maybe_init_objective(state_init, rng, objective, problem, params, restructure)
+    avg_st = maybe_init_averager(state_init, averager, params)
     grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
     stats = NamedTuple[]
 
@@ -86,14 +89,17 @@ function optimize(
         opt_st, params = update_variational_params!(
             typeof(q_init), opt_st, params, restructure, grad
         )
+        avg_st = apply(averager, avg_st, params)
 
         if !isnothing(callback)
+            params_average = value(averager, avg_st)
             stat′ = callback(;
                 stat,
                 restructure,
                 params=params,
+                params_average=params_average,
                 gradient=grad,
-                state=(optimizer=opt_st, objective=obj_st),
+                state=(optimizer=opt_st, averager=avg_st, objective=obj_st),
             )
             stat = !isnothing(stat′) ? merge(stat′, stat) : stat
         end
@@ -103,9 +109,10 @@ function optimize(
         pm_next!(prog, stat)
         push!(stats, stat)
     end
-    state = (optimizer=opt_st, objective=obj_st)
+    state = (optimizer=opt_st, averager=avg_st, objective=obj_st)
     stats = map(identity, stats)
-    return restructure(params), stats, state
+    output = value(averager, avg_st)
+    return restructure(output), stats, state
 end
 
 function optimize(
