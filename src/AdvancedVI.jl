@@ -181,12 +181,9 @@ export MvLocationScale, MeanFieldGaussian, FullRankGaussian
 
 include("families/location_scale.jl")
 
-export
-    MvLocationScaleLowRank,
-    LowRankGaussian
+export MvLocationScaleLowRank, LowRankGaussian
 
 include("families/location_scale_low_rank.jl")
-
 
 # Optimization Routine
 

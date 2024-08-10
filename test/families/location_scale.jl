@@ -129,9 +129,8 @@
     end
 
     @testset "scale positive definite projection" begin
-        @testset "$(string(covtype)) $(realtype) $(bijector)" for covtype in [
-                :meanfield, :fullrank
-            ],
+        @testset "$(string(covtype)) $(realtype) $(bijector)" for covtype in
+                                                                  [:meanfield, :fullrank],
             realtype in [Float32, Float64],
             bijector in [nothing, :identity]
 
