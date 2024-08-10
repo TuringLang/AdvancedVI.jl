@@ -181,9 +181,9 @@ export MvLocationScale, MeanFieldGaussian, FullRankGaussian
 
 include("families/location_scale.jl")
 
-# Optimization Update Rules
+# Optimization Rules
 
-include("optimization/optrules.jl")
+include("optimization/rules.jl")
 
 export DoWG, DoG, COCOB
 
