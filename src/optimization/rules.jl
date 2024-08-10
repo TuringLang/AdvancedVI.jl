@@ -1,6 +1,6 @@
 
 """
-    DoWG(repsilon = 1e-8)
+    DoWG(repsilon)
 
 [DoWG](https://arxiv.org/abs/2305.16284) optimizer. It's only parameter is the 
 initial guess of the Euclidean distance to the optimum repsilon.
@@ -8,10 +8,10 @@ The [DoG](https://arxiv.org/abs/2302.12022) paper recommends 1e-4*(1 + norm(x0))
 
 # Parameters
 - repsilon: Initial guess of the Euclidean distance between the initial point and
-            the optimum.
+            the optimum. (default value: `1e-6`)
 """
 Optimisers.@def struct DoWG <: Optimisers.AbstractRule
-    repsilon = 1e-8
+    repsilon = 1e-6
 end
 
 Optimisers.init(o::DoWG, x::AbstractArray{T}) where {T} = (copy(x), zero(T), T(o.repsilon))
@@ -28,7 +28,7 @@ function Optimisers.apply!(::DoWG, state, x::AbstractArray{T}, dx) where {T}
 end
 
 """
-    DoG(repsilon = 1e-8)
+    DoG(repsilon)
 
 [DoG](https://arxiv.org/abs/2305.16284) optimizer. It's only parameter is the 
 initial guess of the Euclidean distance to the optimum repsilon.
@@ -36,11 +36,11 @@ The [DoG](https://arxiv.org/abs/2302.12022) paper recommends 1e-4*(1 + norm(x0))
 
 # Parameters
 - repsilon: Initial guess of the Euclidean distance between the initial point and
-            the optimum.
+            the optimum. (default value: `1e-6`)
 """
 
 Optimisers.@def struct DoG <: Optimisers.AbstractRule
-    repsilon = 1e-8
+    repsilon = 1e-6
 end
 
 Optimisers.init(o::DoG, x::AbstractArray{T}) where {T} = (copy(x), zero(T), T(o.repsilon))

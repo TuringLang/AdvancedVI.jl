@@ -34,6 +34,8 @@ struct PolynomialAveraging{F} <: AbstractAverager
     eta::F
 end
 
+PolynomialAveraging() = PolynomialAveraging(8)
+
 init(::PolynomialAveraging, x) = (x, 1)
 
 function apply(avg::PolynomialAveraging, state, x::AbstractVector{T}) where {T}
