@@ -33,12 +33,12 @@ end
 
 Distance over gradient (DoG[^IHC2023]) optimizer.
 It's only parameter is the initial guess of the Euclidean distance to the optimum repsilon.
-The original paper recommends `1e-4*(1 + norm(x0))`, but default value is `1e-6`.
+The original paper recommends \$ 10^{-4} ( 1 + \\lVert \\lambda_0 \\rVert ) \$, but the default value is \$ 10^{-6} \$.
 
 # Parameters
 - `repsilon`: Initial guess of the Euclidean distance between the initial point and the optimum. (default value: `1e-6`)
 
-[^IHC2023]: Ivgi, M., Hinder, O., & Carmon, Y. (2023). Dog is sgd’s best friend: A parameter-free dynamic step size schedule. In International Conference on Machine Learning (pp. 14465-14499). PMLR.
+[^IHC2023]: Ivgi, M., Hinder, O., & Carmon, Y. (2023). Dog is sgd's best friend: A parameter-free dynamic step size schedule. In International Conference on Machine Learning (pp. 14465-14499). PMLR.
 """
 Optimisers.@def struct DoG <: Optimisers.AbstractRule
     repsilon = 1e-6
