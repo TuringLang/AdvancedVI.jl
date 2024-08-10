@@ -28,31 +28,32 @@ This computes the evidence lower-bound (ELBO) through the formulation:
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
 """
-struct RepGradELBO{EntropyEst <: AbstractEntropyEstimator} <: AbstractVariationalObjective
-    entropy  ::EntropyEst
+struct RepGradELBO{EntropyEst<:AbstractEntropyEstimator} <: AbstractVariationalObjective
+    entropy::EntropyEst
     n_samples::Int
 end
 
-RepGradELBO(
-    n_samples::Int;
-    entropy  ::AbstractEntropyEstimator = ClosedFormEntropy()
-) = RepGradELBO(entropy, n_samples)
+function RepGradELBO(n_samples::Int; entropy::AbstractEntropyEstimator=ClosedFormEntropy())
+    return RepGradELBO(entropy, n_samples)
+end
 
 function Base.show(io::IO, obj::RepGradELBO)
     print(io, "RepGradELBO(entropy=")
     print(io, obj.entropy)
     print(io, ", n_samples=")
     print(io, obj.n_samples)
-    print(io, ")")
+    return print(io, ")")
 end
 
-function estimate_entropy_maybe_stl(entropy_estimator::AbstractEntropyEstimator, samples, q, q_stop)
+function estimate_entropy_maybe_stl(
+    entropy_estimator::AbstractEntropyEstimator, samples, q, q_stop
+)
     q_maybe_stop = maybe_stop_entropy_score(entropy_estimator, q, q_stop)
-    estimate_entropy(entropy_estimator, samples, q_maybe_stop)
+    return estimate_entropy(entropy_estimator, samples, q_maybe_stop)
 end
 
 function estimate_energy_with_samples(prob, samples)
-    mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
+    return mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
 end
 
 """
@@ -71,31 +72,24 @@ Draw `n_samples` from `q` and compute its entropy.
 - `entropy`: An estimate (or exact value) of the differential entropy of `q`.
 """
 function reparam_with_entropy(
-    rng      ::Random.AbstractRNG,
-    q,
-    q_stop,
-    n_samples::Int,
-    ent_est  ::AbstractEntropyEstimator
+    rng::Random.AbstractRNG, q, q_stop, n_samples::Int, ent_est::AbstractEntropyEstimator
 )
     samples = rand(rng, q, n_samples)
     entropy = estimate_entropy_maybe_stl(ent_est, samples, q, q_stop)
-    samples, entropy
+    return samples, entropy
 end
 
 function estimate_objective(
-    rng::Random.AbstractRNG,
-    obj::RepGradELBO,
-    q,
-    prob;
-    n_samples::Int = obj.n_samples
+    rng::Random.AbstractRNG, obj::RepGradELBO, q, prob; n_samples::Int=obj.n_samples
 )
     samples, entropy = reparam_with_entropy(rng, q, q, n_samples, obj.entropy)
     energy = estimate_energy_with_samples(prob, samples)
-    energy + entropy
+    return energy + entropy
 end
 
-estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int = obj.n_samples) =
-    estimate_objective(Random.default_rng(), obj, q, prob; n_samples)
+function estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int=obj.n_samples)
+    return estimate_objective(Random.default_rng(), obj, q, prob; n_samples)
+end
 
 function estimate_repgradelbo_ad_forward(params′, aux)
     @unpack rng, obj, problem, adtype, restructure, q_stop = aux
@@ -103,14 +97,14 @@ function estimate_repgradelbo_ad_forward(params′, aux)
     samples, entropy = reparam_with_entropy(rng, q, q_stop, obj.n_samples, obj.entropy)
     energy = estimate_energy_with_samples(problem, samples)
     elbo = energy + entropy
-    -elbo
+    return -elbo
 end
 
 function estimate_gradient!(
-    rng   ::Random.AbstractRNG,
-    obj   ::RepGradELBO,
+    rng::Random.AbstractRNG,
+    obj::RepGradELBO,
     adtype::ADTypes.AbstractADType,
-    out   ::DiffResults.MutableDiffResult,
+    out::DiffResults.MutableDiffResult,
     prob,
     params,
     restructure,
@@ -118,17 +112,15 @@ function estimate_gradient!(
 )
     q_stop = restructure(params)
     aux = (
-        rng         = rng,
-        adtype      = adtype,
-        obj         = obj,
-        problem     = prob,
-        restructure = restructure,
-        q_stop      = q_stop
+        rng=rng,
+        adtype=adtype,
+        obj=obj,
+        problem=prob,
+        restructure=restructure,
+        q_stop=q_stop,
     )
-    value_and_gradient!(
-        adtype, estimate_repgradelbo_ad_forward, params, aux, out
-    )
+    value_and_gradient!(adtype, estimate_repgradelbo_ad_forward, params, aux, out)
     nelbo = DiffResults.value(out)
-    stat  = (elbo=-nelbo,)
-    out, nothing, stat
+    stat = (elbo=-nelbo,)
+    return out, nothing, stat
 end

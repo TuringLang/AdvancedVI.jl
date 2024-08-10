@@ -14,10 +14,10 @@ end
 getchunksize(::ADTypes.AutoForwardDiff{chunksize}) where {chunksize} = chunksize
 
 function AdvancedVI.value_and_gradient!(
-    ad ::ADTypes.AutoForwardDiff,
+    ad::ADTypes.AutoForwardDiff,
     f,
-    x  ::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult
+    x::AbstractVector{<:Real},
+    out::DiffResults.MutableDiffResult,
 )
     chunk_size = getchunksize(ad)
     config = if isnothing(chunk_size)
@@ -30,13 +30,13 @@ function AdvancedVI.value_and_gradient!(
 end
 
 function AdvancedVI.value_and_gradient!(
-    ad ::ADTypes.AutoForwardDiff,
+    ad::ADTypes.AutoForwardDiff,
     f,
-    x  ::AbstractVector,
-    aux, 
-    out::DiffResults.MutableDiffResult
+    x::AbstractVector,
+    aux,
+    out::DiffResults.MutableDiffResult,
 )
-    AdvancedVI.value_and_gradient!(ad, x′ -> f(x′, aux), x, out)
+    return AdvancedVI.value_and_gradient!(ad, x′ -> f(x′, aux), x, out)
 end
 
 end

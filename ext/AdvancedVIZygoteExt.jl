@@ -14,10 +14,7 @@ else
 end
 
 function AdvancedVI.value_and_gradient!(
-    ::ADTypes.AutoZygote,
-    f,
-    x::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult
+    ::ADTypes.AutoZygote, f, x::AbstractVector{<:Real}, out::DiffResults.MutableDiffResult
 )
     y, back = Zygote.pullback(f, x)
     ∇x = back(one(y))
@@ -31,9 +28,9 @@ function AdvancedVI.value_and_gradient!(
     f,
     x::AbstractVector{<:Real},
     aux,
-    out::DiffResults.MutableDiffResult
+    out::DiffResults.MutableDiffResult,
 )
-    AdvancedVI.value_and_gradient!(ad, x′ -> f(x′, aux), x, out)
+    return AdvancedVI.value_and_gradient!(ad, x′ -> f(x′, aux), x, out)
 end
 
 end

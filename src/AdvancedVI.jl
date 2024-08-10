@@ -77,8 +77,9 @@ Instead, the return values should be used.
 """
 function update_variational_params! end
 
-update_variational_params!(::Type, opt_st, params, restructure, grad) =
-    Optimisers.update!(opt_st, params, grad)
+function update_variational_params!(::Type, opt_st, params, restructure, grad)
+    return Optimisers.update!(opt_st, params, grad)
+end
 
 # estimators
 """
@@ -105,13 +106,7 @@ This function needs to be implemented only if `obj` is stateful.
 - `params`: Initial variational parameters.
 - `restructure`: Function that reconstructs the variational approximation from `λ`.
 """
-init(
-    ::Random.AbstractRNG,
-    ::AbstractVariationalObjective,
-    ::Any,
-    ::Any,
-    ::Any,
-) = nothing
+init(::Random.AbstractRNG, ::AbstractVariationalObjective, ::Any, ::Any, ::Any) = nothing
 
 """
     estimate_objective([rng,] obj, q, prob; kwargs...)
@@ -134,7 +129,6 @@ Please refer to the respective documentation of each variational objective for m
 function estimate_objective end
 
 export estimate_objective
-
 
 """
     estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state)
@@ -176,24 +170,15 @@ Estimate the entropy of `q`.
 """
 function estimate_entropy end
 
-export
-    RepGradELBO,
-    ClosedFormEntropy,
-    StickingTheLandingEntropy,
-    MonteCarloEntropy
+export RepGradELBO, ClosedFormEntropy, StickingTheLandingEntropy, MonteCarloEntropy
 
 include("objectives/elbo/entropy.jl")
 include("objectives/elbo/repgradelbo.jl")
 
-
 # Variational Families
-export
-    MvLocationScale,
-    MeanFieldGaussian,
-    FullRankGaussian
+export MvLocationScale, MeanFieldGaussian, FullRankGaussian
 
 include("families/location_scale.jl")
-
 
 # Optimization Routine
 
@@ -203,7 +188,6 @@ export optimize
 
 include("utils.jl")
 include("optimize.jl")
-
 
 # optional dependencies 
 if !isdefined(Base, :get_extension) # check whether :get_extension is defined in Base
@@ -231,4 +215,3 @@ end
 end
 
 end
-

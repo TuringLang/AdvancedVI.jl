@@ -44,7 +44,6 @@ if GROUP == "All" || GROUP == "Interface"
     include("interface/location_scale.jl")
 end
 
-
 const PROGRESS = haskey(ENV, "PROGRESS")
 
 if GROUP == "All" || GROUP == "Inference"
