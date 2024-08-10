@@ -183,7 +183,7 @@ include("families/location_scale.jl")
 
 # Optimization Update Rules
 
-include("optimization/optimizers.jl")
+include("optimization/optrules.jl")
 
 export DoWG, DoG, COCOB
 
