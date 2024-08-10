@@ -21,7 +21,7 @@ where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples, with respect to $$\la
 This estimator is called the reparameterization gradient estimator.
 
 In addition to the reparameterization gradient, `AdvancedVI` provides the following features:
-1. **Posteriors with constrained supports** are handled through [`Bijectors`](), which is known as the automatic differentiation VI (ADVI; [^KTRGB2017]) formulation. (See [this section](@ref bijectors).)
+1. **Posteriors with constrained supports** are handled through [`Bijectors`](https://github.com/TuringLang/Bijectors.jl), which is known as the automatic differentiation VI (ADVI; [^KTRGB2017]) formulation. (See [this section](@ref bijectors).)
 2. **The gradient of the entropy** can be estimated through various strategies depending on the capabilities of the variational family. (See [this section](@ref entropygrad).)
 
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. 
@@ -184,14 +184,14 @@ nothing
 ```@setup repgradelbo
 max_iter = 3*10^3
 
-function callback(; stat, state, params, restructure, gradient)
+function callback(; params, restructure, kwargs...)
     q = restructure(params).dist
     dist2 = sum(abs2, q.location - vcat([μ_x], μ_y)) 
         + sum(abs2, diag(q.scale) - vcat(σ_x, σ_y))
     (dist = sqrt(dist2),)
 end
 
-_, stats_cfe, _ = AdvancedVI.optimize(
+_, _, stats_cfe, _ = AdvancedVI.optimize(
     model,
     cfe,
     q0_trans,
@@ -202,7 +202,7 @@ _, stats_cfe, _ = AdvancedVI.optimize(
     callback      = callback,
 ); 
 
-_, stats_stl, _ = AdvancedVI.optimize(
+_, _, stats_stl, _ = AdvancedVI.optimize(
     model,
     repgradelbo,
     q0_trans,
@@ -286,7 +286,7 @@ nothing
 ```@setup repgradelbo
 repgradelbo = AdvancedVI.RepGradELBO(n_montecarlo);
 
-_, stats_qmc, _ = AdvancedVI.optimize(
+_, _, stats_qmc, _ = AdvancedVI.optimize(
     model,
     repgradelbo,
     q0_trans,

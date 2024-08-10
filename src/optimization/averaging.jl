@@ -15,20 +15,23 @@ value(::NoAveraging, state) = state
 """
     PolynomialAveraging(eta)
 
-Polynomial averaging rule proposed [Shamir and Zhang](https://proceedings.mlr.press/v28/shamir13.html)
+Polynomial averaging rule proposed Shamir and Zhang[^SZ2013].
 At iteration `t`, the polynomial averaging rule is given as
-```julia
-    params_avg = (1 - w) * params_avg + w * x
+```math
+    \\bar{x}_t = (1 - w_t) \\bar{x}_{t-1} + w_t x_t \\, ,
 ```
 where the averaging weight is 
 ```julia
-    w = (eta + 1) / (t + eta)
+    w_t = \\frac{\\eta + 1}{t + \\eta} \\, .
 ```
 Higher `eta` down-weights earlier iterations.
-The [DoG paper](https://arxiv.org/abs/2302.12022) suggests `eta = 8`.
+When `eta=0`, this is equivalent to uniformly averaging the iterates in an online fashion.
+The DoG paper[^IHC2023] suggests `eta = 8`.
 
 # Parameters
 - eta: Regularization term. (default: `8`)
+
+[^SZ2013]: Shamir, O., & Zhang, T. (2013). Stochastic gradient descent for non-smooth optimization: Convergence results and optimal averaging schemes. In International conference on machine learning (pp. 71-79). PMLR.
 """
 struct PolynomialAveraging{F} <: AbstractAverager
     eta::F

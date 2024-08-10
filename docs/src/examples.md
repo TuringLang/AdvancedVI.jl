@@ -96,7 +96,7 @@ nothing
 Passing `objective` and the initial variational approximation `q` to `optimize` performs inference.
 ```@example elboexample
 n_max_iter = 10^4
-q_trans, stats, _ = AdvancedVI.optimize(
+q_avg_trans, q_trans, stats, _ = AdvancedVI.optimize(
     model,
     objective,
     q0_trans,
@@ -107,6 +107,8 @@ q_trans, stats, _ = AdvancedVI.optimize(
 ); 
 nothing
 ```
+`q_avg_trans` is the final output of the optimization procedure.
+If a parameter averaging strategy is used through the keyword argument `averager`, `q_avg_trans` is be the output of the averaging strategy, while `q_trans` is the last iterate.
 
 The selected inference procedure stores per-iteration statistics into `stats`.
 For instance, the ELBO can be ploted as follows:
@@ -125,5 +127,5 @@ Further information can be gathered by defining your own `callback!`.
 
 The final ELBO can be estimated by calling the objective directly with a different number of Monte Carlo samples as follows:
 ```@example elboexample
-estimate_objective(objective, q_trans, model; n_samples=10^4)
+estimate_objective(objective, q_avg_trans, model; n_samples=10^4)
 ```

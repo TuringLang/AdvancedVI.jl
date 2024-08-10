@@ -34,6 +34,5 @@ end
 
         @test eltype(x_avg) == realtype
         @test x_avg ≈ x_avg_true
-        println(norm(x_avg - x_avg_true))
     end
 end

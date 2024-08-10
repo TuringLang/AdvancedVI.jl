@@ -2,13 +2,14 @@
 """
     DoWG(repsilon)
 
-[DoWG](https://arxiv.org/abs/2305.16284) optimizer. It's only parameter is the 
-initial guess of the Euclidean distance to the optimum repsilon.
-The [DoG](https://arxiv.org/abs/2302.12022) paper recommends 1e-4*(1 + norm(x0)).
+Distance over weighted gradient (DoWG[^KMJ2024]) optimizer.
+It's only parameter is the initial guess of the Euclidean distance to the optimum repsilon.
 
 # Parameters
-- repsilon: Initial guess of the Euclidean distance between the initial point and
+- `repsilon`: Initial guess of the Euclidean distance between the initial point and
             the optimum. (default value: `1e-6`)
+
+[^KMJ2024]: Khaled, A., Mishchenko, K., & Jin, C. (2023). Dowg unleashed: An efficient universal parameter-free gradient descent method. Advances in Neural Information Processing Systems, 36, 6748-6769.
 """
 Optimisers.@def struct DoWG <: Optimisers.AbstractRule
     repsilon = 1e-6
@@ -30,15 +31,15 @@ end
 """
     DoG(repsilon)
 
-[DoG](https://arxiv.org/abs/2305.16284) optimizer. It's only parameter is the 
-initial guess of the Euclidean distance to the optimum repsilon.
-The [DoG](https://arxiv.org/abs/2302.12022) paper recommends 1e-4*(1 + norm(x0)).
+Distance over gradient (DoG[^IHC2023]) optimizer.
+It's only parameter is the initial guess of the Euclidean distance to the optimum repsilon.
+The original paper recommends `1e-4*(1 + norm(x0))`, but default value is `1e-6`.
 
 # Parameters
-- repsilon: Initial guess of the Euclidean distance between the initial point and
-            the optimum. (default value: `1e-6`)
-"""
+- `repsilon`: Initial guess of the Euclidean distance between the initial point and the optimum. (default value: `1e-6`)
 
+[^IHC2023]: Ivgi, M., Hinder, O., & Carmon, Y. (2023). Dog is sgd’s best friend: A parameter-free dynamic step size schedule. In International Conference on Machine Learning (pp. 14465-14499). PMLR.
+"""
 Optimisers.@def struct DoG <: Optimisers.AbstractRule
     repsilon = 1e-6
 end
@@ -56,14 +57,16 @@ function Optimisers.apply!(::DoG, state, x::AbstractArray{T}, dx) where {T}
 end
 
 """
-    COCOB(α = 100)
+    COCOB(alpha)
 
-[Continuous Coin Betting](https://arxiv.org/abs/1705.07795) optimizer.
+Continuous Coin Betting (COCOB[^OT2017]) optimizer.
+We use the "COCOB-Backprop" variant, which is closer to the Adam optimizer.
 It's only parameter is the maximum change per parameter α, which shouldn't need much tuning.
-The paper suggests α = 100 as a generally default value.
 
 # Parameters
-- alpha (α): Scaling parameter.
+- `alpha`: Scaling parameter. (default value: `100`)
+
+[^OT2017]: Orabona, F., & Tommasi, T. (2017). Training deep networks without learning rates through coin betting. Advances in Neural Information Processing Systems, 30.
 """
 Optimisers.@def struct COCOB <: Optimisers.AbstractRule
     alpha = 100
