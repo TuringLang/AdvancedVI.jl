@@ -1,9 +1,9 @@
 
 @testset "interface LocationScaleLowRank" begin
     @testset "$(basedist) rank=$(rank) $(realtype)" for
-        basedist = [:gaussian],
-        rank     = [1, 2],
-        realtype = [Float32, Float64]
+        basedist in [:gaussian],
+        rank     in [1, 2],
+        realtype in [Float32, Float64]
 
         n_dims       = 10
         n_montecarlo = 1000_000
@@ -133,7 +133,7 @@
             q_trans = if isnothing(bijector) 
                 q
             else
-                Bijectors.TransformedDistribution(q, identity)
+                Bijectors.TransformedDistribution(q, bijector)
             end
             g = deepcopy(q)
 

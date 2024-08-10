@@ -16,28 +16,24 @@ represented as follows:
 ```
 """
 struct MvLocationScaleLowRank{
-    L,
-    SD <: AbstractVector,
-    SF <: AbstractMatrix,
-    D  <: ContinuousDistribution,
-    E  <: Real
+    L,SD<:AbstractVector,SF<:AbstractMatrix,D<:ContinuousDistribution,E<:Real
 } <: ContinuousMultivariateDistribution
-    location     ::L
-    scale_diag   ::SD
+    location::L
+    scale_diag::SD
     scale_factors::SF
-    dist         ::D
-    scale_eps    ::E
+    dist::D
+    scale_eps::E
 end
 
 function MvLocationScaleLowRank(
-    location     ::AbstractVector{T},
-    scale_diag   ::AbstractVector{T},
+    location::AbstractVector{T},
+    scale_diag::AbstractVector{T},
     scale_factors::AbstractMatrix{T},
-    dist         ::ContinuousDistribution;
-    scale_eps    ::T = sqrt(eps(T))
-) where {T <: Real}
-    @assert size(scale_factors,1) == length(scale_diag)
-    MvLocationScaleLowRank(location, scale_diag, scale_factors, dist, scale_eps)
+    dist::ContinuousDistribution;
+    scale_eps::T=sqrt(eps(T)),
+) where {T<:Real}
+    @assert size(scale_factors, 1) == length(scale_diag)
+    return MvLocationScaleLowRank(location, scale_diag, scale_factors, dist, scale_eps)
 end
 
 Functors.@functor MvLocationScaleLowRank (location, scale_diag, scale_factors)
@@ -46,15 +42,15 @@ Base.length(q::MvLocationScaleLowRank) = length(q.location)
 
 Base.size(q::MvLocationScaleLowRank) = size(q.location)
 
-Base.eltype(::Type{<:MvLocationScaleLowRank{S, D, L}}) where {S, D, L} = eltype(D)
+Base.eltype(::Type{<:MvLocationScaleLowRank{L,SD,SF,D,E}}) where {L,SD,SF,D,E} = eltype(L)
 
 function StatsBase.entropy(q::MvLocationScaleLowRank)
     @unpack location, scale_diag, scale_factors, dist = q
-    n_dims  = length(location)
-    scale_diag2 = scale_diag.*scale_diag
-    UtDinvU = Hermitian(scale_factors'*(scale_factors./scale_diag2))
-    logdetΣ = 2*sum(log.(scale_diag)) + logdet(I + UtDinvU)
-    n_dims*convert(eltype(location), entropy(dist)) + logdetΣ/2
+    n_dims = length(location)
+    scale_diag2 = scale_diag .* scale_diag
+    UtDinvU = Hermitian(scale_factors' * (scale_factors ./ scale_diag2))
+    logdetΣ = 2 * sum(log.(scale_diag)) + logdet(I + UtDinvU)
+    return n_dims * convert(eltype(location), entropy(dist)) + logdetΣ / 2
 end
 
 function Distributions.logpdf(q::MvLocationScaleLowRank, z::AbstractVector{<:Real})
@@ -69,57 +65,57 @@ function Distributions.logpdf(q::MvLocationScaleLowRank, z::AbstractVector{<:Rea
     #     lowrankupdate!(Σchol, factor)
     # end
 
-    Σ = Diagonal(scale_diag.*scale_diag) + scale_factors*scale_factors'
+    Σ = Diagonal(scale_diag .* scale_diag) + scale_factors * scale_factors'
     Σchol = cholesky(Σ)
-    sum(Base.Fix1(logpdf, dist), Σchol.L \ (z - location)) - logdet(Σchol.L)
+    return sum(Base.Fix1(logpdf, dist), Σchol.L \ (z - location)) - logdet(Σchol.L)
 end
 
 function Distributions.rand(q::MvLocationScaleLowRank)
     @unpack location, scale_diag, scale_factors, dist = q
-    n_dims    = length(location)
+    n_dims = length(location)
     n_factors = size(scale_factors, 2)
-    u_diag    = rand(dist, n_dims)
-    u_fact    = rand(dist, n_factors)
-    scale_diag.*u_diag + scale_factors*u_fact + location
+    u_diag = rand(dist, n_dims)
+    u_fact = rand(dist, n_factors)
+    return scale_diag .* u_diag + scale_factors * u_fact + location
 end
 
 function Distributions.rand(
-    rng::AbstractRNG, q::MvLocationScaleLowRank{S, D, L}, num_samples::Int
-)  where {S, D, L}
+    rng::AbstractRNG, q::MvLocationScaleLowRank{S,D,L}, num_samples::Int
+) where {S,D,L}
     @unpack location, scale_diag, scale_factors, dist = q
-    n_dims    = length(location)
+    n_dims = length(location)
     n_factors = size(scale_factors, 2)
-    u_diag    = rand(rng, dist, n_dims,    num_samples)
-    u_fact    = rand(rng, dist, n_factors, num_samples)
-    scale_diag.*u_diag + scale_factors*u_fact .+ location
+    u_diag = rand(rng, dist, n_dims, num_samples)
+    u_fact = rand(rng, dist, n_factors, num_samples)
+    return scale_diag .* u_diag + scale_factors * u_fact .+ location
 end
 
 function Distributions._rand!(
-    rng::AbstractRNG,
-    q  ::MvLocationScaleLowRank,
-    x  ::AbstractVecOrMat{<:Real}
+    rng::AbstractRNG, q::MvLocationScaleLowRank, x::AbstractVecOrMat{<:Real}
 )
     @unpack location, scale_diag, scale_factors, dist = q
 
     rand!(rng, dist, x)
-    x[:] = scale_diag.*x
+    x[:] = scale_diag .* x
 
-    u_fact = rand(rng, dist, size(scale_factors, 2), size(x,2))
-    x[:,:] += scale_factors*u_fact
+    u_fact = rand(rng, dist, size(scale_factors, 2), size(x, 2))
+    x[:, :] += scale_factors * u_fact
 
     return x .+= location
 end
 
 Distributions.mean(q::MvLocationScaleLowRank) = q.location
 
-function Distributions.var(q::MvLocationScaleLowRank)  
+function Distributions.var(q::MvLocationScaleLowRank)
     @unpack scale_diag, scale_factors = q
-    Diagonal(scale_diag.*scale_diag + sum(scale_factors.*scale_factors, dims=2)[:,1])
+    return Diagonal(
+        scale_diag .* scale_diag + sum(scale_factors .* scale_factors; dims=2)[:, 1]
+    )
 end
 
 function Distributions.cov(q::MvLocationScaleLowRank)
     @unpack scale_diag, scale_factors = q
-    Diagonal(scale_diag.*scale_diag) + scale_factors*scale_factors'
+    return Diagonal(scale_diag .* scale_diag) + scale_factors * scale_factors'
 end
 
 function update_variational_params!(
@@ -134,7 +130,7 @@ function update_variational_params!(
 
     params, _ = Optimisers.destructure(q)
 
-    opt_st, params
+    return opt_st, params
 end
 
 """
@@ -151,12 +147,9 @@ Construct a Gaussian variational approximation with a diagonal plus low-rank cov
 - `check_args`: Check the conditioning of the initial scale (default: `true`).
 """
 function LowRankGaussian(
-    μ::AbstractVector{T},
-    D::Vector{T},
-    U::Matrix{T};
-    scale_eps::T = sqrt(eps(T))
-) where {T <: Real}
+    μ::AbstractVector{T}, D::Vector{T}, U::Matrix{T}; scale_eps::T=sqrt(eps(T))
+) where {T<:Real}
     @assert minimum(D) ≥ sqrt(scale_eps) "Initial scale is too small (smallest diagonal scale value is $(minimum(D)). This might result in unstable optimization behavior."
     q_base = Normal{T}(zero(T), one(T))
-    MvLocationScaleLowRank(μ, D, U, q_base, scale_eps)
+    return MvLocationScaleLowRank(μ, D, U, q_base, scale_eps)
 end
