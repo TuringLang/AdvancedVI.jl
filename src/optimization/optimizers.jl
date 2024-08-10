@@ -70,7 +70,7 @@ Optimisers.@def struct COCOB <: Optimisers.AbstractRule
 end
 
 function Optimisers.init(::COCOB, x::AbstractArray{T}) where {T}
-    (zero(x), zero(x), zero(x), zero(x), copy(x))
+    return (zero(x), zero(x), zero(x), zero(x), copy(x))
 end
 
 function Optimisers.apply!(o::COCOB, state, x::AbstractArray{T}, dx) where {T}
@@ -79,8 +79,8 @@ function Optimisers.apply!(o::COCOB, state, x::AbstractArray{T}, dx) where {T}
 
     Optimisers.@.. L = max(L, abs(dx))
     Optimisers.@.. G = G + abs(dx)
-    Optimisers.@.. R = max(R + (x - x1)*-dx, 0)
+    Optimisers.@.. R = max(R + (x - x1) * -dx, 0)
     Optimisers.@.. θ = θ + -dx
-    dx′ = Optimisers.@lazy -(x1 - x) - (θ/(L*max(G + L , α*L))*(L + R))
+    dx′ = Optimisers.@lazy -(x1 - x) - (θ / ( L *max(G + L , α * L))*(L + R))
     return (L, G, R, θ, x1), dx′
 end
