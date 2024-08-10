@@ -185,10 +185,7 @@ include("families/location_scale.jl")
 
 include("optimization/optimizers.jl")
 
-export
-    DoWG,
-    DoG,
-    COCOB
+export DoWG, DoG, COCOB
 
 # Output averaging strategy
 
@@ -230,9 +227,7 @@ function value(::AbstractAverager, ::Any) end
 
 include("optimization/averaging.jl")
 
-export
-    NoAveraging,
-    PolynomialAveraging
+export NoAveraging, PolynomialAveraging
 
 function optimize end
 

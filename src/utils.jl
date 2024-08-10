@@ -13,9 +13,7 @@ function maybe_init_optimizer(
     end
 end
 
-function maybe_init_averager(
-    state_init::NamedTuple, averager::AbstractAverager, params
-)
+function maybe_init_averager(state_init::NamedTuple, averager::AbstractAverager, params)
     if haskey(state_init, :averager)
         state_init.averager
     else

@@ -16,7 +16,7 @@ end
 
 Optimisers.init(o::DoWG, x::AbstractArray{T}) where T = (copy(x), zero(T), T(o.repsilon))
 
-function Optimisers.apply!(::DoWG, state, x::AbstractArray{T}, dx) where T
+function Optimisers.apply!(::DoWG, state, x::AbstractArray{T}, dx) where {T}
     x0, v, r = state
 
     r = max(sqrt(sum(abs2, x - x0)), r)
@@ -43,9 +43,9 @@ Optimisers.@def struct DoG <: Optimisers.AbstractRule
     repsilon = 1e-8
 end
 
-Optimisers.init(o::DoG, x::AbstractArray{T}) where T = (copy(x), zero(T), T(o.repsilon))
+Optimisers.init(o::DoG, x::AbstractArray{T}) where {T} = (copy(x), zero(T), T(o.repsilon))
 
-function Optimisers.apply!(::DoG, state, x::AbstractArray{T}, dx) where T
+function Optimisers.apply!(::DoG, state, x::AbstractArray{T}, dx) where {T}
     x0, v, r = state
 
     r = max(sqrt(sum(abs2, x - x0)), r)
@@ -81,6 +81,6 @@ function Optimisers.apply!(o::COCOB, state, x::AbstractArray{T}, dx) where {T}
     Optimisers.@.. G = G + abs(dx)
     Optimisers.@.. R = max(R + (x - x1) * -dx, 0)
     Optimisers.@.. θ = θ + -dx
-    dx′ = Optimisers.@lazy -(x1 - x) - (θ / (L * max(G + L , α * L)) * (L + R))
+    dx′ = Optimisers.@lazy -(x1 - x) - (θ / (L * max(G + L, α * L)) * (L + R))
     return (L, G, R, θ, x1), dx′
 end
