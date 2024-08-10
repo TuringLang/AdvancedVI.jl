@@ -30,7 +30,7 @@ The [DoG paper](https://arxiv.org/abs/2302.12022) suggests `eta = 8`.
 # Parameters
 - eta: Regularization term. (default: `8`)
 """
-struct PolynomialAveraging{F} <: AbstractAverager 
+struct PolynomialAveraging{F} <: AbstractAverager
     eta::F
 end
 
