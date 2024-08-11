@@ -17,7 +17,7 @@ end
         x_avg, xs = simulate_sequence_average(realtype, avg)
 
         @test eltype(x_avg) == realtype
-        @test x_avg ≈ xs[:,end]
+        @test x_avg ≈ xs[:, end]
     end
 
     η = 1
