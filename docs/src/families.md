@@ -67,7 +67,7 @@ L = Diagonal(ones(2));
 q = MeanFieldGaussian(μ, L)
 ```
 
-### Sudent-$$t$$ Variational Families
+### Student-$$t$$ Variational Families
 
 ```julia
 using AdvancedVI, LinearAlgebra, Distributions;
