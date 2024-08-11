@@ -1,6 +1,14 @@
 
+struct MvLocationScale{S,D<:ContinuousDistribution,L,E<:Real} <:
+       ContinuousMultivariateDistribution
+    location::L
+    scale::S
+    dist::D
+    scale_eps::E
+end
+
 """
-    MvLocationScale(location, scale, dist) <: ContinuousMultivariateDistribution
+    MvLocationScale(location, scale, dist; scale_eps)
 
 The location scale variational family broadly represents various variational
 families using `location` and `scale` variational parameters.
@@ -12,22 +20,20 @@ represented as follows:
   u = rand(dist, d)
   z = scale*u + location
 ```
-"""
-struct MvLocationScale{S,D<:ContinuousDistribution,L,E<:Real} <:
-       ContinuousMultivariateDistribution
-    location::L
-    scale::S
-    dist::D
-    scale_eps::E
-end
 
+`scale_eps` sets a constraint on the smallest value of `scale` to be enforced during optimization.
+This is necessary to guarantee stable convergence.
+
+# Keyword Arguments
+- `scale_eps`: Lower bound constraint for the diagonal of the scale. (default: `sqrt(eps(T))`).
+"""
 function MvLocationScale(
     location::AbstractVector{T},
     scale::AbstractMatrix{T},
     dist::ContinuousDistribution;
     scale_eps::T=sqrt(eps(T)),
 ) where {T<:Real}
-    @assert minimum(diag(scale)) ≥ scale_eps "Initial scale is too small (smallest diagonal value is $(minimum(diag(L)))). This might result in unstable optimization behavior."
+    @assert minimum(diag(scale)) ≥ scale_eps "Initial scale is too small (smallest diagonal value is $(minimum(diag(scale)))). This might result in unstable optimization behavior."
     return MvLocationScale(location, scale, dist, scale_eps)
 end
 

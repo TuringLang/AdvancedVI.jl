@@ -1,6 +1,16 @@
 
+struct MvLocationScaleLowRank{
+    L,SD<:AbstractVector,SF<:AbstractMatrix,D<:ContinuousDistribution,E<:Real
+} <: ContinuousMultivariateDistribution
+    location::L
+    scale_diag::SD
+    scale_factors::SF
+    dist::D
+    scale_eps::E
+end
+
 """
-    MvLocationLowRankScale(location, scale_diag, scale_factors, dist) <: ContinuousMultivariateDistribution
+    MvLocationLowRankScale(location, scale_diag, scale_factors, dist; scale_eps)
 
 Variational family with a covariance in the form of a diagonal matrix plus a squared low-rank matrix.
 The rank is given by `size(scale_factors, 2)`.
@@ -14,17 +24,13 @@ represented as follows:
   u_f = rand(dist, r)
   z = scale_diag.*u_d + scale_factors*u_f + location
 ```
-"""
-struct MvLocationScaleLowRank{
-    L,SD<:AbstractVector,SF<:AbstractMatrix,D<:ContinuousDistribution,E<:Real
-} <: ContinuousMultivariateDistribution
-    location::L
-    scale_diag::SD
-    scale_factors::SF
-    dist::D
-    scale_eps::E
-end
 
+`scale_eps` sets a constraint on the smallest value of `scale_diag` to be enforced during optimization.
+This is necessary to guarantee stable convergence.
+
+# Keyword Arguments
+- `scale_eps`: Lower bound constraint for the values of scale_diag. (default: `sqrt(eps(T))`).
+"""
 function MvLocationScaleLowRank(
     location::AbstractVector{T},
     scale_diag::AbstractVector{T},
@@ -32,6 +38,7 @@ function MvLocationScaleLowRank(
     dist::ContinuousDistribution;
     scale_eps::T=sqrt(eps(T)),
 ) where {T<:Real}
+    @assert minimum(scale_diag) ≥ scale_eps "Initial scale is too small (smallest diagonal scale value is $(minimum(scale_diag)). This might result in unstable optimization behavior."
     @assert size(scale_factors, 1) == length(scale_diag)
     return MvLocationScaleLowRank(location, scale_diag, scale_factors, dist, scale_eps)
 end
@@ -144,12 +151,11 @@ Construct a Gaussian variational approximation with a diagonal plus low-rank cov
 - `U::Matrix{T}`: Low-rank factors of the scale, where `size(U,2)` is the rank.
 
 # Keyword Arguments
-- `check_args`: Check the conditioning of the initial scale (default: `true`).
+- `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `sqrt(eps(T))`).
 """
 function LowRankGaussian(
     μ::AbstractVector{T}, D::Vector{T}, U::Matrix{T}; scale_eps::T=sqrt(eps(T))
 ) where {T<:Real}
-    @assert minimum(D) ≥ sqrt(scale_eps) "Initial scale is too small (smallest diagonal scale value is $(minimum(D)). This might result in unstable optimization behavior."
     q_base = Normal{T}(zero(T), one(T))
-    return MvLocationScaleLowRank(μ, D, U, q_base, scale_eps)
+    return MvLocationScaleLowRank(μ, D, U, q_base; scale_eps)
 end
