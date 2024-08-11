@@ -65,7 +65,7 @@ function estimate_gradient!(
     q_sub = subsample(q, batch)
     params_sub, re_sub = Optimisers.destructure(q_sub)
 
-    out, obj_st′, obj_stat = AdvancedVI.estimate_gradient(
+    out, obj_st′, obj_stat = AdvancedVI.estimate_gradient!(
         rng, obj, adtype, out, prob_sub, params, params_sub, re_sub, obj_st
     )
     return out, (sub_st′, obj_st′), merge(sub_stat, obj_stat)
