@@ -26,7 +26,7 @@ where the averaging weight is
 ```
 Higher `eta` (\$\\eta\$) down-weights earlier iterations.
 When \$\\eta=0\$, this is equivalent to uniformly averaging the iterates in an online fashion.
-The DoG paper[^IHC2023] suggests \$\\eta=0\$.
+The DoG paper[^IHC2023] suggests \$\\eta=8\$.
 
 # Parameters
 - `eta`: Regularization term. (default: `8`)
