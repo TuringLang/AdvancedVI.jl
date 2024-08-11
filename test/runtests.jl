@@ -47,7 +47,7 @@ end
 const PROGRESS = haskey(ENV, "PROGRESS")
 
 if GROUP == "All" || GROUP == "Inference"
-    #include("inference/repgradelbo_distributionsad.jl")
+    include("inference/repgradelbo_distributionsad.jl")
     include("inference/repgradelbo_locationscale.jl")
     include("inference/repgradelbo_locationscale_bijectors.jl")
 end
