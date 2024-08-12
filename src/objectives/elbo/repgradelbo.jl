@@ -57,13 +57,14 @@ function estimate_energy_with_samples(prob, samples)
 end
 
 """
-    reparam_with_entropy(rng, q, n_samples, ent_est)
+    reparam_with_entropy(rng, q, q_stop, n_samples, ent_est)
 
 Draw `n_samples` from `q` and compute its entropy.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `q`: Variational approximation.
+- `q_stop`: Same as `q`, but held constant during differentiation. Should only be used for computing the entropy.
 - `n_samples::Int`: Number of Monte Carlo samples 
 - `ent_est`: The entropy estimation strategy. (See `estimate_entropy`.)
 
