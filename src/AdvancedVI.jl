@@ -181,7 +181,53 @@ export MvLocationScale, MeanFieldGaussian, FullRankGaussian
 
 include("families/location_scale.jl")
 
-# Optimization Routine
+# Optimization Rules
+
+include("optimization/rules.jl")
+
+export DoWG, DoG, COCOB
+
+# Output averaging strategy
+
+abstract type AbstractAverager end
+
+"""
+    init(avg, params)
+
+Initialize the state of the averaging strategy `avg` with the initial parameters `params`.
+
+# Arguments
+- `avg::AbstractAverager`: Averaging strategy.
+- `params`: Initial variational parameters.
+"""
+init(::AbstractAverager, ::Any) = nothing
+
+"""
+    apply(avg, avg_st, params)
+
+Apply averaging strategy `avg` on `params` given the state `avg_st`.
+
+# Arguments
+- `avg::AbstractAverager`: Averaging strategy.
+- `avg_st`: Previous state of the averaging strategy.
+- `params`: Initial variational parameters.
+"""
+function apply(::AbstractAverager, ::Any, ::Any) end
+
+"""
+    value(avg, avg_st)
+
+Compute the output of the averaging strategy `avg` from the state `avg_st`.
+
+# Arguments
+- `avg::AbstractAverager`: Averaging strategy.
+- `avg_st`: Previous state of the averaging strategy.
+"""
+function value(::AbstractAverager, ::Any) end
+
+include("optimization/averaging.jl")
+
+export NoAveraging, PolynomialAveraging
 
 function optimize end
 

@@ -98,7 +98,7 @@ q_transformed = Bijectors.TransformedDistribution(q, binv)
 
 # Run inference
 max_iter = 10^3
-q, stats, _ = AdvancedVI.optimize(
+q_avg, _, stats, _ = AdvancedVI.optimize(
     model,
     elbo,
     q_transformed,
@@ -108,7 +108,7 @@ q, stats, _ = AdvancedVI.optimize(
 )
 
 # Evaluate final ELBO with 10^3 Monte Carlo samples
-estimate_objective(elbo, q, model; n_samples=10^4)
+estimate_objective(elbo, q_avg, model; n_samples=10^4)
 ```
 
 For more examples and details, please refer to the documentation.
