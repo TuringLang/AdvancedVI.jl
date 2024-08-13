@@ -32,13 +32,13 @@ This requires the variational approximation to be marked as a functor through `F
 # Callback
 The callback function `callback` has a signature of
 
-    callback(; stat, state, params, params_average, restructure, gradient)
+    callback(; stat, state, params, averaged_params, restructure, gradient)
 
 The arguments are as follows:
 - `stat`: Statistics gathered during the current iteration. The content will vary depending on `objective`.
 - `state`: Collection of the internal states used for optimization.
 - `params`: Variational parameters.
-- `params_average`: Variational parameters computed by the averaging strategy.
+- `averaged_params`: Variational parameters averaged according to the averaging strategy.
 - `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(param)` reconstructs the variational approximation. 
 - `gradient`: The estimated (possibly stochastic) gradient.
 
@@ -94,12 +94,12 @@ function optimize(
         avg_st = apply(averager, avg_st, params)
 
         if !isnothing(callback)
-            params_average = value(averager, avg_st)
+            averaged_params = value(averager, avg_st)
             stat′ = callback(;
                 stat,
                 restructure,
                 params=params,
-                params_average=params_average,
+                averaged_params=averaged_params,
                 gradient=grad,
                 state=(optimizer=opt_st, averager=avg_st, objective=obj_st),
             )
