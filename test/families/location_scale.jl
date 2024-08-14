@@ -1,6 +1,6 @@
 
 @testset "interface LocationScale" begin
-    @testset "$(string(covtype)) $(basedist) $(realtype)" for basedist in [:gaussian],
+    @testset "$(string(covtype)) $(basedist) $(realtype)" for basedist in [:gaussian, :studentt],
         covtype in [:meanfield, :fullrank],
         realtype in [Float32, Float64]
 
@@ -19,11 +19,19 @@
             FullRankGaussian(μ, L)
         elseif covtype == :meanfield && basedist == :gaussian
             MeanFieldGaussian(μ, L)
-        end
-        q_true = if basedist == :gaussian
-            MvNormal(μ, Σ)
+        elseif covtype == :fullrank && basedist == :studentt
+            MvLocationScale(μ, L, TDist(realtype(10.0)))
+        elseif covtype == :meanfield && basedist == :studentt
+            MvLocationScale(μ, L, TDist(realtype(10.0)))
         end
 
+        q_true = if basedist == :gaussian
+            MvNormal(μ, Σ)
+        elseif basedist == :studentt
+            MvTDist(realtype(10.0), μ, Matrix(Σ))
+        end
+
+        println(q)
         @testset "eltype" begin
             @test eltype(q) == realtype
         end
