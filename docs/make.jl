@@ -18,6 +18,7 @@ makedocs(;
             "Reparameterization Gradient Estimator" => "elbo/repgradelbo.md",
             "Location-Scale Variational Family" => "locscale.md",
         ],
+        "Optimization" => "optimization.md",
     ],
 )
 

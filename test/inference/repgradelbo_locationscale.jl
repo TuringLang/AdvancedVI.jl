@@ -51,7 +51,7 @@ end
 
         @testset "convergence" begin
             Δλ0 = sum(abs2, q0.location - μ_true) + sum(abs2, q0.scale - L_true)
-            q, stats, _ = optimize(
+            q_avg, _, stats, _ = optimize(
                 rng,
                 model,
                 objective,
@@ -62,8 +62,8 @@ end
                 adtype=adtype,
             )
 
-            μ = q.location
-            L = q.scale
+            μ = q_avg.location
+            L = q_avg.scale
             Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
             @test Δλ ≤ contraction_rate^(T / 2) * Δλ0
@@ -73,7 +73,7 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q, stats, _ = optimize(
+            q_avg, _, stats, _ = optimize(
                 rng,
                 model,
                 objective,
@@ -83,11 +83,11 @@ end
                 show_progress=PROGRESS,
                 adtype=adtype,
             )
-            μ = q.location
-            L = q.scale
+            μ = q_avg.location
+            L = q_avg.scale
 
             rng_repl = StableRNG(seed)
-            q, stats, _ = optimize(
+            q_avg, _, stats, _ = optimize(
                 rng_repl,
                 model,
                 objective,
@@ -97,8 +97,8 @@ end
                 show_progress=PROGRESS,
                 adtype=adtype,
             )
-            μ_repl = q.location
-            L_repl = q.scale
+            μ_repl = q_avg.location
+            L_repl = q_avg.scale
             @test μ == μ_repl
             @test L == L_repl
         end
