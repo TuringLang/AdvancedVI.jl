@@ -16,14 +16,10 @@ using Test
 
     adtype = AutoForwardDiff()
     optimizer = Optimisers.Adam(1e-2)
-
-    rng = StableRNG(seed)
-    q_ref, stats_ref, _ = optimize(
-        rng, model, obj, q0, T; optimizer, show_progress=false, adtype
-    )
+    averager = PolynomialAveraging()
 
     @testset "default_rng" begin
-        optimize(model, obj, q0, T; optimizer, show_progress=false, adtype)
+        optimize(model, obj, q0, T; optimizer, averager, show_progress=false, adtype)
     end
 
     @testset "callback" begin
@@ -33,11 +29,16 @@ using Test
         callback(; stat, args...) = (test_value=test_values[stat.iteration],)
 
         rng = StableRNG(seed)
-        _, stats, _ = optimize(
+        _, _, stats, _ = optimize(
             rng, model, obj, q0, T; show_progress=false, adtype, callback
         )
         @test [stat.test_value for stat in stats] == test_values
     end
+
+    rng = StableRNG(seed)
+    q_avg_ref, q_ref, _, _ = optimize(
+        rng, model, obj, q0, T; optimizer, averager, show_progress=false, adtype
+    )
 
     @testset "warm start" begin
         rng = StableRNG(seed)
@@ -45,21 +46,24 @@ using Test
         T_first = div(T, 2)
         T_last = T - T_first
 
-        q_first, _, state = optimize(
-            rng, model, obj, q0, T_first; optimizer, show_progress=false, adtype
+        _, q_first, _, state = optimize(
+            rng, model, obj, q0, T_first; optimizer, averager, show_progress=false, adtype
         )
 
-        q, stats, _ = optimize(
+        q_avg, q, _, _ = optimize(
             rng,
             model,
             obj,
             q_first,
             T_last;
             optimizer,
+            averager,
             show_progress=false,
             state_init=state,
             adtype,
         )
+
         @test q == q_ref
+        @test q_avg == q_avg_ref
     end
 end

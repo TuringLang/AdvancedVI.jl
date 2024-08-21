@@ -17,7 +17,7 @@ function AdvancedVI.value_and_gradient!(
     ∇θ = DiffResults.gradient(out)
     fill!(∇θ, zero(T))
     _, y = Enzyme.autodiff(
-        Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, ∇θ)
+        Enzyme.ReverseWithPrimal, Enzyme.Const(f), Enzyme.Active, Enzyme.Duplicated(θ, ∇θ)
     )
     DiffResults.value!(out, y)
     return out
