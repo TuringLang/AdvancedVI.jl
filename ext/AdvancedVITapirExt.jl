@@ -40,7 +40,7 @@ function AdvancedVI.value_and_gradient!(
     rule = st_ad
     y, g = Tapir.value_and_gradient!!(rule, f, x, aux)
     DiffResults.value!(out, y)
-    DiffResults.gradient!(out, last(g))
+    DiffResults.gradient!(out, g[2])
     return out
 end
 
