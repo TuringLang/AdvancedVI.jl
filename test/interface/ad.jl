@@ -6,7 +6,7 @@ using Test
         :ForwardDiff => AutoForwardDiff(),
         :ReverseDiff => AutoReverseDiff(),
         :Zygote => AutoZygote(),
-        :Tapir => AutoTapir(),
+        :Tapir => AutoTapir(; safe_mode=false),
         #:Enzyme      => AutoEnzyme() 
     )
         D = 10
