@@ -42,6 +42,21 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 function value_and_gradient! end
 
 """
+    init_adbackend(adtype, f, x)
+    init_adbackend(adtype, f, x, aux)
+Initialize the AD backend and setup necessary states.
+# Arguments
+- `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
+- `f`: Function subject to differentiation.
+- `x`: The point to evaluate the gradient.
+- `aux`: Auxiliary input passed to `f`.
+# Returns
+- `ad_st`: State of the AD backend. (This will often be pre-compiled tapes/caches.)
+"""
+init_adbackend(::ADTypes.AbstractADType, ::Any, ::Any) = nothing
+init_adbackend(::ADTypes.AbstractADType, ::Any, ::Any, ::Any) = nothing
+
+"""
     restructure_ad_forward(adtype, restructure, params)
 
 Apply `restructure` to `params`.
