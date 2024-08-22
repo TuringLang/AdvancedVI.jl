@@ -38,14 +38,14 @@ Functors.@functor MvLocationScale (location, scale)
 # is very inefficient.
 # begin
 struct RestructureMeanField{S<:Diagonal,D,L}
-    q::MvLocationScale{S,D,L}
+    model::MvLocationScale{S,D,L}
 end
 
 function (re::RestructureMeanField)(flat::AbstractVector)
     n_dims = div(length(flat), 2)
     location = first(flat, n_dims)
     scale = Diagonal(last(flat, n_dims))
-    return MvLocationScale(location, scale, re.q.dist, re.q.scale_eps)
+    return MvLocationScale(location, scale, re.model.dist, re.model.scale_eps)
 end
 
 function Optimisers.destructure(q::MvLocationScale{<:Diagonal,D,L}) where {D,L}

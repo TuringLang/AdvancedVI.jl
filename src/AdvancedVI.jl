@@ -42,22 +42,17 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 function value_and_gradient! end
 
 """
-    init_adbackend(adtype, f, x)
-    init_adbackend(adtype, f, x, aux)
+    restructure_ad_forward(adtype, restructure, params)
 
-Initialize the AD backend and setup states necessary.
+Apply `restructure` to `params`.
+This is an indirection for handling the type stability of `restructure`, as some AD backends require strict type stability in the AD path.
 
 # Arguments
 - `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
-- `f`: Function subject to differentiation.
-- `x`: The point to evaluate the gradient.
-- `aux`: Auxiliary input passed to `f`.
-
-# Returns
-- `ad_st`: State of the AD backend. (This will often be pre-compiled tapes/caches.)
+- `restructure`: Callable for restructuring the varitional distribution from `params`.
+- `params`: Variational Parameters.
 """
-init_adbackend(::ADTypes.AbstractADType, ::Any, ::Any) = nothing
-init_adbackend(::ADTypes.AbstractADType, ::Any, ::Any, ::Any) = nothing
+restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restructure(params)
 
 # Update for gradient descent step
 """
