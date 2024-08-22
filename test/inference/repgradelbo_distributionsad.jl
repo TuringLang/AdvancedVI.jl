@@ -1,4 +1,19 @@
 
+AD_distributionsad = if VERSION >= v"1.10"
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
+        :Zygote => AutoZygote(),
+        :Enzyme => AutoEnzyme(),
+    )
+else
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
+        :Zygote => AutoZygote(),
+    )
+end
+
 @testset "inference RepGradELBO DistributionsAD" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],
@@ -9,12 +24,7 @@
             :RepGradELBOStickingTheLanding =>
                 RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
         ),
-        (adbackname, adtype) in Dict(
-            :ForwarDiff => AutoForwardDiff(),
-            #:ReverseDiff => AutoReverseDiff(),
-            :Zygote => AutoZygote(),
-            #:Enzyme      => AutoEnzyme(),
-        )
+        (adbackname, adtype) in AD_distributionsad
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
@@ -31,8 +41,8 @@
         # where ρ = 1 - ημ, μ is the strong convexity constant.
         contraction_rate = 1 - η * strong_convexity
 
-        μ0 = Zeros(realtype, n_dims)
-        L0 = Diagonal(Ones(realtype, n_dims))
+        μ0 = zeros(realtype, n_dims)
+        L0 = Diagonal(ones(realtype, n_dims))
         q0 = TuringDiagMvNormal(μ0, diag(L0))
 
         @testset "convergence" begin

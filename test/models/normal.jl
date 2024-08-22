@@ -35,9 +35,7 @@ function normal_meanfield(rng::Random.AbstractRNG, realtype::Type)
 
     σ0 = realtype(0.3)
     μ = Fill(realtype(5), n_dims)
-    #randn(rng, realtype, n_dims)
     σ = Fill(σ0, n_dims)
-    #log.(exp.(randn(rng, realtype, n_dims)) .+ 1)
 
     model = TestNormal(μ, Diagonal(σ .^ 2))
 

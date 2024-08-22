@@ -20,7 +20,7 @@ using DistributionsAD
 using LogDensityProblems
 using Optimisers
 using ADTypes
-using Enzyme, ForwardDiff, ReverseDiff, Zygote
+using ForwardDiff, ReverseDiff, Zygote, Enzyme
 
 using AdvancedVI
 

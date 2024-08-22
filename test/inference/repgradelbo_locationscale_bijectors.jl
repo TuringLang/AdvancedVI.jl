@@ -1,4 +1,19 @@
 
+AD_locationscale_bijectors = if VERSION >= v"1.10"
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Enzyme => AutoEnzyme(),
+    )
+else
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+    )
+end
+
 @testset "inference RepGradELBO VILocationScale Bijectors" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],
@@ -10,12 +25,7 @@
             :RepGradELBOStickingTheLanding =>
                 RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
         ),
-        (adbackname, adtype) in Dict(
-            :ForwarDiff => AutoForwardDiff(),
-            :ReverseDiff => AutoReverseDiff(),
-            #:Zygote      => AutoZygote(), 
-            #:Enzyme      => AutoEnzyme(),
-        )
+        (adbackname, adtype) in AD_locationscale_bijectors
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)

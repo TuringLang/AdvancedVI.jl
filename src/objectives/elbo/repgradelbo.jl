@@ -93,8 +93,8 @@ function estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int=obj.n_samp
 end
 
 function estimate_repgradelbo_ad_forward(params′, aux)
-    @unpack rng, obj, problem, restructure, q_stop = aux
-    q = restructure(params′)
+    @unpack rng, obj, problem, adtype, restructure, q_stop = aux
+    q = restructure_ad_forward(adtype, restructure, params′)
     samples, entropy = reparam_with_entropy(rng, q, q_stop, obj.n_samples, obj.entropy)
     energy = estimate_energy_with_samples(problem, samples)
     elbo = energy + entropy
@@ -112,7 +112,14 @@ function estimate_gradient!(
     state,
 )
     q_stop = restructure(params)
-    aux = (rng=rng, obj=obj, problem=prob, restructure=restructure, q_stop=q_stop)
+    aux = (
+        rng=rng,
+        adtype=adtype,
+        obj=obj,
+        problem=prob,
+        restructure=restructure,
+        q_stop=q_stop,
+    )
     value_and_gradient!(adtype, estimate_repgradelbo_ad_forward, params, aux, out)
     nelbo = DiffResults.value(out)
     stat = (elbo=-nelbo,)
