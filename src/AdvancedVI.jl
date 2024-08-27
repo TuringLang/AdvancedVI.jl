@@ -41,18 +41,17 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 function value_and_gradient! end
 
 """
-    stop_gradient(x)
+    restructure_ad_forward(adtype, restructure, params)
 
-Stop the gradient from propagating to `x` if the selected ad backend supports it.
-Otherwise, it is equivalent to `identity`.
+Apply `restructure` to `params`.
+This is an indirection for handling the type stability of `restructure`, as some AD backends require strict type stability in the AD path.
 
 # Arguments
-- `x`: Input
-
-# Returns
-- `x`: Same value as the input.
+- `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
+- `restructure`: Callable for restructuring the varitional distribution from `params`.
+- `params`: Variational Parameters.
 """
-function stop_gradient end
+restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restructure(params)
 
 # Update for gradient descent step
 """
@@ -185,7 +184,53 @@ export MvLocationScaleLowRank, LowRankGaussian
 
 include("families/location_scale_low_rank.jl")
 
-# Optimization Routine
+# Optimization Rules
+
+include("optimization/rules.jl")
+
+export DoWG, DoG, COCOB
+
+# Output averaging strategy
+
+abstract type AbstractAverager end
+
+"""
+    init(avg, params)
+
+Initialize the state of the averaging strategy `avg` with the initial parameters `params`.
+
+# Arguments
+- `avg::AbstractAverager`: Averaging strategy.
+- `params`: Initial variational parameters.
+"""
+init(::AbstractAverager, ::Any) = nothing
+
+"""
+    apply(avg, avg_st, params)
+
+Apply averaging strategy `avg` on `params` given the state `avg_st`.
+
+# Arguments
+- `avg::AbstractAverager`: Averaging strategy.
+- `avg_st`: Previous state of the averaging strategy.
+- `params`: Initial variational parameters.
+"""
+function apply(::AbstractAverager, ::Any, ::Any) end
+
+"""
+    value(avg, avg_st)
+
+Compute the output of the averaging strategy `avg` from the state `avg_st`.
+
+# Arguments
+- `avg::AbstractAverager`: Averaging strategy.
+- `avg_st`: Previous state of the averaging strategy.
+"""
+function value(::AbstractAverager, ::Any) end
+
+include("optimization/averaging.jl")
+
+export NoAveraging, PolynomialAveraging
 
 function optimize end
 

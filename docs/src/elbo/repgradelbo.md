@@ -1,56 +1,67 @@
-
 # [Reparameterization Gradient Estimator](@id repgradelbo)
+
 ## Overview
 
 The reparameterization gradient[^TL2014][^RMW2014][^KW2014] is an unbiased gradient estimator of the ELBO.
 Consider some variational family
+
 ```math
 \mathcal{Q} = \{q_{\lambda} \mid \lambda \in \Lambda \},
 ```
+
 where $$\lambda$$ is the *variational parameters* of $$q_{\lambda}$$.
 If its sampling process can be described by some differentiable reparameterization function $$\mathcal{T}_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
+
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
 z \stackrel{d}{=} \mathcal{T}_{\lambda}\left(\epsilon\right);\quad \epsilon \sim \varphi
 ```
-we can effectively estimate the gradient of the ELBO by directly differentiating 
+
+we can effectively estimate the gradient of the ELBO by directly differentiating
+
 ```math
   \widehat{\mathrm{ELBO}}\left(\lambda\right) = \frac{1}{M}\sum^M_{m=1} \log \pi\left(\mathcal{T}_{\lambda}\left(\epsilon_m\right)\right) + \mathbb{H}\left(q_{\lambda}\right),
 ```
+
 where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples, with respect to $$\lambda$$.
 This estimator is called the reparameterization gradient estimator.
 
 In addition to the reparameterization gradient, `AdvancedVI` provides the following features:
-1. **Posteriors with constrained supports** are handled through [`Bijectors`](), which is known as the automatic differentiation VI (ADVI; [^KTRGB2017]) formulation. (See [this section](@ref bijectors).)
-2. **The gradient of the entropy** can be estimated through various strategies depending on the capabilities of the variational family. (See [this section](@ref entropygrad).)
 
-[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. 
+ 1. **Posteriors with constrained supports** are handled through [`Bijectors`](https://github.com/TuringLang/Bijectors.jl), which is known as the automatic differentiation VI (ADVI; [^KTRGB2017]) formulation. (See [this section](@ref bijectors).)
+ 2. **The gradient of the entropy** can be estimated through various strategies depending on the capabilities of the variational family. (See [this section](@ref entropygrad).)
+
+[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*.
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-
 ## The `RepGradELBO` Objective
 
 To use the reparameterization gradient, `AdvancedVI` provides the following variational objective:
+
 ```@docs
 RepGradELBO
 ```
 
 ## [Handling Constraints with `Bijectors`](@id bijectors)
+
 As mentioned in the docstring, the `RepGradELBO` objective assumes that the variational approximation $$q_{\lambda}$$ and the target distribution $$\pi$$ have the same support for all $$\lambda \in \Lambda$$.
 
 However, in general, it is most convenient to use variational families that have the whole Euclidean space $$\mathbb{R}^d$$ as their support.
 This is the case for the [location-scale distributions](@ref locscale) provided by `AdvancedVI`.
 For target distributions which the support is not the full $$\mathbb{R}^d$$, we can apply some transformation $$b$$ to $$q_{\lambda}$$ to match its support such that
+
 ```math
 z \sim  q_{b,\lambda} \qquad\Leftrightarrow\qquad
 z \stackrel{d}{=} b^{-1}\left(\eta\right);\quad \eta \sim q_{\lambda},
 ```
+
 where $$b$$ is often called a *bijector*, since it is often chosen among bijective transformations.
 This idea is known as automatic differentiation VI[^KTRGB2017] and has subsequently been improved by Tensorflow Probability[^DLTBV2017].
 In Julia, [Bijectors.jl](https://github.com/TuringLang/Bijectors.jl)[^FXTYG2020] provides a comprehensive collection of bijections.
 
 One caveat of ADVI is that, after applying the bijection, a Jacobian adjustment needs to be applied.
-That is, the objective is now 
+That is, the objective is now
+
 ```math
 \mathrm{ADVI}\left(\lambda\right)
 \triangleq
@@ -63,28 +74,30 @@ That is, the objective is now
 
 This is automatically handled by `AdvancedVI` through `TransformedDistribution` provided by `Bijectors.jl`.
 See the following example:
+
 ```julia
 using Bijectors
-q             = MeanFieldGaussian(μ, L)
-b             = Bijectors.bijector(dist)
-binv          = inverse(b)
+q = MeanFieldGaussian(μ, L)
+b = Bijectors.bijector(dist)
+binv = inverse(b)
 q_transformed = Bijectors.TransformedDistribution(q, binv)
 ```
+
 By passing `q_transformed` to `optimize`, the Jacobian adjustment for the bijector `b` is automatically applied.
 (See [Examples](@ref examples) for a fully working example.)
 
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of Machine Learning Research*.
 [^DLTBV2017]: Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... & Saurous, R. A. (2017). Tensorflow distributions. arXiv.
 [^FXTYG2020]: Fjelde, T. E., Xu, K., Tarek, M., Yalburgi, S., & Ge, H. (2020,. Bijectors. jl: Flexible transformations for probability distributions. In *Symposium on Advances in Approximate Bayesian Inference*.
-
 ## [Entropy Estimators](@id entropygrad)
+
 For the gradient of the entropy term, we provide three choices with varying requirements.
 The user can select the entropy estimator by passing it as a keyword argument when constructing the `RepGradELBO` objective.
 
-| Estimator                   | `entropy(q)` | `logpdf(q)` | Type |
-| :---                        | :---:        | :---:       | :--- |
-| `ClosedFormEntropy`         | required     |             | Deterministic |
-| `MonteCarloEntropy`         |              | required    | Monte Carlo  |
+| Estimator                   | `entropy(q)` | `logpdf(q)` | Type                             |
+|:--------------------------- |:------------:|:-----------:|:-------------------------------- |
+| `ClosedFormEntropy`         | required     |             | Deterministic                    |
+| `MonteCarloEntropy`         |              | required    | Monte Carlo                      |
 | `StickingTheLandingEntropy` |              | required    | Monte Carlo with control variate |
 
 The requirements mean that either `Distributions.entropy` or `Distributions.logpdf` need to be implemented for the choice of variational family.
@@ -93,10 +106,13 @@ If `entropy` is not available, then `StickingTheLandingEntropy` is recommended.
 See the following section for more details.
 
 ### The `StickingTheLandingEntropy` Estimator
+
 The `StickingTheLandingEntropy`, or STL estimator, is a control variate approach [^RWD2017].
+
 ```@docs
 StickingTheLandingEntropy
 ```
+
 It occasionally results in lower variance when ``\pi \approx q_{\lambda}``, and higher variance when ``\pi \not\approx q_{\lambda}``.
 The conditions for which the STL estimator results in lower variance is still an active subject for research.
 
@@ -165,33 +181,38 @@ This setting is known as "perfect variational family specification."
 In this case, the `RepGradELBO` estimator with `StickingTheLandingEntropy` is the only estimator known to converge exponentially fast ("linear convergence") to the true solution.
 
 Recall that the original ADVI objective with a closed-form entropy (CFE) is given as follows:
+
 ```@example repgradelbo
 n_montecarlo = 16;
-b            = Bijectors.bijector(model);
-binv         = inverse(b)
+b = Bijectors.bijector(model);
+binv = inverse(b)
 
 q0_trans = Bijectors.TransformedDistribution(q0, binv)
 
 cfe = AdvancedVI.RepGradELBO(n_montecarlo)
 nothing
 ```
+
 The repgradelbo estimator can instead be created as follows:
+
 ```@example repgradelbo
-repgradelbo = AdvancedVI.RepGradELBO(n_montecarlo; entropy = AdvancedVI.StickingTheLandingEntropy());
+repgradelbo = AdvancedVI.RepGradELBO(
+    n_montecarlo; entropy=AdvancedVI.StickingTheLandingEntropy()
+);
 nothing
 ```
 
 ```@setup repgradelbo
 max_iter = 3*10^3
 
-function callback(; stat, state, params, restructure, gradient)
+function callback(; params, restructure, kwargs...)
     q = restructure(params).dist
     dist2 = sum(abs2, q.location - vcat([μ_x], μ_y)) 
         + sum(abs2, diag(q.scale) - vcat(σ_x, σ_y))
     (dist = sqrt(dist2),)
 end
 
-_, stats_cfe, _ = AdvancedVI.optimize(
+_, _, stats_cfe, _ = AdvancedVI.optimize(
     model,
     cfe,
     q0_trans,
@@ -202,7 +223,7 @@ _, stats_cfe, _ = AdvancedVI.optimize(
     callback      = callback,
 ); 
 
-_, stats_stl, _ = AdvancedVI.optimize(
+_, _, stats_stl, _ = AdvancedVI.optimize(
     model,
     repgradelbo,
     q0_trans,
@@ -227,6 +248,7 @@ plot!(t, dist_stl, label="BBVI STL", xlabel="Iteration", ylabel="distance to opt
 savefig("advi_stl_dist.svg")
 nothing
 ```
+
 ![](advi_stl_elbo.svg)
 
 We can see that the noise of the repgradelbo estimator becomes smaller as VI converges.
@@ -243,15 +265,16 @@ Furthermore, in a lot of cases, a low-accuracy solution may be sufficient.
 
 [^RWD2017]: Roeder, G., Wu, Y., & Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. Advances in Neural Information Processing Systems, 30.
 [^KMG2024]: Kim, K., Ma, Y., & Gardner, J. (2024). Linear Convergence of Black-Box Variational Inference: Should We Stick the Landing?. In International Conference on Artificial Intelligence and Statistics (pp. 235-243). PMLR.
-
 ## Advanced Usage
+
 There are two major ways to customize the behavior of `RepGradELBO`
-* Customize the `Distributions` functions: `rand(q)`, `entropy(q)`, `logpdf(q)`.
-* Customize `AdvancedVI.reparam_with_entropy`.
+
+  - Customize the `Distributions` functions: `rand(q)`, `entropy(q)`, `logpdf(q)`.
+  - Customize `AdvancedVI.reparam_with_entropy`.
 
 It is generally recommended to customize `rand(q)`, `entropy(q)`, `logpdf(q)`, since it will easily compose with other functionalities provided by `AdvancedVI`.
 
-The most advanced way is to customize `AdvancedVI.reparam_with_entropy`. 
+The most advanced way is to customize `AdvancedVI.reparam_with_entropy`.
 In particular, `reparam_with_entropy` is the function that invokes `rand(q)`, `entropy(q)`, `logpdf(q)`.
 Thus, it is the most general way to override the behavior of `RepGradELBO`.
 
@@ -267,26 +290,27 @@ In this case, it suffices to override its `rand` specialization as follows:
 using QuasiMonteCarlo
 using StatsFuns
 
-qmcrng = SobolSample(R = OwenScramble(base = 2, pad = 32))
+qmcrng = SobolSample(; R=OwenScramble(; base=2, pad=32))
 
 function Distributions.rand(
-    rng::AbstractRNG, q::MvLocationScale{<:Diagonal, D, L}, num_samples::Int
-) where {L, D}
-    @unpack location, scale, dist = q 
-    n_dims       = length(location)
-    scale_diag   = diag(scale)
+    rng::AbstractRNG, q::MvLocationScale{<:Diagonal,D,L}, num_samples::Int
+) where {L,D}
+    @unpack location, scale, dist = q
+    n_dims = length(location)
+    scale_diag = diag(scale)
     unif_samples = QuasiMonteCarlo.sample(num_samples, length(q), qmcrng)
-    std_samples  = norminvcdf.(unif_samples)
-    scale_diag.*std_samples .+ location
+    std_samples = norminvcdf.(unif_samples)
+    return scale_diag .* std_samples .+ location
 end
 nothing
 ```
+
 (Note that this is a quick-and-dirty example, and there are more sophisticated ways to implement this.)
 
 ```@setup repgradelbo
 repgradelbo = AdvancedVI.RepGradELBO(n_montecarlo);
 
-_, stats_qmc, _ = AdvancedVI.optimize(
+_, _, stats_qmc, _ = AdvancedVI.optimize(
     model,
     repgradelbo,
     q0_trans,

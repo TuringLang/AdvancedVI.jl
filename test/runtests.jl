@@ -2,14 +2,16 @@
 using Test
 using Test: @testset, @test
 
+using Base.Iterators
 using Bijectors
-using Random, StableRNGs
-using Statistics
 using Distributions
-using LinearAlgebra
-using SimpleUnPack: @unpack
 using FillArrays
+using LinearAlgebra
 using PDMats
+using Random, StableRNGs
+using SimpleUnPack: @unpack
+using Statistics
+using StatsBase
 
 using Functors
 using DistributionsAD
@@ -18,7 +20,7 @@ using DistributionsAD
 using LogDensityProblems
 using Optimisers
 using ADTypes
-using Enzyme, ForwardDiff, ReverseDiff, Zygote
+using ForwardDiff, ReverseDiff, Zygote, Enzyme
 
 using AdvancedVI
 
@@ -41,6 +43,8 @@ if GROUP == "All" || GROUP == "Interface"
     include("interface/ad.jl")
     include("interface/optimize.jl")
     include("interface/repgradelbo.jl")
+    include("interface/rules.jl")
+    include("interface/averaging.jl")
 end
 
 if GROUP == "All" || GROUP == "Families"
