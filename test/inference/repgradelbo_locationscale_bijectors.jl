@@ -15,6 +15,10 @@ else
     )
 end
 
+if @isdefined(Tapir)
+    AD_locationscale_bijectors[:Tapir] = AutoTapir(; safe_mode=false)
+end
+
 @testset "inference RepGradELBO VILocationScale Bijectors" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],

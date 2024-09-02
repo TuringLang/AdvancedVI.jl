@@ -34,13 +34,17 @@ end
     modelstats = normal_meanfield(rng, Float64)
     @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
-    @testset for ad in [
+    ad_backends = [
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(),
         ADTypes.AutoZygote(),
         ADTypes.AutoEnzyme(),
-        ADTypes.AutoTapir(; safe_mode=false),
     ]
+    if @isdefined(Tapir)
+        push!(ad_backends, AutoTapir(; safe_mode=false))
+    end
+
+    @testset for ad in ad_backends
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
