@@ -5,6 +5,7 @@ AD_distributionsad = if VERSION >= v"1.10"
         #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
         :Zygote => AutoZygote(),
         :Enzyme => AutoEnzyme(),
+        :Tapir => AutoTapir(; safe_mode=false),
     )
 else
     Dict(

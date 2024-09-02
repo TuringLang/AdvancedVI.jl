@@ -39,6 +39,7 @@ end
         ADTypes.AutoReverseDiff(),
         ADTypes.AutoZygote(),
         ADTypes.AutoEnzyme(),
+        ADTypes.AutoTapir(; safe_mode=false),
     ]
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))

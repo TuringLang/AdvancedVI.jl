@@ -22,6 +22,11 @@ using Optimisers
 using ADTypes
 using ForwardDiff, ReverseDiff, Zygote, Enzyme
 
+if VERSION >= v"1.10"
+    Pkg.add("Tapir")
+    using Tapir
+end
+
 using AdvancedVI
 
 const GROUP = get(ENV, "GROUP", "All")
