@@ -11,10 +11,7 @@ else
 end
 
 function AdvancedVI.value_and_gradient!(
-    ::ADTypes.AutoTapir,
-    f,
-    x::AbstractVector{<:Real},
-    out::DiffResults.MutableDiffResult,
+    ::ADTypes.AutoTapir, f, x::AbstractVector{<:Real}, out::DiffResults.MutableDiffResult
 )
     rule = Tapir.build_rrule(f, x)
     y, g = Tapir.value_and_gradient!!(rule, f, x)
