@@ -25,8 +25,8 @@ Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
 Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
-Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 Tapir = "07d77754-e150-4737-8c94-cd238a1fb45b"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [extensions]
 AdvancedVIBijectorsExt = "Bijectors"
@@ -57,6 +57,7 @@ Requires = "1.0"
 ReverseDiff = "1.15.1"
 SimpleUnPack = "1.1.0"
 StatsBase = "0.32, 0.33, 0.34"
+Tapir = "0.2"
 Zygote = "0.6.63"
 julia = "1.7"
 
