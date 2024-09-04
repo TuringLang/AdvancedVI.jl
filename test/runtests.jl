@@ -8,6 +8,7 @@ using Distributions
 using FillArrays
 using LinearAlgebra
 using PDMats
+using Pkg
 using Random, StableRNGs
 using SimpleUnPack: @unpack
 using Statistics
@@ -21,6 +22,11 @@ using LogDensityProblems
 using Optimisers
 using ADTypes
 using ForwardDiff, ReverseDiff, Zygote, Enzyme
+
+if VERSION >= v"1.10"
+    Pkg.add("Tapir")
+    using Tapir
+end
 
 using AdvancedVI
 

@@ -14,6 +14,10 @@ else
     )
 end
 
+if @isdefined(Tapir)
+    AD_distributionsad[:Tapir] = AutoTapir(; safe_mode=false)
+end
+
 @testset "inference RepGradELBO DistributionsAD" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],

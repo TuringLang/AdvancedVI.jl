@@ -5,6 +5,7 @@ AD_locationscale = if VERSION >= v"1.10"
         :ReverseDiff => AutoReverseDiff(),
         :Zygote => AutoZygote(),
         :Enzyme => AutoEnzyme(),
+        :Tapir => AutoTapir(; safe_mode=false),
     )
 else
     Dict(
@@ -12,6 +13,10 @@ else
         :ReverseDiff => AutoReverseDiff(),
         :Zygote => AutoZygote(),
     )
+end
+
+if @isdefined(Tapir)
+    AD_locationscale[:Tapir] = AutoTapir(; safe_mode=false)
 end
 
 @testset "inference RepGradELBO VILocationScale" begin
