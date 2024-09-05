@@ -20,8 +20,7 @@ if @isdefined(Tapir)
 end
 
 @testset "inference RepGradELBO VILocationScale Bijectors" begin
-    @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
-                                                                     [Float64, Float32],
+    @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:NormalLogNormalMeanField => normallognormal_meanfield),
         n_montecarlo in [1, 10],
