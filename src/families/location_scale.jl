@@ -113,16 +113,21 @@ function Distributions._rand!(
     return x .+= location
 end
 
-Distributions.mean(q::MvLocationScale) = q.location
+function Distributions.mean(q::MvLocationScale)
+    @unpack location, scale = q
+    return location + scale * Fill(mean(q.dist), length(location))
+end
 
 function Distributions.var(q::MvLocationScale)
     C = q.scale
-    return Diagonal(C * C')
+    σ2 = var(q.dist)
+    return σ2 * diag(C * C')
 end
 
 function Distributions.cov(q::MvLocationScale)
     C = q.scale
-    return Hermitian(C * C')
+    σ2 = var(q.dist)
+    return σ2 * Hermitian(C * C')
 end
 
 """
