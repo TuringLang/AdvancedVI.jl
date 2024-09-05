@@ -35,9 +35,7 @@ end
     @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
     ad_backends = [
-        ADTypes.AutoForwardDiff(),
-        ADTypes.AutoReverseDiff(),
-        ADTypes.AutoZygote(),
+        ADTypes.AutoForwardDiff(), ADTypes.AutoReverseDiff(), ADTypes.AutoZygote()
     ]
     if @isdefined(Tapir)
         push!(ad_backends, AutoTapir(; safe_mode=false))
