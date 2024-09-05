@@ -43,6 +43,9 @@ end
     if @isdefined(Tapir)
         push!(ad_backends, AutoTapir(; safe_mode=false))
     end
+    if @isdefined(Enzyme)
+        push!(ad_backends, AutoEnzyme())
+    end
 
     @testset for ad in ad_backends
         q_true = MeanFieldGaussian(

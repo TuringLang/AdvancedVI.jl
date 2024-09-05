@@ -1,21 +1,16 @@
 
-AD_distributionsad = if VERSION >= v"1.10"
-    Dict(
-        :ForwarDiff => AutoForwardDiff(),
-        #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
-        :Zygote => AutoZygote(),
-        :Enzyme => AutoEnzyme(),
-    )
-else
-    Dict(
-        :ForwarDiff => AutoForwardDiff(),
-        #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
-        :Zygote => AutoZygote(),
-    )
-end
+AD_distributionsad = Dict(
+    :ForwarDiff => AutoForwardDiff(),
+    #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
+    :Zygote => AutoZygote(),
+)
 
 if @isdefined(Tapir)
     AD_distributionsad[:Tapir] = AutoTapir(; safe_mode=false)
+end
+
+if @isdefined(Enzyme)
+    AD_distributionsad[:Enzyme] = AutoEnzyme()
 end
 
 @testset "inference RepGradELBO DistributionsAD" begin
