@@ -38,7 +38,6 @@ end
         ADTypes.AutoForwardDiff(),
         ADTypes.AutoReverseDiff(),
         ADTypes.AutoZygote(),
-        ADTypes.AutoEnzyme(),
     ]
     if @isdefined(Tapir)
         push!(ad_backends, AutoTapir(; safe_mode=false))
