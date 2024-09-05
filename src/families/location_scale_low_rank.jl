@@ -60,21 +60,29 @@ function StatsBase.entropy(q::MvLocationScaleLowRank)
     return n_dims * convert(eltype(location), entropy(dist)) + logdetΣ / 2
 end
 
-function Distributions.logpdf(q::MvLocationScaleLowRank, z::AbstractVector{<:Real})
+function Distributions.logpdf(
+    q::MvLocationScaleLowRank, z::AbstractVector{<:Real}; non_differntiable::Bool=false
+)
     @unpack location, scale_diag, scale_factors, dist = q
-    #
-    ## More efficient O(kd^2) but non-differentiable version:
-    #
-    # Σchol = Cholesky(LowerTriangular(diagm(sqrt.(scale_diag))))
-    # n_factors = size(scale_factors, 2)
-    # for k in 1:n_factors
-    #     factor = scale_factors[:,k]
-    #     lowrankupdate!(Σchol, factor)
-    # end
+    μ_base = mean(dist)
+    n_dims = length(location)
 
-    Σ = Diagonal(scale_diag .* scale_diag) + scale_factors * scale_factors'
-    Σchol = cholesky(Σ)
-    return sum(Base.Fix1(logpdf, dist), Σchol.L \ (z - location)) - logdet(Σchol.L)
+    scale2chol = if non_differntiable
+        # Fast O(kd^2) path (not supported by most current AD frameworks):
+        scale2chol = Cholesky(LowerTriangular(diagm(sqrt.(scale_diag))))
+        n_factors = size(scale_factors, 2)
+        for k in 1:n_factors
+            factor = scale_factors[:, k] # copy necessary due to in-place mutation
+            lowrankupdate!(scale2chol, factor)
+        end
+        scale2chol
+    else
+        # Slow but differentiable O(d^3) path
+        scale2 = Diagonal(scale_diag .* scale_diag) + scale_factors * scale_factors'
+        cholesky(scale2)
+    end
+    z_std = z - mean(q) + scale2chol.L * Fill(μ_base, n_dims)
+    return sum(Base.Fix1(logpdf, dist), scale2chol.L \ z_std) - logdet(scale2chol.L)
 end
 
 function Distributions.rand(q::MvLocationScaleLowRank)
@@ -111,18 +119,25 @@ function Distributions._rand!(
     return x .+= location
 end
 
-Distributions.mean(q::MvLocationScaleLowRank) = q.location
+function Distributions.mean(q::MvLocationScaleLowRank)
+    @unpack location, scale_diag, scale_factors = q
+    μ = mean(q.dist)
+    return location +
+           scale_diag .* Fill(μ, length(scale_diag)) +
+           scale_factors * Fill(μ, size(scale_factors, 2))
+end
 
 function Distributions.var(q::MvLocationScaleLowRank)
     @unpack scale_diag, scale_factors = q
-    return Diagonal(
-        scale_diag .* scale_diag + sum(scale_factors .* scale_factors; dims=2)[:, 1]
-    )
+    σ2 = var(q.dist)
+    return σ2 *
+           (scale_diag .* scale_diag + sum(scale_factors .* scale_factors; dims=2)[:, 1])
 end
 
 function Distributions.cov(q::MvLocationScaleLowRank)
     @unpack scale_diag, scale_factors = q
-    return Diagonal(scale_diag .* scale_diag) + scale_factors * scale_factors'
+    σ2 = var(q.dist)
+    return σ2 * (Diagonal(scale_diag .* scale_diag) + scale_factors * scale_factors')
 end
 
 function update_variational_params!(
