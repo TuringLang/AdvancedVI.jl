@@ -20,9 +20,9 @@ represented as follows:
 ```julia
   d = length(location)
   r = size(scale_factors, 2)
-  u_d = rand(dist, d)
-  u_f = rand(dist, r)
-  z = scale_diag.*u_d + scale_factors*u_f + location
+  u_diag = rand(dist, d)
+  u_factors = rand(dist, r)
+  z = scale_diag.*u_diag + scale_factors*u_factors + location
 ```
 
 `scale_eps` sets a constraint on the smallest value of `scale_diag` to be enforced during optimization.

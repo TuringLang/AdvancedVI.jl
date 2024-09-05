@@ -3,7 +3,7 @@
 The [RepGradELBO](@ref repgradelbo) objective assumes that the members of the variational family have a differentiable sampling path.
 We provide multiple pre-packaged variational families that can be readily used.
 
-## The `LocationScale` Family
+## [The `LocationScale` Family](@id locscale)
 
 The [location-scale](https://en.wikipedia.org/wiki/Location%E2%80%93scale_family) variational family is a family of probability distributions, where their sampling process can be represented as
 
@@ -37,6 +37,8 @@ and the entropy is given as
 where ``\mathbb{H}(\varphi)`` is the entropy of the base distribution.
 Notice the ``\mathbb{H}(\varphi)`` does not depend on ``\log |C|``.
 The derivative of the entropy with respect to ``\lambda`` is thus independent of the base distribution.
+
+### API
 
 !!! note
     
@@ -128,13 +130,127 @@ and the entropy is given by the matrix determinant lemma as
 
 where ``\mathbb{H}(\varphi)`` is the entropy of the base distribution.
 
-!!! note
-    
-    `logpdf` for `LocationScaleLowRank` is unfortunately not computationally efficient and has the same time complexity as `LocationScale` with a full-rank scale.
+```@setup lowrank
+using ADTypes
+using AdvancedVI
+using Distributions
+using ReverseDiff
+using LinearAlgebra
+using LogDensityProblems
+using Plots
+
+struct Target{D}
+    dist::D
+end
+
+function LogDensityProblems.logdensity(model::Target, θ)
+    logpdf(model.dist, θ)
+end
+
+function LogDensityProblems.dimension(model::Target)
+    return length(model.dist)
+end
+
+function LogDensityProblems.capabilities(::Type{<:Target})
+    return LogDensityProblems.LogDensityOrder{0}()
+end
+
+n_dims     = 30
+U_true     = randn(n_dims, 3)
+D_true     = Diagonal(log.(1 .+ exp.(randn(n_dims))))
+Σ_true     = D_true + U_true*U_true'
+Σsqrt_true = sqrt(Σ_true)
+μ_true     = randn(n_dims)
+model      = Target(MvNormal(μ_true, Σ_true));
+
+d  = LogDensityProblems.dimension(model);
+μ  = zeros(d);
+
+L     = Diagonal(ones(d));
+q0_mf = MeanFieldGaussian(μ, L)
+
+L     = LowerTriangular(diagm(ones(d)));
+q0_fr = FullRankGaussian(μ, L)
+
+D     = ones(n_dims)
+U     = zeros(n_dims, 3)
+q0_lr = LowRankGaussian(μ, D, U)
+
+obj = RepGradELBO(1);
+
+max_iter = 10^4
+
+function callback(; params, averaged_params, restructure, stat, kwargs...)
+    q = restructure(averaged_params)
+    μ, Σ = mean(q), cov(q)
+    (dist2 = sum(abs2, μ - μ_true) + tr(Σ + Σ_true - 2*sqrt(Σsqrt_true*Σ*Σsqrt_true)),)
+end
+
+_, _, stats_fr, _ = AdvancedVI.optimize(
+    model,
+    obj,
+    q0_fr,
+    max_iter;
+    show_progress = false,
+    adtype        = AutoReverseDiff(),
+    optimizer     = DoG(),
+    averager      = PolynomialAveraging(),
+    callback      = callback,
+); 
+
+_, _, stats_mf, _ = AdvancedVI.optimize(
+    model,
+    obj,
+    q0_mf,
+    max_iter;
+    show_progress = false,
+    adtype        = AutoReverseDiff(),
+    optimizer     = DoG(),
+    averager      = PolynomialAveraging(),
+    callback      = callback,
+); 
+
+_, _, stats_lr, _ = AdvancedVI.optimize(
+    model,
+    obj,
+    q0_lr,
+    max_iter;
+    show_progress = false,
+    adtype        = AutoReverseDiff(),
+    optimizer     = DoG(),
+    averager      = PolynomialAveraging(),
+    callback      = callback,
+); 
+
+t       = [stat.iteration for stat in stats_fr]
+dist_fr = [sqrt(stat.dist2) for stat in stats_fr]
+dist_mf = [sqrt(stat.dist2) for stat in stats_mf]
+dist_lr = [sqrt(stat.dist2) for stat in stats_lr]
+plot( t, dist_mf , label="Mean-Field Gaussian", xlabel="Iteration", ylabel="Wasserstein-2 Distance")
+plot!(t, dist_fr,  label="Full-Rank Gaussian",  xlabel="Iteration", ylabel="Wasserstein-2 Distance")
+plot!(t, dist_lr,  label="Low-Rank Gaussian",   xlabel="Iteration", ylabel="Wasserstein-2 Distance")
+savefig("lowrank_family_wasserstein.svg")
+nothing
+```
+
+Consider a 30-dimensional Gaussian with a diagonal plus low-rank covariance structure, where the true rank is 3.
+Then, we can compare the convergence speed of `LowRankGaussian` versus `FullRankGaussian`:
+
+![](lowrank_family_wasserstein.svg)
+
+As we can see, `LowRankGaussian` converges faster than `FullRankGaussian`.
+While `FullRankGaussian` can converge to the true solution since it is a more expressive variational family, `LowRankGaussian` gets there faster.
+
+### API
 
 ```@docs
 MvLocationScaleLowRank
 ```
+
+The `logpdf` of  `MvLocationScaleLowRank` has an optional argument `non_differentiable::Bool` (default: `false`).
+If set as `true`, a more efficient ``O\left(r d^2\right)`` implementation is used to evaluate the density.
+This, however, is not differentiable under most AD frameworks due to the use of Cholesky `lowrankupdate`.
+The default value is `false`, which uses a ``O\left(d^3\right)`` implementation, is differentiable and therefore compatible with the `StickingTheLandingEntropy` estimator.
 
 The following is a specialized constructor for convenience:
 
