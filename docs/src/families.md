@@ -134,10 +134,11 @@ where ``\mathbb{H}(\varphi)`` is the entropy of the base distribution.
 using ADTypes
 using AdvancedVI
 using Distributions
-using ReverseDiff
 using LinearAlgebra
 using LogDensityProblems
+using Optimisers
 using Plots
+using ReverseDiff
 
 struct Target{D}
     dist::D
@@ -193,7 +194,7 @@ _, _, stats_fr, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoReverseDiff(),
-    optimizer     = DoG(),
+    optimizer     = Adam(0.01),
     averager      = PolynomialAveraging(),
     callback      = callback,
 ); 
@@ -205,7 +206,7 @@ _, _, stats_mf, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoReverseDiff(),
-    optimizer     = DoG(),
+    optimizer     = Adam(0.01),
     averager      = PolynomialAveraging(),
     callback      = callback,
 ); 
@@ -217,7 +218,7 @@ _, _, stats_lr, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoReverseDiff(),
-    optimizer     = DoG(),
+    optimizer     = Adam(0.01),
     averager      = PolynomialAveraging(),
     callback      = callback,
 ); 
@@ -240,6 +241,11 @@ Then, we can compare the convergence speed of `LowRankGaussian` versus `FullRank
 
 As we can see, `LowRankGaussian` converges faster than `FullRankGaussian`.
 While `FullRankGaussian` can converge to the true solution since it is a more expressive variational family, `LowRankGaussian` gets there faster.
+
+!!! info
+    `MvLocationScaleLowRank` tend to work better with the `Optimisers.Adam` optimizer due to non-smoothness.
+    Other optimisers may experience divergences.
+    
 
 ### API
 
