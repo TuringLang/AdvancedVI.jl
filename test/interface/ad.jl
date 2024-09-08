@@ -5,10 +5,14 @@ const interface_ad_backends = Dict(
     :ForwardDiff => AutoForwardDiff(),
     :ReverseDiff => AutoReverseDiff(),
     :Zygote => AutoZygote(),
-    :Enzyme => AutoEnzyme(),
 )
+
 if @isdefined(Tapir)
     interface_ad_backends[:Tapir] = AutoTapir(; safe_mode=false)
+end
+
+if @isdefined(Enzyme)
+    interface_ad_backends[:Enzyme] = AutoEnzyme()
 end
 
 @testset "ad" begin

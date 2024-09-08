@@ -35,13 +35,13 @@ end
     @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
     ad_backends = [
-        ADTypes.AutoForwardDiff(),
-        ADTypes.AutoReverseDiff(),
-        ADTypes.AutoZygote(),
-        ADTypes.AutoEnzyme(),
+        ADTypes.AutoForwardDiff(), ADTypes.AutoReverseDiff(), ADTypes.AutoZygote()
     ]
     if @isdefined(Tapir)
         push!(ad_backends, AutoTapir(; safe_mode=false))
+    end
+    if @isdefined(Enzyme)
+        push!(ad_backends, AutoEnzyme())
     end
 
     @testset for ad in ad_backends
