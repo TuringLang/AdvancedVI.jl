@@ -21,11 +21,12 @@ using DistributionsAD
 using LogDensityProblems
 using Optimisers
 using ADTypes
-using ForwardDiff, ReverseDiff, Zygote, Enzyme
+using ForwardDiff, ReverseDiff, Zygote
 
 if VERSION >= v"1.10"
     Pkg.add("Tapir")
     using Tapir
+    using Enzyme
 end
 
 using AdvancedVI

@@ -1,22 +1,16 @@
 
-AD_locationscale_bijectors = if VERSION >= v"1.10"
-    Dict(
-        :ForwarDiff => AutoForwardDiff(),
-        :ReverseDiff => AutoReverseDiff(),
-        :Zygote => AutoZygote(),
-        :Enzyme => AutoEnzyme(),
-        :Tapir => AutoTapir(; safe_mode=false),
-    )
-else
-    Dict(
-        :ForwarDiff => AutoForwardDiff(),
-        :ReverseDiff => AutoReverseDiff(),
-        :Zygote => AutoZygote(),
-    )
-end
+AD_locationscale_bijectors = Dict(
+    :ForwarDiff => AutoForwardDiff(),
+    :ReverseDiff => AutoReverseDiff(),
+    :Zygote => AutoZygote(),
+)
 
 if @isdefined(Tapir)
     AD_locationscale_bijectors[:Tapir] = AutoTapir(; safe_mode=false)
+end
+
+if @isdefined(Enzyme)
+    AD_locationscale_bijectors[:Enzyme] = AutoEnzyme()
 end
 
 @testset "inference RepGradELBO VILocationScale Bijectors" begin
