@@ -34,9 +34,17 @@ end
     modelstats = normal_meanfield(rng, Float64)
     @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
 
-    @testset for ad in [
+    ad_backends = [
         ADTypes.AutoForwardDiff(), ADTypes.AutoReverseDiff(), ADTypes.AutoZygote()
     ]
+    if @isdefined(Tapir)
+        push!(ad_backends, AutoTapir(; safe_mode=false))
+    end
+    if @isdefined(Enzyme)
+        push!(ad_backends, AutoEnzyme())
+    end
+
+    @testset for ad in ad_backends
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
@@ -44,7 +52,7 @@ end
         obj = RepGradELBO(10; entropy=StickingTheLandingEntropy())
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
-        aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true)
+        aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=ad)
         AdvancedVI.value_and_gradient!(
             ad, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux, out
         )
