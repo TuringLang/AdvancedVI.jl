@@ -1,4 +1,14 @@
 
+"""
+    Subsampled(objective, batchsize, data)
+
+Subsample `objective` over the dataset represented by `data` with minibatches of size `batchsize`.
+
+# Arguments
+- `objective::AbstractVariationalObjective`: A variational objective that is compatible with subsampling.
+- `batchsize::Int`: Size of minibatches.
+- `data`: An iterator over the datapoints or indices representing the datapoints.
+"""
 struct Subsampled{O<:AbstractVariationalObjective,D<:AbstractVector} <:
        AbstractVariationalObjective
     objective::O

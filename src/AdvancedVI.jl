@@ -135,9 +135,11 @@ export estimate_objective
 """
     subsample(model, batch)
 
+Subsample `model` to use only the datapoints designated by the iterable collection `batch`.
+
 # Arguments
 - `model`: Model subject to subsampling. Could be the target model or the variational approximation.
-- `batch`: Data points or indices corresponding to the subsampled "batch."
+- `batch`: Iterable collection of datapoints or indices corresponding to the subsampled "batch."
 
 # Returns 
 - `sub`: Subsampled model.
