@@ -42,6 +42,7 @@ jobs:
             include("benchmarks.jl")'
       - name: Parse & Upload Benchmark Results
         uses: benchmark-action/github-action-benchmark@v1
+        if: ${{ !github.event.pull_request.head.repo.fork }}
         with:
           name: Benchmark Results
           tool: 'julia'
