@@ -2,6 +2,7 @@
 using Test
 using Test: @testset, @test
 
+using Accessors
 using Base.Iterators
 using Bijectors
 using Distributions
@@ -53,6 +54,7 @@ if GROUP == "All" || GROUP == "Interface"
     include("interface/rules.jl")
     include("interface/averaging.jl")
     include("interface/location_scale.jl")
+    include("interface/subsampled.jl")
 end
 
 const PROGRESS = haskey(ENV, "PROGRESS")

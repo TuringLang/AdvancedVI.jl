@@ -130,6 +130,24 @@ function estimate_objective end
 
 export estimate_objective
 
+# Oejectives
+
+"""
+    subsample(model, batch)
+
+# Arguments
+- `model`: Model subject to subsampling. Could be the target model or the variational approximation.
+- `batch`: Data points or indices corresponding to the subsampled "batch."
+
+# Returns 
+- `sub`: Subsampled model.
+"""
+subsample(model::Any, ::Any) = model
+
+include("objectives/subsampled.jl")
+
+export Subsampled
+
 """
     estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state)
 
