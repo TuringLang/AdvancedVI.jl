@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725970723470,
+  "lastUpdate": 1725972108795,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -64,6 +64,38 @@ window.BENCHMARK_DATA = {
             "value": 181053646.5,
             "unit": "ns",
             "extra": "gctime=7895027.5\nmemory=98515216\nallocs=2029783\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "committer": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "id": "2d02f833a8fc0e3bee9f58b5155949ea5bc581b3",
+          "message": "Only upload benchmark results if not on a fork",
+          "timestamp": "2024-09-10T11:11:17Z",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/pull/91/commits/2d02f833a8fc0e3bee9f58b5155949ea5bc581b3"
+        },
+        "date": 1725972106134,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 475907579,
+            "unit": "ns",
+            "extra": "gctime=27806976\nmemory=816851152\nallocs=2729782\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 181722821.5,
+            "unit": "ns",
+            "extra": "gctime=8642751\nmemory=98515216\nallocs=2029783\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
