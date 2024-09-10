@@ -130,8 +130,28 @@ function estimate_objective end
 
 export estimate_objective
 
+# Oejectives
+
 """
-    estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state)
+    subsample(model, batch)
+
+Subsample `model` to use only the datapoints designated by the iterable collection `batch`.
+
+# Arguments
+- `model`: Model subject to subsampling. Could be the target model or the variational approximation.
+- `batch`: Iterable collection of datapoints or indices corresponding to the subsampled "batch."
+
+# Returns 
+- `sub`: Subsampled model.
+"""
+subsample(model::Any, ::Any) = model
+
+include("objectives/subsampled.jl")
+
+export Subsampled
+
+"""
+    estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state, objargs...; kwargs...)
 
 Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
 

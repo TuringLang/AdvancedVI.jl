@@ -69,6 +69,7 @@ function optimize(
     obj_st = maybe_init_objective(state_init, rng, objective, problem, params, restructure)
     avg_st = maybe_init_averager(state_init, averager, params)
     grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
+    start_time = time()
     stats = NamedTuple[]
 
     for t in 1:max_iter
@@ -92,6 +93,8 @@ function optimize(
             typeof(q_init), opt_st, params, restructure, grad
         )
         avg_st = apply(averager, avg_st, params)
+
+        stat = merge(stat, (elapsed_time=time() - start_time,))
 
         if !isnothing(callback)
             averaged_params = value(averager, avg_st)

@@ -19,6 +19,7 @@ makedocs(;
             "Location-Scale Variational Family" => "locscale.md",
         ],
         "Optimization" => "optimization.md",
+        "Subsampling" => "subsampling.md",
     ],
 )
 
