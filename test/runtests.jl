@@ -62,27 +62,26 @@ if GROUP == "All" || GROUP == "Inference"
     include("inference/repgradelbo_locationscale_bijectors.jl")
 end
 
-if GROUP == "GPU" && 
-     if get(ENV, "ADVANCEDVI_TEST_CUDA", "false") == "true"
-         Pkg.add("CUDA")
-         using CUDA
-         include("gpu/cuda.jl")
-     end
+if GROUP == "GPU"
+    if get(ENV, "ADVANCEDVI_TEST_CUDA", "false") == "true"
+        Pkg.add("CUDA")
+        using CUDA
+        include("gpu/cuda.jl")
+    end
 
-     if get(ENV, "ADVANCEDVI_TEST_METAL", "false") == "true"
-         Pkg.add("Metal")
-         using Metal
-         if Metal.functional()
-             include("gpu/cuda.jl")
-         end
-     end
+    if get(ENV, "ADVANCEDVI_TEST_METAL", "false") == "true"
+        Pkg.add("Metal")
+        using Metal
+        if Metal.functional()
+            include("gpu/cuda.jl")
+        end
+    end
 
-     if get(ENV, "ADVANCEDVI_TEST_AMDGPU", "false") == "true"
-         Pkg.add("AMDGPU")
-         using AMDGPU
-         if AMDGPU.functional() && AMDGPU.functional(:MIOpen)
-             include("gpu/amdgpu.jl")
-         end
-     end
-
+    if get(ENV, "ADVANCEDVI_TEST_AMDGPU", "false") == "true"
+        Pkg.add("AMDGPU")
+        using AMDGPU
+        if AMDGPU.functional() && AMDGPU.functional(:MIOpen)
+            include("gpu/amdgpu.jl")
+        end
+    end
 end
