@@ -43,7 +43,6 @@ jobs:
             include("benchmarks.jl")'
       - name: Parse & Upload Benchmark Results
         uses: benchmark-action/github-action-benchmark@v1
-        if: ${{ !github.event.pull_request.head.repo.fork }}
         with:
           name: Benchmark Results
           tool: 'julia'
@@ -54,4 +53,4 @@ jobs:
           alert-threshold: "200%"
           fail-on-alert: true
           benchmark-data-dir-path: benchmarks
-          auto-push: true
+          auto-push: ${{ !github.event.pull_request.head.repo.fork }} # Disable push for PRs from forks
