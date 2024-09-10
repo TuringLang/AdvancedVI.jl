@@ -73,7 +73,7 @@ if GROUP == "GPU"
         Pkg.add("Metal")
         using Metal
         if Metal.functional()
-            include("gpu/cuda.jl")
+            include("gpu/metal.jl")
         end
     end
 
