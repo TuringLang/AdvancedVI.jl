@@ -110,6 +110,8 @@ function estimate_gradient!(
     params,
     restructure,
     state,
+    objargs...;
+    kwargs...
 )
     q_stop = restructure(params)
     aux = (

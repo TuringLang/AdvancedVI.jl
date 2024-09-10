@@ -149,7 +149,7 @@ include("objectives/subsampled.jl")
 export Subsampled
 
 """
-    estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state)
+    estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state, objargs...; kwargs...)
 
 Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
 
