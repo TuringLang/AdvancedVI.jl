@@ -93,10 +93,10 @@ using ForwardDiff, ADTypes, Optimisers, Plots
 μ_true = mean([mean(component) for component in prob.dists])
 Σsqrt_true = sqrt(Σ_true)
 
-q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
+q0 = MvLocationScale(zeros(n_dims), Diagonal(ones(n_dims)), Normal(); scale_eps=1e-3)
 
 adtype = AutoForwardDiff()
-optimizer = Adam(0.01)
+optimizer = DoG()
 averager = PolynomialAveraging()
 
 function callback(; averaged_params, restructure, kwargs...)
@@ -106,7 +106,7 @@ function callback(; averaged_params, restructure, kwargs...)
     (dist = sqrt(dist2),)
 end
 
-n_iters = 3*10^2
+n_iters = 10^3
 _, q, stats_full, _ = optimize(
     prob, full_obj, q0, n_iters; optimizer, averager, show_progress=false, adtype, callback,
 )
