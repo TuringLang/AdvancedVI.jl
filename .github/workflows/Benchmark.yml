@@ -48,10 +48,10 @@ jobs:
           name: Benchmark Results
           tool: 'julia'
           output-file-path: bench/benchmark_results.json
-          summary-always: true
+          summary-always: ${{ !github.event.pull_request.head.repo.fork }} # Disable summary for PRs from forks
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          comment-always: true
           alert-threshold: "200%"
           fail-on-alert: true
           benchmark-data-dir-path: benchmarks
+          comment-always: ${{ !github.event.pull_request.head.repo.fork }} # Disable comments for PRs from forks
           auto-push: ${{ !github.event.pull_request.head.repo.fork }} # Disable push for PRs from forks
