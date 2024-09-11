@@ -243,9 +243,9 @@ As we can see, `LowRankGaussian` converges faster than `FullRankGaussian`.
 While `FullRankGaussian` can converge to the true solution since it is a more expressive variational family, `LowRankGaussian` gets there faster.
 
 !!! info
+    
     `MvLocationScaleLowRank` tend to work better with the `Optimisers.Adam` optimizer due to non-smoothness.
     Other optimisers may experience divergences.
-    
 
 ### API
 
