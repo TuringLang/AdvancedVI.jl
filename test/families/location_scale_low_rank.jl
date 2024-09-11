@@ -1,6 +1,7 @@
 
 @testset "interface LocationScaleLowRank" begin
-    @testset "$(basedist) rank=$(rank) $(realtype)" for basedist in [:gaussian, :gaussian_nonstd],
+    @testset "$(basedist) rank=$(rank) $(realtype)" for basedist in
+                                                        [:gaussian, :gaussian_nonstd],
         n_rank in [1, 2],
         realtype in [Float32, Float64]
 

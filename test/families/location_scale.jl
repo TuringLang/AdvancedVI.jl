@@ -1,6 +1,7 @@
 
 @testset "interface LocationScale" begin
-    @testset "$(string(covtype)) $(basedist) $(realtype)" for basedist in [:gaussian, :gaussian_nonstd],
+    @testset "$(string(covtype)) $(basedist) $(realtype)" for basedist in
+                                                              [:gaussian, :gaussian_nonstd],
         covtype in [:meanfield, :fullrank],
         realtype in [Float32, Float64]
 
@@ -143,7 +144,8 @@
     end
 
     @testset "scale positive definite projection" begin
-        @testset "$(string(covtype)) $(realtype) $(bijector)" for covtype in [:meanfield, :fullrank],
+        @testset "$(string(covtype)) $(realtype) $(bijector)" for covtype in
+                                                                  [:meanfield, :fullrank],
             realtype in [Float32, Float64],
             bijector in [nothing, :identity]
 
