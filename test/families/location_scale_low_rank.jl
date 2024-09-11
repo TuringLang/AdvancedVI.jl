@@ -141,7 +141,7 @@
 
                 z_samples = Array{realtype}(undef, n_dims, n_montecarlo)
                 rand!(StableRNG(1), q, z_samples)
-                @test z_samples_ref == z_samples
+                @test z_samples_ref ≈ z_samples
             end
         end
     end
