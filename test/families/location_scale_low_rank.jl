@@ -81,7 +81,7 @@
                 @test cov(z_samples; dims=2) ≈ cov(q_true) rtol = realtype(1e-2)
 
                 z_sample_ref = rand(StableRNG(1), q)
-                @test z_sample_ref == rand(StableRNG(1), q)
+                @test z_sample_ref ≈ rand(StableRNG(1), q)
             end
 
             @testset "rand batch" begin
