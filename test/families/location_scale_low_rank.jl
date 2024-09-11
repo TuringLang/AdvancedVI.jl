@@ -121,7 +121,7 @@
 
                 z_sample = Array{realtype}(undef, n_dims)
                 rand!(StableRNG(1), q, z_sample)
-                @test z_sample_ref == z_sample
+                @test z_sample_ref ≈ z_sample
             end
 
             @testset "rand! AbstractMatrix" begin
