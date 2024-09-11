@@ -35,8 +35,8 @@ function MvLocationScaleLowRank(
     location::AbstractVector{T},
     scale_diag::AbstractVector{T},
     scale_factors::AbstractMatrix{T},
-    dist::ContinuousDistribution;
-    scale_eps::T=sqrt(eps(T)),
+    dist::ContinuousUnivariateDistribution;
+    scale_eps::T=eps(T)^(1//4),
 ) where {T<:Real}
     @assert minimum(scale_diag) ≥ scale_eps "Initial scale is too small (smallest diagonal scale value is $(minimum(scale_diag)). This might result in unstable optimization behavior."
     @assert size(scale_factors, 1) == length(scale_diag)
@@ -156,7 +156,7 @@ function update_variational_params!(
 end
 
 """
-    LowRankGaussian(location, scale_diag, scale_factors; check_args = true)
+    LowRankGaussian(μ, D, U; scale_eps)
 
 Construct a Gaussian variational approximation with a diagonal plus low-rank covariance matrix.
 
@@ -169,7 +169,7 @@ Construct a Gaussian variational approximation with a diagonal plus low-rank cov
 - `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `sqrt(eps(T))`).
 """
 function LowRankGaussian(
-    μ::AbstractVector{T}, D::Vector{T}, U::Matrix{T}; scale_eps::T=sqrt(eps(T))
+    μ::AbstractVector{T}, D::Vector{T}, U::Matrix{T}; scale_eps::T=eps(T)^(1//4)
 ) where {T<:Real}
     q_base = Normal{T}(zero(T), one(T))
     return MvLocationScaleLowRank(μ, D, U, q_base; scale_eps)
