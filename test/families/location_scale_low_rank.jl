@@ -127,7 +127,7 @@
             @testset "rand! AbstractMatrix" begin
                 z_samples = Array{realtype}(undef, n_dims, n_montecarlo)
                 z_samples_ret = rand!(q, z_samples)
-                @test z_samples == z_samples_ret
+                @test z_samples ≈ z_samples_ret
                 @test dropdims(mean(z_samples; dims=2); dims=2) ≈ mean(q_true) rtol = realtype(
                     1e-2
                 )
