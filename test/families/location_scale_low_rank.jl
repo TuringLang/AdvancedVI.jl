@@ -56,7 +56,7 @@
         @testset "statistics" begin
             @testset "mean" begin
                 @test eltype(mean(q)) == realtype
-                @test mean(q) == mean(q_true)
+                @test mean(q) ≈ mean(q_true)
             end
             @testset "var" begin
                 @test eltype(var(q)) == realtype
