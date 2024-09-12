@@ -25,13 +25,13 @@ represented as follows:
 This is necessary to guarantee stable convergence.
 
 # Keyword Arguments
-- `scale_eps`: Lower bound constraint for the diagonal of the scale. (default: `sqrt(eps(T))`).
+- `scale_eps`: Lower bound constraint for the diagonal of the scale. (default: `1e-4`).
 """
 function MvLocationScale(
     location::AbstractVector{T},
     scale::AbstractMatrix{T},
     dist::ContinuousUnivariateDistribution;
-    scale_eps::T=eps(T)^(1//4),
+    scale_eps::T=T(1e-4),
 ) where {T<:Real}
     @assert minimum(diag(scale)) ≥ scale_eps "Initial scale is too small (smallest diagonal value is $(minimum(diag(scale)))). This might result in unstable optimization behavior."
     return MvLocationScale(location, scale, dist, scale_eps)
@@ -140,10 +140,10 @@ Construct a Gaussian variational approximation with a dense covariance matrix.
 - `L::LinearAlgebra.AbstractTriangular{T}`: Cholesky factor of the covariance of the Gaussian.
 
 # Keyword Arguments
-- `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `sqrt(eps(T))`).
+- `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `1e-4`).
 """
 function FullRankGaussian(
-    μ::AbstractVector{T}, L::LinearAlgebra.AbstractTriangular{T}; scale_eps::T=eps(T)^(1//4)
+    μ::AbstractVector{T}, L::LinearAlgebra.AbstractTriangular{T}; scale_eps::T=T(1e-4)
 ) where {T<:Real}
     q_base = Normal{T}(zero(T), one(T))
     return MvLocationScale(μ, L, q_base, scale_eps)
@@ -159,10 +159,10 @@ Construct a Gaussian variational approximation with a diagonal covariance matrix
 - `L::Diagonal{T}`: Diagonal Cholesky factor of the covariance of the Gaussian.
 
 # Keyword Arguments
-- `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `sqrt(eps(T))`).
+- `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `1e-4`).
 """
 function MeanFieldGaussian(
-    μ::AbstractVector{T}, L::Diagonal{T}; scale_eps::T=eps(T)^(1//4)
+    μ::AbstractVector{T}, L::Diagonal{T}; scale_eps::T=T(1e-4)
 ) where {T<:Real}
     q_base = Normal{T}(zero(T), one(T))
     return MvLocationScale(μ, L, q_base, scale_eps)
