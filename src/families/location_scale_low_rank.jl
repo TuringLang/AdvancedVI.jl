@@ -166,7 +166,7 @@ Construct a Gaussian variational approximation with a diagonal plus low-rank cov
 - `U::Matrix{T}`: Low-rank factors of the scale, where `size(U,2)` is the rank.
 
 # Keyword Arguments
-- `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `sqrt(eps(T))`).
+- `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `1e-4`).
 """
 function LowRankGaussian(
     μ::AbstractVector{T}, D::Vector{T}, U::Matrix{T}; scale_eps::T=T(1e-4)
