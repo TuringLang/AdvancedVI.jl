@@ -16,8 +16,8 @@ makedocs(;
         "ELBO Maximization" => [
             "Overview" => "elbo/overview.md",
             "Reparameterization Gradient Estimator" => "elbo/repgradelbo.md",
-            "Location-Scale Variational Family" => "locscale.md",
         ],
+        "Variational Families" => "families.md",
         "Optimization" => "optimization.md",
     ],
 )
