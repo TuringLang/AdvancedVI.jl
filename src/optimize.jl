@@ -72,7 +72,6 @@ function optimize(
 
     for t = 1:max_iter
         stat = (iteration=t,)
-
         grad_buf, obj_st, stat′ = estimate_gradient!(
             rng, objective, adtype, grad_buf, problem,
             params, restructure, obj_st, objargs...
@@ -83,7 +82,6 @@ function optimize(
         opt_st, params = update_variational_params!(
             typeof(q_init), opt_st, params, restructure, grad
         )
-
         if !isnothing(callback)
             stat′ = callback(
                 ; stat, restructure, params=params, gradient=grad,

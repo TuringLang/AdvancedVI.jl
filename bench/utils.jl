@@ -16,9 +16,9 @@ function variational_objective(objective::Symbol; kwargs...)
         AdvancedVI.RepGradELBO(kwargs[:n_montecarlo])
     elseif objective == :RepGradELBOSTL
         AdvancedVI.RepGradELBO(kwargs[:n_montecarlo], entropy=StickingTheLandingEntropy())
-    elseif objective == :ScoreELBO
-        AdvancedVI.ScoreELBO(kwargs[:n_montecarlo])
-    elseif objective == :ScoreELBOSTL
-        AdvancedVI.ScoreELBO(kwargs[:n_montecarlo], entropy=StickingTheLandingEntropy())
+    elseif objective == :ScoreGradELBO
+        AdvancedVI.ScoreGradELBO(kwargs[:n_montecarlo])
+    elseif objective == :ScoreGradELBOSTL
+        AdvancedVI.ScoreGradELBO(kwargs[:n_montecarlo], entropy=StickingTheLandingEntropy())
     end
 end

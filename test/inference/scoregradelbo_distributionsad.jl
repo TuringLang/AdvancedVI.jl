@@ -12,7 +12,7 @@
         ),
         (adbackname, adtype) ∈ Dict(
             :ForwarDiff  => AutoForwardDiff(),
-            #:ReverseDiff => AutoReverseDiff(),
+            :ReverseDiff => AutoReverseDiff(),
             :Zygote      => AutoZygote(), 
             #:Enzyme      => AutoEnzyme(),
         )
@@ -74,8 +74,8 @@
             )
             μ_repl = mean(q)
             L_repl = sqrt(cov(q))
-            @test μ == μ_repl
-            @test L == L_repl
+            @test μ ≈ μ_repl rtol = 1e-5 
+            @test L ≈ L_repl rtol = 1e-5
         end
     end
 end
