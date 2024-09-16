@@ -50,13 +50,9 @@ if GROUP == "All" || GROUP == "Interface"
     include("interface/ad.jl")
     include("interface/optimize.jl")
     include("interface/repgradelbo.jl")
-<<<<<<< HEAD
     include("interface/scoregradelbo.jl")
-    include("interface/location_scale.jl")
-=======
     include("interface/rules.jl")
     include("interface/averaging.jl")
->>>>>>> turing/master
 end
 
 if GROUP == "All" || GROUP == "Families"
