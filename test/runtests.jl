@@ -2,14 +2,17 @@
 using Test
 using Test: @testset, @test
 
+using Base.Iterators
 using Bijectors
-using Random, StableRNGs
-using Statistics
 using Distributions
-using LinearAlgebra
-using SimpleUnPack: @unpack
 using FillArrays
+using LinearAlgebra
 using PDMats
+using Pkg
+using Random, StableRNGs
+using SimpleUnPack: @unpack
+using Statistics
+using StatsBase
 
 using Functors
 using DistributionsAD
@@ -19,6 +22,12 @@ using LogDensityProblems
 using Optimisers
 using ADTypes
 using ForwardDiff, ReverseDiff, Zygote
+
+if VERSION >= v"1.10"
+    Pkg.add("Tapir")
+    using Tapir
+    using Enzyme
+end
 
 using AdvancedVI
 
@@ -41,10 +50,19 @@ if GROUP == "All" || GROUP == "Interface"
     include("interface/ad.jl")
     include("interface/optimize.jl")
     include("interface/repgradelbo.jl")
+<<<<<<< HEAD
     include("interface/scoregradelbo.jl")
     include("interface/location_scale.jl")
+=======
+    include("interface/rules.jl")
+    include("interface/averaging.jl")
+>>>>>>> turing/master
 end
 
+if GROUP == "All" || GROUP == "Families"
+    include("families/location_scale.jl")
+    include("families/location_scale_low_rank.jl")
+end
 
 const PROGRESS = haskey(ENV, "PROGRESS")
 
