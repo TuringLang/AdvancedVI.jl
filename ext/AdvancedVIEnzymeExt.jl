@@ -18,11 +18,10 @@ end
 function AdvancedVI.value_and_gradient!(
     ::ADTypes.AutoEnzyme, f, x::AbstractVector{<:Real}, out::DiffResults.MutableDiffResult
 )
-    Enzyme.API.runtimeActivity!(true)
     ∇x = DiffResults.gradient(out)
     fill!(∇x, zero(eltype(∇x)))
     _, y = Enzyme.autodiff(
-        Enzyme.ReverseWithPrimal, Enzyme.Const(f), Enzyme.Active, Enzyme.Duplicated(x, ∇x)
+        Enzyme.set_runtime_activity(Enzyme.ReverseWithPrimal, true), Enzyme.Const(f), Enzyme.Active, Enzyme.Duplicated(x, ∇x)
     )
     DiffResults.value!(out, y)
     return out
@@ -35,11 +34,10 @@ function AdvancedVI.value_and_gradient!(
     aux,
     out::DiffResults.MutableDiffResult,
 )
-    Enzyme.API.runtimeActivity!(true)
     ∇x = DiffResults.gradient(out)
     fill!(∇x, zero(eltype(∇x)))
     _, y = Enzyme.autodiff(
-        Enzyme.ReverseWithPrimal,
+        Enzyme.set_runtime_activity(Enzyme.ReverseWithPrimal, true)
         Enzyme.Const(f),
         Enzyme.Active,
         Enzyme.Duplicated(x, ∇x),
