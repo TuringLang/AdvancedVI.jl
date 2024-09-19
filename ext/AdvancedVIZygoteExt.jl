@@ -18,15 +18,8 @@ function AdvancedVI.value_and_gradient!(
 )
     y, back = Zygote.pullback(f, x)
     ∇x = back(one(y))
-    if only(∇x) === nothing
-        # this is necessary in case of non-diff function
-        # since nothing can't be stored in DiffResults
-        grad = zeros(length(x))
-    else
-        grad = only(∇x)
-    end
     DiffResults.value!(out, y)
-    DiffResults.gradient!(out, grad)
+    DiffResults.gradient!(out, only(∇x))
     return out
 end
 
