@@ -75,8 +75,8 @@ end
 function estimate_energy_with_samples(prob, samples_stop, samples_logprob, samples_logprob_stop, baseline)
 	fv = Base.Fix1(LogDensityProblems.logdensity, prob).(eachsample(samples_stop))
 	fv_mean = mean(fv) 
-	score_grad = mean(samples_logprob .* (fv .- baseline))
-	score_grad_stop = mean(samples_logprob_stop .* (fv .- baseline))
+	score_grad = mean(@. samples_logprob * (fv - baseline))
+	score_grad_stop = mean(@. samples_logprob_stop * (fv - baseline))
 	return fv_mean + (score_grad - score_grad_stop)
 end
 
@@ -96,7 +96,7 @@ function estimate_objective(
 	n_samples::Int = obj.n_samples,
 )
 	samples, entropy = reparam_with_entropy(rng, q, q, n_samples, obj.entropy)
-	energy = Base.Fix1(LogDensityProblems.logdensity, prob).(eachsample(samples))
+	energy = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
 	return mean(energy) + entropy
 end
 
