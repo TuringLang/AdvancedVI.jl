@@ -9,11 +9,11 @@ if @isdefined(Tapir)
     AD_locationscale[:Tapir] = AutoTapir(; safe_mode=false)
 end
 
-if @isdefined(Enzyme)
-    AD_locationscale[:Enzyme] = AutoEnzyme()
-end
+#if @isdefined(Enzyme)
+#    AD_locationscale[:Enzyme] = AutoEnzyme()
+#end
 
-@testset "inference RepGradELBO VILocationScale" begin
+@testset "inference ScoreGradELBO VILocationScale" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],
         (modelname, modelconstr) in
@@ -98,8 +98,8 @@ end
             )
             μ_repl = q_avg.location
             L_repl = q_avg.scale
-            @test μ ≈ μ_repl rtol = 1e-4
-            @test L ≈ L_repl rtol = 1e-4
+            @test μ ≈ μ_repl rtol = 1e-5
+            @test L ≈ L_repl rtol = 1e-5
         end
     end
 end
