@@ -67,4 +67,6 @@ if GROUP == "All" || GROUP == "Inference"
     include("inference/repgradelbo_locationscale.jl")
     include("inference/repgradelbo_locationscale_bijectors.jl")
     include("inference/scoregradelbo_distributionsad.jl")
+    include("inference/scoregradelbo_locationscale.jl")
+    include("inference/scoregradelbo_locationscale_bijectors.jl")
 end

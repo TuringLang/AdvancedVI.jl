@@ -95,7 +95,7 @@ function estimate_objective(
 	prob;
 	n_samples::Int = obj.n_samples,
 )
-	samples, entropy = reparam_with_entropy(rng, q, q, n_samples, obj.entropy)
+    samples, entropy = reparam_with_entropy(rng, q, q, obj.n_samples, obj.entropy)
 	energy = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
 	return mean(energy) + entropy
 end
@@ -107,11 +107,10 @@ end
 
 function estimate_scoregradelbo_ad_forward(params′, aux)
 	@unpack rng, obj, problem, restructure, q_stop = aux
-    baseline = compute_control_variate_baseline(obj.baseline_history, 10)
+    baseline = compute_control_variate_baseline(obj.baseline_history, obj.baseline_window_size)
 	q = restructure(params′)
-	samples_stop = rand(rng, q_stop, obj.n_samples)
-	entropy_values = estimate_entropy_maybe_stl(obj.entropy, samples_stop, q, q_stop)
-	elbo = compute_elbo(q, q_stop, samples_stop, entropy_values, problem, baseline)
+    samples_stop, entropy = reparam_with_entropy(rng, q, q_stop, obj.n_samples, obj.entropy)
+	elbo = compute_elbo(q, q_stop, samples_stop, entropy, problem, baseline)
 	return -elbo
 end
 
