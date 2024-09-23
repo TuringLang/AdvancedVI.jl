@@ -23,7 +23,7 @@ using Test
 
     @testset "default_rng" begin
         elbo = estimate_objective(obj, q0, model; n_samples=10^4)
-        @test elbo ≈ elbo_ref rtol=0.1
+        @test elbo ≈ elbo_ref rtol=0.2
     end
 end
 

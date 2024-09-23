@@ -109,7 +109,8 @@ function estimate_scoregradelbo_ad_forward(params′, aux)
 	@unpack rng, obj, problem, restructure, q_stop = aux
     baseline = compute_control_variate_baseline(obj.baseline_history, obj.baseline_window_size)
 	q = restructure(params′)
-    samples_stop, entropy = reparam_with_entropy(rng, q, q_stop, obj.n_samples, obj.entropy)
+    samples_stop = rand(rng, q_stop, obj.n_samples)
+    entropy = estimate_entropy_maybe_stl(obj.entropy, samples_stop, q, q_stop)
 	elbo = compute_elbo(q, q_stop, samples_stop, entropy, problem, baseline)
 	return -elbo
 end
