@@ -63,6 +63,7 @@ function optimize(
     prog=ProgressMeter.Progress(
         max_iter; desc="Optimizing", barlen=31, showspeed=true, enabled=show_progress
     ),
+    kwargs...
 )
     params, restructure = Optimisers.destructure(deepcopy(q_init))
     opt_st = maybe_init_optimizer(state_init, optimizer, params)
@@ -83,7 +84,8 @@ function optimize(
             params,
             restructure,
             obj_st,
-            objargs...,
+            objargs...;
+            kwargs...
         )
         stat = merge(stat, stat′)
 
