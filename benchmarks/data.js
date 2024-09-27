@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727416697905,
+  "lastUpdate": 1727417297348,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -352,6 +352,38 @@ window.BENCHMARK_DATA = {
             "value": 195990239.5,
             "unit": "ns",
             "extra": "gctime=8134942\nmemory=114273840\nallocs=2260779\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "committer": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "id": "32a2fe09a6fb5fe1dac7b64cf1d0d3de70f7be08",
+          "message": "Migrate to DifferentiationInterface",
+          "timestamp": "2024-09-26T19:07:23Z",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/pull/98/commits/32a2fe09a6fb5fe1dac7b64cf1d0d3de70f7be08"
+        },
+        "date": 1727417293427,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 508619757,
+            "unit": "ns",
+            "extra": "gctime=31081868\nmemory=818321776\nallocs=2732778\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 199785247,
+            "unit": "ns",
+            "extra": "gctime=9167147\nmemory=114273840\nallocs=2260779\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
