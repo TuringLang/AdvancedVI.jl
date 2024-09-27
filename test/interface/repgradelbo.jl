@@ -37,11 +37,11 @@ end
     ad_backends = [
         ADTypes.AutoForwardDiff(), ADTypes.AutoReverseDiff(), ADTypes.AutoZygote()
     ]
-    if @isdefined(Tapir)
-        push!(ad_backends, AutoTapir(; safe_mode=false))
+    if @isdefined(Mooncake)
+        push!(ad_backends, AutoMooncake(; config=nothing))
     end
     if @isdefined(Enzyme)
-        push!(ad_backends, AutoEnzyme())
+        push!(ad_backends, AutoEnzyme(; mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const))
     end
 
     @testset for ad in ad_backends
@@ -53,10 +53,9 @@ end
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
         aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=ad)
-        AdvancedVI.value_and_gradient!(
-            ad, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux, out
+        grad = value_and_gradient(
+            AdvancedVI.estimate_repgradelbo_ad_forward, ad, params, Constant(aux)
         )
-        grad = DiffResults.gradient(out)
         @test norm(grad) ≈ 0 atol = 1e-5
     end
 end

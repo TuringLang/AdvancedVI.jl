@@ -68,17 +68,15 @@ function optimize(
     opt_st = maybe_init_optimizer(state_init, optimizer, params)
     obj_st = maybe_init_objective(state_init, rng, objective, problem, params, restructure)
     avg_st = maybe_init_averager(state_init, averager, params)
-    grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
     stats = NamedTuple[]
 
     for t in 1:max_iter
         stat = (iteration=t,)
 
-        grad_buf, obj_st, stat′ = estimate_gradient!(
+        grad, obj_st, stat′ = estimate_gradient(
             rng,
             objective,
             adtype,
-            grad_buf,
             problem,
             params,
             restructure,
@@ -87,7 +85,6 @@ function optimize(
         )
         stat = merge(stat, stat′)
 
-        grad = DiffResults.gradient(grad_buf)
         opt_st, params = update_variational_params!(
             typeof(q_init), opt_st, params, restructure, grad
         )

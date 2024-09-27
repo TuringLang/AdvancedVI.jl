@@ -101,11 +101,10 @@ function estimate_repgradelbo_ad_forward(params′, aux)
     return -elbo
 end
 
-function estimate_gradient!(
+function estimate_gradient(
     rng::Random.AbstractRNG,
     obj::RepGradELBO,
     adtype::ADTypes.AbstractADType,
-    out::DiffResults.MutableDiffResult,
     prob,
     params,
     restructure,
@@ -120,8 +119,9 @@ function estimate_gradient!(
         restructure=restructure,
         q_stop=q_stop,
     )
-    value_and_gradient!(adtype, estimate_repgradelbo_ad_forward, params, aux, out)
-    nelbo = DiffResults.value(out)
+    nelbo, g = value_and_gradient(
+        estimate_repgradelbo_ad_forward, adtype, params, Constant(aux)
+    )
     stat = (elbo=-nelbo,)
-    return out, nothing, stat
+    return g, nothing, stat
 end

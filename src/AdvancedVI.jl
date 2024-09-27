@@ -16,29 +16,13 @@ using LinearAlgebra
 
 using LogDensityProblems
 
-using ADTypes, DiffResults
+using ADTypes
+using DifferentiationInterface
 using ChainRulesCore
 
 using FillArrays
 
 using StatsBase
-
-# derivatives
-"""
-    value_and_gradient!(ad, f, x, out)
-    value_and_gradient!(ad, f, x, aux, out)
-
-Evaluate the value and gradient of a function `f` at `x` using the automatic differentiation backend `ad` and store the result in `out`.
-`f` may receive auxiliary input as `f(x,aux)`.
-
-# Arguments
-- `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
-- `f`: Function subject to differentiation.
-- `x`: The point to evaluate the gradient.
-- `aux`: Auxiliary input passed to `f`.
-- `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
-"""
-function value_and_gradient! end
 
 """
     restructure_ad_forward(adtype, restructure, params)
@@ -131,7 +115,7 @@ function estimate_objective end
 export estimate_objective
 
 """
-    estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state)
+    estimate_gradient(rng, obj, adtype, prob, λ, restructure, obj_state)
 
 Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
 
@@ -139,7 +123,6 @@ Estimate (possibly stochastic) gradients of the variational objective `obj` targ
 - `rng::Random.AbstractRNG`: Random number generator.
 - `obj::AbstractVariationalObjective`: Variational objective.
 - `adtype::ADTypes.AbstractADType`: Automatic differentiation backend. 
-- `out::DiffResults.MutableDiffResult`: Buffer containing the objective value and gradient estimates. 
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 - `λ`: Variational parameters to evaluate the gradient on.
 - `restructure`: Function that reconstructs the variational approximation from `λ`.

@@ -5,12 +5,12 @@ AD_distributionsad = Dict(
     :Zygote => AutoZygote(),
 )
 
-if @isdefined(Tapir)
-    AD_distributionsad[:Tapir] = AutoTapir(; safe_mode=false)
+if @isdefined(Mooncake)
+    AD_distributionsad[:Mooncake] = AutoMooncake(; config=nothing)
 end
 
 if @isdefined(Enzyme)
-    AD_distributionsad[:Enzyme] = AutoEnzyme()
+    AD_distributionsad[:Enzyme] = AutoEnzyme(; mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const)
 end
 
 @testset "inference RepGradELBO DistributionsAD" begin

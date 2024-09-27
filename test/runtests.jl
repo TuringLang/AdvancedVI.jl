@@ -7,6 +7,8 @@ using Bijectors
 using Distributions
 using FillArrays
 using LinearAlgebra
+using LogDensityProblems
+using Optimisers
 using PDMats
 using Pkg
 using Random, StableRNGs
@@ -18,14 +20,14 @@ using Functors
 using DistributionsAD
 @functor TuringDiagMvNormal
 
-using LogDensityProblems
-using Optimisers
+
 using ADTypes
+using DifferentiationInterface
 using ForwardDiff, ReverseDiff, Zygote
 
 if VERSION >= v"1.10"
-    Pkg.add("Tapir")
-    using Tapir
+    Pkg.add("Mooncake")
+    using Mooncake
     using Enzyme
 end
 
@@ -47,7 +49,6 @@ include("models/normallognormal.jl")
 
 # Tests
 if GROUP == "All" || GROUP == "Interface"
-    include("interface/ad.jl")
     include("interface/optimize.jl")
     include("interface/repgradelbo.jl")
     include("interface/rules.jl")
