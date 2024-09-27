@@ -74,14 +74,7 @@ function optimize(
         stat = (iteration=t,)
 
         grad, obj_st, stat′ = estimate_gradient(
-            rng,
-            objective,
-            adtype,
-            problem,
-            params,
-            restructure,
-            obj_st,
-            objargs...,
+            rng, objective, adtype, problem, params, restructure, obj_st, objargs...
         )
         stat = merge(stat, stat′)
 

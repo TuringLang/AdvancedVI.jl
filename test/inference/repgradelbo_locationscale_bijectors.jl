@@ -10,7 +10,9 @@ if @isdefined(Mooncake)
 end
 
 if @isdefined(Enzyme)
-    AD_locationscale_bijectors[:Enzyme] = AutoEnzyme(; mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const)
+    AD_locationscale_bijectors[:Enzyme] = AutoEnzyme(;
+        mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
+    )
 end
 
 @testset "inference RepGradELBO VILocationScale Bijectors" begin

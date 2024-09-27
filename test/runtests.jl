@@ -20,7 +20,6 @@ using Functors
 using DistributionsAD
 @functor TuringDiagMvNormal
 
-
 using ADTypes
 using DifferentiationInterface
 using ForwardDiff, ReverseDiff, Zygote

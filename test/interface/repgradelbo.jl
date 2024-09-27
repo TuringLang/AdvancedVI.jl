@@ -41,7 +41,12 @@ end
         push!(ad_backends, AutoMooncake(; config=nothing))
     end
     if @isdefined(Enzyme)
-        push!(ad_backends, AutoEnzyme(; mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const))
+        push!(
+            ad_backends,
+            AutoEnzyme(;
+                mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
+            ),
+        )
     end
 
     @testset for ad in ad_backends
