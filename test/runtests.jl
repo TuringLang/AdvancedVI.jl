@@ -26,6 +26,7 @@ using ForwardDiff, ReverseDiff, Zygote
 
 if VERSION >= v"1.10"
     Pkg.add("Mooncake")
+    Pkg.add("Enzyme")
     using Mooncake
     using Enzyme
 end
