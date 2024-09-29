@@ -19,7 +19,7 @@ end
         (modelname, modelconstr) in Dict(:Normal => normal_meanfield),
         n_montecarlo in [1, 10],
         (objname, objective) in Dict(
-            :ScoreGradELBOClosedFormEntropy=> ScoreGradELBO(n_montecarlo),
+            :ScoreGradELBOClosedFormEntropy => ScoreGradELBO(n_montecarlo),
             :ScoreGradELBOStickingTheLanding =>
                 ScoreGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
         ),

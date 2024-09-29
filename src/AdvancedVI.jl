@@ -170,12 +170,8 @@ Estimate the entropy of `q`.
 """
 function estimate_entropy end
 
-export
-    RepGradELBO,
-    ScoreGradELBO,
-    ClosedFormEntropy,
-    StickingTheLandingEntropy,
-    MonteCarloEntropy
+export RepGradELBO,
+    ScoreGradELBO, ClosedFormEntropy, StickingTheLandingEntropy, MonteCarloEntropy
 
 include("objectives/elbo/entropy.jl")
 include("objectives/elbo/repgradelbo.jl")
