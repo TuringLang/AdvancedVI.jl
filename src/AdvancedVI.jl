@@ -39,7 +39,9 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 - `aux`: Auxiliary input passed to `f`.
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
-function value_and_gradient!(ad::ADTypes.AbstractADType, f, x, aux, out::DiffResults.MutableDiffResult)
+function value_and_gradient!(
+    ad::ADTypes.AbstractADType, f, x, aux, out::DiffResults.MutableDiffResult
+)
     grad_buf = DiffResults.gradient(out)
     y, _ = DifferentiationInterface.value_and_gradient!(f, grad_buf, ad, x, Constant(aux))
     DiffResults.value!(out, y)
