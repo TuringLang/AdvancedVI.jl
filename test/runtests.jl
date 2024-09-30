@@ -21,7 +21,6 @@ using DistributionsAD
 @functor TuringDiagMvNormal
 
 using ADTypes
-using DifferentiationInterface
 using ForwardDiff, ReverseDiff, Zygote
 
 if VERSION >= v"1.10"
@@ -49,6 +48,7 @@ include("models/normallognormal.jl")
 
 # Tests
 if GROUP == "All" || GROUP == "Interface"
+    include("interface/ad.jl")
     include("interface/optimize.jl")
     include("interface/repgradelbo.jl")
     include("interface/rules.jl")

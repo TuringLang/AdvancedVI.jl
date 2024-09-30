@@ -49,7 +49,7 @@ end
         )
     end
 
-    @testset for ad in ad_backends
+    @testset for adtype in ad_backends
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
@@ -57,9 +57,9 @@ end
         obj = RepGradELBO(10; entropy=StickingTheLandingEntropy())
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
-        aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=ad)
-        grad = value_and_gradient(
-            AdvancedVI.estimate_repgradelbo_ad_forward, ad, params, Constant(aux)
+        aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=adtype)
+        grad = AdvancedVI.value_and_gradient(
+            adtype, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux
         )
         @test norm(grad) ≈ 0 atol = 1e-5
     end

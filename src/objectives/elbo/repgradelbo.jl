@@ -119,9 +119,7 @@ function estimate_gradient(
         restructure=restructure,
         q_stop=q_stop,
     )
-    nelbo, g = value_and_gradient(
-        estimate_repgradelbo_ad_forward, adtype, params, Constant(aux)
-    )
+    nelbo, g = value_and_gradient(adtype, estimate_repgradelbo_ad_forward, params, aux)
     stat = (elbo=-nelbo,)
     return g, nothing, stat
 end

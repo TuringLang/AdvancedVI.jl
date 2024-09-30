@@ -14,4 +14,16 @@ function AdvancedVI.restructure_ad_forward(::ADTypes.AutoEnzyme, restructure, pa
     return restructure(params)::typeof(restructure.model)
 end
 
+function AdvancedVI.value_and_gradient(::ADTypes.AutoEnzyme, f, x::AbstractVector{<:Real}, aux)
+    ∇x = zero(x)
+    _, y = Enzyme.autodiff(
+        Enzyme.set_runtime_activity(Enzyme.ReverseWithPrimal, true),
+        Enzyme.Const(f),
+        Enzyme.Active,
+        Enzyme.Duplicated(x, ∇x),
+        Enzyme.Const(aux),
+    )
+    return y, ∇x
+end
+
 end

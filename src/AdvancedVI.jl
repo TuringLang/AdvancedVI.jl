@@ -24,6 +24,26 @@ using FillArrays
 
 using StatsBase
 
+# Derivatives
+"""
+    value_and_gradient(ad, f, x, aux, out)
+
+Evaluate the value and gradient of a function `f` at `x` using the automatic differentiation backend `ad` and store the result in `out`.
+`f` may receive auxiliary input as `f(x,aux)`.
+
+# Arguments
+- `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
+- `f`: Function subject to differentiation.
+- `x`: The point to evaluate the gradient.
+- `aux`: Auxiliary input passed to `f`.
+
+# Returns
+- `value`: `f` evaluated at `x`.
+- `grad`: Gradient of `f` evaluated at `x`.
+"""
+value_and_gradient(ad::ADTypes.AbstractADType, f, x, aux) =
+    DifferentiationInterface.value_and_gradient(f, ad, x, Constant(aux))
+
 """
     restructure_ad_forward(adtype, restructure, params)
 
