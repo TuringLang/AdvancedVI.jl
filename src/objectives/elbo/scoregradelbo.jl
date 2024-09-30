@@ -1,3 +1,4 @@
+
 """
 	ScoreGradELBO(n_samples; kwargs...)
 
@@ -41,16 +42,20 @@ struct ScoreGradELBO{EntropyEst<:AbstractEntropyEstimator} <:
     entropy::EntropyEst
     n_samples::Int
     baseline_window_size::Int
-    baseline_history::Vector{Float64}
 end
 
 function ScoreGradELBO(
     n_samples::Int;
     entropy::AbstractEntropyEstimator=ClosedFormEntropy(),
     baseline_window_size::Int=10,
-    baseline_history::Vector{Float64}=Float64[],
 )
-    return ScoreGradELBO(entropy, n_samples, baseline_window_size, baseline_history)
+    return ScoreGradELBO(entropy, n_samples, baseline_window_size)
+end
+
+function init(
+    ::Random.AbstractRNG, ::ScoreGradELBO, prob, params::AbstractVector{T}, restructure
+) where {T<:Real}
+    return T[]
 end
 
 function Base.show(io::IO, obj::ScoreGradELBO)
@@ -120,6 +125,7 @@ function AdvancedVI.estimate_gradient!(
     restructure,
     state,
 )
+    baseline_history = state
     q_stop = restructure(params)
     aux = (
         rng=rng,
@@ -134,6 +140,6 @@ function AdvancedVI.estimate_gradient!(
     )
     nelbo = DiffResults.value(out)
     stat = (elbo=-nelbo,)
-    push!(obj.baseline_history, -nelbo)
-    return out, nothing, stat
+    push!(baseline_history, -nelbo)
+    return out, baseline_history, stat
 end
