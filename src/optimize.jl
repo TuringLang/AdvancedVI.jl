@@ -73,7 +73,6 @@ function optimize(
 
     for t in 1:max_iter
         stat = (iteration=t,)
-
         grad_buf, obj_st, stat′ = estimate_gradient!(
             rng,
             objective,

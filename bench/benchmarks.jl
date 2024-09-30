@@ -33,25 +33,21 @@ const SUITES = BenchmarkGroup()
 #         n_montecarlo = 4,
 #     )
 
-SUITES["normal + bijector"]["meanfield"]["ReverseDiff"] =
-    @benchmarkable normallognormal(
-        ;
-        fptype       = Float64,
-        adtype       = AutoReverseDiff(),
-        family       = :meanfield,
-        objective    = :RepGradELBO,
-        n_montecarlo = 4,
-    )
+SUITES["normal + bijector"]["meanfield"]["ReverseDiff"] = @benchmarkable normallognormal(;
+    fptype=Float64,
+    adtype=AutoReverseDiff(),
+    family=:meanfield,
+    objective=:RepGradELBO,
+    n_montecarlo=4,
+)
 
-SUITES["normal + bijector"]["meanfield"]["ForwardDiff"] =
-    @benchmarkable normallognormal(
-        ;
-        fptype       = Float64,
-        adtype       = AutoForwardDiff(),
-        family       = :meanfield,
-        objective    = :RepGradELBO,
-        n_montecarlo = 4,
-    )
+SUITES["normal + bijector"]["meanfield"]["ForwardDiff"] = @benchmarkable normallognormal(;
+    fptype=Float64,
+    adtype=AutoForwardDiff(),
+    family=:meanfield,
+    objective=:RepGradELBO,
+    n_montecarlo=4,
+)
 
 BenchmarkTools.tune!(SUITES; verbose=true)
 results = BenchmarkTools.run(SUITES; verbose=true)
