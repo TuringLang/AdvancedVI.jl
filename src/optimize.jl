@@ -42,7 +42,7 @@ The arguments are as follows:
 - `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(param)` reconstructs the variational approximation. 
 - `gradient`: The estimated (possibly stochastic) gradient.
 
-`cb` can return a `NamedTuple` containing some additional information computed within `cb`.
+`callback` can return a `NamedTuple` containing some additional information computed within `cb`.
 This will be appended to the statistic of the current corresponding iteration.
 Otherwise, just return `nothing`.
 

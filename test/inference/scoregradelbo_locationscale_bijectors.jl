@@ -1,16 +1,16 @@
 
-AD_locationscale_bijectors = Dict(
+AD_scoregradelbo_locationscale_bijectors = Dict(
     :ForwarDiff => AutoForwardDiff(),
     :ReverseDiff => AutoReverseDiff(),
     #:Zygote => AutoZygote(),
 )
 
 #if @isdefined(Tapir)
-#    AD_locationscale_bijectors[:Tapir] = AutoTapir(; safe_mode=false)
+#    AD_scoregradelbo_locationscale_bijectors[:Tapir] = AutoTapir(; safe_mode=false)
 #end
 
 if @isdefined(Enzyme)
-    AD_locationscale_bijectors[:Enzyme] = AutoEnzyme()
+    AD_scoregradelbo_locationscale_bijectors[:Enzyme] = AutoEnzyme()
 end
 
 @testset "inference ScoreGradELBO VILocationScale Bijectors" begin
@@ -24,7 +24,7 @@ end
             :ScoreGradELBOStickingTheLanding =>
                 ScoreGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
         ),
-        (adbackname, adtype) in AD_locationscale_bijectors
+        (adbackname, adtype) in AD_scoregradelbo_locationscale_bijectors
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)

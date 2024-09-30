@@ -1,16 +1,18 @@
 
-AD_locationscale = Dict(
+AD_scoregradelbo_locationscale = Dict(
     :ForwarDiff => AutoForwardDiff(),
     :ReverseDiff => AutoReverseDiff(),
     :Zygote => AutoZygote(),
 )
 
-if @isdefined(Tapir)
-    AD_locationscale[:Tapir] = AutoTapir(; safe_mode=false)
+if @isdefined(Mooncake)
+    AD_scoregradelbo_locationscale[:Mooncake] = AutoMooncake(; config=nothing)
 end
 
 if @isdefined(Enzyme)
-    AD_locationscale[:Enzyme] = AutoEnzyme()
+    AD_scoregradelbo_locationscale[:Enzyme] = AutoEnzyme(;
+        mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
+    )
 end
 
 @testset "inference ScoreGradELBO VILocationScale" begin

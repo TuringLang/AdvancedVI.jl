@@ -1,19 +1,19 @@
 
-AD_distributionsad = Dict(
+AD_scoregradelbo_distributionsad = Dict(
     :ForwarDiff => AutoForwardDiff(),
     #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
     :Zygote => AutoZygote(),
 )
 
 if @isdefined(Tapir)
-    AD_distributionsad[:Tapir] = AutoTapir(; safe_mode=false)
+    AD_scoregradelbo_distributionsad[:Tapir] = AutoTapir(; safe_mode=false)
 end
 
 #if @isdefined(Enzyme)
-#    AD_distributionsad[:Enzyme] = AutoEnzyme()
+#    AD_scoregradelbo_distributionsad[:Enzyme] = AutoEnzyme()
 #end
 
-@testset "inference RepGradELBO DistributionsAD" begin
+@testset "inference ScoreGradELBO DistributionsAD" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],
         (modelname, modelconstr) in Dict(:Normal => normal_meanfield),
@@ -23,7 +23,7 @@ end
             :ScoreGradELBOStickingTheLanding =>
                 ScoreGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
         ),
-        (adbackname, adtype) in AD_distributionsad
+        (adbackname, adtype) in AD_scoregradelbo_distributionsad
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)

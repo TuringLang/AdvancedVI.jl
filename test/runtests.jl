@@ -4,9 +4,12 @@ using Test: @testset, @test
 
 using Base.Iterators
 using Bijectors
+using DiffResults
 using Distributions
 using FillArrays
 using LinearAlgebra
+using LogDensityProblems
+using Optimisers
 using PDMats
 using Pkg
 using Random, StableRNGs
@@ -18,14 +21,13 @@ using Functors
 using DistributionsAD
 @functor TuringDiagMvNormal
 
-using LogDensityProblems
-using Optimisers
 using ADTypes
 using ForwardDiff, ReverseDiff, Zygote
 
 if VERSION >= v"1.10"
-    Pkg.add("Tapir")
-    using Tapir
+    Pkg.add("Mooncake")
+    Pkg.add("Enzyme")
+    using Mooncake
     using Enzyme
 end
 
