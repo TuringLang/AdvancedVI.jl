@@ -4,6 +4,7 @@ using Test: @testset, @test
 
 using Base.Iterators
 using Bijectors
+using DiffResults
 using Distributions
 using FillArrays
 using LinearAlgebra

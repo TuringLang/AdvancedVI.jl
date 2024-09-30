@@ -58,9 +58,10 @@ end
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
         aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=adtype)
-        grad = AdvancedVI.value_and_gradient(
-            adtype, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux
+        AdvancedVI.value_and_gradient!(
+            adtype, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux, out
         )
+        grad = DiffResults.gradient(out)
         @test norm(grad) ≈ 0 atol = 1e-5
     end
 end
