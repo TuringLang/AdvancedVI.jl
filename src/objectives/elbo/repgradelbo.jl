@@ -45,13 +45,6 @@ function Base.show(io::IO, obj::RepGradELBO)
     return print(io, ")")
 end
 
-function estimate_entropy_maybe_stl(
-    entropy_estimator::AbstractEntropyEstimator, samples, q, q_stop
-)
-    q_maybe_stop = maybe_stop_entropy_score(entropy_estimator, q, q_stop)
-    return estimate_entropy(entropy_estimator, samples, q_maybe_stop)
-end
-
 function estimate_energy_with_samples(prob, samples)
     return mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
 end
