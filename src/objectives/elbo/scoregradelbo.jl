@@ -99,9 +99,9 @@ function estimate_objective(obj::ScoreGradELBO, q, prob; n_samples::Int=obj.n_sa
 end
 
 function estimate_scoregradelbo_ad_forward(params′, aux)
-    @unpack rng, obj, problem, adtype, restructure, q_stop = aux
+    @unpack rng, obj, problem, adtype, restructure, q_stop, baseline_history = aux
     baseline = compute_control_variate_baseline(
-        obj.baseline_history, obj.baseline_window_size
+        baseline_history, obj.baseline_window_size
     )
     q = restructure_ad_forward(adtype, restructure, params′)
     samples_stop = rand(rng, q_stop, obj.n_samples)
@@ -133,6 +133,7 @@ function AdvancedVI.estimate_gradient!(
         obj=obj,
         problem=prob,
         restructure=restructure,
+        baseline_history=baseline_history,
         q_stop=q_stop,
     )
     AdvancedVI.value_and_gradient!(
