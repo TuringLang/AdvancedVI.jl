@@ -53,9 +53,10 @@ function ScoreGradELBO(
 end
 
 function init(
-    ::Random.AbstractRNG, ::ScoreGradELBO, prob, params::AbstractVector{T}, restructure
+    ::Random.AbstractRNG, obj::ScoreGradELBO, prob, params::AbstractVector{T}, restructure
 ) where {T<:Real}
-    return T[]
+    buf = MovingWindow(T, obj.baseline_window_size)
+    return fit!(buf, one(T))
 end
 
 function Base.show(io::IO, obj::ScoreGradELBO)
@@ -66,14 +67,6 @@ function Base.show(io::IO, obj::ScoreGradELBO)
     print(io, ", baseline_window_size=")
     print(io, obj.baseline_window_size)
     return print(io, ")")
-end
-
-function compute_control_variate_baseline(history, window_size)
-    if length(history) == 0
-        return 1.0
-    end
-    min_index = max(1, length(history) - window_size)
-    return mean(history[min_index:end])
 end
 
 function estimate_energy_with_samples(
@@ -99,10 +92,7 @@ function estimate_objective(obj::ScoreGradELBO, q, prob; n_samples::Int=obj.n_sa
 end
 
 function estimate_scoregradelbo_ad_forward(params′, aux)
-    @unpack rng, obj, problem, adtype, restructure, q_stop, baseline_history = aux
-    baseline = compute_control_variate_baseline(
-        baseline_history, obj.baseline_window_size
-    )
+    @unpack rng, obj, problem, adtype, restructure, q_stop, baseline = aux
     q = restructure_ad_forward(adtype, restructure, params′)
     samples_stop = rand(rng, q_stop, obj.n_samples)
     entropy = estimate_entropy_maybe_stl(obj.entropy, samples_stop, q, q_stop)
@@ -125,7 +115,8 @@ function AdvancedVI.estimate_gradient!(
     restructure,
     state,
 )
-    baseline_history = state
+    baseline_buf = state
+    baseline = mean(OnlineStats.value(baseline_buf))
     q_stop = restructure(params)
     aux = (
         rng=rng,
@@ -133,7 +124,7 @@ function AdvancedVI.estimate_gradient!(
         obj=obj,
         problem=prob,
         restructure=restructure,
-        baseline_history=baseline_history,
+        baseline=baseline,
         q_stop=q_stop,
     )
     AdvancedVI.value_and_gradient!(
@@ -141,6 +132,6 @@ function AdvancedVI.estimate_gradient!(
     )
     nelbo = DiffResults.value(out)
     stat = (elbo=-nelbo,)
-    push!(baseline_history, -nelbo)
-    return out, baseline_history, stat
+    fit!(baseline_buf, -nelbo)
+    return out, baseline_buf, stat
 end
