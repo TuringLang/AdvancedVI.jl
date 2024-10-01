@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727754230855,
+  "lastUpdate": 1727816698128,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -640,6 +640,38 @@ window.BENCHMARK_DATA = {
             "value": 198449577.5,
             "unit": "ns",
             "extra": "gctime=9070142\nmemory=112803088\nallocs=2256783\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "committer": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "id": "7370248d4d5e4ca7182ba512da0bda96756d7705",
+          "message": "Minor Touches for `ScoreGradELBO`",
+          "timestamp": "2024-09-30T18:22:36Z",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/pull/99/commits/7370248d4d5e4ca7182ba512da0bda96756d7705"
+        },
+        "date": 1727816693269,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 473041937,
+            "unit": "ns",
+            "extra": "gctime=24891239\nmemory=817171024\nallocs=2732782\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 189756823,
+            "unit": "ns",
+            "extra": "gctime=8557712\nmemory=112803088\nallocs=2256783\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
