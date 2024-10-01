@@ -16,16 +16,17 @@ using LinearAlgebra
 
 using LogDensityProblems
 
-using ADTypes, DiffResults
+using ADTypes
+using DiffResults
+using DifferentiationInterface
 using ChainRulesCore
 
 using FillArrays
 
 using StatsBase
 
-# derivatives
+# Derivatives
 """
-    value_and_gradient!(ad, f, x, out)
     value_and_gradient!(ad, f, x, aux, out)
 
 Evaluate the value and gradient of a function `f` at `x` using the automatic differentiation backend `ad` and store the result in `out`.
@@ -38,7 +39,14 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 - `aux`: Auxiliary input passed to `f`.
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
-function value_and_gradient! end
+function value_and_gradient!(
+    ad::ADTypes.AbstractADType, f, x, aux, out::DiffResults.MutableDiffResult
+)
+    grad_buf = DiffResults.gradient(out)
+    y, _ = DifferentiationInterface.value_and_gradient!(f, grad_buf, ad, x, Constant(aux))
+    DiffResults.value!(out, y)
+    return out
+end
 
 """
     restructure_ad_forward(adtype, restructure, params)
@@ -131,7 +139,7 @@ function estimate_objective end
 export estimate_objective
 
 """
-    estimate_gradient!(rng, obj, adtype, out, prob, λ, restructure, obj_state)
+    estimate_gradient!(rng, obj, adtype, out, prob, params, restructure, obj_state)
 
 Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
 
@@ -141,7 +149,7 @@ Estimate (possibly stochastic) gradients of the variational objective `obj` targ
 - `adtype::ADTypes.AbstractADType`: Automatic differentiation backend. 
 - `out::DiffResults.MutableDiffResult`: Buffer containing the objective value and gradient estimates. 
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
-- `λ`: Variational parameters to evaluate the gradient on.
+- `params`: Variational parameters to evaluate the gradient on.
 - `restructure`: Function that reconstructs the variational approximation from `λ`.
 - `obj_state`: Previous state of the objective.
 

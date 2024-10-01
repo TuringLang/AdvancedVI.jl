@@ -37,14 +37,19 @@ end
     ad_backends = [
         ADTypes.AutoForwardDiff(), ADTypes.AutoReverseDiff(), ADTypes.AutoZygote()
     ]
-    if @isdefined(Tapir)
-        push!(ad_backends, AutoTapir(; safe_mode=false))
+    if @isdefined(Mooncake)
+        push!(ad_backends, AutoMooncake(; config=nothing))
     end
     if @isdefined(Enzyme)
-        push!(ad_backends, AutoEnzyme())
+        push!(
+            ad_backends,
+            AutoEnzyme(;
+                mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
+            ),
+        )
     end
 
-    @testset for ad in ad_backends
+    @testset for adtype in ad_backends
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
@@ -52,9 +57,11 @@ end
         obj = RepGradELBO(10; entropy=StickingTheLandingEntropy())
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
-        aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=ad)
+        aux = (
+            rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=adtype
+        )
         AdvancedVI.value_and_gradient!(
-            ad, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux, out
+            adtype, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux, out
         )
         grad = DiffResults.gradient(out)
         @test norm(grad) ≈ 0 atol = 1e-5
