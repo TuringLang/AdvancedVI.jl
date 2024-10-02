@@ -9,20 +9,16 @@ if @isdefined(Mooncake)
     AD_scoregradelbo_distributionsad[:Moonscake] = AutoMooncake(; config=nothing)
 end
 
-#if @isdefined(Enzyme)
-#    AD_scoregradelbo_distributionsad[:Enzyme] = AutoEnzyme()
-#end
+if @isdefined(Enzyme)
+    AD_scoregradelbo_distributionsad[:Enzyme] = AutoEnzyme()
+end
 
 @testset "inference ScoreGradELBO DistributionsAD" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],
         (modelname, modelconstr) in Dict(:Normal => normal_meanfield),
         n_montecarlo in [1, 10],
-        (objname, objective) in Dict(
-            :ScoreGradELBOClosedFormEntropy => ScoreGradELBO(n_montecarlo),
-            :ScoreGradELBOStickingTheLanding =>
-                ScoreGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
-        ),
+        (objname, objective) in Dict(:ScoreGradELBO => ScoreGradELBO(n_montecarlo)),
         (adbackname, adtype) in AD_scoregradelbo_distributionsad
 
         seed = (0x38bef07cf9cc549d)

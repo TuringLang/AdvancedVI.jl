@@ -26,9 +26,8 @@ To reduce the variance of the gradient estimator, we use a baseline computed fro
 - `n_samples::Int`: Number of Monte Carlo samples used to estimate the ELBO.
 
 # Keyword Arguments
-- `entropy`: The estimator for the entropy term. (Type `<: AbstractEntropyEstimator`; Default: `ClosedFormEntropy()`)
+- `entropy`: The estimator for the entropy term. (Type `<: AbstractEntropyEstimator`; Default: `FullMonteCarloEntropy()`)
 - `baseline_window_size::Int`: The window size to use to compute the baseline. (Default: `10`)
-- `baseline_history::Vector{Float64}`: The history of the baseline. (Default: `Float64[]`)
 
 # Requirements
 - The variational approximation ``q_{\\lambda}`` implements `rand` and `logpdf`.
@@ -46,7 +45,7 @@ end
 
 function ScoreGradELBO(
     n_samples::Int;
-    entropy::AbstractEntropyEstimator=ClosedFormEntropy(),
+    entropy::AbstractEntropyEstimator=MonteCarloEntropy(),
     baseline_window_size::Int=10,
 )
     return ScoreGradELBO(entropy, n_samples, baseline_window_size)
@@ -55,8 +54,7 @@ end
 function init(
     ::Random.AbstractRNG, obj::ScoreGradELBO, prob, params::AbstractVector{T}, restructure
 ) where {T<:Real}
-    buf = MovingWindow(T, obj.baseline_window_size)
-    return fit!(buf, one(T))
+    return MovingWindow(T, obj.baseline_window_size)
 end
 
 function Base.show(io::IO, obj::ScoreGradELBO)
@@ -116,7 +114,12 @@ function AdvancedVI.estimate_gradient!(
     state,
 )
     baseline_buf = state
-    baseline = mean(OnlineStats.value(baseline_buf))
+    baseline_history = OnlineStats.value(baseline_buf)
+    baseline = if isempty(baseline_history)
+        one(eltype(params))
+    else
+        mean(baseline_history)
+    end
     q_stop = restructure(params)
     aux = (
         rng=rng,
@@ -132,6 +135,8 @@ function AdvancedVI.estimate_gradient!(
     )
     nelbo = DiffResults.value(out)
     stat = (elbo=-nelbo,)
-    fit!(baseline_buf, -nelbo)
+    if obj.baseline_window_size > 0
+        fit!(baseline_buf, -nelbo)
+    end
     return out, baseline_buf, stat
 end
