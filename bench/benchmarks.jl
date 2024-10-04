@@ -51,7 +51,7 @@ begin
                 ("ForwardDiff", AutoForwardDiff()),
                 ("ReverseDiff", AutoReverseDiff()),
                 #("Mooncake", AutoMooncake(; config=nothing)),
-                ("Enzyme", AutoEnzyme()),
+                #("Enzyme", AutoEnzyme()),
             ],
             (familyname, family) in [
                 ("meanfield", MeanFieldGaussian(zeros(T, d), Diagonal(ones(T, d)))),
