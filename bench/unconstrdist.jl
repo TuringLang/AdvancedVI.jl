@@ -1,5 +1,5 @@
 
-struct UnconstrDist{D <: ContinuousMultivariateDistribution}
+struct UnconstrDist{D<:ContinuousMultivariateDistribution}
     dist::D
 end
 
@@ -19,8 +19,8 @@ function Bijectors.bijector(model::UnconstrDist)
     return identity
 end
 
-function normal(; n_dims=10, fptype=Float64)
-    μ = fill(fptype(5), n_dims)
-    Σ = Diagonal(ones(fptype, n_dims))
-    UnconstrDist(MvNormal(μ, Σ))
+function normal(; n_dims=10, realtype=Float64)
+    μ = fill(realtype(5), n_dims)
+    Σ = Diagonal(ones(realtype, n_dims))
+    return UnconstrDist(MvNormal(μ, Σ))
 end

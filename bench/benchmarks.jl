@@ -32,15 +32,15 @@ function variational_standard_mvnormal(type::Type, n_dims::Int, family::Symbol)
 end
 
 begin
-    fptype = Float64
+    T = Float64
 
     for (probname, prob) in [
-        ("normal + bijector", normallognormal(; n_dims=10, fptype))
-        ("normal", normal(; n_dims=10, fptype))
+        ("normal + bijector", normallognormal(; n_dims=10, realtype=T))
+        ("normal", normal(; n_dims=10, realtype=T))
     ]
         max_iter = 10^4
         d = LogDensityProblems.dimension(prob)
-        optimizer = Optimisers.Adam(fptype(1e-3))
+        optimizer = Optimisers.Adam(T(1e-3))
 
         for (objname, obj) in [
                 ("RepGradELBO", RepGradELBO(10)),
@@ -51,13 +51,13 @@ begin
                 ("ForwardDiff", AutoForwardDiff()),
                 ("ReverseDiff", AutoReverseDiff()),
                 #("Mooncake", AutoMooncake(; config=nothing)),
-                #("Enzyme", AutoEnzyme()),
+                ("Enzyme", AutoEnzyme()),
             ],
             (familyname, family) in [
-                ("meanfield", MeanFieldGaussian(zeros(d), Diagonal(ones(d)))),
+                ("meanfield", MeanFieldGaussian(zeros(T, d), Diagonal(ones(T, d)))),
                 (
                     "fullrank",
-                    FullRankGaussian(zeros(d), LowerTriangular(Matrix{fptype}(I, d, d))),
+                    FullRankGaussian(zeros(T, d), LowerTriangular(Matrix{T}(I, d, d))),
                 ),
             ]
 
@@ -65,15 +65,17 @@ begin
             binv = inverse(b)
             q = Bijectors.TransformedDistribution(family, binv)
 
-            SUITES[probname][objname][familyname][adname] = @benchmarkable AdvancedVI.optimize(
-                $prob,
-                $obj,
-                $q,
-                $max_iter;
-                adtype=$adtype,
-                optimizer=$optimizer,
-                show_progress=false,
-            )
+            SUITES[probname][objname][familyname][adname] = begin
+                @benchmarkable AdvancedVI.optimize(
+                    $prob,
+                    $obj,
+                    $q,
+                    $max_iter;
+                    adtype=$adtype,
+                    optimizer=$optimizer,
+                    show_progress=false,
+                )
+            end
         end
     end
 end
