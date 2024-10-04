@@ -6,7 +6,7 @@ AD_locationscale = Dict(
 )
 
 if @isdefined(Mooncake)
-    AD_locationscale[:Mooncake] = AutoMooncake(; config=Mooncake.config())
+    AD_locationscale[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
 end
 
 if @isdefined(Enzyme)

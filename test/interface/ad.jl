@@ -8,7 +8,7 @@ const interface_ad_backends = Dict(
 )
 
 if @isdefined(Mooncake)
-    interface_ad_backends[:Mooncake] = AutoMooncake(; config=Mooncake.config())
+    interface_ad_backends[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
 end
 
 if @isdefined(Enzyme)

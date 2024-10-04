@@ -6,7 +6,7 @@ AD_distributionsad = Dict(
 )
 
 if @isdefined(Mooncake)
-    AD_distributionsad[:Mooncake] = AutoMooncake(; config=Mooncake.config())
+    AD_distributionsad[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
 end
 
 if @isdefined(Enzyme)
