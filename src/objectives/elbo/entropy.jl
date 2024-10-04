@@ -37,4 +37,3 @@ function estimate_entropy(
         -logpdf(q, mc_sample)
     end
 end
-
