@@ -110,7 +110,7 @@ function AdvancedVI.estimate_gradient!(
     baseline_buf = state
     baseline_history = OnlineStats.value(baseline_buf)
     baseline = if isempty(baseline_history)
-        one(eltype(params))
+        zero(eltype(params))
     else
         mean(baseline_history)
     end
