@@ -6,7 +6,7 @@ AD_locationscale_bijectors = Dict(
 )
 
 if @isdefined(Mooncake)
-    AD_locationscale_bijectors[:Mooncake] = AutoMooncake(; config=nothing)
+    AD_locationscale_bijectors[:Mooncake] = AutoMooncake(; config=Mooncake.config())
 end
 
 if @isdefined(Enzyme)

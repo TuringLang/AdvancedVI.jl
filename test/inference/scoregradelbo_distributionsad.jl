@@ -5,8 +5,8 @@ AD_scoregradelbo_distributionsad = Dict(
     :Zygote => AutoZygote(),
 )
 
-if @isdefined(Tapir)
-    AD_scoregradelbo_distributionsad[:Tapir] = AutoTapir(; safe_mode=false)
+if @isdefined(Mooncake)
+    AD_scoregradelbo_distributionsad[:Mooncake] = AutoMooncake(; config=Mooncake.config())
 end
 
 #if @isdefined(Enzyme)
