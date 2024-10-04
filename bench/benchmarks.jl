@@ -1,10 +1,11 @@
 
-using ADTypes, ForwardDiff, ReverseDiff, Zygote
+using ADTypes
 using AdvancedVI
 using BenchmarkTools
 using Bijectors
 using Distributions
 using DistributionsAD
+using Enzyme, ForwardDiff, ReverseDiff, Zygote, Mooncake
 using FillArrays
 using InteractiveUtils
 using LinearAlgebra
@@ -17,37 +18,65 @@ BLAS.set_num_threads(min(4, Threads.nthreads()))
 @info sprint(versioninfo)
 @info "BLAS threads: $(BLAS.get_num_threads())"
 
-include("utils.jl")
 include("normallognormal.jl")
+include("unconstrdist.jl")
 
 const SUITES = BenchmarkGroup()
 
-# Comment until https://github.com/TuringLang/Bijectors.jl/pull/315 is merged
-# SUITES["normal + bijector"]["meanfield"]["Zygote"] =
-#     @benchmarkable normallognormal(
-#         ;
-#         fptype       = Float64,
-#         adtype       = AutoZygote(),
-#         family       = :meanfield,
-#         objective    = :RepGradELBO,
-#         n_montecarlo = 4,
-#     )
+function variational_standard_mvnormal(type::Type, n_dims::Int, family::Symbol)
+    if family == :meanfield
+        MeanFieldGaussian(zeros(type, n_dims), Diagonal(ones(type, n_dims)))
+    else
+        FullRankGaussian(zeros(type, n_dims), Matrix(type, I, n_dims, n_dims))
+    end
+end
 
-SUITES["normal + bijector"]["meanfield"]["ReverseDiff"] = @benchmarkable normallognormal(;
-    fptype=Float64,
-    adtype=AutoReverseDiff(),
-    family=:meanfield,
-    objective=:RepGradELBO,
-    n_montecarlo=4,
-)
+begin
+    fptype = Float64
 
-SUITES["normal + bijector"]["meanfield"]["ForwardDiff"] = @benchmarkable normallognormal(;
-    fptype=Float64,
-    adtype=AutoForwardDiff(),
-    family=:meanfield,
-    objective=:RepGradELBO,
-    n_montecarlo=4,
-)
+    for (probname, prob) in [
+        ("normal + bijector", normallognormal(; n_dims=10, fptype))
+        ("normal", normal(; n_dims=10, fptype))
+    ]
+        max_iter = 10^4
+        d = LogDensityProblems.dimension(prob)
+        optimizer = Optimisers.Adam(fptype(1e-3))
+
+        for (objname, obj) in [
+                ("RepGradELBO", RepGradELBO(10)),
+                ("RepGradELBO + STL", RepGradELBO(10; entropy=StickingTheLandingEntropy())),
+            ],
+            (adname, adtype) in [
+                ("Zygote", AutoZygote()),
+                ("ForwardDiff", AutoForwardDiff()),
+                ("ReverseDiff", AutoReverseDiff()),
+                #("Mooncake", AutoMooncake(; config=nothing)),
+                #("Enzyme", AutoEnzyme()),
+            ],
+            (familyname, family) in [
+                ("meanfield", MeanFieldGaussian(zeros(d), Diagonal(ones(d)))),
+                (
+                    "fullrank",
+                    FullRankGaussian(zeros(d), LowerTriangular(Matrix{fptype}(I, d, d))),
+                ),
+            ]
+
+            b = Bijectors.bijector(prob)
+            binv = inverse(b)
+            q = Bijectors.TransformedDistribution(family, binv)
+
+            SUITES[probname][objname][familyname][adname] = @benchmarkable AdvancedVI.optimize(
+                $prob,
+                $obj,
+                $q,
+                $max_iter;
+                adtype=$adtype,
+                optimizer=$optimizer,
+                show_progress=false,
+            )
+        end
+    end
+end
 
 BenchmarkTools.tune!(SUITES; verbose=true)
 results = BenchmarkTools.run(SUITES; verbose=true)

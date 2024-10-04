@@ -27,30 +27,10 @@ function Bijectors.bijector(model::NormalLogNormal)
     )
 end
 
-function normallognormal(; fptype, adtype, family, objective, max_iter=10^3, kwargs...)
-    n_dims = 10
+function normallognormal(; n_dims=10, fptype=Float64)
     μ_x = fptype(5.0)
     σ_x = fptype(0.3)
     μ_y = Fill(fptype(5.0), n_dims)
     σ_y = Fill(fptype(0.3), n_dims)
     model = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y .^ 2))
-
-    obj = variational_objective(objective; kwargs...)
-
-    d = LogDensityProblems.dimension(model)
-    q = variational_standard_mvnormal(fptype, d, family)
-
-    b = Bijectors.bijector(model)
-    binv = inverse(b)
-    q_transformed = Bijectors.TransformedDistribution(q, binv)
-
-    return AdvancedVI.optimize(
-        model,
-        obj,
-        q_transformed,
-        max_iter;
-        adtype,
-        optimizer=Optimisers.Adam(fptype(1e-3)),
-        show_progress=false,
-    )
 end
