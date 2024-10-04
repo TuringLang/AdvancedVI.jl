@@ -6,12 +6,10 @@ DocMeta.setdocmeta!(AdvancedVI, :DocTestSetup, :(using AdvancedVI); recursive=tr
 
 makedocs(;
     sitename="AdvancedVI",
-    modules=[AdvancedVI],
     pages=[
         "Home" => "index.md",
         "API" => "api.md",
     ],
-    checkdocs=:exports,
     doctest=false,
 )
 
