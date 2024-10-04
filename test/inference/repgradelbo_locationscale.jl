@@ -15,7 +15,7 @@ if @isdefined(Enzyme)
     )
 end
 
-@testset "inference ScoreGradELBO VILocationScale" begin
+@testset "inference RepGradELBO VILocationScale" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],
         (modelname, modelconstr) in

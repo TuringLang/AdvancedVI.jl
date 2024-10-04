@@ -21,11 +21,7 @@ end
         (modelname, modelconstr) in
         Dict(:Normal => normal_meanfield, :Normal => normal_fullrank),
         n_montecarlo in [1, 10],
-        (objname, objective) in Dict(
-            :ScoreGradELBOClosedFormEntropy => ScoreGradELBO(n_montecarlo),
-            :ScoreGradELBOStickingTheLanding =>
-                ScoreGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
-        ),
+        (objname, objective) in Dict(:ScoreGradELBO => ScoreGradELBO(n_montecarlo)),
         (adbackname, adtype) in AD_locationscale
 
         seed = (0x38bef07cf9cc549d)
