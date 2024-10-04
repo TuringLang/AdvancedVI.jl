@@ -10,7 +10,7 @@ jobs:
       - name: Pkg.add("CompatHelper")
         run: julia -e 'using Pkg; Pkg.add("CompatHelper")'
       - name: CompatHelper.main()
+        run: julia -e 'using CompatHelper; CompatHelper.main(; subdirs=["", "bench", "test", "docs"])'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMPATHELPER_PRIV: ${{ secrets.COMPATHELPER_PRIV }}
-        run: julia -e 'using CompatHelper; CompatHelper.main(; subdirs=["", "bench", "test", "docs"])'
+          COMPATHELPER_PRIV: ${{ secrets.DOCUMENTER_KEY }}
