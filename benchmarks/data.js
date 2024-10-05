@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728088806911,
+  "lastUpdate": 1728089121043,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -1640,6 +1640,38 @@ window.BENCHMARK_DATA = {
             "value": 194059643.5,
             "unit": "ns",
             "extra": "gctime=8327579\nmemory=112803088\nallocs=2256783\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "committer": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "id": "26f839fa29a23369a33116c90d182ae7bff8df52",
+          "message": "CompatHelper: bump compat for AdvancedVI to 0.2 for package docs, (keep existing compat)",
+          "timestamp": "2024-10-04T17:20:23Z",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/pull/123/commits/26f839fa29a23369a33116c90d182ae7bff8df52"
+        },
+        "date": 1728089115487,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 488342921,
+            "unit": "ns",
+            "extra": "gctime=26090185\nmemory=817171024\nallocs=2732782\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 196719943.5,
+            "unit": "ns",
+            "extra": "gctime=8649350.5\nmemory=112803088\nallocs=2256783\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
