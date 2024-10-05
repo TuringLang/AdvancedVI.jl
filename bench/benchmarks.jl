@@ -50,7 +50,7 @@ begin
                 ("Zygote", AutoZygote()),
                 ("ForwardDiff", AutoForwardDiff()),
                 ("ReverseDiff", AutoReverseDiff()),
-                ("Mooncake", AutoMooncake(; config=Mooncake.Config())),
+                #("Mooncake", AutoMooncake(; config=Mooncake.Config())),
                 #("Enzyme", AutoEnzyme()),
             ],
             (familyname, family) in [
