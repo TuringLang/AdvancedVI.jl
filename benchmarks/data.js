@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728087830050,
+  "lastUpdate": 1728087834565,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -1352,6 +1352,38 @@ window.BENCHMARK_DATA = {
             "value": 195999490,
             "unit": "ns",
             "extra": "gctime=8724225\nmemory=112803088\nallocs=2256783\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "committer": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "id": "66747021d6a51e9b69dc31eeee861b29e5bdb84b",
+          "message": "CompatHelper: add new compat entry for Optimisers at version 0.3 for package bench, (keep existing compat)",
+          "timestamp": "2024-10-04T17:20:23Z",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/pull/113/commits/66747021d6a51e9b69dc31eeee861b29e5bdb84b"
+        },
+        "date": 1728087830352,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 465972370,
+            "unit": "ns",
+            "extra": "gctime=24560944\nmemory=817171024\nallocs=2732782\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 191433496.5,
+            "unit": "ns",
+            "extra": "gctime=8618372.5\nmemory=112803088\nallocs=2256783\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
