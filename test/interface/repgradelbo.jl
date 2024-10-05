@@ -38,7 +38,7 @@ end
         ADTypes.AutoForwardDiff(), ADTypes.AutoReverseDiff(), ADTypes.AutoZygote()
     ]
     if @isdefined(Mooncake)
-        push!(ad_backends, AutoMooncake(; config=nothing))
+        push!(ad_backends, AutoMooncake(; config=Mooncake.Config()))
     end
     if @isdefined(Enzyme)
         push!(

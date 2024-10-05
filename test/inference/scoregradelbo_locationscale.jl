@@ -6,7 +6,7 @@ AD_scoregradelbo_locationscale = Dict(
 )
 
 if @isdefined(Mooncake)
-    AD_scoregradelbo_locationscale[:Mooncake] = AutoMooncake(; config=nothing)
+    AD_scoregradelbo_locationscale[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
 end
 
 if @isdefined(Enzyme)
