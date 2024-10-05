@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728088193353,
+  "lastUpdate": 1728088249693,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -1544,6 +1544,38 @@ window.BENCHMARK_DATA = {
             "value": 194541243,
             "unit": "ns",
             "extra": "gctime=9083222.5\nmemory=112803088\nallocs=2256783\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "committer": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "id": "091ec8d33bd687f1fd2e1e1d2a75731630083671",
+          "message": "CompatHelper: add new compat entry for Distributions at version 0.25 for package bench, (keep existing compat)",
+          "timestamp": "2024-10-04T17:20:23Z",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/pull/120/commits/091ec8d33bd687f1fd2e1e1d2a75731630083671"
+        },
+        "date": 1728088243878,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal + bijector/meanfield/ForwardDiff",
+            "value": 466093331,
+            "unit": "ns",
+            "extra": "gctime=23438506\nmemory=817171024\nallocs=2732782\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/meanfield/ReverseDiff",
+            "value": 199899869,
+            "unit": "ns",
+            "extra": "gctime=8515271\nmemory=112803088\nallocs=2256783\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
