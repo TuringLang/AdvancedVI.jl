@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728175591421,
+  "lastUpdate": 1728175607961,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -2032,6 +2032,170 @@ window.BENCHMARK_DATA = {
             "value": 4288505914,
             "unit": "ns",
             "extra": "gctime=386558212\nmemory=4462089120\nallocs=93908725\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "committer": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "id": "888f04e16db6144295bd9f935a451f760c576cb8",
+          "message": "CompatHelper: bump compat for AdvancedVI to 0.2 for package docs, (keep existing compat)",
+          "timestamp": "2024-10-05T15:04:05Z",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/pull/126/commits/888f04e16db6144295bd9f935a451f760c576cb8"
+        },
+        "date": 1728175602618,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal/RepGradELBO + STL/meanfield/Zygote",
+            "value": 15808245120,
+            "unit": "ns",
+            "extra": "gctime=416577350\nmemory=5809163248\nallocs=116376135\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/meanfield/ForwardDiff",
+            "value": 3550426752,
+            "unit": "ns",
+            "extra": "gctime=349549741\nmemory=12291363248\nallocs=17128635\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/meanfield/ReverseDiff",
+            "value": 3364633058,
+            "unit": "ns",
+            "extra": "gctime=295453381\nmemory=3537443248\nallocs=83398635\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/fullrank/Zygote",
+            "value": 15688198758,
+            "unit": "ns",
+            "extra": "gctime=394852452\nmemory=5411883680\nallocs=113536132\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/fullrank/ForwardDiff",
+            "value": 3737614991,
+            "unit": "ns",
+            "extra": "gctime=353185915\nmemory=13907363680\nallocs=16998632\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/fullrank/ReverseDiff",
+            "value": 6008047872,
+            "unit": "ns",
+            "extra": "gctime=611047686\nmemory=7276003680\nallocs=174288632\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/meanfield/Zygote",
+            "value": 7545901103,
+            "unit": "ns",
+            "extra": "gctime=181550477\nmemory=2511083248\nallocs=43016135\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/meanfield/ForwardDiff",
+            "value": 2578513260,
+            "unit": "ns",
+            "extra": "gctime=290652095\nmemory=9875363248\nallocs=14728635\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/meanfield/ReverseDiff",
+            "value": 1568745635.5,
+            "unit": "ns",
+            "extra": "gctime=144526839.5\nmemory=1830723248\nallocs=36238635\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/fullrank/Zygote",
+            "value": 7622009081,
+            "unit": "ns",
+            "extra": "gctime=179252609\nmemory=2512043680\nallocs=42896132\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/fullrank/ForwardDiff",
+            "value": 2734353765,
+            "unit": "ns",
+            "extra": "gctime=318283384\nmemory=11491363680\nallocs=14598632\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/fullrank/ReverseDiff",
+            "value": 2765089480,
+            "unit": "ns",
+            "extra": "gctime=288311734\nmemory=3407363680\nallocs=77728632\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/meanfield/Zygote",
+            "value": 23928933251,
+            "unit": "ns",
+            "extra": "gctime=671218438\nmemory=8677328416\nallocs=164256229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/meanfield/ForwardDiff",
+            "value": 8764304190,
+            "unit": "ns",
+            "extra": "gctime=607215854\nmemory=22577128416\nallocs=49548729\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/meanfield/ReverseDiff",
+            "value": 4753025579,
+            "unit": "ns",
+            "extra": "gctime=346363765\nmemory=4407048416\nallocs=94958729\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/fullrank/Zygote",
+            "value": 23945135348,
+            "unit": "ns",
+            "extra": "gctime=652382013\nmemory=8284849120\nallocs=161406225\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/fullrank/ForwardDiff",
+            "value": 10565689941,
+            "unit": "ns",
+            "extra": "gctime=677926071\nmemory=24838089120\nallocs=49398725\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/fullrank/ReverseDiff",
+            "value": 8079716185,
+            "unit": "ns",
+            "extra": "gctime=787371070\nmemory=9253769120\nallocs=205508725\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/meanfield/Zygote",
+            "value": 15068419361,
+            "unit": "ns",
+            "extra": "gctime=408948237\nmemory=5104688416\nallocs=84896229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/meanfield/ForwardDiff",
+            "value": 8129852741,
+            "unit": "ns",
+            "extra": "gctime=574686185\nmemory=19556968416\nallocs=47128729\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/meanfield/ReverseDiff",
+            "value": 2768037175,
+            "unit": "ns",
+            "extra": "gctime=175757598\nmemory=2206888416\nallocs=43218729\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/fullrank/Zygote",
+            "value": 15221358664,
+            "unit": "ns",
+            "extra": "gctime=421145178\nmemory=5109169120\nallocs=84766225\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/fullrank/ForwardDiff",
+            "value": 8441977196,
+            "unit": "ns",
+            "extra": "gctime=642189114\nmemory=21817929120\nallocs=46978725\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/fullrank/ReverseDiff",
+            "value": 4348743398,
+            "unit": "ns",
+            "extra": "gctime=372225698\nmemory=4462089120\nallocs=93908725\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
