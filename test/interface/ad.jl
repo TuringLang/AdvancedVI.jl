@@ -5,15 +5,9 @@ const interface_ad_backends = Dict(
     :ForwardDiff => AutoForwardDiff(),
     :ReverseDiff => AutoReverseDiff(),
     :Zygote => AutoZygote(),
+    :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    :Enzyme => AutoEnzyme(),
 )
-
-if @isdefined(Mooncake)
-    interface_ad_backends[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
-end
-
-if @isdefined(Enzyme)
-    interface_ad_backends[:Enzyme] = AutoEnzyme()
-end
 
 @testset "ad" begin
     @testset "$(adname)" for (adname, adtype) in interface_ad_backends

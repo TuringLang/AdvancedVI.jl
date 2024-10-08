@@ -2,16 +2,10 @@
 AD_scoregradelbo_locationscale_bijectors = Dict(
     :ForwarDiff => AutoForwardDiff(),
     :ReverseDiff => AutoReverseDiff(),
-    #:Zygote => AutoZygote(),
+    :Zygote => AutoZygote(),
+    #:Mooncake => AutoMooncake(; safe_mode=false)
+    :Enzyme => AutoEnzyme()
 )
-
-#if @isdefined(Tapir)
-#    AD_scoregradelbo_locationscale_bijectors[:Tapir] = AutoTapir(; safe_mode=false)
-#end
-
-if @isdefined(Enzyme)
-    AD_scoregradelbo_locationscale_bijectors[:Enzyme] = AutoEnzyme()
-end
 
 @testset "inference ScoreGradELBO VILocationScale Bijectors" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
