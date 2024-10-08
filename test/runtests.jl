@@ -21,7 +21,7 @@ using DistributionsAD
 @functor TuringDiagMvNormal
 
 using ADTypes
-using ForwardDiff, ReverseDiff, Zygote
+using ForwardDiff, ReverseDiff, Zygote, Mooncake, Enzyme
 
 using AdvancedVI
 
