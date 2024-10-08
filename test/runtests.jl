@@ -13,7 +13,6 @@ using Optimisers
 using PDMats
 using Pkg
 using Random, StableRNGs
-using SimpleUnPack: @unpack
 using Statistics
 using StatsBase
 
