@@ -4,7 +4,7 @@ AD_scoregradelbo_locationscale_bijectors = Dict(
     :ReverseDiff => AutoReverseDiff(),
     :Zygote => AutoZygote(),
     #:Mooncake => AutoMooncake(; safe_mode=false)
-    :Enzyme => AutoEnzyme()
+    :Enzyme => AutoEnzyme(),
 )
 
 @testset "inference ScoreGradELBO VILocationScale Bijectors" begin
