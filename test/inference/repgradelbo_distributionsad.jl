@@ -23,7 +23,7 @@ AD_distributionsad = Dict(
         rng = StableRNG(seed)
 
         modelstats = modelconstr(rng, realtype)
-	(; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
+        (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
         T = 1000
         η = 1e-3
