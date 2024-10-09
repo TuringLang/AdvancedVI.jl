@@ -2,7 +2,7 @@
 AD_scoregradelbo_locationscale_bijectors = Dict(
     :ForwarDiff => AutoForwardDiff(),
     :ReverseDiff => AutoReverseDiff(),
-    :Zygote => AutoZygote(),
+    #:Zygote => AutoZygote(),
     #:Mooncake => AutoMooncake(; safe_mode=false)
     :Enzyme => AutoEnzyme(),
 )
