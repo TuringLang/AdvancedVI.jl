@@ -7,7 +7,7 @@ using Test
 
     modelstats = normal_meanfield(rng, Float64)
 
-    @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
+    (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
     q0 = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
 
@@ -32,22 +32,15 @@ end
     rng = StableRNG(seed)
 
     modelstats = normal_meanfield(rng, Float64)
-    @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
+    (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
     ad_backends = [
-        ADTypes.AutoForwardDiff(), ADTypes.AutoReverseDiff(), ADTypes.AutoZygote()
+        ADTypes.AutoForwardDiff(),
+        ADTypes.AutoReverseDiff(),
+        ADTypes.AutoZygote(),
+        AutoMooncake(; config=Mooncake.Config()),
+        AutoEnzyme(),
     ]
-    if @isdefined(Mooncake)
-        push!(ad_backends, AutoMooncake(; config=Mooncake.Config()))
-    end
-    if @isdefined(Enzyme)
-        push!(
-            ad_backends,
-            AutoEnzyme(;
-                mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
-            ),
-        )
-    end
 
     @testset for adtype in ad_backends
         q_true = MeanFieldGaussian(

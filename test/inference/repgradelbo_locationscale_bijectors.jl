@@ -3,17 +3,9 @@ AD_locationscale_bijectors = Dict(
     :ForwarDiff => AutoForwardDiff(),
     :ReverseDiff => AutoReverseDiff(),
     :Zygote => AutoZygote(),
+    :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    :Enzyme => AutoEnzyme(),
 )
-
-if @isdefined(Mooncake)
-    AD_locationscale_bijectors[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
-end
-
-if @isdefined(Enzyme)
-    AD_locationscale_bijectors[:Enzyme] = AutoEnzyme(;
-        mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
-    )
-end
 
 @testset "inference RepGradELBO VILocationScale Bijectors" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
@@ -32,7 +24,7 @@ end
         rng = StableRNG(seed)
 
         modelstats = modelconstr(rng, realtype)
-        @unpack model, μ_true, L_true, n_dims, strong_convexity, is_meanfield = modelstats
+        (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
         T = 1000
         η = 1e-3

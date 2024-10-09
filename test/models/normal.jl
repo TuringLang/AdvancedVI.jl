@@ -5,7 +5,7 @@ struct TestNormal{M,S}
 end
 
 function LogDensityProblems.logdensity(model::TestNormal, θ)
-    @unpack μ, Σ = model
+    (; μ, Σ) = model
     return logpdf(MvNormal(μ, Σ), θ)
 end
 

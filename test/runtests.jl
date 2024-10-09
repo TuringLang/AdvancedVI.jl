@@ -13,7 +13,6 @@ using Optimisers
 using PDMats
 using Pkg
 using Random, StableRNGs
-using SimpleUnPack: @unpack
 using Statistics
 using StatsBase
 
@@ -22,14 +21,7 @@ using DistributionsAD
 @functor TuringDiagMvNormal
 
 using ADTypes
-using ForwardDiff, ReverseDiff, Zygote
-
-if VERSION >= v"1.10"
-    Pkg.add("Mooncake")
-    Pkg.add("Enzyme")
-    using Mooncake
-    using Enzyme
-end
+using ForwardDiff, ReverseDiff, Zygote, Mooncake, Enzyme
 
 using AdvancedVI
 

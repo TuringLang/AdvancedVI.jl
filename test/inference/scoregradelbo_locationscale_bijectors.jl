@@ -3,15 +3,9 @@ AD_scoregradelbo_locationscale_bijectors = Dict(
     :ForwarDiff => AutoForwardDiff(),
     :ReverseDiff => AutoReverseDiff(),
     #:Zygote => AutoZygote(),
+    #:Mooncake => AutoMooncake(; safe_mode=false)
+    :Enzyme => AutoEnzyme(),
 )
-
-#if @isdefined(Tapir)
-#    AD_scoregradelbo_locationscale_bijectors[:Tapir] = AutoTapir(; safe_mode=false)
-#end
-
-if @isdefined(Enzyme)
-    AD_scoregradelbo_locationscale_bijectors[:Enzyme] = AutoEnzyme()
-end
 
 @testset "inference ScoreGradELBO VILocationScale Bijectors" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
@@ -30,7 +24,7 @@ end
         rng = StableRNG(seed)
 
         modelstats = modelconstr(rng, realtype)
-        @unpack model, μ_true, L_true, n_dims, strong_convexity, is_meanfield = modelstats
+        (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
         T = 1000
         η = 1e-5

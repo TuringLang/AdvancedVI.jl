@@ -3,17 +3,9 @@ AD_scoregradelbo_locationscale = Dict(
     :ForwarDiff => AutoForwardDiff(),
     :ReverseDiff => AutoReverseDiff(),
     :Zygote => AutoZygote(),
+    :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    :Enzyme => AutoEnzyme(),
 )
-
-if @isdefined(Mooncake)
-    AD_scoregradelbo_locationscale[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
-end
-
-if @isdefined(Enzyme)
-    AD_scoregradelbo_locationscale[:Enzyme] = AutoEnzyme(;
-        mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
-    )
-end
 
 @testset "inference ScoreGradELBO VILocationScale" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
@@ -32,7 +24,7 @@ end
         rng = StableRNG(seed)
 
         modelstats = modelconstr(rng, realtype)
-        @unpack model, μ_true, L_true, n_dims, strong_convexity, is_meanfield = modelstats
+        (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
         T = 1000
         η = 1e-5

@@ -15,7 +15,6 @@ Using the `LogDensityProblems` interface, we the model can be defined as follows
 
 ```@example elboexample
 using LogDensityProblems
-using SimpleUnPack
 
 struct NormalLogNormal{MX,SX,MY,SY}
     μ_x::MX
@@ -25,7 +24,7 @@ struct NormalLogNormal{MX,SX,MY,SY}
 end
 
 function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
-    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    (; μ_x, σ_x, μ_y, Σ_y) = model
     return logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
@@ -59,7 +58,7 @@ Thus, we will use [Bijectors](https://github.com/TuringLang/Bijectors.jl) to mat
 using Bijectors
 
 function Bijectors.bijector(model::NormalLogNormal)
-    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    (; μ_x, σ_x, μ_y, Σ_y) = model
     return Bijectors.Stacked(
         Bijectors.bijector.([LogNormal(μ_x, σ_x), MvNormal(μ_y, Σ_y)]),
         [1:1, 2:(1 + length(μ_y))],
