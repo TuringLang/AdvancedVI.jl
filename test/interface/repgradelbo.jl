@@ -27,6 +27,17 @@ using Test
     end
 end
 
+AD_repgradelbo_stl = if AD_GROUP == "General"
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    )
+elseif AD_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+end
+
 @testset "interface RepGradELBO STL variance reduction" begin
     seed = (0x38bef07cf9cc549d)
     rng = StableRNG(seed)
@@ -34,15 +45,7 @@ end
     modelstats = normal_meanfield(rng, Float64)
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    ad_backends = [
-        ADTypes.AutoForwardDiff(),
-        ADTypes.AutoReverseDiff(),
-        ADTypes.AutoZygote(),
-        AutoMooncake(; config=Mooncake.Config()),
-        AutoEnzyme(),
-    ]
-
-    @testset for adtype in ad_backends
+    @testset for adtype in AD_repgradelbo_stl
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )

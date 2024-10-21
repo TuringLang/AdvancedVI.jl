@@ -1,11 +1,14 @@
 
-AD_scoregradelbo_locationscale_bijectors = Dict(
-    :ForwarDiff => AutoForwardDiff(),
-    :ReverseDiff => AutoReverseDiff(),
-    #:Zygote => AutoZygote(),
-    #:Mooncake => AutoMooncake(; safe_mode=false)
-    :Enzyme => AutoEnzyme(),
-)
+AD_scoregradelbo_locationscale_bijectors = if AD_GROUP == "General"
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        #:Zygote => AutoZygote(),
+        #:Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    )
+elseif AD_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+end
 
 @testset "inference ScoreGradELBO VILocationScale Bijectors" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in

@@ -1,11 +1,15 @@
 
-AD_distributionsad = Dict(
-    :ForwarDiff => AutoForwardDiff(),
-    #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
-    :Zygote => AutoZygote(),
-    :Mooncake => AutoMooncake(; config=Mooncake.Config()),
-    :Enzyme => AutoEnzyme(),
-)
+AD_distributionsad = if AD_GROUP == "General"
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+        :Enzyme => AutoEnzyme(),
+    )
+elseif AD_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+end
 
 @testset "inference RepGradELBO DistributionsAD" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in

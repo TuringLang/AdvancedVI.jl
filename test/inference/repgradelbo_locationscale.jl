@@ -1,11 +1,14 @@
 
-AD_locationscale = Dict(
-    :ForwarDiff => AutoForwardDiff(),
-    :ReverseDiff => AutoReverseDiff(),
-    :Zygote => AutoZygote(),
-    :Mooncake => AutoMooncake(; config=Mooncake.Config()),
-    :Enzyme => AutoEnzyme(),
-)
+AD_repgradelbo_locationscale = if AD_GROUP == "General"
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    )
+elseif AD_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+end
 
 @testset "inference ScoreGradELBO VILocationScale" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
@@ -18,7 +21,7 @@ AD_locationscale = Dict(
             :RepGradELBOStickingTheLanding =>
                 RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
         ),
-        (adbackname, adtype) in AD_locationscale
+        (adbackname, adtype) in AD_repgradelbo_locationscale
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)

@@ -25,7 +25,8 @@ using ForwardDiff, ReverseDiff, Zygote, Mooncake, Enzyme
 
 using AdvancedVI
 
-const GROUP = get(ENV, "GROUP", "All")
+const TEST_GROUP = get(ENV, "TEST_GROUP", "All")
+const AD_GROUP = get(ENV, "AD_GROUP", "General")
 
 # Models for Inference Tests
 struct TestModel{M,L,S,SC}
@@ -40,7 +41,7 @@ include("models/normal.jl")
 include("models/normallognormal.jl")
 
 # Tests
-if GROUP == "All" || GROUP == "Interface"
+if TEST_GROUP == "All" || TEST_GROUP == "Interface"
     include("interface/ad.jl")
     include("interface/optimize.jl")
     include("interface/repgradelbo.jl")
@@ -49,14 +50,14 @@ if GROUP == "All" || GROUP == "Interface"
     include("interface/averaging.jl")
 end
 
-if GROUP == "All" || GROUP == "Families"
+if TEST_GROUP == "All" || TEST_GROUP == "Families"
     include("families/location_scale.jl")
     include("families/location_scale_low_rank.jl")
 end
 
 const PROGRESS = haskey(ENV, "PROGRESS")
 
-if GROUP == "All" || GROUP == "Inference"
+if TEST_GROUP == "All" || TEST_GROUP == "Inference"
     include("inference/repgradelbo_distributionsad.jl")
     include("inference/repgradelbo_locationscale.jl")
     include("inference/repgradelbo_locationscale_bijectors.jl")

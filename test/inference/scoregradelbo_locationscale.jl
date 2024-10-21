@@ -1,11 +1,14 @@
 
-AD_scoregradelbo_locationscale = Dict(
-    :ForwarDiff => AutoForwardDiff(),
-    :ReverseDiff => AutoReverseDiff(),
-    :Zygote => AutoZygote(),
-    :Mooncake => AutoMooncake(; config=Mooncake.Config()),
-    :Enzyme => AutoEnzyme(),
-)
+AD_scoregradelbo_locationscale = if AD_GROUP == "General"
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    )
+elseif AD_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+end
 
 @testset "inference ScoreGradELBO VILocationScale" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
