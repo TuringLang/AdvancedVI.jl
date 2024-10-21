@@ -1,22 +1,19 @@
 
 using Test
 
-const interface_ad_backends = Dict(
-    :ForwardDiff => AutoForwardDiff(),
-    :ReverseDiff => AutoReverseDiff(),
-    :Zygote => AutoZygote(),
-)
-
-if @isdefined(Mooncake)
-    interface_ad_backends[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
-end
-
-if @isdefined(Enzyme)
-    interface_ad_backends[:Enzyme] = AutoEnzyme()
+AD_interface = if TEST_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+else
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    )
 end
 
 @testset "ad" begin
-    @testset "$(adname)" for (adname, adtype) in interface_ad_backends
+    @testset "$(adname)" for (adname, adtype) in AD_interface
         D = 10
         A = randn(D, D)
         λ = randn(D)

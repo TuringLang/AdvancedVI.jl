@@ -1,4 +1,4 @@
-name: CI
+name: Enzyme
 on:
   push:
     branches:
@@ -14,6 +14,8 @@ concurrency:
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
+    env: 
+      TEST_GROUP: Enzyme
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -36,7 +38,3 @@ jobs:
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
-      - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v3
-        with:
-          files: lcov.info

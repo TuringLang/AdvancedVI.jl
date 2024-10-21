@@ -1,7 +1,6 @@
 
 module AdvancedVI
 
-using SimpleUnPack: @unpack, @pack!
 using Accessors
 
 using Random
