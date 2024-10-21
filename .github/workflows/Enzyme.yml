@@ -1,4 +1,4 @@
-name: CI
+name: Enzyme
 on:
   push:
     branches:
