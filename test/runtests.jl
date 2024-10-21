@@ -20,7 +20,7 @@ include("optimisers.jl")
     AutoReverseDiff(),
     AutoTracker(),
     AutoZygote(),
-    AutoEnzyme()
+    # AutoEnzyme()
 ]
     target = MvNormal(ones(2))
     logπ(z) = logpdf(target, z)
