@@ -45,7 +45,7 @@ end
     modelstats = normal_meanfield(rng, Float64)
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    @testset for adtype in AD_repgradelbo_stl
+    @testset for (_, adtype) in AD_repgradelbo_stl
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
