@@ -1,15 +1,15 @@
 
 using Test
 
-AD_interface = if AD_GROUP == "General"
+AD_interface = if TEST_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+else
     Dict(
         :ForwarDiff => AutoForwardDiff(),
         :ReverseDiff => AutoReverseDiff(),
         :Zygote => AutoZygote(),
         :Mooncake => AutoMooncake(; config=Mooncake.Config()),
     )
-elseif AD_GROUP == "Enzyme"
-    Dict(:Enzyme => AutoEnzyme())
 end
 
 @testset "ad" begin

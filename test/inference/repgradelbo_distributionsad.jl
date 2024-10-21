@@ -1,5 +1,7 @@
 
-AD_distributionsad = if AD_GROUP == "General"
+AD_repgradelbo_distributionsad = if TEST_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+else
     Dict(
         :ForwarDiff => AutoForwardDiff(),
         #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
@@ -7,8 +9,6 @@ AD_distributionsad = if AD_GROUP == "General"
         :Mooncake => AutoMooncake(; config=Mooncake.Config()),
         :Enzyme => AutoEnzyme(),
     )
-elseif AD_GROUP == "Enzyme"
-    Dict(:Enzyme => AutoEnzyme())
 end
 
 @testset "inference RepGradELBO DistributionsAD" begin
@@ -21,7 +21,7 @@ end
             :RepGradELBOStickingTheLanding =>
                 RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
         ),
-        (adbackname, adtype) in AD_distributionsad
+        (adbackname, adtype) in AD_repgradelbo_distributionsad
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)

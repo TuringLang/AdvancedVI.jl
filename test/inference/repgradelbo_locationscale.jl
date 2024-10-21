@@ -1,13 +1,13 @@
 
-AD_repgradelbo_locationscale = if AD_GROUP == "General"
+AD_repgradelbo_locationscale = if TEST_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+else
     Dict(
         :ForwarDiff => AutoForwardDiff(),
         :ReverseDiff => AutoReverseDiff(),
         :Zygote => AutoZygote(),
         :Mooncake => AutoMooncake(; config=Mooncake.Config()),
     )
-elseif AD_GROUP == "Enzyme"
-    Dict(:Enzyme => AutoEnzyme())
 end
 
 @testset "inference ScoreGradELBO VILocationScale" begin
