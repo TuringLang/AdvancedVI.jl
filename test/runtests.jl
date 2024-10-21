@@ -6,8 +6,6 @@ using ReverseDiff: ReverseDiff
 using Tracker: Tracker
 using Zygote: Zygote
 using Enzyme: Enzyme
-Enzyme.API.runtimeActivity!(true);
-Enzyme.API.typeWarning!(false);
 
 using AdvancedVI
 
@@ -22,7 +20,7 @@ include("optimisers.jl")
     AutoReverseDiff(),
     AutoTracker(),
     AutoZygote(),
-    # AutoEnzyme()  # results in incorrect result
+    AutoEnzyme()
 ]
     target = MvNormal(ones(2))
     logπ(z) = logpdf(target, z)
@@ -42,5 +40,4 @@ include("optimisers.jl")
 
     xs = rand(target, 10)
     @test mean(abs2, logpdf(q, xs) - logpdf(target, xs)) ≤ 0.05
-
 end
