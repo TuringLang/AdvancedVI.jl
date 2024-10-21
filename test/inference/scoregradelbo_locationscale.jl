@@ -21,7 +21,7 @@ end
             :ScoreGradELBOStickingTheLanding =>
                 ScoreGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
         ),
-        (adbackname, adtype) in AD_locationscale
+        (adbackname, adtype) in AD_scoregradelbo_locationscale
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
