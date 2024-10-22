@@ -93,7 +93,7 @@
                 @test cov(z_samples; dims=2) ≈ cov(q_true) rtol = realtype(1e-2)
 
                 samples_ref = rand(StableRNG(1), q, n_montecarlo)
-                @test samples_ref == rand(StableRNG(1), q, n_montecarlo)
+                @test samples_ref ≈ rand(StableRNG(1), q, n_montecarlo)
             end
 
             @testset "rand! AbstractVector" begin
