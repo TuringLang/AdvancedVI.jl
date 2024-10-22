@@ -6,6 +6,7 @@ using Accessors
 
 using Random
 using Distributions
+using OnlineStats
 
 using Functors
 using Optimisers
