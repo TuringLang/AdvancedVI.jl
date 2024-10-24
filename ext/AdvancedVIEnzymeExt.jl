@@ -23,19 +23,22 @@ function AdvancedVI.grad!(
     out::DiffResults.MutableDiffResult,
     args...
 )
-    f(θ) =
-        if (q isa Distributions.Distribution)
-            -vo(alg, AdvancedVI.update(q, θ), model, args...)
-        else
-            -vo(alg, q(θ), model, args...)
-        end
-    # Use `Enzyme.ReverseWithPrimal` once it is released:
-    # https://github.com/EnzymeAD/Enzyme.jl/pull/598
+    f(θ) = if (q isa Distributions.Distribution)
+        -vo(alg, AdvancedVI.update(q, θ), model, args...)
+    else
+        -vo(alg, q(θ), model, args...)
+    end
+
     y = f(θ)
     DiffResults.value!(out, y)
     dy = DiffResults.gradient(out)
     fill!(dy, 0)
-    Enzyme.autodiff(Enzyme.ReverseWithPrimal, f, Enzyme.Active, Enzyme.Duplicated(θ, dy))
+    Enzyme.autodiff(
+        Enzyme.set_runtime_activity(Enzyme.ReverseWithPrimal, true),
+        Enzyme.Const(f),
+        Enzyme.Active,
+        Enzyme.Duplicated(θ, dy)
+    )
     return out
 end
 
