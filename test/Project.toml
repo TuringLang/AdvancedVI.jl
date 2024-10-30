@@ -25,7 +25,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 ADTypes = "0.2.1, 1"
-Bijectors = "0.13"
+Bijectors = "0.13, 0.14"
 DiffResults = "1"
 DifferentiationInterface = "0.6"
 Distributions = "0.25.111"
