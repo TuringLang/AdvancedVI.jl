@@ -14,29 +14,15 @@ Evidence lower-bound objective computed with score function gradients.
 \\end{aligned}
 ```
 
-To reduce the variance of the gradient estimator, we use a baseline computed from a running average of the previous ELBO values and subtract it from the objective.
-
-```math
-\\mathbb{E}_{z \\sim q_{\\lambda}}\\left[
-  \\nabla_{\\lambda} \\log q_{\\lambda}(z) \\left(\\pi\\left(z\\right) - \\beta\\right)
-\\right]
-```
-
 # Arguments
 - `n_samples::Int`: Number of Monte Carlo samples used to estimate the ELBO.
-
-# Keyword Arguments
-- `entropy`: The estimator for the entropy term. (Type `<: AbstractEntropyEstimator`; Default: `FullMonteCarloEntropy()`)
-- `baseline_window_size::Int`: The window size to use to compute the baseline. (Default: `10`)
 
 # Requirements
 - The variational approximation ``q_{\\lambda}`` implements `rand` and `logpdf`.
 - `logpdf(q, x)` must be differentiable with respect to `q` by the selected AD backend.
 - The target distribution and the variational approximation have the same support.
-
-Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
 """
-struct ScoreGradELBO{EntropyEst<:AbstractEntropyEstimator} <: AbstractVariationalObjective
+struct ScoreGradELBO <: AbstractVariationalObjective
     n_samples::Int
 end
 
