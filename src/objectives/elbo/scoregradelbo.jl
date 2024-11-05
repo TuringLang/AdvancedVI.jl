@@ -5,7 +5,7 @@
 Evidence lower-bound objective computed with score function gradient with the VarGrad objective, also known as the leave-one-out control variate.
 
 # Arguments
-- `n_samples::Int`: Number of Monte Carlo samples used to estimate the ELBO.
+- `n_samples::Int`: Number of Monte Carlo samples used to estimate the VarGrad objective.
 
 # Requirements
 - The variational approximation ``q_{\\lambda}`` implements `rand` and `logpdf`.
