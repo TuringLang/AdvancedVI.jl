@@ -7,8 +7,8 @@ const interface_ad_backends = Dict(
     :Zygote => AutoZygote(),
 )
 
-if @isdefined(Tapir)
-    interface_ad_backends[:Tapir] = AutoTapir(; safe_mode=false)
+if @isdefined(Mooncake)
+    interface_ad_backends[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
 end
 
 if @isdefined(Enzyme)
