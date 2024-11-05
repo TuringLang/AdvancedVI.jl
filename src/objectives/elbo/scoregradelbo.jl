@@ -2,17 +2,7 @@
 """
 	ScoreGradELBO(n_samples; kwargs...)
 
-Evidence lower-bound objective computed with score function gradients. 
-```math
-\\begin{aligned}
-\\nabla_{\\lambda} \\mathrm{ELBO}\\left(\\lambda\\right)
-&\\=
-\\mathbb{E}_{z \\sim q_{\\lambda}}\\left[
-  \\log \\pi\\left(z\\right) \\nabla_{\\lambda} \\log q_{\\lambda}(z)
-\\right]
-+ \\mathbb{H}\\left(q_{\\lambda}\\right),
-\\end{aligned}
-```
+Evidence lower-bound objective computed with score function gradient with the VarGrad objective, also known as the leave-one-out control variate.
 
 # Arguments
 - `n_samples::Int`: Number of Monte Carlo samples used to estimate the ELBO.
