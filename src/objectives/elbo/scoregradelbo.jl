@@ -37,32 +37,12 @@ To reduce the variance of the gradient estimator, we use a baseline computed fro
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
 """
 struct ScoreGradELBO{EntropyEst<:AbstractEntropyEstimator} <: AbstractVariationalObjective
-    entropy::EntropyEst
     n_samples::Int
-    baseline_window_size::Int
-end
-
-function ScoreGradELBO(
-    n_samples::Int;
-    entropy::AbstractEntropyEstimator=MonteCarloEntropy(),
-    baseline_window_size::Int=10,
-)
-    return ScoreGradELBO(entropy, n_samples, baseline_window_size)
-end
-
-function init(
-    ::Random.AbstractRNG, obj::ScoreGradELBO, prob, params::AbstractVector{T}, restructure
-) where {T<:Real}
-    return MovingWindow(T, obj.baseline_window_size)
 end
 
 function Base.show(io::IO, obj::ScoreGradELBO)
-    print(io, "ScoreGradELBO(entropy=")
-    print(io, obj.entropy)
-    print(io, ", n_samples=")
+    print(io, "ScoreGradELBO(n_samples=")
     print(io, obj.n_samples)
-    print(io, ", baseline_window_size=")
-    print(io, obj.baseline_window_size)
     return print(io, ")")
 end
 
@@ -70,9 +50,9 @@ function estimate_objective(
     rng::Random.AbstractRNG, obj::ScoreGradELBO, q, prob; n_samples::Int=obj.n_samples
 )
     samples = rand(rng, q, n_samples)
-    entropy = estimate_entropy(obj.entropy, samples, q)
-    energy = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
-    return mean(energy) + entropy
+    ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
+    ℓq = logpdf.(Ref(q), AdvancedVI.eachsample(samples))
+    return mean(ℓπ - ℓq)
 end
 
 function estimate_objective(obj::ScoreGradELBO, q, prob; n_samples::Int=obj.n_samples)
@@ -80,20 +60,12 @@ function estimate_objective(obj::ScoreGradELBO, q, prob; n_samples::Int=obj.n_sa
 end
 
 function estimate_scoregradelbo_ad_forward(params′, aux)
-    @unpack rng, obj, logprobs, adtype, restructure, samples, q_stop, baseline = aux
+    @unpack rng, obj, logprob, adtype, restructure, samples = aux
     q = restructure_ad_forward(adtype, restructure, params′)
-
+    ℓπ = logprob
     ℓq = logpdf.(Ref(q), AdvancedVI.eachsample(samples))
-    ℓq_stop = logpdf.(Ref(q_stop), AdvancedVI.eachsample(samples))
-    ℓπ_mean = mean(logprobs)
-    score_grad = mean(@. ℓq * (logprobs - baseline))
-    score_grad_stop = mean(@. ℓq_stop * (logprobs - baseline))
-
-    energy = ℓπ_mean + (score_grad - score_grad_stop)
-    entropy = estimate_entropy(obj.entropy, samples, q)
-
-    elbo = energy + entropy
-    return -elbo
+    f = ℓq - ℓπ
+    return var(f) / 2
 end
 
 function AdvancedVI.estimate_gradient!(
@@ -106,33 +78,22 @@ function AdvancedVI.estimate_gradient!(
     restructure,
     state,
 )
-    baseline_buf = state
-    baseline_history = OnlineStats.value(baseline_buf)
-    baseline = if isempty(baseline_history)
-        zero(eltype(params))
-    else
-        mean(baseline_history)
-    end
-    q_stop = restructure(params)
-    samples = rand(rng, q_stop, obj.n_samples)
-    ℓprobs = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
+    q = restructure(params)
+    samples = rand(rng, q, obj.n_samples)
+    ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
     aux = (
         rng=rng,
         adtype=adtype,
         obj=obj,
-        logprobs=ℓprobs,
+        logprob=ℓπ,
         restructure=restructure,
-        baseline=baseline,
         samples=samples,
-        q_stop=q_stop,
     )
     AdvancedVI.value_and_gradient!(
         adtype, estimate_scoregradelbo_ad_forward, params, aux, out
     )
-    nelbo = DiffResults.value(out)
-    stat = (elbo=-nelbo,)
-    if obj.baseline_window_size > 0
-        fit!(baseline_buf, -nelbo)
-    end
-    return out, baseline_buf, stat
+    ℓq = logpdf.(Ref(q), AdvancedVI.eachsample(samples))
+    elbo = mean(ℓπ - ℓq)
+    stat = (elbo=elbo,)
+    return out, nothing, stat
 end
