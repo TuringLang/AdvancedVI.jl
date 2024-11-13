@@ -104,7 +104,7 @@
                 end
                 z_samples = mapreduce(first, hcat, res)
                 z_samples_ret = mapreduce(last, hcat, res)
-                @test z_samples ≈ z_samples_ret 
+                @test z_samples ≈ z_samples_ret
                 @test dropdims(mean(z_samples; dims=2); dims=2) ≈ mean(q_true) rtol = realtype(
                     1e-2
                 )
