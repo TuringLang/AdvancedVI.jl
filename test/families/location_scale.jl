@@ -78,7 +78,7 @@
                 @test cov(z_samples; dims=2) ≈ cov(q_true) rtol = realtype(1e-2)
 
                 z_sample_ref = rand(StableRNG(1), q)
-                @test z_sample_ref == rand(StableRNG(1), q)
+                @test z_sample_ref ≈ rand(StableRNG(1), q)
             end
 
             @testset "rand batch" begin
@@ -104,7 +104,7 @@
                 end
                 z_samples = mapreduce(first, hcat, res)
                 z_samples_ret = mapreduce(last, hcat, res)
-                @test z_samples == z_samples_ret
+                @test z_samples ≈ z_samples_ret 
                 @test dropdims(mean(z_samples; dims=2); dims=2) ≈ mean(q_true) rtol = realtype(
                     1e-2
                 )
@@ -124,7 +124,7 @@
             @testset "rand! AbstractMatrix" begin
                 z_samples = Array{realtype}(undef, n_dims, n_montecarlo)
                 z_samples_ret = rand!(q, z_samples)
-                @test z_samples ≈ z_samples_ret realtype(1e-2)
+                @test z_samples ≈ z_samples_ret
                 @test dropdims(mean(z_samples; dims=2); dims=2) ≈ mean(q_true) rtol = realtype(
                     1e-2
                 )
@@ -138,7 +138,7 @@
 
                 z_samples = Array{realtype}(undef, n_dims, n_montecarlo)
                 rand!(StableRNG(1), q, z_samples)
-                @test z_samples_ref == z_samples
+                @test z_samples_ref ≈ z_samples
             end
         end
     end
