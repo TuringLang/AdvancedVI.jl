@@ -16,7 +16,7 @@ represented as follows:
 ```
 """
 struct MvLocationScaleLowRank{
-    L,SD<:AbstractVector,SF<:AbstractMatrix,D<:ContinuousDistribution
+    D<:ContinuousDistribution,L,SD<:AbstractVector,SF<:AbstractMatrix
 } <: ContinuousMultivariateDistribution
     location::L
     scale_diag::SD
@@ -30,7 +30,7 @@ Base.length(q::MvLocationScaleLowRank) = length(q.location)
 
 Base.size(q::MvLocationScaleLowRank) = size(q.location)
 
-Base.eltype(::Type{<:MvLocationScaleLowRank{L,SD,SF,D}}) where {L,SD,SF,D} = eltype(L)
+Base.eltype(::Type{<:MvLocationScaleLowRank{D,L,SD,SF}}) where {D,L,SD,SF} = eltype(L)
 
 function StatsBase.entropy(q::MvLocationScaleLowRank)
     @unpack location, scale_diag, scale_factors, dist = q
