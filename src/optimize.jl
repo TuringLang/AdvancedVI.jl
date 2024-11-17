@@ -88,7 +88,7 @@ function optimize(
 
         grad = DiffResults.gradient(grad_buf)
         opt_st, params = update_variational_params!(
-            typeof(q_init), opt_st, params, restructure, grad
+            optimizer, typeof(q_init), opt_st, params, restructure, grad
         )
         avg_st = apply(averager, avg_st, params)
 

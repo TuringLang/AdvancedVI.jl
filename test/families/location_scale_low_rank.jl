@@ -158,21 +158,30 @@
             D = ones(realtype, d)
             U = randn(realtype, d, n_rank)
             q = MvLocationScaleLowRank(
-                μ, D, U, Normal{realtype}(zero(realtype), one(realtype)); scale_eps=ϵ
+                μ, D, U, Normal{realtype}(zero(realtype), one(realtype))
             )
-            q_trans = if isnothing(bijector)
+            q = if isnothing(bijector)
                 q
             else
                 Bijectors.TransformedDistribution(q, bijector)
             end
-            g = deepcopy(q)
+            q_cpy = deepcopy(q)
 
             λ, re = Optimisers.destructure(q)
-            grad, _ = Optimisers.destructure(g)
-            opt_st = Optimisers.setup(Descent(one(realtype)), λ)
-            _, λ′ = AdvancedVI.update_variational_params!(typeof(q), opt_st, λ, re, grad)
+            grad, _ = Optimisers.destructure(q_cpy)
+            opt = Descent(one(realtype))
+            proj = ProjectScale(opt, ϵ)
+            opt_st = Optimisers.setup(proj, λ)
+            _, λ′ = AdvancedVI.update_variational_params!(
+                proj, typeof(q), opt_st, λ, re, grad
+            )
             q′ = re(λ′)
-            @test all(var(q′) .≥ ϵ^2)
+
+            if isnothing(bijector)
+                @test all(var(q′) .≥ ϵ^2)
+            else
+                @test all(var(q′.dist) .≥ ϵ^2)
+            end
         end
     end
 end

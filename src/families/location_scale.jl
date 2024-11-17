@@ -1,14 +1,6 @@
 
-struct MvLocationScale{S,D<:ContinuousDistribution,L,E<:Real} <:
-       ContinuousMultivariateDistribution
-    location::L
-    scale::S
-    dist::D
-    scale_eps::E
-end
-
 """
-    MvLocationScale(location, scale, dist; scale_eps)
+    MvLocationScale(location, scale, dist)
 
 The location scale variational family broadly represents various variational
 families using `location` and `scale` variational parameters.
@@ -20,21 +12,11 @@ represented as follows:
   u = rand(dist, d)
   z = scale*u + location
 ```
-
-`scale_eps` sets a constraint on the smallest value of `scale` to be enforced during optimization.
-This is necessary to guarantee stable convergence.
-
-# Keyword Arguments
-- `scale_eps`: Lower bound constraint for the diagonal of the scale. (default: `1e-4`).
 """
-function MvLocationScale(
-    location::AbstractVector{T},
-    scale::AbstractMatrix{T},
-    dist::ContinuousUnivariateDistribution;
-    scale_eps::T=T(1e-4),
-) where {T<:Real}
-    @assert minimum(diag(scale)) ≥ scale_eps "Initial scale is too small (smallest diagonal value is $(minimum(diag(scale)))). This might result in unstable optimization behavior."
-    return MvLocationScale(location, scale, dist, scale_eps)
+struct MvLocationScale{S,D<:ContinuousDistribution,L} <: ContinuousMultivariateDistribution
+    location::L
+    scale::S
+    dist::D
 end
 
 Functors.@functor MvLocationScale (location, scale)
@@ -44,18 +26,18 @@ Functors.@functor MvLocationScale (location, scale)
 # `scale <: Diagonal`, which is not the default behavior. Otherwise, forward-mode AD
 # is very inefficient.
 # begin
-struct RestructureMeanField{S<:Diagonal,D,L,E}
-    model::MvLocationScale{S,D,L,E}
+struct RestructureMeanField{S<:Diagonal,D,L}
+    model::MvLocationScale{S,D,L}
 end
 
 function (re::RestructureMeanField)(flat::AbstractVector)
     n_dims = div(length(flat), 2)
     location = first(flat, n_dims)
     scale = Diagonal(last(flat, n_dims))
-    return MvLocationScale(location, scale, re.model.dist, re.model.scale_eps)
+    return MvLocationScale(location, scale, re.model.dist)
 end
 
-function Optimisers.destructure(q::MvLocationScale{<:Diagonal,D,L,E}) where {D,L,E}
+function Optimisers.destructure(q::MvLocationScale{<:Diagonal,D,L}) where {D,L}
     @unpack location, scale, dist = q
     flat = vcat(location, diag(scale))
     return flat, RestructureMeanField(q)
@@ -66,7 +48,7 @@ Base.length(q::MvLocationScale) = length(q.location)
 
 Base.size(q::MvLocationScale) = size(q.location)
 
-Base.eltype(::Type{<:MvLocationScale{S,D,L,E}}) where {S,D,L,E} = eltype(D)
+Base.eltype(::Type{<:MvLocationScale{S,D,L}}) where {S,D,L} = eltype(D)
 
 function StatsBase.entropy(q::MvLocationScale)
     @unpack location, scale, dist = q
@@ -131,49 +113,52 @@ function Distributions.cov(q::MvLocationScale)
 end
 
 """
-    FullRankGaussian(μ, L; scale_eps)
+    FullRankGaussian(μ, L)
 
 Construct a Gaussian variational approximation with a dense covariance matrix.
 
 # Arguments
 - `μ::AbstractVector{T}`: Mean of the Gaussian.
 - `L::LinearAlgebra.AbstractTriangular{T}`: Cholesky factor of the covariance of the Gaussian.
-
-# Keyword Arguments
-- `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `1e-4`).
 """
 function FullRankGaussian(
-    μ::AbstractVector{T}, L::LinearAlgebra.AbstractTriangular{T}; scale_eps::T=T(1e-4)
+    μ::AbstractVector{T}, L::LinearAlgebra.AbstractTriangular{T}
 ) where {T<:Real}
-    q_base = Normal{T}(zero(T), one(T))
-    return MvLocationScale(μ, L, q_base, scale_eps)
+    return MvLocationScale(μ, L, Normal{T}(zero(T), one(T)))
 end
 
 """
-    MeanFieldGaussian(μ, L; scale_eps)
+    MeanFieldGaussian(μ, L)
 
 Construct a Gaussian variational approximation with a diagonal covariance matrix.
 
 # Arguments
 - `μ::AbstractVector{T}`: Mean of the Gaussian.
 - `L::Diagonal{T}`: Diagonal Cholesky factor of the covariance of the Gaussian.
-
-# Keyword Arguments
-- `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `1e-4`).
 """
-function MeanFieldGaussian(
-    μ::AbstractVector{T}, L::Diagonal{T}; scale_eps::T=T(1e-4)
-) where {T<:Real}
-    q_base = Normal{T}(zero(T), one(T))
-    return MvLocationScale(μ, L, q_base, scale_eps)
+function MeanFieldGaussian(μ::AbstractVector{T}, L::Diagonal{T}) where {T<:Real}
+    return MvLocationScale(μ, L, Normal{T}(zero(T), one(T)))
 end
 
+struct ProjectScale{Rule<:Optimisers.AbstractRule,F<:Real} <: Optimisers.AbstractRule
+    rule::Rule
+    scale_eps::F
+end
+
+function ProjectScale(rule, scale_eps::Real=1e-5)
+    return ProjectScale{typeof(rule),typeof(scale_eps)}(rule, scale_eps)
+end
+
+Optimisers.setup(proj::ProjectScale, x) = Optimisers.setup(proj.rule, x)
+
+Optimisers.init(proj::ProjectScale, x) = Optimisers.init(proj.rule, x)
+
 function update_variational_params!(
-    ::Type{<:MvLocationScale}, opt_st, params, restructure, grad
+    proj::ProjectScale, ::Type{<:MvLocationScale}, opt_st, params, restructure, grad
 )
     opt_st, params = Optimisers.update!(opt_st, params, grad)
     q = restructure(params)
-    ϵ = q.scale_eps
+    ϵ = convert(eltype(params), proj.scale_eps)
 
     # Project the scale matrix to the set of positive definite triangular matrices
     diag_idx = diagind(q.scale)

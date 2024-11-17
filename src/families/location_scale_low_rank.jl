@@ -1,16 +1,6 @@
 
-struct MvLocationScaleLowRank{
-    L,SD<:AbstractVector,SF<:AbstractMatrix,D<:ContinuousDistribution,E<:Real
-} <: ContinuousMultivariateDistribution
-    location::L
-    scale_diag::SD
-    scale_factors::SF
-    dist::D
-    scale_eps::E
-end
-
 """
-    MvLocationLowRankScale(location, scale_diag, scale_factors, dist; scale_eps)
+    MvLocationLowRankScale(location, scale_diag, scale_factors, dist)
 
 Variational family with a covariance in the form of a diagonal matrix plus a squared low-rank matrix.
 The rank is given by `size(scale_factors, 2)`.
@@ -24,23 +14,14 @@ represented as follows:
   u_factors = rand(dist, r)
   z = scale_diag.*u_diag + scale_factors*u_factors + location
 ```
-
-`scale_eps` sets a constraint on the smallest value of `scale_diag` to be enforced during optimization.
-This is necessary to guarantee stable convergence.
-
-# Keyword Arguments
-- `scale_eps`: Lower bound constraint for the values of scale_diag. (default: `sqrt(eps(T))`).
 """
-function MvLocationScaleLowRank(
-    location::AbstractVector{T},
-    scale_diag::AbstractVector{T},
-    scale_factors::AbstractMatrix{T},
-    dist::ContinuousUnivariateDistribution;
-    scale_eps::T=T(1e-4),
-) where {T<:Real}
-    @assert minimum(scale_diag) ≥ scale_eps "Initial scale is too small (smallest diagonal scale value is $(minimum(scale_diag)). This might result in unstable optimization behavior."
-    @assert size(scale_factors, 1) == length(scale_diag)
-    return MvLocationScaleLowRank(location, scale_diag, scale_factors, dist, scale_eps)
+struct MvLocationScaleLowRank{
+    L,SD<:AbstractVector,SF<:AbstractMatrix,D<:ContinuousDistribution
+} <: ContinuousMultivariateDistribution
+    location::L
+    scale_diag::SD
+    scale_factors::SF
+    dist::D
 end
 
 Functors.@functor MvLocationScaleLowRank (location, scale_diag, scale_factors)
@@ -49,7 +30,7 @@ Base.length(q::MvLocationScaleLowRank) = length(q.location)
 
 Base.size(q::MvLocationScaleLowRank) = size(q.location)
 
-Base.eltype(::Type{<:MvLocationScaleLowRank{L,SD,SF,D,E}}) where {L,SD,SF,D,E} = eltype(L)
+Base.eltype(::Type{<:MvLocationScaleLowRank{L,SD,SF,D}}) where {L,SD,SF,D} = eltype(L)
 
 function StatsBase.entropy(q::MvLocationScaleLowRank)
     @unpack location, scale_diag, scale_factors, dist = q
@@ -95,8 +76,8 @@ function Distributions.rand(q::MvLocationScaleLowRank)
 end
 
 function Distributions.rand(
-    rng::AbstractRNG, q::MvLocationScaleLowRank{S,D,L}, num_samples::Int
-) where {S,D,L}
+    rng::AbstractRNG, q::MvLocationScaleLowRank, num_samples::Int
+)
     @unpack location, scale_diag, scale_factors, dist = q
     n_dims = length(location)
     n_factors = size(scale_factors, 2)
@@ -140,23 +121,8 @@ function Distributions.cov(q::MvLocationScaleLowRank)
     return σ2 * (Diagonal(scale_diag .* scale_diag) + scale_factors * scale_factors')
 end
 
-function update_variational_params!(
-    ::Type{<:MvLocationScaleLowRank}, opt_st, params, restructure, grad
-)
-    opt_st, params = Optimisers.update!(opt_st, params, grad)
-    q = restructure(params)
-    ϵ = q.scale_eps
-
-    # Clip diagonal to guarantee positive definite covariance
-    @. q.scale_diag = max(q.scale_diag, ϵ)
-
-    params, _ = Optimisers.destructure(q)
-
-    return opt_st, params
-end
-
 """
-    LowRankGaussian(μ, D, U; scale_eps)
+    LowRankGaussian(μ, D, U)
 
 Construct a Gaussian variational approximation with a diagonal plus low-rank covariance matrix.
 
@@ -164,13 +130,22 @@ Construct a Gaussian variational approximation with a diagonal plus low-rank cov
 - `μ::AbstractVector{T}`: Mean of the Gaussian.
 - `D::Vector{T}`: Diagonal of the scale.
 - `U::Matrix{T}`: Low-rank factors of the scale, where `size(U,2)` is the rank.
-
-# Keyword Arguments
-- `scale_eps`: Smallest value allowed for the diagonal of the scale. (default: `1e-4`).
 """
-function LowRankGaussian(
-    μ::AbstractVector{T}, D::Vector{T}, U::Matrix{T}; scale_eps::T=T(1e-4)
-) where {T<:Real}
+function LowRankGaussian(μ::AbstractVector{T}, D::Vector{T}, U::Matrix{T}) where {T<:Real}
     q_base = Normal{T}(zero(T), one(T))
-    return MvLocationScaleLowRank(μ, D, U, q_base; scale_eps)
+    return MvLocationScaleLowRank(μ, D, U, q_base)
+end
+
+function update_variational_params!(
+    proj::ProjectScale, ::Type{<:MvLocationScaleLowRank}, opt_st, params, restructure, grad
+)
+    opt_st, params = Optimisers.update!(opt_st, params, grad)
+    q = restructure(params)
+    ϵ = convert(eltype(params), proj.scale_eps)
+
+    @. q.scale_diag = max(q.scale_diag, ϵ)
+
+    params, _ = Optimisers.destructure(q)
+
+    return opt_st, params
 end

@@ -16,6 +16,7 @@ else
 end
 
 function AdvancedVI.update_variational_params!(
+    proj::ProjectScale,
     ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScale}},
     opt_st,
     params,
@@ -24,11 +25,29 @@ function AdvancedVI.update_variational_params!(
 )
     opt_st, params = Optimisers.update!(opt_st, params, grad)
     q = restructure(params)
-    ϵ = q.dist.scale_eps
+    ϵ = proj.scale_eps
 
-    # Project the scale matrix to the set of positive definite triangular matrices
     diag_idx = diagind(q.dist.scale)
     @. q.dist.scale[diag_idx] = max(q.dist.scale[diag_idx], ϵ)
+
+    params, _ = Optimisers.destructure(q)
+
+    return opt_st, params
+end
+
+function AdvancedVI.update_variational_params!(
+    proj::ProjectScale,
+    ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScaleLowRank}},
+    opt_st,
+    params,
+    restructure,
+    grad,
+)
+    opt_st, params = Optimisers.update!(opt_st, params, grad)
+    q = restructure(params)
+    ϵ = proj.scale_eps
+
+    @. q.dist.scale_diag = max(q.dist.scale_diag, ϵ)
 
     params, _ = Optimisers.destructure(q)
 
