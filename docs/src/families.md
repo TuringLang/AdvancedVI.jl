@@ -65,7 +65,6 @@ ProjectScale
 ```
 
 [^D2020]: Domke, J. (2020). Provable smoothness guarantees for black-box variational inference. In *International Conference on Machine Learning*.
-
 ### Gaussian Variational Families
 
 ```julia
