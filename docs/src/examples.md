@@ -118,10 +118,13 @@ q_avg_trans, q_trans, stats, _ = AdvancedVI.optimize(
     n_max_iter;
     show_progress=false,
     adtype=AutoForwardDiff(),
-    optimizer=Optimisers.Adam(1e-3),
+    optimizer=ProjectScale(Optimisers.Adam(1e-3)),
 );
 nothing
 ```
+
+`ProjectScale` is a wrapper around an optimization rule such that the variational approximation stays within a stable region of the variational family.
+For more information see [this section](@ref projectscale).
 
 `q_avg_trans` is the final output of the optimization procedure.
 If a parameter averaging strategy is used through the keyword argument `averager`, `q_avg_trans` is be the output of the averaging strategy, while `q_trans` is the last iterate.

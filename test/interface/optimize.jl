@@ -15,7 +15,7 @@ using Test
     obj = RepGradELBO(10)
 
     adtype = AutoForwardDiff()
-    optimizer = Optimisers.Adam(1e-2)
+    optimizer = ProjectScale(Optimisers.Adam(1e-2))
     averager = PolynomialAveraging()
 
     @testset "default_rng" begin

@@ -63,9 +63,9 @@ restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restruct
 
 # Update for gradient descent step
 """
-    update_variational_params!(family_type, opt_st, params, restructure, grad)
+    update_variational_params!(rule, family_type, opt_st, params, restructure, grad)
 
-Update variational distribution according to the update rule in the optimizer state `opt_st` and the variational family `family_type`.
+Update variational distribution according to the update rule in the optimizer state `opt_st`, the optimizer given by `rule`, and the variational family type `family_type`.
 
 This is a wrapper around `Optimisers.update!` to provide some indirection.
 For example, depending on the optimizer and the variational family, this may do additional things such as applying projection or proximal mappings.
@@ -73,6 +73,7 @@ Same as the default behavior of `Optimisers.update!`, `params` and `opt_st` may 
 Instead, the return values should be used.
 
 # Arguments
+- `rule`: Optimization rule.
 - `family_type::Type`: Type of the variational family `typeof(restructure(params))`.
 - `opt_st`: Optimizer state returned by `Optimisers.setup`.
 - `params`: Current set of parameters to be updated.
@@ -83,9 +84,9 @@ Instead, the return values should be used.
 - `opt_st`: Updated optimizer state.
 - `params`: Updated parameters.
 """
-function update_variational_params! end
-
-function update_variational_params!(::Type, opt_st, params, restructure, grad)
+function update_variational_params!(
+    ::Optimisers.AbstractRule, family_type, opt_st, params, restructure, grad
+)
     return Optimisers.update!(opt_st, params, grad)
 end
 
@@ -186,7 +187,7 @@ include("objectives/elbo/repgradelbo.jl")
 include("objectives/elbo/scoregradelbo.jl")
 
 # Variational Families
-export MvLocationScale, MeanFieldGaussian, FullRankGaussian
+export MvLocationScale, MeanFieldGaussian, FullRankGaussian, ProjectScale
 
 include("families/location_scale.jl")
 
