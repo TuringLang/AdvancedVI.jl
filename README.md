@@ -109,7 +109,7 @@ q_avg, _, stats, _ = AdvancedVI.optimize(
     q_transformed,
     max_iter;
     adtype=ADTypes.AutoForwardDiff(),
-    optimizer=Optimisers.Adam(1e-3),
+    optimizer=ProjectScale(Optimisers.Adam(1e-3)),
 )
 
 # Evaluate final ELBO with 10^3 Monte Carlo samples
