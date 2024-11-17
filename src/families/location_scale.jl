@@ -140,6 +140,15 @@ function MeanFieldGaussian(μ::AbstractVector{T}, L::Diagonal{T}) where {T<:Real
     return MvLocationScale(μ, L, Normal{T}(zero(T), one(T)))
 end
 
+"""
+    ProjectScale(rule, scale_eps)
+
+Compose an optimization `rule` with a projection, where the projection ensures that a `LocationScale` or `LocationScaleLowRank` has a scale with eigenvalues larger than `scale_eps`.
+
+# Arguments
+- `rule::Optimisers.AbstractRule`: Optimization rule to compose with the projection.
+- `scale_eps::Real`: Lower bound on the eigenvalues of the scale matrix of the projection.
+"""
 struct ProjectScale{Rule<:Optimisers.AbstractRule,F<:Real} <: Optimisers.AbstractRule
     rule::Rule
     scale_eps::F

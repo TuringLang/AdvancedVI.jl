@@ -219,7 +219,7 @@ _, _, stats_cfe, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(3e-3),
+    optimizer     = ProjectScale(Optimisers.Adam(3e-3)),
     callback      = callback,
 ); 
 
@@ -230,7 +230,7 @@ _, _, stats_stl, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(3e-3),
+    optimizer     = ProjectScale(Optimisers.Adam(3e-3)),
     callback      = callback,
 ); 
 
@@ -265,6 +265,7 @@ Furthermore, in a lot of cases, a low-accuracy solution may be sufficient.
 
 [^RWD2017]: Roeder, G., Wu, Y., & Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. Advances in Neural Information Processing Systems, 30.
 [^KMG2024]: Kim, K., Ma, Y., & Gardner, J. (2024). Linear Convergence of Black-Box Variational Inference: Should We Stick the Landing?. In International Conference on Artificial Intelligence and Statistics (pp. 235-243). PMLR.
+
 ## Advanced Usage
 
 There are two major ways to customize the behavior of `RepGradELBO`
@@ -317,7 +318,7 @@ _, _, stats_qmc, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(3e-3),
+    optimizer     = ProjectScale(Optimisers.Adam(3e-3)),
     callback      = callback,
 ); 
 
