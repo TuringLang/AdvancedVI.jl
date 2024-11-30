@@ -21,11 +21,15 @@ using DistributionsAD
 @functor TuringDiagMvNormal
 
 using ADTypes
-using ForwardDiff, ReverseDiff, Zygote, Mooncake, Enzyme
+using ForwardDiff, ReverseDiff, Zygote, Mooncake
 
 using AdvancedVI
 
 const TEST_GROUP = get(ENV, "TEST_GROUP", "All")
+
+if TEST_GROUP == "Enzyme"
+    using Enzyme
+end
 
 # Models for Inference Tests
 struct TestModel{M,L,S,SC}
