@@ -7,7 +7,6 @@ else
         #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
         :Zygote => AutoZygote(),
         :Mooncake => AutoMooncake(; config=Mooncake.Config()),
-        :Enzyme => AutoEnzyme(),
     )
 end
 
