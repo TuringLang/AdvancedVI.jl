@@ -25,21 +25,4 @@ using Test
         elbo = estimate_objective(obj, q0, model; n_samples=10^4)
         @test elbo ≈ elbo_ref rtol = 0.2
     end
-
-    @testset "baseline_window" begin
-        T = 100
-        adtype = AutoForwardDiff()
-
-        obj = ScoreGradELBO(10)
-        _, _, stats, _ = optimize(rng, model, obj, q0, T; show_progress=false, adtype)
-        @test isfinite(last(stats).elbo)
-
-        obj = ScoreGradELBO(10; baseline_window_size=0)
-        _, _, stats, _ = optimize(rng, model, obj, q0, T; show_progress=false, adtype)
-        @test isfinite(last(stats).elbo)
-
-        obj = ScoreGradELBO(10; baseline_window_size=1)
-        _, _, stats, _ = optimize(rng, model, obj, q0, T; show_progress=false, adtype)
-        @test isfinite(last(stats).elbo)
-    end
 end
