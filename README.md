@@ -26,7 +26,6 @@ a `LogDensityProblem` can be implemented as
 
 ```julia
 using LogDensityProblems
-using SimpleUnPack
 
 struct NormalLogNormal{MX,SX,MY,SY}
     μ_x::MX

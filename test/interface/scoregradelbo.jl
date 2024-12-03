@@ -7,7 +7,7 @@ using Test
 
     modelstats = normal_meanfield(rng, Float64)
 
-    @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
+    (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
     q0 = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
 

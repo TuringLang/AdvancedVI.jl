@@ -129,7 +129,6 @@ using LinearAlgebra
 using LogDensityProblems
 using Plots
 using Random
-using SimpleUnPack
 
 using Optimisers
 using ADTypes, ForwardDiff
@@ -143,7 +142,7 @@ struct NormalLogNormal{MX,SX,MY,SY}
 end
 
 function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
-    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    (; μ_x, σ_x, μ_y, Σ_y) = model
     logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
@@ -168,7 +167,7 @@ L  = Diagonal(ones(d));
 q0 = AdvancedVI.MeanFieldGaussian(μ, L)
 
 function Bijectors.bijector(model::NormalLogNormal)
-    @unpack μ_x, σ_x, μ_y, Σ_y = model
+    (; μ_x, σ_x, μ_y, Σ_y) = model
     Bijectors.Stacked(
         Bijectors.bijector.([LogNormal(μ_x, σ_x), MvNormal(μ_y, Σ_y)]),
         [1:1, 2:1+length(μ_y)])
@@ -295,7 +294,7 @@ qmcrng = SobolSample(; R=OwenScramble(; base=2, pad=32))
 function Distributions.rand(
     rng::AbstractRNG, q::MvLocationScale{<:Diagonal,D,L}, num_samples::Int
 ) where {L,D}
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     n_dims = length(location)
     scale_diag = diag(scale)
     unif_samples = QuasiMonteCarlo.sample(num_samples, length(q), qmcrng)
@@ -337,7 +336,7 @@ savefig("advi_qmc_dist.svg")
 function Distributions.rand(
     rng::AbstractRNG, q::MvLocationScale{<:Diagonal, D, L}, num_samples::Int
 ) where {L, D}
-    @unpack location, scale, dist = q 
+    (; location, scale, dist) = q 
     n_dims       = length(location)
     scale_diag   = diag(scale)
     scale_diag.*rand(rng, dist, n_dims, num_samples) .+ location

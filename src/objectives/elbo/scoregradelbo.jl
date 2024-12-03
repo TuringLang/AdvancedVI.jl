@@ -36,7 +36,7 @@ function estimate_objective(obj::ScoreGradELBO, q, prob; n_samples::Int=obj.n_sa
 end
 
 function estimate_scoregradelbo_ad_forward(params′, aux)
-    @unpack rng, obj, logprob, adtype, restructure, samples = aux
+    (; logprob, adtype, restructure, samples) = aux
     q = restructure_ad_forward(adtype, restructure, params′)
     ℓπ = logprob
     ℓq = logpdf.(Ref(q), AdvancedVI.eachsample(samples))
@@ -58,9 +58,7 @@ function AdvancedVI.estimate_gradient!(
     samples = rand(rng, q, obj.n_samples)
     ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
     aux = (
-        rng=rng,
         adtype=adtype,
-        obj=obj,
         logprob=ℓπ,
         restructure=restructure,
         samples=samples,

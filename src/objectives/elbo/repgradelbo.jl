@@ -93,7 +93,7 @@ function estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int=obj.n_samp
 end
 
 function estimate_repgradelbo_ad_forward(params′, aux)
-    @unpack rng, obj, problem, adtype, restructure, q_stop = aux
+    (; rng, obj, problem, adtype, restructure, q_stop) = aux
     q = restructure_ad_forward(adtype, restructure, params′)
     samples, entropy = reparam_with_entropy(rng, q, q_stop, obj.n_samples, obj.entropy)
     energy = estimate_energy_with_samples(problem, samples)
