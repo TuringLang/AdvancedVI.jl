@@ -56,7 +56,7 @@ function (re::RestructureMeanField)(flat::AbstractVector)
 end
 
 function Optimisers.destructure(q::MvLocationScale{<:Diagonal,D,L,E}) where {D,L,E}
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     flat = vcat(location, diag(scale))
     return flat, RestructureMeanField(q)
 end
@@ -69,19 +69,19 @@ Base.size(q::MvLocationScale) = size(q.location)
 Base.eltype(::Type{<:MvLocationScale{S,D,L,E}}) where {S,D,L,E} = eltype(D)
 
 function StatsBase.entropy(q::MvLocationScale)
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     n_dims = length(location)
     # `convert` is necessary because `entropy` is not type stable upstream
     return n_dims * convert(eltype(location), entropy(dist)) + logdet(scale)
 end
 
 function Distributions.logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     return sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - logdet(scale)
 end
 
 function Distributions.rand(q::MvLocationScale)
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     n_dims = length(location)
     return scale * rand(dist, n_dims) + location
 end
@@ -89,7 +89,7 @@ end
 function Distributions.rand(
     rng::AbstractRNG, q::MvLocationScale{S,D,L}, num_samples::Int
 ) where {S,D,L}
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     n_dims = length(location)
     return scale * rand(rng, dist, n_dims, num_samples) .+ location
 end
@@ -98,7 +98,7 @@ end
 function Distributions.rand(
     rng::AbstractRNG, q::MvLocationScale{<:Diagonal,D,L}, num_samples::Int
 ) where {L,D}
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     n_dims = length(location)
     scale_diag = diag(scale)
     return scale_diag .* rand(rng, dist, n_dims, num_samples) .+ location
@@ -107,14 +107,14 @@ end
 function Distributions._rand!(
     rng::AbstractRNG, q::MvLocationScale, x::AbstractVecOrMat{<:Real}
 )
-    @unpack location, scale, dist = q
+    (; location, scale, dist) = q
     rand!(rng, dist, x)
     x[:] = scale * x
     return x .+= location
 end
 
 function Distributions.mean(q::MvLocationScale)
-    @unpack location, scale = q
+    (; location, scale) = q
     return location + scale * Fill(mean(q.dist), length(location))
 end
 

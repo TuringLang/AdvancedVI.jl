@@ -1,17 +1,12 @@
 
-AD_distributionsad = Dict(
-    :ForwarDiff => AutoForwardDiff(),
-    #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
-    :Zygote => AutoZygote(),
-)
-
-if @isdefined(Mooncake)
-    AD_distributionsad[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
-end
-
-if @isdefined(Enzyme)
-    AD_distributionsad[:Enzyme] = AutoEnzyme(;
-        mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
+AD_repgradelbo_distributionsad = if TEST_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+else
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
     )
 end
 
@@ -25,13 +20,13 @@ end
             :RepGradELBOStickingTheLanding =>
                 RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
         ),
-        (adbackname, adtype) in AD_distributionsad
+        (adbackname, adtype) in AD_repgradelbo_distributionsad
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
 
         modelstats = modelconstr(rng, realtype)
-        @unpack model, μ_true, L_true, n_dims, strong_convexity, is_meanfield = modelstats
+        (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
         T = 1000
         η = 1e-3
