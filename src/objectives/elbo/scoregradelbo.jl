@@ -41,7 +41,7 @@ function estimate_scoregradelbo_ad_forward(params′, aux)
     ℓπ = logprob
     ℓq = logpdf.(Ref(q), AdvancedVI.eachsample(samples))
     f = ℓq - ℓπ
-    (mean(abs2, f) - mean(f)^2)/2
+    return (mean(abs2, f) - mean(f)^2) / 2
 end
 
 function AdvancedVI.estimate_gradient!(
