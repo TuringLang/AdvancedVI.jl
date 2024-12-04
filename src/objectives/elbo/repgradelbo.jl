@@ -92,9 +92,27 @@ function estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int=obj.n_samp
     return estimate_objective(Random.default_rng(), obj, q, prob; n_samples)
 end
 
-function estimate_repgradelbo_ad_forward(params′, aux)
+"""
+    estimate_repgradelbo_ad_forward(params, aux)
+
+AD-guaranteed forward path of the reparameterization gradient objective.
+
+# Arguments
+- `params`: Variational parameters.
+- `aux`: Auxiliary information excluded from the AD path.
+
+# Auxiliary Information 
+`aux` should containt the following entries:
+- `rng`: Random number generator.
+- `obj`: The `RepGradELBO` objective.
+- `problem`: The target `LogDensityProblem`.
+- `adtype`: The `ADType` used for differentiating the forward path.
+- `restructure`: Callable for restructuring the varitional distribution from `params`.
+- `q_stop`: A copy of `restructure(params)` with its gradient "stopped" (excluded from the AD path).
+"""
+function estimate_repgradelbo_ad_forward(params, aux)
     (; rng, obj, problem, adtype, restructure, q_stop) = aux
-    q = restructure_ad_forward(adtype, restructure, params′)
+    q = restructure_ad_forward(adtype, restructure, params)
     samples, entropy = reparam_with_entropy(rng, q, q_stop, obj.n_samples, obj.entropy)
     energy = estimate_energy_with_samples(problem, samples)
     elbo = energy + entropy
