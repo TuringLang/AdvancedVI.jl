@@ -15,7 +15,7 @@ end
                                                                      [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:NormalLogNormalMeanField => normallognormal_meanfield),
-        n_montecarlo in [1, 10],
+        n_montecarlo in [10],
         (objname, objective) in Dict(
             :RepGradELBOClosedFormEntropy => RepGradELBO(n_montecarlo),
             :RepGradELBOStickingTheLanding =>

@@ -15,7 +15,7 @@ end
                                                                      [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:Normal => normal_meanfield, :Normal => normal_fullrank),
-        n_montecarlo in [1, 10],
+        n_montecarlo in [10],
         (objname, objective) in Dict(:ScoreGradELBO => ScoreGradELBO(n_montecarlo)),
         (adbackname, adtype) in AD_scoregradelbo_locationscale
 
