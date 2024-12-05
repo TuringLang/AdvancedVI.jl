@@ -73,7 +73,7 @@ function AdvancedVI.estimate_gradient!(
     q = restructure(params)
     samples = rand(rng, q, obj.n_samples)
     ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
-    aux = (adtype=adtype, logprob=ℓπ, restructure=restructure, samples=samples)
+    aux = (adtype=adtype, logprob_stop=ℓπ, samples_stop=samples, restructure=restructure)
     AdvancedVI.value_and_gradient!(
         adtype, estimate_scoregradelbo_ad_forward, params, aux, out
     )
