@@ -16,9 +16,9 @@ end
         (modelname, modelconstr) in
         Dict(:Normal => normal_meanfield, :Normal => normal_fullrank),
         (objname, objective) in Dict(
-            :RepGradELBOClosedFormEntropy => RepGradELBO(n_montecarlo),
+            :RepGradELBOClosedFormEntropy => RepGradELBO(10),
             :RepGradELBOStickingTheLanding =>
-                RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
+                RepGradELBO(10; entropy=StickingTheLandingEntropy()),
         ),
         (adbackname, adtype) in AD_repgradelbo_locationscale
 
@@ -31,7 +31,6 @@ end
         T = 1000
         η = 1e-3
         opt = Optimisers.Descent(realtype(η))
-        n_montecarlo = 10
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),

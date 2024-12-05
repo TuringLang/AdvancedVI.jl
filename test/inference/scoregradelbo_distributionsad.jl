@@ -14,7 +14,7 @@ end
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],
         (modelname, modelconstr) in Dict(:Normal => normal_meanfield),
-        (objname, objective) in Dict(:ScoreGradELBO => ScoreGradELBO(n_montecarlo)),
+        (objname, objective) in Dict(:ScoreGradELBO => ScoreGradELBO(10)),
         (adbackname, adtype) in AD_scoregradelbo_distributionsad
 
         seed = (0x38bef07cf9cc549d)
@@ -26,7 +26,6 @@ end
         T = 1000
         η = 1e-4
         opt = Optimisers.Descent(realtype(η))
-        n_montecarlo = 10
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),
