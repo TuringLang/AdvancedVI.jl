@@ -75,9 +75,7 @@ function Distributions.rand(q::MvLocationScaleLowRank)
     return scale_diag .* u_diag + scale_factors * u_fact + location
 end
 
-function Distributions.rand(
-    rng::AbstractRNG, q::MvLocationScaleLowRank, num_samples::Int
-)
+function Distributions.rand(rng::AbstractRNG, q::MvLocationScaleLowRank, num_samples::Int)
     (; location, scale_diag, scale_factors, dist) = q
     n_dims = length(location)
     n_factors = size(scale_factors, 2)
