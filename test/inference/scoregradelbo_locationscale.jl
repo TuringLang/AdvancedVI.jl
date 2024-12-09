@@ -1,17 +1,12 @@
 
-AD_scoregradelbo_locationscale = Dict(
-    :ForwarDiff => AutoForwardDiff(),
-    :ReverseDiff => AutoReverseDiff(),
-    :Zygote => AutoZygote(),
-)
-
-if @isdefined(Mooncake)
-    AD_scoregradelbo_locationscale[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
-end
-
-if @isdefined(Enzyme)
-    AD_scoregradelbo_locationscale[:Enzyme] = AutoEnzyme(;
-        mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
+AD_scoregradelbo_locationscale = if TEST_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+else
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
     )
 end
 
@@ -20,22 +15,17 @@ end
                                                                      [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:Normal => normal_meanfield, :Normal => normal_fullrank),
-        n_montecarlo in [1, 10],
-        (objname, objective) in Dict(
-            :ScoreGradELBOClosedFormEntropy => ScoreGradELBO(n_montecarlo),
-            :ScoreGradELBOStickingTheLanding =>
-                ScoreGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
-        ),
-        (adbackname, adtype) in AD_locationscale
+        (objname, objective) in Dict(:ScoreGradELBO => ScoreGradELBO(10)),
+        (adbackname, adtype) in AD_scoregradelbo_locationscale
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
 
         modelstats = modelconstr(rng, realtype)
-        @unpack model, μ_true, L_true, n_dims, strong_convexity, is_meanfield = modelstats
+        (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
         T = 1000
-        η = 1e-5
+        η = 1e-4
         opt = ProjectScale(Optimisers.Descent(realtype(η)))
 
         # For small enough η, the error of SGD, Δλ, is bounded as

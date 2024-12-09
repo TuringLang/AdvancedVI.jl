@@ -33,7 +33,7 @@ Base.size(q::MvLocationScaleLowRank) = size(q.location)
 Base.eltype(::Type{<:MvLocationScaleLowRank{D,L,SD,SF}}) where {D,L,SD,SF} = eltype(L)
 
 function StatsBase.entropy(q::MvLocationScaleLowRank)
-    @unpack location, scale_diag, scale_factors, dist = q
+    (; location, scale_diag, scale_factors, dist) = q
     n_dims = length(location)
     scale_diag2 = scale_diag .* scale_diag
     UtDinvU = Hermitian(scale_factors' * (scale_factors ./ scale_diag2))
@@ -44,7 +44,7 @@ end
 function Distributions.logpdf(
     q::MvLocationScaleLowRank, z::AbstractVector{<:Real}; non_differntiable::Bool=false
 )
-    @unpack location, scale_diag, scale_factors, dist = q
+    (; location, scale_diag, scale_factors, dist) = q
     μ_base = mean(dist)
     n_dims = length(location)
 
@@ -67,7 +67,7 @@ function Distributions.logpdf(
 end
 
 function Distributions.rand(q::MvLocationScaleLowRank)
-    @unpack location, scale_diag, scale_factors, dist = q
+    (; location, scale_diag, scale_factors, dist) = q
     n_dims = length(location)
     n_factors = size(scale_factors, 2)
     u_diag = rand(dist, n_dims)
@@ -78,7 +78,7 @@ end
 function Distributions.rand(
     rng::AbstractRNG, q::MvLocationScaleLowRank, num_samples::Int
 )
-    @unpack location, scale_diag, scale_factors, dist = q
+    (; location, scale_diag, scale_factors, dist) = q
     n_dims = length(location)
     n_factors = size(scale_factors, 2)
     u_diag = rand(rng, dist, n_dims, num_samples)
@@ -89,7 +89,7 @@ end
 function Distributions._rand!(
     rng::AbstractRNG, q::MvLocationScaleLowRank, x::AbstractVecOrMat{<:Real}
 )
-    @unpack location, scale_diag, scale_factors, dist = q
+    (; location, scale_diag, scale_factors, dist) = q
 
     rand!(rng, dist, x)
     x[:] = scale_diag .* x
@@ -101,7 +101,7 @@ function Distributions._rand!(
 end
 
 function Distributions.mean(q::MvLocationScaleLowRank)
-    @unpack location, scale_diag, scale_factors = q
+    (; location, scale_diag, scale_factors) = q
     μ = mean(q.dist)
     return location +
            scale_diag .* Fill(μ, length(scale_diag)) +
@@ -109,14 +109,14 @@ function Distributions.mean(q::MvLocationScaleLowRank)
 end
 
 function Distributions.var(q::MvLocationScaleLowRank)
-    @unpack scale_diag, scale_factors = q
+    (; scale_diag, scale_factors) = q
     σ2 = var(q.dist)
     return σ2 *
            (scale_diag .* scale_diag + sum(scale_factors .* scale_factors; dims=2)[:, 1])
 end
 
 function Distributions.cov(q::MvLocationScaleLowRank)
-    @unpack scale_diag, scale_factors = q
+    (; scale_diag, scale_factors) = q
     σ2 = var(q.dist)
     return σ2 * (Diagonal(scale_diag .* scale_diag) + scale_factors * scale_factors')
 end

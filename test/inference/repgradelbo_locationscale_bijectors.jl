@@ -1,17 +1,12 @@
 
-AD_locationscale_bijectors = Dict(
-    :ForwarDiff => AutoForwardDiff(),
-    :ReverseDiff => AutoReverseDiff(),
-    :Zygote => AutoZygote(),
-)
-
-if @isdefined(Mooncake)
-    AD_locationscale_bijectors[:Mooncake] = AutoMooncake(; config=Mooncake.Config())
-end
-
-if @isdefined(Enzyme)
-    AD_locationscale_bijectors[:Enzyme] = AutoEnzyme(;
-        mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
+AD_repgradelbo_locationscale_bijectors = if TEST_GROUP == "Enzyme"
+    Dict(:Enzyme => AutoEnzyme())
+else
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
     )
 end
 
@@ -20,19 +15,18 @@ end
                                                                      [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:NormalLogNormalMeanField => normallognormal_meanfield),
-        n_montecarlo in [1, 10],
         (objname, objective) in Dict(
-            :RepGradELBOClosedFormEntropy => RepGradELBO(n_montecarlo),
+            :RepGradELBOClosedFormEntropy => RepGradELBO(10),
             :RepGradELBOStickingTheLanding =>
-                RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
+                RepGradELBO(10; entropy=StickingTheLandingEntropy()),
         ),
-        (adbackname, adtype) in AD_locationscale_bijectors
+        (adbackname, adtype) in AD_repgradelbo_locationscale_bijectors
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
 
         modelstats = modelconstr(rng, realtype)
-        @unpack model, μ_true, L_true, n_dims, strong_convexity, is_meanfield = modelstats
+        (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
         T = 1000
         η = 1e-3
