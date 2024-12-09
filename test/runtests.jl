@@ -13,7 +13,6 @@ using Optimisers
 using PDMats
 using Pkg
 using Random, StableRNGs
-using SimpleUnPack: @unpack
 using Statistics
 using StatsBase
 
@@ -22,18 +21,15 @@ using DistributionsAD
 @functor TuringDiagMvNormal
 
 using ADTypes
-using ForwardDiff, ReverseDiff, Zygote
-
-if VERSION >= v"1.10"
-    Pkg.add("Mooncake")
-    Pkg.add("Enzyme")
-    using Mooncake
-    using Enzyme
-end
+using ForwardDiff, ReverseDiff, Zygote, Mooncake
 
 using AdvancedVI
 
-const GROUP = get(ENV, "GROUP", "All")
+const TEST_GROUP = get(ENV, "TEST_GROUP", "All")
+
+if TEST_GROUP == "Enzyme"
+    using Enzyme
+end
 
 # Models for Inference Tests
 struct TestModel{M,L,S,SC}
@@ -47,24 +43,28 @@ end
 include("models/normal.jl")
 include("models/normallognormal.jl")
 
-# Tests
-if GROUP == "All" || GROUP == "Interface"
-    include("interface/ad.jl")
+if TEST_GROUP == "All" || TEST_GROUP == "Interface"
+    # Interface tests that do not involve testing on Enzyme
     include("interface/optimize.jl")
-    include("interface/repgradelbo.jl")
-    include("interface/scoregradelbo.jl")
     include("interface/rules.jl")
     include("interface/averaging.jl")
+    include("interface/scoregradelbo.jl")
 end
 
-if GROUP == "All" || GROUP == "Families"
+if TEST_GROUP == "All" || TEST_GROUP == "Interface" || TEST_GROUP == "Enzyme"
+    # Interface tests that involve testing on Enzyme
+    include("interface/ad.jl")
+    include("interface/repgradelbo.jl")
+end
+
+if TEST_GROUP == "All" || TEST_GROUP == "Families"
     include("families/location_scale.jl")
     include("families/location_scale_low_rank.jl")
 end
 
 const PROGRESS = haskey(ENV, "PROGRESS")
 
-if GROUP == "All" || GROUP == "Inference"
+if TEST_GROUP == "All" || TEST_GROUP == "Inference" || TEST_GROUP == "Enzyme"
     include("inference/repgradelbo_distributionsad.jl")
     include("inference/repgradelbo_locationscale.jl")
     include("inference/repgradelbo_locationscale_bijectors.jl")

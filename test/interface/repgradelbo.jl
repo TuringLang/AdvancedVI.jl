@@ -1,5 +1,14 @@
 
-using Test
+AD_repgradelbo_interface = if TEST_GROUP == "Enzyme"
+    [AutoEnzyme()]
+else
+    [
+        AutoForwardDiff(),
+        AutoReverseDiff(),
+        AutoZygote(),
+        AutoMooncake(; config=Mooncake.Config()),
+    ]
+end
 
 @testset "interface RepGradELBO" begin
     seed = (0x38bef07cf9cc549d)
@@ -7,9 +16,26 @@ using Test
 
     modelstats = normal_meanfield(rng, Float64)
 
-    @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
+    (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    q0 = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
+    q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
+
+    @testset "basic" begin
+        @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
+            obj = RepGradELBO(n_montecarlo)
+            _, _, stats, _ = optimize(
+                rng,
+                model,
+                obj,
+                q0,
+                10;
+                optimizer=Descent(1e-5),
+                show_progress=false,
+                adtype=adtype,
+            )
+            @assert isfinite(last(stats).elbo)
+        end
+    end
 
     obj = RepGradELBO(10)
     rng = StableRNG(seed)
@@ -32,29 +58,14 @@ end
     rng = StableRNG(seed)
 
     modelstats = normal_meanfield(rng, Float64)
-    @unpack model, μ_true, L_true, n_dims, is_meanfield = modelstats
+    (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    ad_backends = [
-        ADTypes.AutoForwardDiff(), ADTypes.AutoReverseDiff(), ADTypes.AutoZygote()
-    ]
-    if @isdefined(Mooncake)
-        push!(ad_backends, AutoMooncake(; config=Mooncake.Config()))
-    end
-    if @isdefined(Enzyme)
-        push!(
-            ad_backends,
-            AutoEnzyme(;
-                mode=set_runtime_activity(ReverseWithPrimal), function_annotation=Const
-            ),
-        )
-    end
-
-    @testset for adtype in ad_backends
+    @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
         params, re = Optimisers.destructure(q_true)
-        obj = RepGradELBO(10; entropy=StickingTheLandingEntropy())
+        obj = RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy())
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
         aux = (

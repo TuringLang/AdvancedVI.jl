@@ -8,8 +8,6 @@ It's only parameter is the initial guess of the Euclidean distance to the optimu
 # Parameters
 - `repsilon`: Initial guess of the Euclidean distance between the initial point and
             the optimum. (default value: `1e-6`)
-
-[^KMJ2024]: Khaled, A., Mishchenko, K., & Jin, C. (2023). Dowg unleashed: An efficient universal parameter-free gradient descent method. Advances in Neural Information Processing Systems, 36, 6748-6769.
 """
 Optimisers.@def struct DoWG <: Optimisers.AbstractRule
     repsilon = 1e-6
@@ -37,8 +35,6 @@ The original paper recommends \$ 10^{-4} ( 1 + \\lVert \\lambda_0 \\rVert ) \$, 
 
 # Parameters
 - `repsilon`: Initial guess of the Euclidean distance between the initial point and the optimum. (default value: `1e-6`)
-
-[^IHC2023]: Ivgi, M., Hinder, O., & Carmon, Y. (2023). Dog is sgd's best friend: A parameter-free dynamic step size schedule. In International Conference on Machine Learning (pp. 14465-14499). PMLR.
 """
 Optimisers.@def struct DoG <: Optimisers.AbstractRule
     repsilon = 1e-6
