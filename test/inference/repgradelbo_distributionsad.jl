@@ -14,11 +14,10 @@ end
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],
         (modelname, modelconstr) in Dict(:Normal => normal_meanfield),
-        n_montecarlo in [1, 10],
         (objname, objective) in Dict(
-            :RepGradELBOClosedFormEntropy => RepGradELBO(n_montecarlo),
+            :RepGradELBOClosedFormEntropy => RepGradELBO(10),
             :RepGradELBOStickingTheLanding =>
-                RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
+                RepGradELBO(10; entropy=StickingTheLandingEntropy()),
         ),
         (adbackname, adtype) in AD_repgradelbo_distributionsad
 

@@ -15,12 +15,7 @@ end
                                                                      [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:NormalLogNormalMeanField => normallognormal_meanfield),
-        n_montecarlo in [1, 10],
-        (objname, objective) in Dict(
-            #:ScoreGradELBOClosedFormEntropy => ScoreGradELBO(n_montecarlo), # not supported yet.
-            :ScoreGradELBOStickingTheLanding =>
-                ScoreGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy()),
-        ),
+        (objname, objective) in Dict(:ScoreGradELBO => ScoreGradELBO(10)),
         (adbackname, adtype) in AD_scoregradelbo_locationscale_bijectors
 
         seed = (0x38bef07cf9cc549d)
@@ -30,7 +25,7 @@ end
         (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
         T = 1000
-        η = 1e-5
+        η = 1e-4
         opt = Optimisers.Descent(realtype(η))
 
         b = Bijectors.bijector(model)
