@@ -37,7 +37,7 @@ function (re::RestructureMeanField)(flat::AbstractVector)
     return MvLocationScale(location, scale, re.model.dist)
 end
 
-function Optimisers.destructure(q::MvLocationScale{<:Diagonal,D,L,E}) where {D,L,E}
+function Optimisers.destructure(q::MvLocationScale{<:Diagonal,D,L}) where {D,L}
     (; location, scale, dist) = q
     flat = vcat(location, diag(scale))
     return flat, RestructureMeanField(q)
