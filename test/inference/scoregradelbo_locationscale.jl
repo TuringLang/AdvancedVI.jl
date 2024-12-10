@@ -26,7 +26,7 @@ end
 
         T = 1000
         η = 1e-4
-        opt = Optimisers.Descent(realtype(η))
+        opt = ProjectScale(Optimisers.Descent(realtype(η)))
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),

@@ -26,7 +26,7 @@ end
 
         T = 1000
         η = 1e-4
-        opt = Optimisers.Descent(realtype(η))
+        opt = ProjectScale(Optimisers.Descent(realtype(η)))
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)

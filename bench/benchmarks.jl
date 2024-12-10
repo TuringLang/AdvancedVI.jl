@@ -40,7 +40,7 @@ begin
     ]
         max_iter = 10^4
         d = LogDensityProblems.dimension(prob)
-        optimizer = Optimisers.Adam(T(1e-3))
+        optimizer = ProjectScale(Optimisers.Adam(T(1e-3)))
 
         for (objname, obj) in [
                 ("RepGradELBO", RepGradELBO(10)),
