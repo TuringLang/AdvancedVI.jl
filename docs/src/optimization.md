@@ -31,7 +31,7 @@ PolynomialAveraging
 Depending on the variational family, variational objective, and optimization strategy, it might be necessary to modify the variational parameters after performing a gradient-based update.
 For this, an operator acting on the parameters can be supplied via the  `operator` keyword argument of `optimize`.
 
-### `ClipScale` (@id clipscale)
+### [`ClipScale`](@id clipscale)
 
 For the location scale, it is often the case that optimization is stable only when the smallest eigenvalue of the scale matrix is strictly positive[^D2020].
 To ensure this, we provide the following projection operator:
