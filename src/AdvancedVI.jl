@@ -239,7 +239,7 @@ Identity operator.
 """
 struct IdentityOperator <: AbstractOperator end
 
-operate(::IdentityOperator, family, params, restructure) = params
+operate(::IdentityOperator, ::Type, params, restructure) = params
 
 include("optimization/clip_scale.jl")
 
