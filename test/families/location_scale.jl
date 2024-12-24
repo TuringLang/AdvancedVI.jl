@@ -143,47 +143,6 @@
         end
     end
 
-    @testset "scale positive definite projection" begin
-        @testset "$(string(covtype)) $(realtype) $(bijector)" for covtype in
-                                                                  [:meanfield, :fullrank],
-            realtype in [Float32, Float64],
-            bijector in [nothing, :identity]
-
-            d = 5
-            μ = zeros(realtype, d)
-            ϵ = sqrt(realtype(0.5))
-            q = if covtype == :fullrank
-                L = LowerTriangular(Matrix{realtype}(I, d, d))
-                FullRankGaussian(μ, L)
-            elseif covtype == :meanfield
-                L = Diagonal(ones(realtype, d))
-                MeanFieldGaussian(μ, L)
-            end
-            q = if isnothing(bijector)
-                q
-            else
-                Bijectors.TransformedDistribution(q, identity)
-            end
-            q_cpy = deepcopy(q)
-
-            λ, re = Optimisers.destructure(q)
-            grad, _ = Optimisers.destructure(q_cpy)
-            opt = Descent(one(realtype))
-            proj = ProjectScale(opt, ϵ)
-            opt_st = Optimisers.setup(proj, λ)
-            _, λ′ = AdvancedVI.update_variational_params!(
-                proj, typeof(q), opt_st, λ, re, grad
-            )
-            q′ = re(λ′)
-
-            if isnothing(bijector)
-                @test all(var(q′) .≥ ϵ^2)
-            else
-                @test all(var(q′.dist) .≥ ϵ^2)
-            end
-        end
-    end
-
     @testset "Diagonal destructure" begin
         n_dims = 10
         μ = zeros(n_dims)

@@ -1,6 +1,8 @@
 
 @testset "rules" begin
-    @testset "$(rule) $(realtype)" for rule in [DoWG(), DoG(), COCOB()],
+    @testset "$(rule) $(realtype)" for rule in [
+            DoWG(), DoG(), COCOB(), DoWG(1e-5), DoG(1e-5), COCOB(100.0)
+        ],
         realtype in [Float32, Float64]
 
         T = 10^4

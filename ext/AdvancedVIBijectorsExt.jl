@@ -15,43 +15,38 @@ else
     using ..Random
 end
 
-function AdvancedVI.update_variational_params!(
-    proj::ProjectScale,
+function AdvancedVI.operate(
+    op::ClipScale,
     ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScale}},
-    opt_st,
     params,
     restructure,
-    grad,
 )
-    opt_st, params = Optimisers.update!(opt_st, params, grad)
     q = restructure(params)
-    ϵ = proj.scale_eps
+    ϵ = convert(eltype(params), op.epsilon)
 
+    # Project the scale matrix to the set of positive definite triangular matrices
     diag_idx = diagind(q.dist.scale)
     @. q.dist.scale[diag_idx] = max(q.dist.scale[diag_idx], ϵ)
 
     params, _ = Optimisers.destructure(q)
 
-    return opt_st, params
+    return params
 end
 
-function AdvancedVI.update_variational_params!(
-    proj::ProjectScale,
+function AdvancedVI.operate(
+    op::ClipScale,
     ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScaleLowRank}},
-    opt_st,
     params,
     restructure,
-    grad,
 )
-    opt_st, params = Optimisers.update!(opt_st, params, grad)
     q = restructure(params)
-    ϵ = proj.scale_eps
+    ϵ = convert(eltype(params), op.epsilon)
 
     @. q.dist.scale_diag = max(q.dist.scale_diag, ϵ)
 
     params, _ = Optimisers.destructure(q)
 
-    return opt_st, params
+    return params
 end
 
 function AdvancedVI.reparam_with_entropy(

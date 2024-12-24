@@ -133,17 +133,3 @@ function LowRankGaussian(μ::AbstractVector{T}, D::Vector{T}, U::Matrix{T}) wher
     q_base = Normal{T}(zero(T), one(T))
     return MvLocationScaleLowRank(μ, D, U, q_base)
 end
-
-function update_variational_params!(
-    proj::ProjectScale, ::Type{<:MvLocationScaleLowRank}, opt_st, params, restructure, grad
-)
-    opt_st, params = Optimisers.update!(opt_st, params, grad)
-    q = restructure(params)
-    ϵ = convert(eltype(params), proj.scale_eps)
-
-    @. q.scale_diag = max(q.scale_diag, ϵ)
-
-    params, _ = Optimisers.destructure(q)
-
-    return opt_st, params
-end

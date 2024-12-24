@@ -49,6 +49,7 @@ if TEST_GROUP == "All" || TEST_GROUP == "Interface"
     include("interface/rules.jl")
     include("interface/averaging.jl")
     include("interface/scoregradelbo.jl")
+    include("interface/clip_scale.jl")
 end
 
 if TEST_GROUP == "All" || TEST_GROUP == "Interface" || TEST_GROUP == "Enzyme"

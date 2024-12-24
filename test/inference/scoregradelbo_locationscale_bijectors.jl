@@ -26,7 +26,7 @@ end
 
         T = 1000
         η = 1e-4
-        opt = ProjectScale(Optimisers.Descent(realtype(η)))
+        opt = Optimisers.Descent(η)
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)
@@ -55,6 +55,7 @@ end
                 q0_z,
                 T;
                 optimizer=opt,
+                operator=ClipScale(),
                 show_progress=PROGRESS,
                 adtype=adtype,
             )
@@ -77,6 +78,7 @@ end
                 q0_z,
                 T;
                 optimizer=opt,
+                operator=ClipScale(),
                 show_progress=PROGRESS,
                 adtype=adtype,
             )
@@ -91,6 +93,7 @@ end
                 q0_z,
                 T;
                 optimizer=opt,
+                operator=ClipScale(),
                 show_progress=PROGRESS,
                 adtype=adtype,
             )
