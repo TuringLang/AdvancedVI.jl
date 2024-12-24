@@ -56,16 +56,6 @@ FullRankGaussian
 MeanFieldGaussian
 ```
 
-### [Scale Projection Operator](@id projectscale)
-
-For the location scale, it is often the case that optimization is stable only when the smallest eigenvalue of the scale matrix is strictly positive[^D2020].
-To ensure this, we provide the following wrapper around optimization rule:
-
-```@docs
-ProjectScale
-```
-
-[^D2020]: Domke, J. (2020). Provable smoothness guarantees for black-box variational inference. In *International Conference on Machine Learning*.
 ### Gaussian Variational Families
 
 ```julia

@@ -232,6 +232,11 @@ Apply operator `op` on the variational parameters `params`. For instance, `op` c
 """
 function operate end
 
+"""
+    IdentityOperator()
+
+Identity operator.
+"""
 struct IdentityOperator <: AbstractOperator end
 
 operate(::IdentityOperator, family, params, restructure) = params

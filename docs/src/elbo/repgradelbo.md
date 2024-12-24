@@ -218,7 +218,8 @@ _, _, stats_cfe, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoForwardDiff(),
-    optimizer     = ProjectScale(Optimisers.Adam(3e-3)),
+    optimizer     = Optimisers.Adam(3e-3),
+    operator      = ClipScale(),
     callback      = callback,
 ); 
 
@@ -229,7 +230,8 @@ _, _, stats_stl, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoForwardDiff(),
-    optimizer     = ProjectScale(Optimisers.Adam(3e-3)),
+    optimizer     = Optimisers.Adam(3e-3),
+    operator      = ClipScale(),
     callback      = callback,
 ); 
 
@@ -316,7 +318,8 @@ _, _, stats_qmc, _ = AdvancedVI.optimize(
     max_iter;
     show_progress = false,
     adtype        = AutoForwardDiff(),
-    optimizer     = ProjectScale(Optimisers.Adam(3e-3)),
+    optimizer     = Optimisers.Adam(3e-3),
+    operator      = ClipScale(),
     callback      = callback,
 ); 
 

@@ -17,6 +17,7 @@ This requires the variational approximation to be marked as a functor through `F
 - `adtype::ADtypes.AbstractADType`: Automatic differentiation backend. 
 - `optimizer::Optimisers.AbstractRule`: Optimizer used for inference. (Default: `Adam`.)
 - `averager::AbstractAverager` : Parameter averaging strategy. (Default: `NoAveraging()`)
+- `operator::AbstractOperator` : Operator applied to the parameters after each optimization step. (Default: `IdentityOperator()`)
 - `rng::AbstractRNG`: Random number generator. (Default: `Random.default_rng()`.)
 - `show_progress::Bool`: Whether to show the progress bar. (Default: `true`.)
 - `callback`: Callback function called after every iteration. See further information below. (Default: `nothing`.)
