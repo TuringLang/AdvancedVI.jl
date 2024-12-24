@@ -6,7 +6,7 @@ function simulate_sequence_average(realtype::Type{<:Real}, avg::AdvancedVI.Abstr
     xs_it = eachcol(xs)
     st = AdvancedVI.init(avg, first(xs_it))
     for x in xs_it
-        st = AdvancedVI.apply(avg, st, x)
+        st = AdvancedVI.average(avg, st, x)
     end
     return AdvancedVI.value(avg, st), xs
 end

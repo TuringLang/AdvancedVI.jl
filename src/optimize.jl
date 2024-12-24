@@ -87,10 +87,8 @@ function optimize(
         stat = merge(stat, stat′)
 
         grad = DiffResults.gradient(grad_buf)
-        opt_st, params = update_variational_params!(
-            optimizer, typeof(q_init), opt_st, params, restructure, grad
-        )
-        avg_st = apply(averager, avg_st, params)
+        opt_st, params = Optimisers.update!(opt_st, params, grad)
+        avg_st = average(averager, avg_st, params)
 
         if !isnothing(callback)
             averaged_params = value(averager, avg_st)
