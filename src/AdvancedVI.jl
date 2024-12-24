@@ -187,7 +187,7 @@ Initialize the state of the averaging strategy `avg` with the initial parameters
 init(::AbstractAverager, ::Any) = nothing
 
 """
-    apply(avg, avg_st, params)
+    average(avg, avg_st, params)
 
 Apply averaging strategy `avg` on `params` given the state `avg_st`.
 
@@ -196,7 +196,7 @@ Apply averaging strategy `avg` on `params` given the state `avg_st`.
 - `avg_st`: Previous state of the averaging strategy.
 - `params`: Initial variational parameters.
 """
-function apply(::AbstractAverager, ::Any, ::Any) end
+function average(::AbstractAverager, ::Any, ::Any) end
 
 """
     value(avg, avg_st)
@@ -230,7 +230,7 @@ Apply operator `op` on the variational parameters `params`. For instance, `op` c
 # Returns
 - `oped_params`: Parameters resulting from applying the operator.
 """
-function operate end
+function operate(::AbstractOperator, ::Type, ::Any, ::Any) end
 
 """
     IdentityOperator()
