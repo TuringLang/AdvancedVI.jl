@@ -29,7 +29,7 @@ PolynomialAveraging
 ## Operators
 
 Depending on the variational family, variational objective, and optimization strategy, it might be necessary to modify the variational parameters after performing a gradient-based update.
-For this, an operator acting on the parameters can be supplied via the  `operator` keyword argument of `optimize`.
+For this, an operator acting on the parameters can be supplied via the  `operator` keyword argument of `AdvancedVI.optimize`.
 
 ### [`ClipScale`](@id clipscale)
 
