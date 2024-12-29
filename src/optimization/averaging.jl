@@ -8,7 +8,7 @@ struct NoAveraging <: AbstractAverager end
 
 init(::NoAveraging, x) = x
 
-average(::NoAveraging, state, x) = x
+apply(::NoAveraging, state, x) = x
 
 value(::NoAveraging, state) = state
 
@@ -41,7 +41,7 @@ PolynomialAveraging() = PolynomialAveraging(8)
 
 init(::PolynomialAveraging, x) = (x, 1)
 
-function average(avg::PolynomialAveraging, state, x::AbstractVector{T}) where {T}
+function apply(avg::PolynomialAveraging, state, x::AbstractVector{T}) where {T}
     eta = T(avg.eta)
     x_bar, t = state
 

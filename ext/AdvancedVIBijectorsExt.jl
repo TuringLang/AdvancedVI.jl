@@ -15,7 +15,7 @@ else
     using ..Random
 end
 
-function AdvancedVI.operate(
+function AdvancedVI.apply(
     op::ClipScale,
     ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScale}},
     params,
@@ -33,7 +33,7 @@ function AdvancedVI.operate(
     return params
 end
 
-function AdvancedVI.operate(
+function AdvancedVI.apply(
     op::ClipScale,
     ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScaleLowRank}},
     params,

@@ -187,7 +187,7 @@ Initialize the state of the averaging strategy `avg` with the initial parameters
 init(::AbstractAverager, ::Any) = nothing
 
 """
-    average(avg, avg_st, params)
+    apply(avg::AbstractAverager, avg_st, params)
 
 Apply averaging strategy `avg` on `params` given the state `avg_st`.
 
@@ -196,7 +196,7 @@ Apply averaging strategy `avg` on `params` given the state `avg_st`.
 - `avg_st`: Previous state of the averaging strategy.
 - `params`: Initial variational parameters.
 """
-function average(::AbstractAverager, ::Any, ::Any) end
+function apply(::AbstractAverager, ::Any, ::Any) end
 
 """
     value(avg, avg_st)
@@ -217,7 +217,7 @@ export NoAveraging, PolynomialAveraging
 abstract type AbstractOperator end
 
 """
-    operate(op, family, params, restructure)
+    apply(op::AbstractOperator, family, params, restructure)
 
 Apply operator `op` on the variational parameters `params`. For instance, `op` could be a projection or proximal operator.
 
@@ -230,7 +230,7 @@ Apply operator `op` on the variational parameters `params`. For instance, `op` c
 # Returns
 - `oped_params`: Parameters resulting from applying the operator.
 """
-function operate(::AbstractOperator, ::Type, ::Any, ::Any) end
+function apply(::AbstractOperator, ::Type, ::Any, ::Any) end
 
 """
     IdentityOperator()
@@ -239,7 +239,7 @@ Identity operator.
 """
 struct IdentityOperator <: AbstractOperator end
 
-operate(::IdentityOperator, ::Type, params, restructure) = params
+apply(::IdentityOperator, ::Type, params, restructure) = params
 
 include("optimization/clip_scale.jl")
 

@@ -23,7 +23,7 @@
             end
 
             params, re = Optimisers.destructure(q)
-            params′ = AdvancedVI.operate(ClipScale(ϵ), typeof(q), params, re)
+            params′ = AdvancedVI.apply(ClipScale(ϵ), typeof(q), params, re)
             q′ = re(params′)
 
             if isnothing(bijector)
@@ -54,7 +54,7 @@
             end
 
             params, re = Optimisers.destructure(q)
-            params′ = AdvancedVI.operate(ClipScale(ϵ), typeof(q), params, re)
+            params′ = AdvancedVI.apply(ClipScale(ϵ), typeof(q), params, re)
             q′ = re(params′)
 
             if isnothing(bijector)
