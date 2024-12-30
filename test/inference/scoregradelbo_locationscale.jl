@@ -26,7 +26,7 @@ end
 
         T = 1000
         η = 1e-4
-        opt = Optimisers.Descent(realtype(η))
+        opt = Optimisers.Descent(η)
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),
@@ -49,6 +49,7 @@ end
                 q0,
                 T;
                 optimizer=opt,
+                operator=ClipScale(),
                 show_progress=PROGRESS,
                 adtype=adtype,
             )
@@ -71,6 +72,7 @@ end
                 q0,
                 T;
                 optimizer=opt,
+                operator=ClipScale(),
                 show_progress=PROGRESS,
                 adtype=adtype,
             )
@@ -85,6 +87,7 @@ end
                 q0,
                 T;
                 optimizer=opt,
+                operator=ClipScale(),
                 show_progress=PROGRESS,
                 adtype=adtype,
             )

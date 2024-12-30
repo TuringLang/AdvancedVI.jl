@@ -17,6 +17,7 @@ This requires the variational approximation to be marked as a functor through `F
 - `adtype::ADtypes.AbstractADType`: Automatic differentiation backend. 
 - `optimizer::Optimisers.AbstractRule`: Optimizer used for inference. (Default: `Adam`.)
 - `averager::AbstractAverager` : Parameter averaging strategy. (Default: `NoAveraging()`)
+- `operator::AbstractOperator` : Operator applied to the parameters after each optimization step. (Default: `IdentityOperator()`)
 - `rng::AbstractRNG`: Random number generator. (Default: `Random.default_rng()`.)
 - `show_progress::Bool`: Whether to show the progress bar. (Default: `true`.)
 - `callback`: Callback function called after every iteration. See further information below. (Default: `nothing`.)
@@ -57,6 +58,7 @@ function optimize(
     adtype::ADTypes.AbstractADType,
     optimizer::Optimisers.AbstractRule=Optimisers.Adam(),
     averager::AbstractAverager=NoAveraging(),
+    operator::AbstractOperator=IdentityOperator(),
     show_progress::Bool=true,
     state_init::NamedTuple=NamedTuple(),
     callback=nothing,
@@ -87,9 +89,8 @@ function optimize(
         stat = merge(stat, stat′)
 
         grad = DiffResults.gradient(grad_buf)
-        opt_st, params = update_variational_params!(
-            typeof(q_init), opt_st, params, restructure, grad
-        )
+        opt_st, params = Optimisers.update!(opt_st, params, grad)
+        params = apply(operator, typeof(q_init), params, restructure)
         avg_st = apply(averager, avg_st, params)
 
         if !isnothing(callback)

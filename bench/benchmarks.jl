@@ -41,6 +41,7 @@ begin
         max_iter = 10^4
         d = LogDensityProblems.dimension(prob)
         optimizer = Optimisers.Adam(T(1e-3))
+        operator = ClipScale()
 
         for (objname, obj) in [
                 ("RepGradELBO", RepGradELBO(10)),
@@ -73,6 +74,7 @@ begin
                     $max_iter;
                     adtype=$adtype,
                     optimizer=$optimizer,
+                    operator=$operator,
                     show_progress=false,
                 )
             end

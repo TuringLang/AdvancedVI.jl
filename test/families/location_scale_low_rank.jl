@@ -146,33 +146,4 @@
             end
         end
     end
-
-    @testset "diagonal positive definite projection" begin
-        @testset "$(realtype) $(bijector)" for realtype in [Float32, Float64],
-            bijector in [nothing, :identity]
-
-            n_rank = 2
-            d = 5
-            μ = zeros(realtype, d)
-            ϵ = sqrt(realtype(0.5))
-            D = ones(realtype, d)
-            U = randn(realtype, d, n_rank)
-            q = MvLocationScaleLowRank(
-                μ, D, U, Normal{realtype}(zero(realtype), one(realtype)); scale_eps=ϵ
-            )
-            q_trans = if isnothing(bijector)
-                q
-            else
-                Bijectors.TransformedDistribution(q, bijector)
-            end
-            g = deepcopy(q)
-
-            λ, re = Optimisers.destructure(q)
-            grad, _ = Optimisers.destructure(g)
-            opt_st = Optimisers.setup(Descent(one(realtype)), λ)
-            _, λ′ = AdvancedVI.update_variational_params!(typeof(q), opt_st, λ, re, grad)
-            q′ = re(λ′)
-            @test all(var(q′) .≥ ϵ^2)
-        end
-    end
 end

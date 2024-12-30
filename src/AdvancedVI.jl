@@ -60,34 +60,6 @@ This is an indirection for handling the type stability of `restructure`, as some
 """
 restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restructure(params)
 
-# Update for gradient descent step
-"""
-    update_variational_params!(family_type, opt_st, params, restructure, grad)
-
-Update variational distribution according to the update rule in the optimizer state `opt_st` and the variational family `family_type`.
-
-This is a wrapper around `Optimisers.update!` to provide some indirection.
-For example, depending on the optimizer and the variational family, this may do additional things such as applying projection or proximal mappings.
-Same as the default behavior of `Optimisers.update!`, `params` and `opt_st` may be updated by the routine and are no longer valid after calling this functino.
-Instead, the return values should be used.
-
-# Arguments
-- `family_type::Type`: Type of the variational family `typeof(restructure(params))`.
-- `opt_st`: Optimizer state returned by `Optimisers.setup`.
-- `params`: Current set of parameters to be updated.
-- `restructure`: Callable for restructuring the varitional distribution from `params`.
-- `grad`: Gradient to be used by the update rule of `opt_st`.
-
-# Returns
-- `opt_st`: Updated optimizer state.
-- `params`: Updated parameters.
-"""
-function update_variational_params! end
-
-function update_variational_params!(::Type, opt_st, params, restructure, grad)
-    return Optimisers.update!(opt_st, params, grad)
-end
-
 # estimators
 """
     AbstractVariationalObjective
@@ -149,7 +121,7 @@ Estimate (possibly stochastic) gradients of the variational objective `obj` targ
 - `out::DiffResults.MutableDiffResult`: Buffer containing the objective value and gradient estimates. 
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 - `params`: Variational parameters to evaluate the gradient on.
-- `restructure`: Function that reconstructs the variational approximation from `λ`.
+- `restructure`: Function that reconstructs the variational approximation from `params`.
 - `obj_state`: Previous state of the objective.
 
 # Returns
@@ -215,7 +187,7 @@ Initialize the state of the averaging strategy `avg` with the initial parameters
 init(::AbstractAverager, ::Any) = nothing
 
 """
-    apply(avg, avg_st, params)
+    apply(avg::AbstractAverager, avg_st, params)
 
 Apply averaging strategy `avg` on `params` given the state `avg_st`.
 
@@ -241,6 +213,39 @@ include("optimization/averaging.jl")
 
 export NoAveraging, PolynomialAveraging
 
+# Operators for Optimization
+abstract type AbstractOperator end
+
+"""
+    apply(op::AbstractOperator, family, params, restructure)
+
+Apply operator `op` on the variational parameters `params`. For instance, `op` could be a projection or proximal operator.
+
+# Arguments
+- `op::AbstractOperator`: Operator operating on the parameters `params`.
+- `family::Type`: Type of the variational approximation `restructure(params)`.
+- `params`: Variational parameters.
+- `restructure`: Function that reconstructs the variational approximation from `params`.
+
+# Returns
+- `oped_params`: Parameters resulting from applying the operator.
+"""
+function apply(::AbstractOperator, ::Type, ::Any, ::Any) end
+
+"""
+    IdentityOperator()
+
+Identity operator.
+"""
+struct IdentityOperator <: AbstractOperator end
+
+apply(::IdentityOperator, ::Type, params, restructure) = params
+
+include("optimization/clip_scale.jl")
+
+export IdentityOperator, ClipScale
+
+# Main optimization routine
 function optimize end
 
 export optimize
