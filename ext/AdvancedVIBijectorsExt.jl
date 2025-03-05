@@ -20,7 +20,7 @@ function AdvancedVI.apply(
     params,
     restructure,
 )
-    return apply_clip_scale(op, params, restructure)
+    return _clip_scale(op, params, restructure)
 end
 
 function AdvancedVI.apply(
@@ -29,10 +29,10 @@ function AdvancedVI.apply(
     params,
     restructure,
 )
-    return apply_clip_scale(op, params, restructure)
+    return _clip_scale(op, params, restructure)
 end
 
-function apply_clip_scale(op::ClipScale, params, restructure)
+function _clip_scale(op::ClipScale, params, restructure)
     q = restructure(params)
     ϵ = convert(eltype(params), op.epsilon)
 
@@ -60,7 +60,7 @@ function AdvancedVI.reparam_with_entropy(
     q_unconst = q.dist
     q_unconst_stop = q_stop.dist
 
-    # Draw samples and compute entropy of the uncontrained distribution
+    # Draw samples and compute entropy of the unconstrained distribution
     unconstr_samples, unconst_entropy = AdvancedVI.reparam_with_entropy(
         rng, q_unconst, q_unconst_stop, n_samples, ent_est
     )
