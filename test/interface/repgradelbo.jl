@@ -76,7 +76,7 @@ end
         aux = (
             rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=adtype
         )
-        AdvancedVI.value_and_gradient!(
+        AdvancedVI._value_and_gradient!(
             adtype, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux, out
         )
         grad = DiffResults.gradient(out)

@@ -26,7 +26,7 @@ using StatsBase
 
 # Derivatives
 """
-    value_and_gradient!(ad, f, x, aux, out)
+    _value_and_gradient!(ad, f, x, aux, out)
 
 Evaluate the value and gradient of a function `f` at `x` using the automatic differentiation backend `ad` and store the result in `out`.
 `f` may receive auxiliary input as `f(x,aux)`.
@@ -46,7 +46,7 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 - `aux`: Auxiliary input passed to `f`.
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
-function value_and_gradient!(
+function _value_and_gradient!(
     ad::ADTypes.AbstractADType, f, x, aux, out::DiffResults.MutableDiffResult
 )
     grad_buf = DiffResults.gradient(out)
