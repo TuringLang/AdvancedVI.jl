@@ -1,6 +1,10 @@
-
 AD_repgradelbo_distributionsad = if TEST_GROUP == "Enzyme"
-    Dict(:Enzyme => AutoEnzyme())
+    Dict(
+        :Enzyme => AutoEnzyme(;
+            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+            function_annotation=Enzyme.Const,
+        ),
+    )
 else
     Dict(
         :ForwarDiff => AutoForwardDiff(),
