@@ -20,7 +20,16 @@ function AdvancedVI.apply(
     params,
     restructure,
 )
-    return _clip_scale(op, params, restructure)
+    q = restructure(params)
+    ϵ = convert(eltype(params), op.epsilon)
+
+    # Project the scale matrix to the set of positive definite triangular matrices
+    diag_idx = diagind(q.dist.scale)
+    @. q.dist.scale[diag_idx] = max(q.dist.scale[diag_idx], ϵ)
+
+    params, _ = Optimisers.destructure(q)
+
+    return params
 end
 
 function AdvancedVI.apply(
@@ -29,23 +38,13 @@ function AdvancedVI.apply(
     params,
     restructure,
 )
-    return _clip_scale(op, params, restructure)
-end
-
-function _clip_scale(op::ClipScale, params, restructure)
     q = restructure(params)
     ϵ = convert(eltype(params), op.epsilon)
 
-    if isa(q.dist, AdvancedVI.MvLocationScale)
-        diag_idx = diagind(q.dist.scale)
-        @. q.dist.scale[diag_idx] = max(q.dist.scale[diag_idx], ϵ)
-    elseif isa(q.dist, AdvancedVI.MvLocationScaleLowRank)
-        @. q.dist.scale_diag = max(q.dist.scale_diag, ϵ)
-    else
-        error("Unsupported distribution type")
-    end
+    @. q.dist.scale_diag = max(q.dist.scale_diag, ϵ)
 
     params, _ = Optimisers.destructure(q)
+
     return params
 end
 
