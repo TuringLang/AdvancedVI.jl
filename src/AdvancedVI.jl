@@ -32,7 +32,15 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 `f` may receive auxiliary input as `f(x,aux)`.
 
 # Arguments
-- `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
+- `ADbackend::ADTypes.AbstractADType=ADTypes.AutoZygote()`: 
+    automatic differentiation backend. Currently supports
+    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
+    `ADTypes.AutoMooncake()` and
+    `ADTypes.AutoEnzyme(;
+        mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+        function_annotation=Enzyme.Const,
+    )`.
+    If one wants to use `AutoEnzyme`, please make sure to include the `set_runtime_activity` and `function_annotation` as shown above.
 - `f`: Function subject to differentiation.
 - `x`: The point to evaluate the gradient.
 - `aux`: Auxiliary input passed to `f`.
