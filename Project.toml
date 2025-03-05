@@ -21,11 +21,9 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [weakdeps]
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
-Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 
 [extensions]
 AdvancedVIBijectorsExt = "Bijectors"
-AdvancedVIEnzymeExt = "Enzyme"
 
 [compat]
 ADTypes = "1"
@@ -36,7 +34,6 @@ DiffResults = "1"
 DifferentiationInterface = "0.6"
 Distributions = "0.25.111"
 DocStringExtensions = "0.8, 0.9"
-Enzyme = "0.13"
 FillArrays = "1.3"
 Functors = "0.4, 0.5"
 LinearAlgebra = "1"
@@ -49,7 +46,6 @@ julia = "1.10, 1.11.2"
 
 [extras]
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
-Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
