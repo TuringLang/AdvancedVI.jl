@@ -16,7 +16,7 @@ else
 end
 
 function AdvancedVI.apply(
-    op::ClipScale,
+    op::AdvancedVI.ClipScale,
     ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScale}},
     params,
     restructure,
@@ -34,7 +34,7 @@ function AdvancedVI.apply(
 end
 
 function AdvancedVI.apply(
-    op::ClipScale,
+    op::AdvancedVI.ClipScale,
     ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScaleLowRank}},
     params,
     restructure,
