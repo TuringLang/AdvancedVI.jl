@@ -55,7 +55,7 @@ function _value_and_gradient!(
     return out
 end
 
-function _prepare_gradient(ad::ADTypes.AbstractADType, f, x, aux,)
+function _prepare_gradient(ad::ADTypes.AbstractADType, f, x, aux)
     return DI.prepare_gradient(f, ad, x, Constant(aux))
 end
 
