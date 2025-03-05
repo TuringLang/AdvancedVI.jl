@@ -138,7 +138,9 @@ function estimate_gradient!(
         restructure=restructure,
         q_stop=q_stop,
     )
-    AdvancedVI._value_and_gradient!(adtype, estimate_repgradelbo_ad_forward, params, aux, out)
+    AdvancedVI._value_and_gradient!(
+        adtype, estimate_repgradelbo_ad_forward, params, aux, out
+    )
     nelbo = DiffResults.value(out)
     stat = (elbo=-nelbo,)
     return out, nothing, stat
