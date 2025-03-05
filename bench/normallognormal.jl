@@ -1,4 +1,3 @@
-
 struct NormalLogNormal{MX,SX,MY,SY}
     μ_x::MX
     σ_x::SX
@@ -8,7 +7,9 @@ end
 
 function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
     (; μ_x, σ_x, μ_y, Σ_y) = model
-    return logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
+    log_density_x = logpdf(LogNormal(μ_x, σ_x), θ[1])
+    log_density_y = logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
+    return log_density_x + log_density_y
 end
 
 function LogDensityProblems.dimension(model::NormalLogNormal)
