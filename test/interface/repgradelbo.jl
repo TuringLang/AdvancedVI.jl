@@ -1,6 +1,6 @@
 
 AD_repgradelbo_interface = if TEST_GROUP == "Enzyme"
-    [AutoEnzyme()]
+    [AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)]
 else
     [
         AutoForwardDiff(),
