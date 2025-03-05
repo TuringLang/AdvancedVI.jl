@@ -58,7 +58,7 @@ function optimize(
     adtype::ADTypes.AbstractADType,
     optimizer::Optimisers.AbstractRule=Optimisers.Adam(),
     averager::AbstractAverager=NoAveraging(),
-    operator::AbstractOperator=IdentityOperator(),
+    operator=IdentityOperator(),
     show_progress::Bool=true,
     state_init::NamedTuple=NamedTuple(),
     callback=nothing,
