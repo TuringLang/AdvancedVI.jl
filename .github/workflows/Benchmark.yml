@@ -2,7 +2,7 @@ name: Benchmarks
 on:
   pull_request:
     branches:
-      - master
+      - main
 
 concurrency:
   # Skip intermediate builds: always.

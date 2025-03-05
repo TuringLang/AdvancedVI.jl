@@ -1,19 +1,11 @@
 
 module AdvancedVIBijectorsExt
 
-if isdefined(Base, :get_extension)
-    using AdvancedVI
-    using Bijectors
-    using LinearAlgebra
-    using Optimisers
-    using Random
-else
-    using ..AdvancedVI
-    using ..Bijectors
-    using ..LinearAlgebra
-    using ..Optimisers
-    using ..Random
-end
+using AdvancedVI
+using Bijectors
+using LinearAlgebra
+using Optimisers
+using Random
 
 function AdvancedVI.apply(
     op::ClipScale,
@@ -82,4 +74,5 @@ function AdvancedVI.reparam_with_entropy(
     entropy = unconst_entropy + logjac
     return samples, entropy
 end
+
 end

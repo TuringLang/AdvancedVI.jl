@@ -22,5 +22,3 @@ makedocs(;
     ],
     warnonly=[:missing_docs],
 )
-
-deploydocs(; repo="github.com/TuringLang/AdvancedVI.jl", push_preview=true)

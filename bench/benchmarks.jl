@@ -52,7 +52,7 @@ begin
                 ("ForwardDiff", AutoForwardDiff()),
                 ("ReverseDiff", AutoReverseDiff()),
                 #("Mooncake", AutoMooncake(; config=Mooncake.Config())),
-                #("Enzyme", AutoEnzyme()),
+                #("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),
             ],
             (familyname, family) in [
                 ("meanfield", MeanFieldGaussian(zeros(T, d), Diagonal(ones(T, d)))),
