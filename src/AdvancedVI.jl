@@ -26,25 +26,61 @@ using StatsBase
 
 # Derivatives
 """
-    value_and_gradient!(ad, f, x, aux, out)
+    _value_and_gradient!(f, out, ad, x, aux)
+    _value_and_gradient!(f, out, prep, ad, x, aux)
 
 Evaluate the value and gradient of a function `f` at `x` using the automatic differentiation backend `ad` and store the result in `out`.
 `f` may receive auxiliary input as `f(x,aux)`.
 
 # Arguments
-- `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
+- `ad::ADTypes.AbstractADType`: 
+    automatic differentiation backend. Currently supports
+    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
+    `ADTypes.AutoMooncake()` and
+    `ADTypes.AutoEnzyme(;
+        mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+        function_annotation=Enzyme.Const,
+    )`.
+    If one wants to use `AutoEnzyme`, please make sure to include the `set_runtime_activity` and `function_annotation` as shown above.
 - `f`: Function subject to differentiation.
 - `x`: The point to evaluate the gradient.
 - `aux`: Auxiliary input passed to `f`.
+- `prep`: Output of `DifferentiationInterface.prepare_gradient`.
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
-function value_and_gradient!(
-    ad::ADTypes.AbstractADType, f, x, aux, out::DiffResults.MutableDiffResult
+function _value_and_gradient!(
+    f, out::DiffResults.MutableDiffResult, ad::ADTypes.AbstractADType, x, aux
 )
     grad_buf = DiffResults.gradient(out)
     y, _ = DifferentiationInterface.value_and_gradient!(f, grad_buf, ad, x, Constant(aux))
     DiffResults.value!(out, y)
     return out
+end
+
+function _value_and_gradient!(
+    f, out::DiffResults.MutableDiffResult, prep, ad::ADTypes.AbstractADType, x, aux
+)
+    grad_buf = DiffResults.gradient(out)
+    y, _ = DifferentiationInterface.value_and_gradient!(
+        f, grad_buf, prep, ad, x, Constant(aux)
+    )
+    DiffResults.value!(out, y)
+    return out
+end
+
+"""
+    _prepare_gradient!(f, ad, x, aux)
+
+Prepare AD backend for taking gradients of a function `f` at `x` using the automatic differentiation backend `ad`.
+
+# Arguments
+- `ad::ADTypes.AbstractADType`: Automatic differentiation backend.
+- `f`: Function subject to differentiation.
+- `x`: The point to evaluate the gradient.
+- `aux`: Auxiliary input passed to `f`.
+"""
+function _prepare_gradient(f, ad::ADTypes.AbstractADType, x, aux)
+    return DifferentiationInterface.prepare_gradient(f, ad, x, Constant(aux))
 end
 
 """
@@ -74,7 +110,7 @@ If the estimator is stateful, it can implement `init` to initialize the state.
 abstract type AbstractVariationalObjective end
 
 """
-    init(rng, obj, prob, params, restructure)
+    init(rng, obj, adtype, prob, params, restructure)
 
 Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
 This function needs to be implemented only if `obj` is stateful.
@@ -82,10 +118,18 @@ This function needs to be implemented only if `obj` is stateful.
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `obj::AbstractVariationalObjective`: Variational objective.
+` `adtype::ADTypes.AbstractADType`: Automatic differentiation backend.
 - `params`: Initial variational parameters.
 - `restructure`: Function that reconstructs the variational approximation from `λ`.
 """
-init(::Random.AbstractRNG, ::AbstractVariationalObjective, ::Any, ::Any, ::Any) = nothing
+init(
+    ::Random.AbstractRNG,
+    ::AbstractVariationalObjective,
+    ::ADTypes.AbstractADType,
+    ::Any,
+    ::Any,
+    ::Any,
+) = nothing
 
 """
     estimate_objective([rng,] obj, q, prob; kwargs...)

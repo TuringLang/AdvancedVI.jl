@@ -16,6 +16,23 @@ struct ScoreGradELBO <: AbstractVariationalObjective
     n_samples::Int
 end
 
+function init(
+    rng::Random.AbstractRNG,
+    obj::ScoreGradELBO,
+    adtype::ADTypes.AbstractADType,
+    prob,
+    params,
+    restructure,
+)
+    q = restructure(params)
+    samples = rand(rng, q, obj.n_samples)
+    ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
+    aux = (adtype=adtype, logprob_stop=ℓπ, samples_stop=samples, restructure=restructure)
+    return AdvancedVI._prepare_gradient(
+        estimate_scoregradelbo_ad_forward, adtype, params, aux
+    )
+end
+
 function Base.show(io::IO, obj::ScoreGradELBO)
     print(io, "ScoreGradELBO(n_samples=")
     print(io, obj.n_samples)
@@ -71,14 +88,15 @@ function AdvancedVI.estimate_gradient!(
     state,
 )
     q = restructure(params)
+    prep = state
     samples = rand(rng, q, obj.n_samples)
     ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
     aux = (adtype=adtype, logprob_stop=ℓπ, samples_stop=samples, restructure=restructure)
-    AdvancedVI.value_and_gradient!(
-        adtype, estimate_scoregradelbo_ad_forward, params, aux, out
+    AdvancedVI._value_and_gradient!(
+        estimate_scoregradelbo_ad_forward, out, prep, adtype, params, aux
     )
     ℓq = logpdf.(Ref(q), AdvancedVI.eachsample(samples))
     elbo = mean(ℓπ - ℓq)
     stat = (elbo=elbo,)
-    return out, nothing, stat
+    return out, state, stat
 end

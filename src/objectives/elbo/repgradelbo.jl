@@ -33,6 +33,28 @@ struct RepGradELBO{EntropyEst<:AbstractEntropyEstimator} <: AbstractVariationalO
     n_samples::Int
 end
 
+function init(
+    rng::Random.AbstractRNG,
+    obj::RepGradELBO,
+    adtype::ADTypes.AbstractADType,
+    prob,
+    params,
+    restructure,
+)
+    q_stop = restructure(params)
+    aux = (
+        rng=rng,
+        adtype=adtype,
+        obj=obj,
+        problem=prob,
+        restructure=restructure,
+        q_stop=q_stop,
+    )
+    return AdvancedVI._prepare_gradient(
+        estimate_repgradelbo_ad_forward, adtype, params, aux
+    )
+end
+
 function RepGradELBO(n_samples::Int; entropy::AbstractEntropyEstimator=ClosedFormEntropy())
     return RepGradELBO(entropy, n_samples)
 end
@@ -129,6 +151,7 @@ function estimate_gradient!(
     restructure,
     state,
 )
+    prep = state
     q_stop = restructure(params)
     aux = (
         rng=rng,
@@ -138,8 +161,10 @@ function estimate_gradient!(
         restructure=restructure,
         q_stop=q_stop,
     )
-    value_and_gradient!(adtype, estimate_repgradelbo_ad_forward, params, aux, out)
+    AdvancedVI._value_and_gradient!(
+        estimate_repgradelbo_ad_forward, out, prep, adtype, params, aux
+    )
     nelbo = DiffResults.value(out)
     stat = (elbo=-nelbo,)
-    return out, nothing, stat
+    return out, state, stat
 end

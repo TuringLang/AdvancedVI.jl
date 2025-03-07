@@ -1,6 +1,11 @@
 
 AD_repgradelbo_interface = if TEST_GROUP == "Enzyme"
-    [AutoEnzyme()]
+    [
+        AutoEnzyme(;
+            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+            function_annotation=Enzyme.Const,
+        ),
+    ]
 else
     [
         AutoForwardDiff(),
@@ -71,8 +76,8 @@ end
         aux = (
             rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=adtype
         )
-        AdvancedVI.value_and_gradient!(
-            adtype, AdvancedVI.estimate_repgradelbo_ad_forward, params, aux, out
+        AdvancedVI._value_and_gradient!(
+            AdvancedVI.estimate_repgradelbo_ad_forward, out, adtype, params, aux
         )
         grad = DiffResults.gradient(out)
         @test norm(grad) ≈ 0 atol = 1e-5
