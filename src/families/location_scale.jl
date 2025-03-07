@@ -1,4 +1,3 @@
-
 """
     MvLocationScale(location, scale, dist)
 
@@ -59,7 +58,8 @@ end
 
 function Distributions.logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
     (; location, scale, dist) = q
-    return sum(Base.Fix1(logpdf, dist), scale \ (z - location)) - logdet(scale)
+    z_std = scale \ (z - location)
+    return sum(Base.Fix1(logpdf, dist), z_std) - logdet(scale)
 end
 
 function Distributions.rand(q::MvLocationScale)

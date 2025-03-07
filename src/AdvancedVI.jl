@@ -1,4 +1,3 @@
-
 module AdvancedVI
 
 using Accessors

@@ -1,4 +1,3 @@
-
 using ADTypes
 using AdvancedVI
 using BenchmarkTools
@@ -51,8 +50,8 @@ begin
                 ("Zygote", AutoZygote()),
                 ("ForwardDiff", AutoForwardDiff()),
                 ("ReverseDiff", AutoReverseDiff()),
-                #("Mooncake", AutoMooncake(; config=Mooncake.Config())),
-                #("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),
+                ("Mooncake", AutoMooncake(; config=Mooncake.Config())),
+                # ("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),
             ],
             (familyname, family) in [
                 ("meanfield", MeanFieldGaussian(zeros(T, d), Diagonal(ones(T, d)))),
