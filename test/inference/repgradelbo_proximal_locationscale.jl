@@ -36,7 +36,7 @@ end
 
         T = 1000
         η = 1e-3
-        opt = DoWG(1.)
+        opt = DoWG(1.0)
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),
