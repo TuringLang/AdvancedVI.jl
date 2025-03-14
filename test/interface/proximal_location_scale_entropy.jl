@@ -51,8 +51,9 @@
             q′ = re(params′)
             scale′ = isnothing(bijector) ? q′.scale : q′.dist.scale
 
-            grad_left  = Zygote.gradient(L_ -> logabsdet(L_) |> first, scale′) |> only
-            grad_right = Zygote.gradient(L_ -> sum(abs2, L_ - L)/(2*stepsize), scale′) |> only
+            grad_left = only(Zygote.gradient(L_ -> first(logabsdet(L_)), scale′))
+            grad_right =
+                only(Zygote.gradient(L_ -> sum(abs2, L_ - L) / (2 * stepsize), scale′))
 
             @test grad_left ≈ grad_right
         end
