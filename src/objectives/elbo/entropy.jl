@@ -56,10 +56,7 @@ The "sticking the landing" entropy estimator[^RWD2017].
 struct StickingTheLandingEntropy <: AbstractEntropyEstimator end
 
 function estimate_entropy(
-    ::StickingTheLandingEntropy,
-    mc_samples::AbstractMatrix,
-    q,
-    q_stop,
+    ::StickingTheLandingEntropy, mc_samples::AbstractMatrix, q, q_stop
 )
     return mean(eachcol(mc_samples)) do mc_sample
         -logpdf(q_stop, mc_sample)
