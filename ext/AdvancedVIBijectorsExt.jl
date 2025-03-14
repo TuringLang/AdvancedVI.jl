@@ -43,7 +43,7 @@ function AdvancedVI.apply(
 end
 
 function AdvancedVI.apply(
-    ::ProximalLocationScaleEntropy,
+    ::AdvancedVI.ProximalLocationScaleEntropy,
     ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScale}},
     leaf::Optimisers.Leaf{<:Union{<:DoG,<:DoWG,<:Descent},S},
     params,

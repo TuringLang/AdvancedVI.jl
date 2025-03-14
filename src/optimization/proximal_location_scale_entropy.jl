@@ -54,7 +54,7 @@ function apply(
     diag_idx = diagind(q.scale)
     scale_diag = q.scale[diag_idx]
     @. q.scale[diag_idx] =
-        scale_diag + 1 / 2 * (sqrt(scale_diag^2 + 4 * stepsize) - scale_diag)
+        scale_diag + (sqrt(scale_diag^2 + 4 * stepsize) - scale_diag) / 2
 
     params, _ = Optimisers.destructure(q)
 
