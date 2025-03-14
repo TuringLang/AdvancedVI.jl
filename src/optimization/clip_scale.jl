@@ -32,13 +32,7 @@ function apply(
     return params
 end
 
-function apply(
-    op::ClipScale,
-    ::Type{<:MvLocationScaleLowRank},
-    state,
-    params,
-    restructure,
-)
+function apply(op::ClipScale, ::Type{<:MvLocationScaleLowRank}, state, params, restructure)
     q = restructure(params)
     ϵ = convert(eltype(params), op.epsilon)
 
