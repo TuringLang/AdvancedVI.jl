@@ -38,12 +38,7 @@ Monte Carlo estimation of the entropy.
 """
 struct MonteCarloEntropy <: AbstractEntropyEstimator end
 
-function estimate_entropy(
-    ::MonteCarloEntropy,
-    mc_samples::AbstractMatrix,
-    q,
-    q_stop,
-)
+function estimate_entropy(::MonteCarloEntropy, mc_samples::AbstractMatrix, q, q_stop)
     return mean(eachcol(mc_samples)) do mc_sample
         -logpdf(q, mc_sample)
     end
