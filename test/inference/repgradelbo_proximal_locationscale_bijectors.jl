@@ -35,7 +35,7 @@ end
 
         T = 1000
         η = 1e-3
-        opt = DoWG(1.)
+        opt = DoWG(1.0)
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)
