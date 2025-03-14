@@ -3,6 +3,7 @@
     ClosedFormEntropyZeroGradient()
 
 Use closed-form expression of entropy but detach it from the AD graph.
+This is expected to be used only with `ProximalLocationScaleEntropy`.
 
 # Requirements
 - The variational approximation implements `entropy`.
@@ -65,6 +66,9 @@ end
 
 """
     StickingTheLandingEntropyZeroGradient()
+
+The "sticking the landing" entropy estimator[^RWD2017] but modified to have a gradient of mean zero.
+This is expected to be used only with `ProximalLocationScaleEntropy`.
 
 # Requirements
 - The variational approximation `q` implements `logpdf`.
