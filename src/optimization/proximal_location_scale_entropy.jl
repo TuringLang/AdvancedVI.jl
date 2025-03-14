@@ -53,8 +53,7 @@ function apply(
     stepsize = stepsize_from_optimizer_state(leaf.rule, leaf.state)
     diag_idx = diagind(q.scale)
     scale_diag = q.scale[diag_idx]
-    @. q.scale[diag_idx] =
-        scale_diag + (sqrt(scale_diag^2 + 4 * stepsize) - scale_diag) / 2
+    @. q.scale[diag_idx] = scale_diag + (sqrt(scale_diag^2 + 4 * stepsize) - scale_diag) / 2
 
     params, _ = Optimisers.destructure(q)
 
