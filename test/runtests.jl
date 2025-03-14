@@ -44,12 +44,13 @@ include("models/normal.jl")
 include("models/normallognormal.jl")
 
 if TEST_GROUP == "All" || TEST_GROUP == "Interface"
-    # Interface tests that do not involve testing on Enzyme
+    #Interface tests that do not involve testing on Enzyme
     include("interface/optimize.jl")
     include("interface/rules.jl")
     include("interface/averaging.jl")
     include("interface/scoregradelbo.jl")
     include("interface/clip_scale.jl")
+    include("interface/proximal_location_scale_entropy.jl")
 end
 
 if TEST_GROUP == "All" || TEST_GROUP == "Interface" || TEST_GROUP == "Enzyme"
@@ -69,6 +70,8 @@ if TEST_GROUP == "All" || TEST_GROUP == "Inference" || TEST_GROUP == "Enzyme"
     include("inference/repgradelbo_distributionsad.jl")
     include("inference/repgradelbo_locationscale.jl")
     include("inference/repgradelbo_locationscale_bijectors.jl")
+    include("inference/repgradelbo_proximal_locationscale.jl")
+    include("inference/repgradelbo_proximal_locationscale_bijectors.jl")
     include("inference/scoregradelbo_distributionsad.jl")
     include("inference/scoregradelbo_locationscale.jl")
     include("inference/scoregradelbo_locationscale_bijectors.jl")

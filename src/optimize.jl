@@ -92,7 +92,7 @@ function optimize(
 
         grad = DiffResults.gradient(grad_buf)
         opt_st, params = Optimisers.update!(opt_st, params, grad)
-        params = apply(operator, typeof(q_init), params, restructure)
+        params = apply(operator, typeof(q_init), opt_st, params, restructure)
         avg_st = apply(averager, avg_st, params)
 
         if !isnothing(callback)

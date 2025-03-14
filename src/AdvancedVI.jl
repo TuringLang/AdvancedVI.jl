@@ -177,13 +177,14 @@ function estimate_gradient! end
 abstract type AbstractEntropyEstimator end
 
 """
-    estimate_entropy(entropy_estimator, mc_samples, q)
+    estimate_entropy(entropy_estimator, mc_samples, q, q_stop)
 
 Estimate the entropy of `q`.
 
 # Arguments
 - `entropy_estimator`: Entropy estimation strategy.
 - `q`: Variational approximation.
+- `q_stop`: Variational approximation with detached from the automatic differentiation graph.
 - `mc_samples`: Monte Carlo samples used to estimate the entropy. (Only used for Monte Carlo strategies.)
 
 # Returns
@@ -192,7 +193,12 @@ Estimate the entropy of `q`.
 function estimate_entropy end
 
 export RepGradELBO,
-    ScoreGradELBO, ClosedFormEntropy, StickingTheLandingEntropy, MonteCarloEntropy
+    ScoreGradELBO,
+    ClosedFormEntropy,
+    StickingTheLandingEntropy,
+    MonteCarloEntropy,
+    ClosedFormEntropyZeroGradient,
+    StickingTheLandingEntropyZeroGradient
 
 include("objectives/elbo/entropy.jl")
 include("objectives/elbo/repgradelbo.jl")
@@ -259,7 +265,7 @@ export NoAveraging, PolynomialAveraging
 abstract type AbstractOperator end
 
 """
-    apply(op::AbstractOperator, family, params, restructure)
+    apply(op::AbstractOperator, family, rule, state, params, restructure)
 
 Apply operator `op` on the variational parameters `params`. For instance, `op` could be a projection or proximal operator.
 
@@ -272,7 +278,7 @@ Apply operator `op` on the variational parameters `params`. For instance, `op` c
 # Returns
 - `oped_params`: Parameters resulting from applying the operator.
 """
-function apply(::AbstractOperator, ::Type, ::Any, ::Any) end
+function apply(::AbstractOperator, ::Type, ::Optimisers.AbstractRule, ::Any, ::Any, ::Any) end
 
 """
     IdentityOperator()
@@ -281,11 +287,12 @@ Identity operator.
 """
 struct IdentityOperator <: AbstractOperator end
 
-apply(::IdentityOperator, ::Type, params, restructure) = params
+apply(::IdentityOperator, ::Type, opt_st, params, restructure) = params
 
 include("optimization/clip_scale.jl")
+include("optimization/proximal_location_scale_entropy.jl")
 
-export IdentityOperator, ClipScale
+export IdentityOperator, ClipScale, ProximalLocationScaleEntropy
 
 # Main optimization routine
 function optimize end
