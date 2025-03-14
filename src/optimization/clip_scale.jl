@@ -13,13 +13,7 @@ function apply(::ClipScale, family::Type, state, params, restructure)
     return error("`ClipScale` is not defined for the variational family of type $(family).")
 end
 
-function apply(
-    op::ClipScale,
-    ::Type{<:MvLocationScale},
-    state,
-    params,
-    restructure,
-)
+function apply(op::ClipScale, ::Type{<:MvLocationScale}, state, params, restructure)
     q = restructure(params)
     ϵ = convert(eltype(params), op.epsilon)
 
