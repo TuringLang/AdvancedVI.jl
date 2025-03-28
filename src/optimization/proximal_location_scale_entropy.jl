@@ -12,7 +12,7 @@ This assumes the variational family is `<:VILocationScale` and the optimizer is 
 - `DoWG`
 - `Descent`
 
-For ELBO maximization, since this proximal operator handles the entropy, the gradient estimator for the ELBO must ingore the entropy term.
+For ELBO maximization, since this proximal operator handles the entropy, the gradient estimator for the ELBO must ignore the entropy term.
 That is, the `entropy` keyword argument of `RepGradELBO` muse be one of the following:
 - `ClosedFormEntropyZeroGradient`
 - `StickingTheLandingEntropyZeroGradient`
