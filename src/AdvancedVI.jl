@@ -265,13 +265,14 @@ export NoAveraging, PolynomialAveraging
 abstract type AbstractOperator end
 
 """
-    apply(op::AbstractOperator, family, rule, state, params, restructure)
+    apply(op::AbstractOperator, family, rule, opt_state, params, restructure)
 
 Apply operator `op` on the variational parameters `params`. For instance, `op` could be a projection or proximal operator.
 
 # Arguments
 - `op::AbstractOperator`: Operator operating on the parameters `params`.
 - `family::Type`: Type of the variational approximation `restructure(params)`.
+- `opt_state`: State of the optimizer.
 - `params`: Variational parameters.
 - `restructure`: Function that reconstructs the variational approximation from `params`.
 
