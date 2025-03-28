@@ -44,7 +44,7 @@ include("models/normal.jl")
 include("models/normallognormal.jl")
 
 if TEST_GROUP == "All" || TEST_GROUP == "Interface"
-    #Interface tests that do not involve testing on Enzyme
+    # Interface tests that do not involve testing on Enzyme
     include("interface/optimize.jl")
     include("interface/rules.jl")
     include("interface/averaging.jl")
