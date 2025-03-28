@@ -33,11 +33,20 @@ For this, an operator acting on the parameters can be supplied via the  `operato
 
 ### [`ClipScale`](@id clipscale)
 
-For the location scale, it is often the case that optimization is stable only when the smallest eigenvalue of the scale matrix is strictly positive[^D2020].
+For the location-scale family, it is often the case that optimization is stable only when the smallest eigenvalue of the scale matrix is strictly positive[^D2020].
 To ensure this, we provide the following projection operator:
 
 ```@docs
 ClipScale
+```
+
+### [`ProximalLocationScaleEntropy`](@id proximalocationscaleentropy)
+
+ELBO maximization with the location-scale family tends to be unstable when the scale has small eigenvalues or the stepsize is large.
+To remedy this, a proximal operator of the entropy[^D2020] can be used.
+
+```@docs
+ProximalLocationScaleEntropy
 ```
 
 [^D2020]: Domke, J. (2020). Provable smoothness guarantees for black-box variational inference. In *International Conference on Machine Learning*.

@@ -23,7 +23,10 @@
             end
 
             params, re = Optimisers.destructure(q)
-            params′ = AdvancedVI.apply(ClipScale(ϵ), typeof(q), params, re)
+            opt_st = AdvancedVI.maybe_init_optimizer(
+                NamedTuple(), Optimisers.Descent(1e-2), params
+            )
+            params′ = AdvancedVI.apply(ClipScale(ϵ), typeof(q), opt_st, params, re)
             q′ = re(params′)
 
             if isnothing(bijector)
@@ -54,7 +57,10 @@
             end
 
             params, re = Optimisers.destructure(q)
-            params′ = AdvancedVI.apply(ClipScale(ϵ), typeof(q), params, re)
+            opt_st = AdvancedVI.maybe_init_optimizer(
+                NamedTuple(), Optimisers.Descent(1e-2), params
+            )
+            params′ = AdvancedVI.apply(ClipScale(ϵ), typeof(q), opt_st, params, re)
             q′ = re(params′)
 
             if isnothing(bijector)

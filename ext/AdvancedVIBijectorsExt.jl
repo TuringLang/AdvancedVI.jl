@@ -9,6 +9,7 @@ using Random
 function AdvancedVI.apply(
     op::ClipScale,
     ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScale}},
+    state,
     params,
     restructure,
 )
@@ -27,6 +28,7 @@ end
 function AdvancedVI.apply(
     op::ClipScale,
     ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScaleLowRank}},
+    state,
     params,
     restructure,
 )
@@ -34,6 +36,26 @@ function AdvancedVI.apply(
     ϵ = convert(eltype(params), op.epsilon)
 
     @. q.dist.scale_diag = max(q.dist.scale_diag, ϵ)
+
+    params, _ = Optimisers.destructure(q)
+
+    return params
+end
+
+function AdvancedVI.apply(
+    ::AdvancedVI.ProximalLocationScaleEntropy,
+    ::Type{<:Bijectors.TransformedDistribution{<:AdvancedVI.MvLocationScale}},
+    leaf::Optimisers.Leaf{<:Union{<:DoG,<:DoWG,<:Descent},S},
+    params,
+    restructure,
+) where {S}
+    q = restructure(params)
+
+    stepsize = AdvancedVI.stepsize_from_optimizer_state(leaf.rule, leaf.state)
+    diag_idx = diagind(q.dist.scale)
+    scale_diag = q.dist.scale[diag_idx]
+    @. q.dist.scale[diag_idx] =
+        scale_diag + 1 / 2 * (sqrt(scale_diag^2 + 4 * stepsize) - scale_diag)
 
     params, _ = Optimisers.destructure(q)
 
