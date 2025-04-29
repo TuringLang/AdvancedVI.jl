@@ -1,5 +1,5 @@
 
-AD_repgradelbo_distributionsad = if TEST_GROUP == "Enzyme"
+AD_repgradelbo_locationscale = if TEST_GROUP == "Enzyme"
     Dict(
         :Enzyme => AutoEnzyme(;
             mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
@@ -9,22 +9,24 @@ AD_repgradelbo_distributionsad = if TEST_GROUP == "Enzyme"
 else
     Dict(
         :ForwarDiff => AutoForwardDiff(),
-        #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
+        :ReverseDiff => AutoReverseDiff(),
         :Zygote => AutoZygote(),
         :Mooncake => AutoMooncake(; config=Mooncake.Config()),
     )
 end
 
-@testset "inference RepGradELBO DistributionsAD" begin
+@testset "inference RepGradELBO Proximal VILocationScale" begin
     @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
                                                                      [Float64, Float32],
-        (modelname, modelconstr) in Dict(:Normal => normal_meanfield),
+        (modelname, modelconstr) in
+        Dict(:Normal => normal_meanfield, :Normal => normal_fullrank),
         (objname, objective) in Dict(
-            :RepGradELBOClosedFormEntropy => RepGradELBO(10),
+            :RepGradELBOClosedFormEntropy =>
+                RepGradELBO(10; entropy=ClosedFormEntropyZeroGradient()),
             :RepGradELBOStickingTheLanding =>
-                RepGradELBO(10; entropy=StickingTheLandingEntropy()),
+                RepGradELBO(10; entropy=StickingTheLandingEntropyZeroGradient()),
         ),
-        (adbackname, adtype) in AD_repgradelbo_distributionsad
+        (adbackname, adtype) in AD_repgradelbo_locationscale
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
@@ -34,19 +36,22 @@ end
 
         T = 1000
         η = 1e-3
-        opt = Optimisers.Descent(η)
+        opt = DoWG(1.0)
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),
         # where ρ = 1 - ημ, μ is the strong convexity constant.
         contraction_rate = 1 - η * strong_convexity
 
-        μ0 = zeros(realtype, n_dims)
-        L0 = Diagonal(ones(realtype, n_dims))
-        q0 = TuringDiagMvNormal(μ0, diag(L0))
+        q0 = if is_meanfield
+            MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))
+        else
+            L0 = LowerTriangular(Matrix{realtype}(I, n_dims, n_dims))
+            FullRankGaussian(zeros(realtype, n_dims), L0)
+        end
 
         @testset "convergence" begin
-            Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
+            Δλ0 = sum(abs2, q0.location - μ_true) + sum(abs2, q0.scale - L_true)
             q_avg, _, stats, _ = optimize(
                 rng,
                 model,
@@ -54,12 +59,14 @@ end
                 q0,
                 T;
                 optimizer=opt,
+                averager=PolynomialAveraging(),
+                operator=ProximalLocationScaleEntropy(),
                 show_progress=PROGRESS,
                 adtype=adtype,
             )
 
-            μ = mean(q_avg)
-            L = sqrt(cov(q_avg))
+            μ = q_avg.location
+            L = q_avg.scale
             Δλ = sum(abs2, μ - μ_true) + sum(abs2, L - L_true)
 
             @test Δλ ≤ contraction_rate^(T / 2) * Δλ0
@@ -76,11 +83,13 @@ end
                 q0,
                 T;
                 optimizer=opt,
+                averager=PolynomialAveraging(),
+                operator=ProximalLocationScaleEntropy(),
                 show_progress=PROGRESS,
                 adtype=adtype,
             )
-            μ = mean(q_avg)
-            L = sqrt(cov(q_avg))
+            μ = q_avg.location
+            L = q_avg.scale
 
             rng_repl = StableRNG(seed)
             q_avg, _, stats, _ = optimize(
@@ -90,11 +99,13 @@ end
                 q0,
                 T;
                 optimizer=opt,
+                averager=PolynomialAveraging(),
+                operator=ProximalLocationScaleEntropy(),
                 show_progress=PROGRESS,
                 adtype=adtype,
             )
-            μ_repl = mean(q_avg)
-            L_repl = sqrt(cov(q_avg))
+            μ_repl = q_avg.location
+            L_repl = q_avg.scale
             @test μ == μ_repl
             @test L == L_repl
         end
