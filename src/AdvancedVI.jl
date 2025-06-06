@@ -200,9 +200,9 @@ export RepGradELBO,
     ClosedFormEntropyZeroGradient,
     StickingTheLandingEntropyZeroGradient
 
-include("objectives/elbo/entropy.jl")
-include("objectives/elbo/repgradelbo.jl")
-include("objectives/elbo/scoregradelbo.jl")
+include("algorithms/paramspacesgd/entropy.jl")
+include("algorithms/paramspacesgd/repgradelbo.jl")
+include("algorithms/paramspacesgd/scoregradelbo.jl")
 
 # Variational Families
 export MvLocationScale, MeanFieldGaussian, FullRankGaussian
