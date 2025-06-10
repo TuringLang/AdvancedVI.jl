@@ -94,9 +94,6 @@ This is an indirection for handling the type stability of `restructure`, as some
 """
 restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restructure(params)
 
-include("algorithms/paramspacesgd/interface.jl")
-include("algorithms/paramspacesgd/elbo/elbo.jl")
-
 # Variational Families
 export MvLocationScale, MeanFieldGaussian, FullRankGaussian
 
@@ -187,6 +184,30 @@ include("optimization/clip_scale.jl")
 include("optimization/proximal_location_scale_entropy.jl")
 
 export IdentityOperator, ClipScale, ProximalLocationScaleEntropy
+
+# Algorithms
+
+abstract type AbstractAlgorithm end
+
+"""
+    init(rng, alg, q_init)
+
+Initialize `alg` given the initial variational approximation `q_init`.
+
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `alg::AbstractAlgorithm`: Variational objective.
+` `q_init`: Initial variational approximation.
+"""
+init(::Random.AbstractRNG, ::AbstractAlgorithm, ::Any) = nothing
+
+include("algorithms/paramspacesgd/interface.jl")
+include("algorithms/paramspacesgd/paramspacesgd.jl")
+
+export ParamSpaceSGD
+
+# Parameter Space SGD Implementations
+include("algorithms/paramspacesgd/elbo/elbo.jl")
 
 # Main optimization routine
 function optimize end
