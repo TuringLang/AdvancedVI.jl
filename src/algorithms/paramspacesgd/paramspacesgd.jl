@@ -38,12 +38,13 @@ The arguments are as follows:
 - `gradient`: The estimated (possibly stochastic) gradient.
 
 """
-struct ParamSpaceSGD{Prob,
-                     Obj<:AbstractVariationalObjective,
-                     AD<:ADTypes.AbstractADType,
-                     Opt<:Optimisers.AbstractRule,
-                     Avg<:AbstractAverager,
-                     Op <:AbstractOperator,
+struct ParamSpaceSGD{
+    Prob,
+    Obj<:AbstractVariationalObjective,
+    AD<:ADTypes.AbstractADType,
+    Opt<:Optimisers.AbstractRule,
+    Avg<:AbstractAverager,
+    Op<:AbstractOperator,
 } <: AbstractAlgorithm
     problem::Prob
     objective::Obj
@@ -53,7 +54,7 @@ struct ParamSpaceSGD{Prob,
     operator::Op
 end
 
-struct ParamSpaceSGDState{Q, GradBuf, OptSt, ObjSt, AvgSt}
+struct ParamSpaceSGDState{Q,GradBuf,OptSt,ObjSt,AvgSt}
     q::Q
     iteration::Int
     grad_buf::GradBuf
@@ -65,9 +66,9 @@ end
 function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init)
     (; problem, adtype, optimizer, averager, objective) = alg
     params, re = Optimisers.destructure(q_init)
-    opt_st   = Optimisers.setup(optimizer, params)
-    obj_st   = init(rng, objective, adtype, problem, params, re)
-    avg_st   = init(averager, params)
+    opt_st = Optimisers.setup(optimizer, params)
+    obj_st = init(rng, objective, adtype, problem, params, re)
+    avg_st = init(averager, params)
     grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
     return ParamSpaceSGDState(q_init, 0, grad_buf, opt_st, obj_st, avg_st)
 end

@@ -28,7 +28,7 @@ end
                 adtype,
                 Descent(1e-5),
                 PolynomialAveraging(),
-                IdentityOperator()
+                IdentityOperator(),
             )
             _, info, _ = optimize(rng, alg, 10, q0; show_progress=false)
             @assert isfinite(last(info).elbo)

@@ -8,7 +8,7 @@
 
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    q0  = MeanFieldGaussian(zeros(Float64, n_dims), Diagonal(ones(Float64, n_dims)))
+    q0 = MeanFieldGaussian(zeros(Float64, n_dims), Diagonal(ones(Float64, n_dims)))
     obj = RepGradELBO(10)
 
     adtype = AutoForwardDiff()

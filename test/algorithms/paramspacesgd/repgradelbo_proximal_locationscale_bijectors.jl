@@ -36,7 +36,7 @@ end
         T = 1000
         η = 1e-3
         opt = DoWG(1.0)
-        op  = ProximalLocationScaleEntropy()
+        op = ProximalLocationScaleEntropy()
         avg = PolynomialAveraging()
         alg = ParamSpaceSGD(model, objective, adtype, opt, avg, op)
 

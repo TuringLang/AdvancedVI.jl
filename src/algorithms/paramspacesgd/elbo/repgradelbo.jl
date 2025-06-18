@@ -158,6 +158,6 @@ function estimate_gradient!(
         estimate_repgradelbo_ad_forward, out, prep, adtype, params, aux
     )
     nelbo = DiffResults.value(out)
-    stat = (elbo=-nelbo,)
+    stat = (elbo=(-nelbo),)
     return out, state, stat
 end

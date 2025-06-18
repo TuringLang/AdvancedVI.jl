@@ -30,7 +30,7 @@ end
         T = 1000
         η = 1e-4
         opt = Optimisers.Descent(η)
-        op  = IdentityOperator()
+        op = IdentityOperator()
         avg = PolynomialAveraging()
         alg = ParamSpaceSGD(model, objective, adtype, opt, avg, op)
 

@@ -40,7 +40,7 @@ end
         η = 1e-3
         opt = Optimisers.Descent(η)
         avg = PolynomialAveraging()
-        op  = IdentityOperator()
+        op = IdentityOperator()
         alg = ParamSpaceSGD(model, objective, adtype, opt, avg, op)
 
         # For small enough η, the error of SGD, Δλ, is bounded as
@@ -64,7 +64,7 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng, alg, T, q0;show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, q0; show_progress=PROGRESS)
             μ = mean(q_avg)
             L = sqrt(cov(q_avg))
 

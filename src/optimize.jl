@@ -51,7 +51,7 @@ function optimize(
     progress::ProgressMeter.AbstractProgress=ProgressMeter.Progress(
         max_iter; desc="Optimizing", barlen=31, showspeed=true, enabled=show_progress
     ),
-    kwargs...
+    kwargs...,
 )
     info_total = NamedTuple[]
     state = if isnothing(state)
@@ -63,7 +63,9 @@ function optimize(
     for t in 1:max_iter
         info = (iteration=t,)
 
-        state, terminate, info′ = step(rng, algorithm, state, callback, objargs...; kwargs...)
+        state, terminate, info′ = step(
+            rng, algorithm, state, callback, objargs...; kwargs...
+        )
         info = merge(info′, info)
 
         if terminate
@@ -78,11 +80,7 @@ function optimize(
 end
 
 function optimize(
-    algorithm::AbstractAlgorithm,
-    max_iter::Int,
-    q_init,
-    objargs...;
-    kwargs...,
+    algorithm::AbstractAlgorithm, max_iter::Int, q_init, objargs...; kwargs...
 )
     return optimize(
         Random.default_rng(), algorithm, max_iter, q_init, objargs...; kwargs...

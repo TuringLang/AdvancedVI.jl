@@ -25,14 +25,16 @@ This function needs to be implemented only if `obj` is stateful.
 - `params`: Initial variational parameters.
 - `restructure`: Function that reconstructs the variational approximation from `λ`.
 """
-init(
+function init(
     ::Random.AbstractRNG,
     ::AbstractVariationalObjective,
     ::ADTypes.AbstractADType,
     ::Any,
     ::Any,
     ::Any,
-) = nothing
+)
+    nothing
+end
 
 """
     estimate_objective([rng,] obj, q, prob; kwargs...)

@@ -35,7 +35,7 @@ end
         T = 1000
         η = 1e-3
         opt = Optimisers.Descent(η)
-        op  = ClipScale()
+        op = ClipScale()
         avg = PolynomialAveraging()
         alg = ParamSpaceSGD(model, objective, adtype, opt, avg, op)
 
