@@ -27,7 +27,7 @@ This requires the variational approximation to be marked as a functor through `F
 # Callback
 The callback function `callback` has a signature of
 
-    callback(; rng, state, params, averaged_params, restructure, gradient)
+    callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
 
 The arguments are as follows:
 - `stat`: Statistics gathered during the current iteration. The content will vary depending on `objective`.
@@ -102,8 +102,9 @@ function step(
     if !isnothing(callback)
         averaged_params = value(averager, avg_st)
         info′ = callback(;
-            stat,
-            re,
+            rng,
+            iteration,
+            restructure=re,
             params=params,
             averaged_params=averaged_params,
             gradient=grad,
