@@ -23,9 +23,7 @@
             end
 
             params, re = Optimisers.destructure(q)
-            opt_st = AdvancedVI.maybe_init_optimizer(
-                NamedTuple(), Optimisers.Descent(1e-2), params
-            )
+            opt_st = Optimisers.setup(Descent(1e-2), params)
             params′ = AdvancedVI.apply(ClipScale(ϵ), typeof(q), opt_st, params, re)
             q′ = re(params′)
 
@@ -57,9 +55,7 @@
             end
 
             params, re = Optimisers.destructure(q)
-            opt_st = AdvancedVI.maybe_init_optimizer(
-                NamedTuple(), Optimisers.Descent(1e-2), params
-            )
+            opt_st = Optimisers.setup(Descent(1e-2), params)
             params′ = AdvancedVI.apply(ClipScale(ϵ), typeof(q), opt_st, params, re)
             q′ = re(params′)
 

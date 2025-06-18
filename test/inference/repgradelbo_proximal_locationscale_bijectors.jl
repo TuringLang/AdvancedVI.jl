@@ -36,6 +36,9 @@ end
         T = 1000
         η = 1e-3
         opt = DoWG(1.0)
+        op  = ProximalLocationScaleEntropy()
+        avg = PolynomialAveraging()
+        alg = ParamSpaceSGD(model, objective, adtype, opt, avg, op)
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)
@@ -57,18 +60,7 @@ end
 
         @testset "convergence" begin
             Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
-            q_avg, _, stats, _ = optimize(
-                rng,
-                model,
-                objective,
-                q0_z,
-                T;
-                optimizer=opt,
-                averager=PolynomialAveraging(),
-                operator=ProximalLocationScaleEntropy(),
-                show_progress=PROGRESS,
-                adtype=adtype,
-            )
+            q_avg, stats, _ = optimize(rng, alg, T, q0_z; show_progress=PROGRESS)
 
             μ = q_avg.dist.location
             L = q_avg.dist.scale
@@ -81,34 +73,12 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, _, stats, _ = optimize(
-                rng,
-                model,
-                objective,
-                q0_z,
-                T;
-                optimizer=opt,
-                averager=PolynomialAveraging(),
-                operator=ProximalLocationScaleEntropy(),
-                show_progress=PROGRESS,
-                adtype=adtype,
-            )
+            q_avg, stats, _ = optimize(rng, alg, T, q0_z; show_progress=PROGRESS)
             μ = q_avg.dist.location
             L = q_avg.dist.scale
 
             rng_repl = StableRNG(seed)
-            q_avg, _, stats, _ = optimize(
-                rng_repl,
-                model,
-                objective,
-                q0_z,
-                T;
-                optimizer=opt,
-                averager=PolynomialAveraging(),
-                operator=ProximalLocationScaleEntropy(),
-                show_progress=PROGRESS,
-                adtype=adtype,
-            )
+            q_avg, stats, _ = optimize(rng_repl, alg, T, q0_z; show_progress=PROGRESS)
             μ_repl = q_avg.dist.location
             L_repl = q_avg.dist.scale
             @test μ == μ_repl

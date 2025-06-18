@@ -1,6 +1,4 @@
 
-using Test
-
 @testset "interface optimize" begin
     seed = (0x38bef07cf9cc549d)
     rng = StableRNG(seed)
@@ -10,35 +8,30 @@ using Test
 
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    # Global Test Configurations
-    q0 = TuringDiagMvNormal(zeros(Float64, n_dims), ones(Float64, n_dims))
+    q0  = MeanFieldGaussian(zeros(Float64, n_dims), Diagonal(ones(Float64, n_dims)))
     obj = RepGradELBO(10)
 
     adtype = AutoForwardDiff()
     optimizer = Optimisers.Adam(1e-2)
     averager = PolynomialAveraging()
 
+    alg = ParamSpaceSGD(model, obj, adtype, optimizer, averager, IdentityOperator())
+
     @testset "default_rng" begin
-        optimize(model, obj, q0, T; optimizer, averager, show_progress=false, adtype)
+        optimize(alg, T, q0; show_progress=false)
     end
 
     @testset "callback" begin
-        rng = StableRNG(seed)
         test_values = rand(rng, T)
 
-        callback(; stat, args...) = (test_value=test_values[stat.iteration],)
+        callback(; iteration, args...) = (test_value=test_values[iteration],)
 
-        rng = StableRNG(seed)
-        _, _, stats, _ = optimize(
-            rng, model, obj, q0, T; show_progress=false, adtype, callback
-        )
-        @test [stat.test_value for stat in stats] == test_values
+        _, info, _ = optimize(alg, T, q0; show_progress=false, callback)
+        @test [i.test_value for i in info] == test_values
     end
 
     rng = StableRNG(seed)
-    q_avg_ref, q_ref, _, _ = optimize(
-        rng, model, obj, q0, T; optimizer, averager, show_progress=false, adtype
-    )
+    q_avg_ref, _, _ = optimize(rng, alg, T, q0; show_progress=false)
 
     @testset "warm start" begin
         rng = StableRNG(seed)
@@ -46,24 +39,9 @@ using Test
         T_first = div(T, 2)
         T_last = T - T_first
 
-        _, q_first, _, state = optimize(
-            rng, model, obj, q0, T_first; optimizer, averager, show_progress=false, adtype
-        )
+        _, _, state = optimize(rng, alg, T_first, q0; show_progress=false)
+        q_avg, _, _ = optimize(rng, alg, T_last, q0; show_progress=false, state)
 
-        q_avg, q, _, _ = optimize(
-            rng,
-            model,
-            obj,
-            q_first,
-            T_last;
-            optimizer,
-            averager,
-            show_progress=false,
-            state_init=state,
-            adtype,
-        )
-
-        @test q == q_ref
         @test q_avg == q_avg_ref
     end
 end
