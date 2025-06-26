@@ -15,8 +15,8 @@ The trainable parameters in the variational approximation are expected to be ext
 This requires the variational approximation to be marked as a functor through `Functors.@functor`.
 
 # Arguments
-- `adtype`: Automatic differentiation backend. 
 - `objective`: Variational Objective.
+- `adtype`: Automatic differentiation backend. 
 - `optimizer`: Optimizer used for inference.
 - `averager` : Parameter averaging strategy.
 - `operator` : Operator applied to the parameters after each optimization step.
