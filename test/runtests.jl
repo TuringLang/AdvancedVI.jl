@@ -55,7 +55,7 @@ end
 
 if TEST_GROUP == "All" || TEST_GROUP == "General" || TEST_GROUP == "Enzyme"
     # Interface tests that involve testing on Enzyme
-    include("interface/ad.jl")
+    include("general/ad.jl")
 end
 
 if TEST_GROUP == "All" || TEST_GROUP == "Families"
