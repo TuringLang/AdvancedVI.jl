@@ -27,13 +27,12 @@ end
 
     @testset "basic" begin
         @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
-            alg = ParamSpaceSGD(
+            alg = BBVIRepGrad(
                 model,
-                RepGradELBO(n_montecarlo),
-                adtype,
-                Descent(1e-5),
-                PolynomialAveraging(),
-                IdentityOperator(),
+                adtype;
+                n_samples=n_montecarlo,
+                operator=IdentityOperator(),
+                averager=PolynomialAveraging(),
             )
             _, info, _ = optimize(rng, alg, 10, q0; show_progress=false)
             @assert isfinite(last(info).elbo)

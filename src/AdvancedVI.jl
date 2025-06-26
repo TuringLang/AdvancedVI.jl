@@ -217,7 +217,11 @@ Perform a single step of `alg` given the previous `stat`.
 - terminate::Bool: Whether to terminate the algorithm after the step.
 - info::NamedTuple: Information generated during the step. 
 """
-step(::Random.AbstractRNG, ::AbstractAlgorithm, ::Any, callback, objargs...; kwargs...) = nothing
+function step(
+    ::Random.AbstractRNG, ::AbstractAlgorithm, ::Any, callback, objargs...; kwargs...
+)
+    nothing
+end
 
 """
     output(alg, state)
@@ -242,8 +246,8 @@ include("utils.jl")
 include("optimize.jl")
 
 ## Parameter Space SGD
-include("algorithms/paramspacesgd/paramspacesgd.jl")
 include("algorithms/paramspacesgd/abstractobjective.jl")
+include("algorithms/paramspacesgd/paramspacesgd.jl")
 
 export ParamSpaceSGD
 
@@ -281,5 +285,7 @@ export RepGradELBO,
     StickingTheLandingEntropyZeroGradient
 
 include("algorithms/paramspacesgd/constructors.jl")
+
+export BBVIRepGrad, BBVIRepGradProxLocScale
 
 end

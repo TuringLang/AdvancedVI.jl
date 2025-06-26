@@ -38,10 +38,7 @@ end
 
         T = 1000
         η = 1e-3
-        opt = Optimisers.Descent(η)
-        avg = PolynomialAveraging()
-        op = IdentityOperator()
-        alg = ParamSpaceSGD(model, objective, adtype, opt, avg, op)
+        alg = BBVIRepGrad(model, adtype, opt, avg, operator=IdentityOperator())
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),

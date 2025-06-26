@@ -34,10 +34,7 @@ end
 
         T = 1000
         η = 1e-3
-        opt = Optimisers.Descent(η)
-        avg = PolynomialAveraging()
-        op = ClipScale()
-        alg = ParamSpaceSGD(model, objective, adtype, opt, avg, op)
+        alg = BBVIRepGrad(model, adtype)
 
         q0 = if is_meanfield
             MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))

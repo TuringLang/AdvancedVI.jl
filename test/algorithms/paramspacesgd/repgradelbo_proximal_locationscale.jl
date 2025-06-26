@@ -43,10 +43,7 @@ end
 
         T = 1000
         η = 1e-3
-        opt = DoWG(1.0)
-        avg = PolynomialAveraging()
-        op = ProximalLocationScaleEntropy()
-        alg = ParamSpaceSGD(model, objective, adtype, opt, avg, op)
+        alg = BBVIRepGradProxLocScale(model, adtype)
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),
