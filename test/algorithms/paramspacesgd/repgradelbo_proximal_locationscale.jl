@@ -43,7 +43,7 @@ end
 
         T = 1000
         η = 1e-3
-        alg = BBVIRepGradProxLocScale(model, adtype)
+        alg = BBVIRepGradProxLocScale(model, adtype; optimizer=Descent(η))
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),

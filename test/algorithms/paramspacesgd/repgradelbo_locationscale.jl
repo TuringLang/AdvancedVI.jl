@@ -34,7 +34,7 @@ end
 
         T = 1000
         η = 1e-3
-        alg = BBVIRepGrad(model, adtype)
+        alg = BBVIRepGrad(model, adtype; optimizer=Descent(η))
 
         q0 = if is_meanfield
             MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))
