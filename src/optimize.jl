@@ -2,7 +2,6 @@
 """
     optimize(
         [rng::Random.AbstractRNG = Random.default_rng(),]
-        problem
         algorithm::AbstractAlgorithm,
         q_init,
         max_iter::Int,
