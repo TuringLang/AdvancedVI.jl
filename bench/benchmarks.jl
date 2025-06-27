@@ -41,9 +41,9 @@ begin
         d = LogDensityProblems.dimension(prob)
         opt = Optimisers.Adam(T(1e-3))
 
-        for (objname, obj) in [
-                ("RepGradELBO", RepGradELBO(10)),
-                ("RepGradELBO + STL", RepGradELBO(10; entropy=StickingTheLandingEntropy())),
+        for (objname, entropy) in [
+                ("RepGradELBO", ClosedFormEntropy()),
+                ("RepGradELBO + STL", StickingTheLandingEntropy()),
             ],
             (adname, adtype) in [
                 ("Zygote", AutoZygote()),
@@ -63,7 +63,7 @@ begin
             b = Bijectors.bijector(prob)
             binv = inverse(b)
             q = Bijectors.TransformedDistribution(family, binv)
-            alg = BBVIRepGrad(prob, adtype; optimizer=opt, objective=obj)
+            alg = BBVIRepGrad(prob, adtype; optimizer=opt, entropy)
 
             SUITES[probname][objname][familyname][adname] = begin
                 @benchmarkable AdvancedVI.optimize($alg, $max_iter, $q; show_progress=false)
