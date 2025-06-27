@@ -63,7 +63,7 @@ begin
             b = Bijectors.bijector(prob)
             binv = inverse(b)
             q = Bijectors.TransformedDistribution(family, binv)
-            alg = BBVIRepGrad($prob, $adtype; optimizer=opt, objective=obj)
+            alg = BBVIRepGrad(prob, adtype; optimizer=opt, objective=obj)
 
             SUITES[probname][objname][familyname][adname] = begin
                 @benchmarkable AdvancedVI.optimize($alg, $max_iter, $q; show_progress=false)
