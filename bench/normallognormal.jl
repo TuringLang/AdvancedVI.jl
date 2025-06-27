@@ -33,5 +33,5 @@ function normallognormal(; n_dims=10, realtype=Float64)
     σ_x = realtype(0.3)
     μ_y = Fill(realtype(5.0), n_dims)
     σ_y = Fill(realtype(0.3), n_dims)
-    return model = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y .^ 2))
+    return NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y .^ 2))
 end

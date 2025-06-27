@@ -39,8 +39,7 @@ begin
     ]
         max_iter = 10^4
         d = LogDensityProblems.dimension(prob)
-        optimizer = Optimisers.Adam(T(1e-3))
-        operator = ClipScale()
+        opt = Optimisers.Adam(T(1e-3))
 
         for (objname, obj) in [
                 ("RepGradELBO", RepGradELBO(10)),
@@ -64,18 +63,10 @@ begin
             b = Bijectors.bijector(prob)
             binv = inverse(b)
             q = Bijectors.TransformedDistribution(family, binv)
+            alg = BBVIRepGrad($prob, $adtype; optimizer=opt, objective=obj)
 
             SUITES[probname][objname][familyname][adname] = begin
-                @benchmarkable AdvancedVI.optimize(
-                    $prob,
-                    $obj,
-                    $q,
-                    $max_iter;
-                    adtype=$adtype,
-                    optimizer=$optimizer,
-                    operator=$operator,
-                    show_progress=false,
-                )
+                @benchmarkable AdvancedVI.optimize($alg, $max_iter, $q; show_progress=false)
             end
         end
     end
