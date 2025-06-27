@@ -1,3 +1,4 @@
+
 module AdvancedVI
 
 using Accessors
@@ -187,6 +188,11 @@ export IdentityOperator, ClipScale, ProximalLocationScaleEntropy
 
 # Algorithms
 
+"""
+    AbstractAlgorithm
+
+Abstract type for a variational inference algorithm.
+"""
 abstract type AbstractAlgorithm end
 
 """
