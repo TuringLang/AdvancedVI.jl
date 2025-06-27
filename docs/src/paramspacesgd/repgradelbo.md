@@ -1,3 +1,4 @@
+
 # [Reparameterization Gradient Estimator](@id repgradelbo)
 
 ## Overview
@@ -188,14 +189,24 @@ binv = inverse(b)
 
 q0_trans = Bijectors.TransformedDistribution(q0, binv)
 
-cfe = BBVIRepGrad(model, AutoForwardDiff(); entropy=ClosedFormEntropy())
+cfe = BBVIRepGrad(
+    model, 
+    AutoForwardDiff(); 
+    entropy=ClosedFormEntropy(), 
+    optimizer=Adam(1e-2)
+)
 nothing
 ```
 
 The repgradelbo estimator can instead be created as follows:
 
 ```@example repgradelbo
-stl = BBVIRepGrad(model, AutoForwardDiff(); entropy=StickingTheLandingEntropy())
+stl = BBVIRepGrad(
+    model,
+    AutoForwardDiff(); 
+    entropy=StickingTheLandingEntropy(), 
+    optimizer=Adam(1e-2)
+)
 nothing
 ```
 
@@ -300,7 +311,7 @@ nothing
 
 ```@setup repgradelbo
 _, info_qmc, _ = AdvancedVI.optimize(
-    BBVIRepGrad(model, AutoForwardDiff(); n_samples=n_montecarlo),
+    BBVIRepGrad(model, AutoForwardDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2)),
     max_iter,
     q0_trans;
     show_progress = false,
