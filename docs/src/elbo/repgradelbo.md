@@ -188,16 +188,14 @@ binv = inverse(b)
 
 q0_trans = Bijectors.TransformedDistribution(q0, binv)
 
-cfe = AdvancedVI.RepGradELBO(n_montecarlo)
+cfe = BBVIRepGrad(model, AutoForwardDiff(); entropy=ClosedFormEntropy())
 nothing
 ```
 
 The repgradelbo estimator can instead be created as follows:
 
 ```@example repgradelbo
-repgradelbo = AdvancedVI.RepGradELBO(
-    n_montecarlo; entropy=AdvancedVI.StickingTheLandingEntropy()
-);
+stl = BBVIRepGrad(model, AutoForwardDiff(); entropy=StickingTheLandingEntropy())
 nothing
 ```
 
@@ -211,35 +209,27 @@ function callback(; params, restructure, kwargs...)
     (dist = sqrt(dist2),)
 end
 
-_, _, stats_cfe, _ = AdvancedVI.optimize(
-    model,
+_, info_cfe, _ = AdvancedVI.optimize(
     cfe,
-    q0_trans,
-    max_iter;
+    max_iter,
+    q0_trans;
     show_progress = false,
-    adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(3e-3),
-    operator      = ClipScale(),
     callback      = callback,
 ); 
 
-_, _, stats_stl, _ = AdvancedVI.optimize(
-    model,
-    repgradelbo,
-    q0_trans,
-    max_iter;
+_, info_stl, _ = AdvancedVI.optimize(
+    stl,
+    max_iter,
+    q0_trans;
     show_progress = false,
-    adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(3e-3),
-    operator      = ClipScale(),
     callback      = callback,
 ); 
 
-t        = [stat.iteration for stat in stats_cfe]
-elbo_cfe = [stat.elbo      for stat in stats_cfe]
-elbo_stl = [stat.elbo      for stat in stats_stl]
-dist_cfe = [stat.dist      for stat in stats_cfe]
-dist_stl = [stat.dist      for stat in stats_stl]
+t        = [i.iteration for i in info_cfe]
+elbo_cfe = [i.elbo      for i in info_cfe]
+elbo_stl = [i.elbo      for i in info_stl]
+dist_cfe = [i.dist      for i in info_cfe]
+dist_stl = [i.dist      for i in info_stl]
 plot( t, elbo_cfe, label="BBVI CFE", xlabel="Iteration", ylabel="ELBO")
 plot!(t, elbo_stl, label="BBVI STL", xlabel="Iteration", ylabel="ELBO")
 savefig("advi_stl_elbo.svg")
@@ -309,23 +299,17 @@ nothing
 (Note that this is a quick-and-dirty example, and there are more sophisticated ways to implement this.)
 
 ```@setup repgradelbo
-repgradelbo = AdvancedVI.RepGradELBO(n_montecarlo);
-
-_, _, stats_qmc, _ = AdvancedVI.optimize(
-    model,
-    repgradelbo,
-    q0_trans,
-    max_iter;
+_, info_qmc, _ = AdvancedVI.optimize(
+    BBVIRepGrad(model, AutoForwardDiff(); n_samples=n_montecarlo),
+    max_iter,
+    q0_trans;
     show_progress = false,
-    adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(3e-3),
-    operator      = ClipScale(),
     callback      = callback,
 ); 
 
-t        = [stat.iteration for stat in stats_qmc]
-elbo_qmc = [stat.elbo      for stat in stats_qmc]
-dist_qmc = [stat.dist      for stat in stats_qmc]
+t        = [i.iteration for i in info_qmc]
+elbo_qmc = [i.elbo      for i in info_qmc]
+dist_qmc = [i.dist      for i in info_qmc]
 plot( t, elbo_cfe, label="BBVI CFE",     xlabel="Iteration", ylabel="ELBO")
 plot!(t, elbo_qmc, label="BBVI CFE QMC", xlabel="Iteration", ylabel="ELBO")
 savefig("advi_qmc_elbo.svg")

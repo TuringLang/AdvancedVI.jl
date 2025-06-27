@@ -85,8 +85,7 @@ We now need to select 1. a variational objective, and 2. a variational family.
 Here, we will use the [`RepGradELBO` objective](@ref repgradelbo), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
 
 ```@example elboexample
-n_montecaro = 10;
-objective = RepGradELBO(n_montecaro)
+alg = BBVIRepGrad(model, AutoForwardDiff())
 ```
 
 For the variational family, we will use the classic mean-field Gaussian family.
@@ -110,15 +109,11 @@ Passing `objective` and the initial variational approximation `q` to `optimize` 
 
 ```@example elboexample
 n_max_iter = 10^4
-q_avg_trans, q_trans, stats, _ = AdvancedVI.optimize(
-    model,
-    objective,
-    q0_trans,
-    n_max_iter;
+q_out, info, _ = AdvancedVI.optimize(
+    alg,
+    n_max_iter, 
+    q0_trans;
     show_progress=false,
-    adtype=AutoForwardDiff(),
-    optimizer=Optimisers.Adam(1e-3),
-    operator=ClipScale(),
 );
 nothing
 ```
@@ -126,8 +121,8 @@ nothing
 `ClipScale` is a projection operator, which ensures that the variational approximation stays within a stable region of the variational family.
 For more information see [this section](@ref clipscale).
 
-`q_avg_trans` is the final output of the optimization procedure.
-If a parameter averaging strategy is used through the keyword argument `averager`, `q_avg_trans` is be the output of the averaging strategy, while `q_trans` is the last iterate.
+`q_out` is the final output of the optimization procedure.
+If a parameter averaging strategy is used through the keyword argument `averager`, `q_out` is be the output of the averaging strategy.
 
 The selected inference procedure stores per-iteration statistics into `stats`.
 For instance, the ELBO can be ploted as follows:
@@ -135,8 +130,8 @@ For instance, the ELBO can be ploted as follows:
 ```@example elboexample
 using Plots
 
-t = [stat.iteration for stat in stats]
-y = [stat.elbo for stat in stats]
+t = [i.iteration for i in info]
+y = [i.elbo for i in info]
 plot(t, y; label="BBVI", xlabel="Iteration", ylabel="ELBO")
 savefig("bbvi_example_elbo.svg")
 nothing
@@ -149,5 +144,5 @@ Further information can be gathered by defining your own `callback!`.
 The final ELBO can be estimated by calling the objective directly with a different number of Monte Carlo samples as follows:
 
 ```@example elboexample
-estimate_objective(objective, q_avg_trans, model; n_samples=10^4)
+estimate_objective(RepGradELBO(10^4), q_out, model)
 ```

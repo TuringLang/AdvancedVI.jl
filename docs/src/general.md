@@ -1,19 +1,13 @@
+
 # [General Usage](@id general)
 
-Each VI algorithm provides the followings:
-
- 1. Variational families supported by each VI algorithm.
- 2. A variational objective corresponding to the VI algorithm.
-    Note that each variational family is subject to its own constraints.
-    Thus, please refer to the documentation of the variational inference algorithm of interest.
-
-## Optimizing a Variational Objective
-
-After constructing a *variational objective* `objective` and initializing a *variational approximation*, one can optimize `objective` by calling `optimize`:
+AdvancedVI provides multiple variational inference (VI) algorithms.
+Given a `<: AbstractAlgorithm` object associated with each algorithm, it suffices to call the function `optimize`:
 
 ```@docs
 optimize
 ```
+
 
 ## Estimating the Objective
 

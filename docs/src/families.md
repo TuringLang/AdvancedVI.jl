@@ -177,56 +177,38 @@ D     = ones(n_dims)
 U     = zeros(n_dims, 3)
 q0_lr = LowRankGaussian(μ, D, U)
 
-obj = RepGradELBO(1);
+alg = BBVIRepGrad(model, AutoReverseDiff(); optimizer=Adam(0.01))
 
 max_iter = 10^4
 
-function callback(; params, averaged_params, restructure, stat, kwargs...)
+function callback(; params, averaged_params, restructure, kwargs...)
     q = restructure(averaged_params)
     μ, Σ = mean(q), cov(q)
     (dist2 = sum(abs2, μ - μ_true) + tr(Σ + Σ_true - 2*sqrt(Σsqrt_true*Σ*Σsqrt_true)),)
 end
 
-_, _, stats_fr, _ = AdvancedVI.optimize(
-    model,
-    obj,
-    q0_fr,
-    max_iter;
+_, info_fr, _ = AdvancedVI.optimize(
+    alg, max_iter, q0_fr;
     show_progress = false,
-    adtype        = AutoReverseDiff(),
-    optimizer     = Adam(0.01),
-    averager      = PolynomialAveraging(),
     callback      = callback,
 ); 
 
-_, _, stats_mf, _ = AdvancedVI.optimize(
-    model,
-    obj,
-    q0_mf,
-    max_iter;
+_, info_mf, _ = AdvancedVI.optimize(
+    alg, max_iter, q0_mf;
     show_progress = false,
-    adtype        = AutoReverseDiff(),
-    optimizer     = Adam(0.01),
-    averager      = PolynomialAveraging(),
     callback      = callback,
 ); 
 
-_, _, stats_lr, _ = AdvancedVI.optimize(
-    model,
-    obj,
-    q0_lr,
-    max_iter;
+_, info_lr, _ = AdvancedVI.optimize(
+    alg, max_iter, q0_lr;
     show_progress = false,
-    adtype        = AutoReverseDiff(),
-    optimizer     = Adam(0.01),
-    averager      = PolynomialAveraging(),
     callback      = callback,
 ); 
 
-t       = [stat.iteration for stat in stats_fr]
-dist_fr = [sqrt(stat.dist2) for stat in stats_fr]
-dist_mf = [sqrt(stat.dist2) for stat in stats_mf]
-dist_lr = [sqrt(stat.dist2) for stat in stats_lr]
+t       = [i.iteration for i in info_fr]
+dist_fr = [sqrt(i.dist2) for i in info_fr]
+dist_mf = [sqrt(i.dist2) for i in info_mf]
+dist_lr = [sqrt(i.dist2) for i in info_lr]
 plot( t, dist_mf , label="Mean-Field Gaussian", xlabel="Iteration", ylabel="Wasserstein-2 Distance")
 plot!(t, dist_fr,  label="Full-Rank Gaussian",  xlabel="Iteration", ylabel="Wasserstein-2 Distance")
 plot!(t, dist_lr,  label="Low-Rank Gaussian",   xlabel="Iteration", ylabel="Wasserstein-2 Distance")
