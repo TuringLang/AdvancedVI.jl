@@ -30,11 +30,11 @@ The callback function `callback` has a signature of
     callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
 
 The arguments are as follows:
-- `stat`: Statistics gathered during the current iteration. The content will vary depending on `objective`.
-- `state`: Collection of the internal states used for optimization.
-- `params`: Variational parameters.
+- `rng`: Random number generator internally used by the algorithm.
+- `iteration`: The index of the current iteration.
+- `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(params)` reconstructs the current variational approximation. 
+- `params`: Current variational parameters.
 - `averaged_params`: Variational parameters averaged according to the averaging strategy.
-- `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(param)` reconstructs the variational approximation. 
 - `gradient`: The estimated (possibly stochastic) gradient.
 
 """

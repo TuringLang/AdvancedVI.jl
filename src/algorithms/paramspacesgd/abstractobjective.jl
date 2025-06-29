@@ -7,7 +7,7 @@ Abstract type for the VI algorithms supported by `AdvancedVI`.
 
 # Implementations
 To be supported by `AdvancedVI`, a VI algorithm must implement `AbstractVariationalObjective` and `estimate_objective`.
-Also, it should provide gradients by implementing the function `estimate_gradient!`.
+Also, it should provide gradients by implementing the function `estimate_gradient`.
 If the estimator is stateful, it can implement `init` to initialize the state.
 """
 abstract type AbstractVariationalObjective end
