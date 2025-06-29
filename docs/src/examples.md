@@ -109,12 +109,7 @@ Passing `objective` and the initial variational approximation `q` to `optimize` 
 
 ```@example elboexample
 n_max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(
-    alg,
-    n_max_iter, 
-    q0_trans;
-    show_progress=false,
-);
+q_out, info, _ = AdvancedVI.optimize(alg, n_max_iter, q0_trans; show_progress=false);
 nothing
 ```
 

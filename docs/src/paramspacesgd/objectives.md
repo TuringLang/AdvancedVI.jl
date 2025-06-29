@@ -1,4 +1,3 @@
-
 # Overview of Algorithms
 
 This section will provide an overview of the algorithm form by each objectives provided by `AdvancedVI`.
@@ -34,4 +33,3 @@ Multiple ways to solve this problem exist, each leading to a different variation
   - ScoreGradELBO: Implements the score gradient estimator of the ELBO gradient.
 
 [^JGJS1999]: Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., & Saul, L. K. (1999). An introduction to variational methods for graphical models. Machine learning, 37, 183-233.
-
