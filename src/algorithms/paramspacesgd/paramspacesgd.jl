@@ -14,6 +14,9 @@ This algorithm applies stochastic gradient descent (SGD) to the variational `obj
 The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`.
 This requires the variational approximation to be marked as a functor through `Functors.@functor`.
 
+!!! note
+    Different objective may impose different requirements on `adtype`, variational family, `optimizer`, and `operator`. It is therefore important to check the documentation corresponding to each specific objective. Essentially, each objective should be thought as forming its own unique algorithm.
+
 # Arguments
 - `objective`: Variational Objective.
 - `adtype`: Automatic differentiation backend. 
