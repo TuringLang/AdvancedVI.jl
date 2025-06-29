@@ -3,29 +3,21 @@
 
 ## Overview
 
-The reparameterization gradient[^TL2014][^RMW2014][^KW2014] is an unbiased gradient estimator of the ELBO.
-Consider some variational family
-
-```math
-\mathcal{Q} = \{q_{\lambda} \mid \lambda \in \Lambda \},
-```
-
-where $$\lambda$$ is the *variational parameters* of $$q_{\lambda}$$.
-If its sampling process can be described by some differentiable reparameterization function $$\mathcal{T}_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
+The `RepGradELBO` objective implements the reparameterization gradient[^TL2014][^RMW2014][^KW2014] estimator of the ELBO gradient.
+For the variational family $\mathcal{Q} = \{q_{\lambda} \mid \lambda \in \Lambda\}$, suppose the process of sampling from $q_{\lambda}$ can be described by some differentiable reparameterization function $$T_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
 
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
-z \stackrel{d}{=} \mathcal{T}_{\lambda}\left(\epsilon\right);\quad \epsilon \sim \varphi
+z \stackrel{d}{=} T_{\lambda}\left(\epsilon\right);\quad \epsilon \sim \varphi \; .
 ```
-
-we can effectively estimate the gradient of the ELBO by directly differentiating
+In these cases, we can effectively estimate the gradient of the ELBO by directly differentiating the stochastic estimate of the ELBO objective
 
 ```math
   \widehat{\mathrm{ELBO}}\left(\lambda\right) = \frac{1}{M}\sum^M_{m=1} \log \pi\left(\mathcal{T}_{\lambda}\left(\epsilon_m\right)\right) + \mathbb{H}\left(q_{\lambda}\right),
 ```
 
-where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples, with respect to $$\lambda$$.
-This estimator is called the reparameterization gradient estimator.
+where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples.
+The resulting gradient estimate is called the reparameterization gradient estimator.
 
 In addition to the reparameterization gradient, `AdvancedVI` provides the following features:
 
@@ -35,7 +27,8 @@ In addition to the reparameterization gradient, `AdvancedVI` provides the follow
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*.
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-## The `RepGradELBO` Objective
+
+## `RepGradELBO`
 
 To use the reparameterization gradient, `AdvancedVI` provides the following variational objective:
 

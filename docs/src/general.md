@@ -2,43 +2,57 @@
 # [General Usage](@id general)
 
 AdvancedVI provides multiple variational inference (VI) algorithms.
-Given a `<: AbstractAlgorithm` object associated with each algorithm, it suffices to call the function `optimize`:
+Each algorithm defines its subtype of [`AdvancedVI.AbstractAlgorithm`](@ref) with some corresponding methods (see [this section](@ref algorithm)).
+Then the algorithm can be executed by invoking `optimize`. (See [this section](@ref optimize)).
+
+## [Optimize](@id optimize)
+
+Given a subtype of `AbstractAlgorithm` associated with each algorithm, it suffices to call the function `optimize`:
 
 ```@docs
 optimize
 ```
 
+Each algorithm may interact differently with the arguments of `optimize`.
+Therefore, please refer to the documentation of each different algorithm for a detailed description on their behavior and their requirements.
 
-## Estimating the Objective
+## [Algorithm Interface](@id algorithm)
 
-In some cases, it is useful to directly estimate the objective value.
-This can be done by the following funciton:
+A variational inference algorithm supported by `AdvancedVI` should define its own subtype of `AbstractAlgorithm`:
 
 ```@docs
-estimate_objective
+AdvancedVI.AbstractAlgorithm
 ```
 
-!!! info
-    
-    Note that `estimate_objective` is not expected to be differentiated through, and may not result in optimal statistical performance.
-
-## Advanced Usage
-
-Each variational objective is a subtype of the following abstract type:
+The functionality of each algorithm is then implemented through the following methods:
 
 ```@docs
-AdvancedVI.AbstractVariationalObjective
+AdvancedVI.init(::Random.AbstractRNG, ::AdvancedVI.AbstractAlgorithm, ::Any)
+AdvancedVI.step
+AdvancedVI.output
 ```
 
-Furthermore, `AdvancedVI` only interacts with each variational objective by querying gradient estimates.
-Therefore, to create a new custom objective to be optimized through `AdvancedVI`, it suffices to implement the following function:
+The role of each method should be self-explanatory and should be clear once we take a look at how `optimize` interacts with each algorithm.
+The operation of `optimize` can be simplified as follows:
 
-```@docs
-AdvancedVI.estimate_gradient!
-```
+```julia
+function optimize([rng,] algorithm, max_iter, q_init, objargs; kwargs...)
+    info_total = NamedTuple[]
+    state = init(rng, algorithm, q_init)
+    for t in 1:max_iter
+        info = (iteration=t,)
+        state, terminate, info′ = step(
+            rng, algorithm, state, callback, objargs...; kwargs...
+        )
+        info = merge(info′, info)
 
-If an objective needs to be stateful, one can implement the following function to inialize the state.
+        if terminate
+            break
+        end
 
-```@docs
-AdvancedVI.init
+        push!(info_total, info)
+    end
+    out = output(algorithm, state)
+    return out, info_total, state
+end
 ```
