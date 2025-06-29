@@ -14,8 +14,7 @@ For this reason, the score gradient is the standard method to deal with discrete
 [^W1992]: Williams, R. J. (1992). Simple statistical gradient-following algorithms for connectionist reinforcement learning. Machine learning, 8, 229-256.
 [^WW2013]: Wingate, D., & Weber, T. (2013). Automated variational inference in probabilistic programming. arXiv preprint arXiv:1301.1299.
 [^RGB2014]: Ranganath, R., Gerrish, S., & Blei, D. (2014). Black box variational inference. In Artificial intelligence and statistics (pp. 814-822). PMLR.
-In more detail, the score gradient uses the Fisher log-derivative identity: For any regular $f$,
-
+    In more detail, the score gradient uses the Fisher log-derivative identity: For any regular $f$,
 ```math
 \nabla_{\lambda} \mathbb{E}_{z \sim q_{\lambda}} f
 =
