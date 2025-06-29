@@ -38,8 +38,7 @@ Differentiating the VarGrad objective corresponds to the canonical score gradien
 [^RBNRA2020]: Richter, L., Boustati, A., Nüsken, N., Ruiz, F., & Akyildiz, O. D. (2020). Vargrad: a low-variance gradient estimator for variational inference. Advances in Neural Information Processing Systems, 33, 13481-13492.
 [^SK2014]: Salimans, T., & Knowles, D. A. (2014). On using control variates with stochastic approximation for variational bayes and its connection to stochastic linear regression. arXiv preprint arXiv:1401.1022.
 [^KvHW2019]: Kool, W., van Hoof, H., & Welling, M. (2019). Buy 4 reinforce samples, get a baseline for free!.
-Since the expectation of the `VarGrad` objective (not its gradient) is not exactly the ELBO, we separately obtain an unbiased estimate of the ELBO to be returned by [`estimate_objective`](@ref).
-
+    Since the expectation of the `VarGrad` objective (not its gradient) is not exactly the ELBO, we separately obtain an unbiased estimate of the ELBO to be returned by [`estimate_objective`](@ref).
 ## `ScoreGradELBO`
 
 ```@docs
