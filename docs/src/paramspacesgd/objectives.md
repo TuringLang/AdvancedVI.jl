@@ -30,6 +30,6 @@ Overall, ELBO maximization algorithms aim to solve the problem:
 Multiple ways to solve this problem exist, each leading to a different variational inference algorithm. `AdvancedVI` provides the following objectives:
 
   - [RepGradELBO](@ref repgradelbo): Implements the reparameterization gradient estimator of the ELBO gradient.
-  - ScoreGradELBO: Implements the score gradient estimator of the ELBO gradient.
+  - [ScoreGradELBO](@ref scoregradelbo): Implements the score gradient estimator of the ELBO gradient.
 
 [^JGJS1999]: Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., & Saul, L. K. (1999). An introduction to variational methods for graphical models. Machine learning, 37, 183-233.
