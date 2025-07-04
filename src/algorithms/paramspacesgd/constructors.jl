@@ -1,11 +1,10 @@
 
 """
-    BBVIRepGrad(problem, adtype; entropy, optimizer, n_samples, operator)
+    BBVIRepGrad(adtype; entropy, optimizer, n_samples, operator)
 
 Black-box variational inference with the reparameterization gradient with stochastic gradient descent.
 
 # Arguments
-- `problem`: Target problem.
 - `adtype::ADTypes.AbstractADType`: Automatic differentiation backend. 
 
 # Keyword Arguments
@@ -17,7 +16,6 @@ Black-box variational inference with the reparameterization gradient with stocha
 
 """
 function BBVIRepGrad(
-    problem,
     adtype::ADTypes.AbstractADType;
     entropy::Union{<:ClosedFormEntropy,<:StickingTheLandingEntropy,<:MonteCarloEntropy}=ClosedFormEntropy(),
     optimizer::Optimisers.AbstractRule=DoWG(),
@@ -26,11 +24,11 @@ function BBVIRepGrad(
     operator::Union{<:IdentityOperator,<:ClipScale}=ClipScale(),
 )
     objective = RepGradELBO(n_samples; entropy=entropy)
-    return ParamSpaceSGD(problem, objective, adtype, optimizer, averager, operator)
+    return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
 end
 
 """
-    BBVIRepGradProxLocScale(problem, adtype; entropy, optimizer, n_samples, operator)
+    BBVIRepGradProxLocScale(adtype; entropy, optimizer, n_samples, operator)
 
 Black-box variational inference with the reparameterization gradient and stochastic proximal gradient descent on location scale families.
 
@@ -39,7 +37,6 @@ Also, since the stochastic proximal gradient descent does not use the entropy of
 Thus, only the entropy estimators with a "ZeroGradient" suffix are allowed.
 
 # Arguments
-- `problem`: Target problem.
 - `adtype`: Automatic differentiation backend. 
 
 # Keyword Arguments
@@ -50,7 +47,6 @@ Thus, only the entropy estimators with a "ZeroGradient" suffix are allowed.
 
 """
 function BBVIRepGradProxLocScale(
-    problem,
     adtype::ADTypes.AbstractADType;
     entropy_zerograd::Union{
         <:ClosedFormEntropyZeroGradient,<:StickingTheLandingEntropyZeroGradient
@@ -61,5 +57,5 @@ function BBVIRepGradProxLocScale(
 )
     objective = RepGradELBO(n_samples; entropy=entropy_zerograd)
     operator = ProximalLocationScaleEntropy()
-    return ParamSpaceSGD(problem, objective, adtype, optimizer, averager, operator)
+    return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
 end

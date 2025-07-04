@@ -15,10 +15,10 @@
     optimizer = Optimisers.Adam(1e-2)
     averager = PolynomialAveraging()
 
-    alg = ParamSpaceSGD(model, obj, adtype, optimizer, averager, IdentityOperator())
+    alg = ParamSpaceSGD(obj, adtype, optimizer, averager, IdentityOperator())
 
     @testset "default_rng" begin
-        optimize(alg, T, q0; show_progress=false)
+        optimize(alg, T, model, q0; show_progress=false)
     end
 
     @testset "callback" begin
@@ -26,12 +26,12 @@
 
         callback(; iteration, args...) = (test_value=test_values[iteration],)
 
-        _, info, _ = optimize(alg, T, q0; show_progress=false, callback)
+        _, info, _ = optimize(alg, T, model, q0; show_progress=false, callback)
         @test [i.test_value for i in info] == test_values
     end
 
     rng = StableRNG(seed)
-    q_avg_ref, _, _ = optimize(rng, alg, T, q0; show_progress=false)
+    q_avg_ref, _, _ = optimize(rng, alg, T, model, q0; show_progress=false)
 
     @testset "warm start" begin
         rng = StableRNG(seed)
@@ -39,8 +39,8 @@
         T_first = div(T, 2)
         T_last = T - T_first
 
-        _, _, state = optimize(rng, alg, T_first, q0; show_progress=false)
-        q_avg, _, _ = optimize(rng, alg, T_last, q0; show_progress=false, state)
+        _, _, state = optimize(rng, alg, T_first, model, q0; show_progress=false)
+        q_avg, _, _ = optimize(rng, alg, T_last, model, q0; show_progress=false, state)
 
         @test q_avg == q_avg_ref
     end

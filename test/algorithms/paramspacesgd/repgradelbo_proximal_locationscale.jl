@@ -43,7 +43,7 @@ end
 
         T = 1000
         η = 1e-3
-        alg = BBVIRepGradProxLocScale(model, adtype; optimizer=Descent(η))
+        alg = BBVIRepGradProxLocScale(adtype; optimizer=Descent(η))
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),
@@ -52,7 +52,7 @@ end
 
         @testset "convergence" begin
             Δλ0 = sum(abs2, q0.location - μ_true) + sum(abs2, q0.scale - L_true)
-            q_avg, stats, _ = optimize(rng, alg, T, q0; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
 
             μ = q_avg.location
             L = q_avg.scale
@@ -65,12 +65,12 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng, alg, T, q0; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
             μ = q_avg.location
             L = q_avg.scale
 
             rng_repl = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng_repl, alg, T, q0; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng_repl, alg, T, model, q0; show_progress=PROGRESS)
             μ_repl = q_avg.location
             L_repl = q_avg.scale
             @test μ == μ_repl

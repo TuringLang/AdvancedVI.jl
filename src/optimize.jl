@@ -3,29 +3,30 @@
     optimize(
         [rng::Random.AbstractRNG = Random.default_rng(),]
         algorithm::AbstractAlgorithm,
-        q_init,
         max_iter::Int,
-        objargs...;
+        prob,
+        q_init,
+        args...;
         kwargs...
     )
 
-Optimize the variational objective `objective` targeting the problem `problem` by estimating (stochastic) gradients.
-
-The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`.
-This requires the variational approximation to be marked as a functor through `Functors.@functor`.
+Run variational inference `algorithm` on the `problem` implementing the `LogDensityProblems` interface.
+For more details on the usage, refer to the documentation corresponding to `algorithm`.
 
 # Arguments
 - `rng`: Random number generator.
 - `algorithm`: Variational inference algorithm.
-- `q_init`: Initial variational distribution.
 - `max_iter::Int`: Maximum number of iterations.
-- `objargs...`: Arguments to be passed to `objective`.
+- `prob`: Target `LogDensityProblem` 
+- `q_init`: Initial variational distribution.
+- `args...`: Arguments to be passed to `algorithm`.
 
 # Keyword Arguments
 - `show_progress::Bool`: Whether to show the progress bar. (Default: `true`.)
+- `state::Union{<:Any,Nothing}`: Initial value for the internal state of optimization. Used to warm-start from the state of a previous run. (See the returned values below.)
 - `callback`: Callback function called after every iteration. See further information below. (Default: `nothing`.)
 - `progress::ProgressMeter.AbstractProgress`: Progress bar configuration. (Default: `ProgressMeter.Progress(n_max_iter; desc="Optimizing", barlen=31, showspeed=true, enabled=prog)`.)
-- `state::Union{<:Any,Nothing}`: Initial value for the internal state of optimization. Used to warm-start from the state of a previous run. (See the returned values below.)
+- `kwargs...`: Keyword arguments to be passed to `algorithm`.
 
 # Returns
 - `output`: The output of the variational inference algorithm.
@@ -42,6 +43,7 @@ function optimize(
     rng::Random.AbstractRNG,
     algorithm::AbstractAlgorithm,
     max_iter::Int,
+    prob,
     q_init,
     objargs...;
     show_progress::Bool=true,
@@ -54,7 +56,7 @@ function optimize(
 )
     info_total = NamedTuple[]
     state = if isnothing(state)
-        init(rng, algorithm, q_init)
+        init(rng, algorithm, prob, q_init)
     else
         state
     end
@@ -79,9 +81,9 @@ function optimize(
 end
 
 function optimize(
-    algorithm::AbstractAlgorithm, max_iter::Int, q_init, objargs...; kwargs...
+    algorithm::AbstractAlgorithm, max_iter::Int, prob, q_init, objargs...; kwargs...
 )
     return optimize(
-        Random.default_rng(), algorithm, max_iter, q_init, objargs...; kwargs...
+        Random.default_rng(), algorithm, max_iter, prob, q_init, objargs...; kwargs...
     )
 end

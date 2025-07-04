@@ -1,7 +1,6 @@
 
 """
     ParamSpaceSGD(
-        problem,
         objective::AbstractVariationalObjective,
         adtype::ADTypes.AbstractADType,
         optimizer::Optimisers.AbstractRule,
@@ -42,14 +41,12 @@ The arguments are as follows:
 
 """
 struct ParamSpaceSGD{
-    Prob,
     Obj<:AbstractVariationalObjective,
     AD<:ADTypes.AbstractADType,
     Opt<:Optimisers.AbstractRule,
     Avg<:AbstractAverager,
     Op<:AbstractOperator,
 } <: AbstractAlgorithm
-    problem::Prob
     objective::Obj
     adtype::AD
     optimizer::Opt
@@ -57,7 +54,8 @@ struct ParamSpaceSGD{
     operator::Op
 end
 
-struct ParamSpaceSGDState{Q,GradBuf,OptSt,ObjSt,AvgSt}
+struct ParamSpaceSGDState{P,Q,GradBuf,OptSt,ObjSt,AvgSt}
+    prob::P
     q::Q
     iteration::Int
     grad_buf::GradBuf
@@ -66,14 +64,14 @@ struct ParamSpaceSGDState{Q,GradBuf,OptSt,ObjSt,AvgSt}
     avg_st::AvgSt
 end
 
-function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init)
-    (; problem, adtype, optimizer, averager, objective) = alg
+function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, prob, q_init)
+    (; adtype, optimizer, averager, objective) = alg
     params, re = Optimisers.destructure(q_init)
     opt_st = Optimisers.setup(optimizer, params)
-    obj_st = init(rng, objective, adtype, problem, params, re)
+    obj_st = init(rng, objective, adtype, prob, params, re)
     avg_st = init(averager, params)
     grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
-    return ParamSpaceSGDState(q_init, 0, grad_buf, opt_st, obj_st, avg_st)
+    return ParamSpaceSGDState(prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st)
 end
 
 function output(alg::ParamSpaceSGD, state)
@@ -85,15 +83,15 @@ end
 function step(
     rng::Random.AbstractRNG, alg::ParamSpaceSGD, state, callback, objargs...; kwargs...
 )
-    (; adtype, problem, objective, operator, averager) = alg
-    (; q, iteration, grad_buf, opt_st, obj_st, avg_st) = state
+    (; adtype, objective, operator, averager) = alg
+    (; prob, q, iteration, grad_buf, opt_st, obj_st, avg_st) = state
 
     iteration += 1
 
     params, re = Optimisers.destructure(q)
 
     grad_buf, obj_st, info = estimate_gradient!(
-        rng, objective, adtype, grad_buf, problem, params, re, obj_st, objargs...
+        rng, objective, adtype, grad_buf, prob, params, re, obj_st, objargs...
     )
 
     grad = DiffResults.gradient(grad_buf)
@@ -101,7 +99,7 @@ function step(
     params = apply(operator, typeof(q), opt_st, params, re)
     avg_st = apply(averager, avg_st, params)
 
-    state = ParamSpaceSGDState(re(params), iteration, grad_buf, opt_st, obj_st, avg_st)
+    state = ParamSpaceSGDState(prob, re(params), iteration, grad_buf, opt_st, obj_st, avg_st)
 
     if !isnothing(callback)
         averaged_params = value(averager, avg_st)

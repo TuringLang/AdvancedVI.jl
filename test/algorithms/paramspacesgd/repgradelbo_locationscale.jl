@@ -34,7 +34,7 @@ end
 
         T = 1000
         η = 1e-3
-        alg = BBVIRepGrad(model, adtype; optimizer=Descent(η))
+        alg = BBVIRepGrad(adtype; optimizer=Descent(η))
 
         q0 = if is_meanfield
             MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))
@@ -50,7 +50,7 @@ end
 
         @testset "convergence" begin
             Δλ0 = sum(abs2, q0.location - μ_true) + sum(abs2, q0.scale - L_true)
-            q_avg, stats, _ = optimize(rng, alg, T, q0; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
 
             μ = q_avg.location
             L = q_avg.scale
@@ -63,12 +63,12 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng, alg, T, q0; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
             μ = q_avg.location
             L = q_avg.scale
 
             rng_repl = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng_repl, alg, T, q0; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng_repl, alg, T, model, q0; show_progress=PROGRESS)
             μ_repl = q_avg.location
             L_repl = q_avg.scale
             @test μ == μ_repl

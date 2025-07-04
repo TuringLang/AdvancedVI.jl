@@ -35,7 +35,7 @@ end
 
         T = 1000
         η = 1e-3
-        alg = BBVIRepGradProxLocScale(model, adtype; optimizer=Descent(η))
+        alg = BBVIRepGradProxLocScale(adtype; optimizer=Descent(η))
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)
@@ -57,7 +57,7 @@ end
 
         @testset "convergence" begin
             Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
-            q_avg, stats, _ = optimize(rng, alg, T, q0_z; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0_z; show_progress=PROGRESS)
 
             μ = q_avg.dist.location
             L = q_avg.dist.scale
@@ -70,12 +70,12 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng, alg, T, q0_z; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0_z; show_progress=PROGRESS)
             μ = q_avg.dist.location
             L = q_avg.dist.scale
 
             rng_repl = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng_repl, alg, T, q0_z; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng_repl, alg, T, model, q0_z; show_progress=PROGRESS)
             μ_repl = q_avg.dist.location
             L_repl = q_avg.dist.scale
             @test μ == μ_repl

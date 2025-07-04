@@ -18,6 +18,7 @@ using LogDensityProblems
 using ADTypes
 using DiffResults
 using DifferentiationInterface
+using ChainRulesCore
 
 using FillArrays
 
@@ -196,16 +197,17 @@ Abstract type for a variational inference algorithm.
 abstract type AbstractAlgorithm end
 
 """
-    init(rng, alg, q_init)
+    init(rng, alg, prob, q_init)
 
-Initialize `alg` given the initial variational approximation `q_init`.
+Initialize `alg` given the initial variational approximation `q_init` and the target `prob`.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `alg::AbstractAlgorithm`: Variational inference algorithm.
+- `prob`: Target problem.
 ` `q_init`: Initial variational approximation.
 """
-init(::Random.AbstractRNG, ::AbstractAlgorithm, ::Any) = nothing
+init(::Random.AbstractRNG, ::AbstractAlgorithm, ::Any, ::Any) = nothing
 
 """
     step(rng, alg, state, callback, objargs...; kwargs...)

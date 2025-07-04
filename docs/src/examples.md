@@ -85,7 +85,7 @@ We now need to select 1. a variational objective, and 2. a variational family.
 Here, we will use the [`RepGradELBO` objective](@ref repgradelbo), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
 
 ```@example elboexample
-alg = BBVIRepGrad(model, AutoForwardDiff())
+alg = BBVIRepGrad(AutoForwardDiff())
 ```
 
 For the variational family, we will use the classic mean-field Gaussian family.
@@ -109,7 +109,7 @@ Passing `objective` and the initial variational approximation `q` to `optimize` 
 
 ```@example elboexample
 n_max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(alg, n_max_iter, q0_trans; show_progress=false);
+q_out, info, _ = AdvancedVI.optimize(alg, n_max_iter, model, q0_trans; show_progress=false);
 nothing
 ```
 
