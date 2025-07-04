@@ -66,7 +66,9 @@ begin
             alg = BBVIRepGrad(adtype; optimizer=opt, entropy)
 
             SUITES[probname][objname][familyname][adname] = begin
-                @benchmarkable AdvancedVI.optimize($alg, $max_iter, $prob, $q; show_progress=false)
+                @benchmarkable AdvancedVI.optimize(
+                    $alg, $max_iter, $prob, $q; show_progress=false
+                )
             end
         end
     end

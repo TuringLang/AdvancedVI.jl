@@ -177,7 +177,7 @@ D     = ones(n_dims)
 U     = zeros(n_dims, 3)
 q0_lr = LowRankGaussian(μ, D, U)
 
-alg = BBVIRepGrad(model, AutoReverseDiff(); optimizer=Adam(0.01))
+alg = BBVIRepGrad(AutoReverseDiff(); optimizer=Adam(0.01))
 
 max_iter = 10^4
 
@@ -188,19 +188,19 @@ function callback(; params, averaged_params, restructure, kwargs...)
 end
 
 _, info_fr, _ = AdvancedVI.optimize(
-    alg, max_iter, q0_fr;
+    alg, max_iter, model, q0_fr;
     show_progress = false,
     callback      = callback,
 ); 
 
 _, info_mf, _ = AdvancedVI.optimize(
-    alg, max_iter, q0_mf;
+    alg, max_iter, model, q0_mf;
     show_progress = false,
     callback      = callback,
 ); 
 
 _, info_lr, _ = AdvancedVI.optimize(
-    alg, max_iter, q0_lr;
+    alg, max_iter, model, q0_lr;
     show_progress = false,
     callback      = callback,
 ); 
