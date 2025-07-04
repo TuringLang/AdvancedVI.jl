@@ -27,7 +27,7 @@ AdvancedVI.AbstractAlgorithm
 The functionality of each algorithm is then implemented through the following methods:
 
 ```@docs
-AdvancedVI.init(::Random.AbstractRNG, ::AdvancedVI.AbstractAlgorithm, ::Any)
+AdvancedVI.init(::Random.AbstractRNG, ::AdvancedVI.AbstractAlgorithm, ::Any, ::Any)
 AdvancedVI.step
 AdvancedVI.output
 ```
