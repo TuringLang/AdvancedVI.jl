@@ -99,7 +99,9 @@ function step(
     params = apply(operator, typeof(q), opt_st, params, re)
     avg_st = apply(averager, avg_st, params)
 
-    state = ParamSpaceSGDState(prob, re(params), iteration, grad_buf, opt_st, obj_st, avg_st)
+    state = ParamSpaceSGDState(
+        prob, re(params), iteration, grad_buf, opt_st, obj_st, avg_st
+    )
 
     if !isnothing(callback)
         averaged_params = value(averager, avg_st)

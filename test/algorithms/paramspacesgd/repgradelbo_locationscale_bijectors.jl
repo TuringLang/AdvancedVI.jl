@@ -74,7 +74,9 @@ end
             L = q_avg.dist.scale
 
             rng_repl = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng_repl, alg, T, model, q0_z; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(
+                rng_repl, alg, T, model, q0_z; show_progress=PROGRESS
+            )
             μ_repl = q_avg.dist.location
             L_repl = q_avg.dist.scale
             @test μ == μ_repl

@@ -191,7 +191,9 @@ nothing
 The repgradelbo estimator can instead be created as follows:
 
 ```@example repgradelbo
-stl = BBVIRepGrad(AutoForwardDiff(); entropy=StickingTheLandingEntropy(), optimizer=Adam(1e-2))
+stl = BBVIRepGrad(
+    AutoForwardDiff(); entropy=StickingTheLandingEntropy(), optimizer=Adam(1e-2)
+)
 nothing
 ```
 
