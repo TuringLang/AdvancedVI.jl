@@ -8,7 +8,6 @@ AD_repgradelbo_distributionsad = if TEST_GROUP == "Enzyme"
     )
 else
     Dict(
-        :ForwarDiff => AutoForwardDiff(),
         #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
         :Zygote => AutoZygote(),
         :Mooncake => AutoMooncake(; config=Mooncake.Config()),
@@ -36,6 +35,8 @@ end
         L0 = Diagonal(ones(realtype, n_dims))
         q0 = TuringDiagMvNormal(μ0, diag(L0))
 
+        model_ad = ADgradient(AutoForwardDiff(), model)
+
         T = 1000
         η = 1e-3
         alg = BBVIRepGrad(adtype; operator=IdentityOperator(), optimizer=Descent(η))
@@ -48,7 +49,7 @@ end
         @testset "convergence" begin
             Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
 
-            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0; show_progress=PROGRESS)
 
             μ = mean(q_avg)
             L = sqrt(cov(q_avg))
@@ -61,7 +62,7 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0; show_progress=PROGRESS)
             μ = mean(q_avg)
             L = sqrt(cov(q_avg))
 

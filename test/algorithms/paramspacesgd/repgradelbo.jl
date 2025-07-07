@@ -8,7 +8,6 @@ AD_repgradelbo_interface = if TEST_GROUP == "Enzyme"
     ]
 else
     [
-        AutoForwardDiff(),
         AutoReverseDiff(),
         AutoZygote(),
         AutoMooncake(; config=Mooncake.Config()),
@@ -27,13 +26,14 @@ end
 
     @testset "basic" begin
         @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
+            model_ad = ADgradient(AutoForwardDiff(), model)
             alg = BBVIRepGrad(
                 adtype;
                 n_samples=n_montecarlo,
                 operator=IdentityOperator(),
                 averager=PolynomialAveraging(),
             )
-            _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
+            _, info, _ = optimize(rng, alg, 10, model_ad, q0; show_progress=false)
             @assert isfinite(last(info).elbo)
         end
     end
@@ -61,7 +61,12 @@ end
     modelstats = normal_meanfield(rng, Float64)
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
+    model_ad = ADgradient(AutoForwardDiff(), model)
+    mixed_ad = MixedADLogDensityProblem(model_ad)
+
     @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
+        model_ad = ADgradient(AutoForwardDiff(), model)
+
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
@@ -70,7 +75,7 @@ end
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
         aux = (
-            rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=adtype
+            rng=rng, obj=obj, problem=mixed_ad, restructure=re, q_stop=q_true, adtype=adtype
         )
         AdvancedVI._value_and_gradient!(
             AdvancedVI.estimate_repgradelbo_ad_forward, out, adtype, params, aux

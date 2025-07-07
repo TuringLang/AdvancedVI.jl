@@ -7,7 +7,6 @@ AD_repgradelbo_locationscale_bijectors = if TEST_GROUP == "Enzyme"
     )
 else
     Dict(
-        :ForwarDiff => AutoForwardDiff(),
         :ReverseDiff => AutoReverseDiff(),
         :Zygote => AutoZygote(),
         :Mooncake => AutoMooncake(; config=Mooncake.Config()),
@@ -33,6 +32,8 @@ end
         modelstats = modelconstr(rng, realtype)
         (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
+        model_ad = ADgradient(AutoForwardDiff(), model)
+
         T = 1000
         η = 1e-3
         alg = BBVIRepGradProxLocScale(adtype; optimizer=Descent(η))
@@ -57,7 +58,7 @@ end
 
         @testset "convergence" begin
             Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
-            q_avg, stats, _ = optimize(rng, alg, T, model, q0_z; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0_z; show_progress=PROGRESS)
 
             μ = q_avg.dist.location
             L = q_avg.dist.scale
@@ -70,13 +71,13 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng, alg, T, model, q0_z; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0_z; show_progress=PROGRESS)
             μ = q_avg.dist.location
             L = q_avg.dist.scale
 
             rng_repl = StableRNG(seed)
             q_avg, stats, _ = optimize(
-                rng_repl, alg, T, model, q0_z; show_progress=PROGRESS
+                rng_repl, alg, T, model_ad, q0_z; show_progress=PROGRESS
             )
             μ_repl = q_avg.dist.location
             L_repl = q_avg.dist.scale
