@@ -8,7 +8,7 @@ using Enzyme, ForwardDiff, ReverseDiff, Zygote, Mooncake
 using FillArrays
 using InteractiveUtils
 using LinearAlgebra
-using LogDensityProblems
+using LogDensityProblems, LogDensityProblemsAD
 using Optimisers
 using Random
 
@@ -40,6 +40,7 @@ begin
         max_iter = 10^4
         d = LogDensityProblems.dimension(prob)
         opt = Optimisers.Adam(T(1e-3))
+        prob_ad = ADgradient(AutoForwardDiff(), prob)
 
         for (objname, entropy) in [
                 ("RepGradELBO", ClosedFormEntropy()),
@@ -47,7 +48,6 @@ begin
             ],
             (adname, adtype) in [
                 ("Zygote", AutoZygote()),
-                ("ForwardDiff", AutoForwardDiff()),
                 ("ReverseDiff", AutoReverseDiff()),
                 ("Mooncake", AutoMooncake(; config=Mooncake.Config())),
                 # ("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),
@@ -67,7 +67,7 @@ begin
 
             SUITES[probname][objname][familyname][adname] = begin
                 @benchmarkable AdvancedVI.optimize(
-                    $alg, $max_iter, $prob, $q; show_progress=false
+                    $alg, $max_iter, $prob_ad, $q; show_progress=false
                 )
             end
         end
