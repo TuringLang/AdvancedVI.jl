@@ -59,7 +59,7 @@ function estimate_objective end
 export estimate_objective
 
 """
-    estimate_gradient!(rng, obj, adtype, out, prob, params, restructure, obj_state)
+    estimate_gradient!(rng, obj, adtype, out, params, restructure, obj_state, args...)
 
 Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
 
@@ -68,7 +68,6 @@ Estimate (possibly stochastic) gradients of the variational objective `obj` targ
 - `obj::AbstractVariationalObjective`: Variational objective.
 - `adtype::ADTypes.AbstractADType`: Automatic differentiation backend. 
 - `out::DiffResults.MutableDiffResult`: Buffer containing the objective value and gradient estimates. 
-- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 - `params`: Variational parameters to evaluate the gradient on.
 - `restructure`: Function that reconstructs the variational approximation from `params`.
 - `obj_state`: Previous state of the objective.

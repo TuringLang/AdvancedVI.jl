@@ -21,9 +21,14 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [weakdeps]
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
+Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
+ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 
 [extensions]
 AdvancedVIBijectorsExt = "Bijectors"
+AdvancedVIMooncakeExt = "Mooncake"
+AdvancedVIReverseDiffExt = "ReverseDiff"
+
 
 [compat]
 ADTypes = "1"
@@ -46,6 +51,8 @@ julia = "1.10, 1.11.2"
 
 [extras]
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
+Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
+ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
