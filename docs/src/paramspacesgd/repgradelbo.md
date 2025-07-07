@@ -122,12 +122,12 @@ For example, if ``q_{\lambda}`` is a Gaussian with a full-rank covariance, a bac
 using Bijectors
 using FillArrays
 using LinearAlgebra
-using LogDensityProblems
+using LogDensityProblems, LogDensityProblemsAD
 using Plots
 using Random
 
 using Optimisers
-using ADTypes, ForwardDiff
+using ADTypes, ForwardDiff, ReverseDiff
 using AdvancedVI
 
 struct NormalLogNormal{MX,SX,MY,SY}
@@ -150,12 +150,13 @@ function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
     LogDensityProblems.LogDensityOrder{0}()
 end
 
-n_dims = 10
-μ_x    = 2.0
-σ_x    = 0.3
-μ_y    = Fill(2.0, n_dims)
-σ_y    = Fill(1.0, n_dims)
-model  = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2));
+n_dims   = 10
+μ_x      = 2.0
+σ_x      = 0.3
+μ_y      = Fill(2.0, n_dims)
+σ_y      = Fill(1.0, n_dims)
+model    = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2));
+model_ad = ADgradient(AutoForwardDiff(), model)
 
 d  = LogDensityProblems.dimension(model);
 μ  = zeros(d);
@@ -192,7 +193,7 @@ The repgradelbo estimator can instead be created as follows:
 
 ```@example repgradelbo
 stl = BBVIRepGrad(
-    AutoForwardDiff(); entropy=StickingTheLandingEntropy(), optimizer=Adam(1e-2)
+    AutoReverseDiff(); entropy=StickingTheLandingEntropy(), optimizer=Adam(1e-2)
 )
 nothing
 ```
@@ -210,7 +211,7 @@ end
 _, info_cfe, _ = AdvancedVI.optimize(
     cfe,
     max_iter,
-    model,
+    model_ad,
     q0_trans;
     show_progress = false,
     callback      = callback,
@@ -219,7 +220,7 @@ _, info_cfe, _ = AdvancedVI.optimize(
 _, info_stl, _ = AdvancedVI.optimize(
     stl,
     max_iter,
-    model,
+    model_ad,
     q0_trans;
     show_progress = false,
     callback      = callback,
@@ -302,7 +303,7 @@ nothing
 _, info_qmc, _ = AdvancedVI.optimize(
     BBVIRepGrad(AutoForwardDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2)),
     max_iter,
-    model,
+    model_ad,
     q0_trans;
     show_progress = false,
     callback      = callback,

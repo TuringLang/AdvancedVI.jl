@@ -48,6 +48,14 @@ n_dims = 10
 μ_y = randn(n_dims)
 σ_y = exp.(randn(n_dims))
 model = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y .^ 2));
+
+```
+
+The algorithm we will use requires the target problem to have at least first-order differentiation capability.
+```@example elboexample
+using LogDensityProblemsAD
+
+model_ad = ADgradient(AutoForwardDiff(), model)
 nothing
 ```
 
@@ -77,7 +85,7 @@ Here, we will use `ForwardDiff`, which can be selected by later passing `ADTypes
 
 ```@example elboexample
 using Optimisers
-using ADTypes, ForwardDiff
+using ADTypes, ForwardDiff, ReverseDiff
 using AdvancedVI
 ```
 
@@ -85,7 +93,7 @@ We now need to select 1. a variational objective, and 2. a variational family.
 Here, we will use the [`RepGradELBO` objective](@ref repgradelbo), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
 
 ```@example elboexample
-alg = BBVIRepGrad(AutoForwardDiff())
+alg = BBVIRepGrad(AutoReverseDiff())
 ```
 
 For the variational family, we will use the classic mean-field Gaussian family.
@@ -109,7 +117,7 @@ Passing `objective` and the initial variational approximation `q` to `optimize` 
 
 ```@example elboexample
 n_max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(alg, n_max_iter, model, q0_trans; show_progress=false);
+q_out, info, _ = AdvancedVI.optimize(alg, n_max_iter, model_ad, q0_trans; show_progress=false);
 nothing
 ```
 
