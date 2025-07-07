@@ -34,10 +34,11 @@ function init(
 ) where {Prob}
     q_stop = restructure(params)
     capability = LogDensityProblems.capabilities(Prob)
-    @assert adtype isa Union{<:AutoReverseDiff, <:AutoZygote, <:AutoMooncake, <:AutoEnzyme}
+    @assert adtype isa Union{<:AutoReverseDiff,<:AutoZygote,<:AutoMooncake,<:AutoEnzyme}
     ad_prob = if capability < LogDensityProblems.LogDensityOrder{1}()
         @warn "The capability of the provided log-density problem $(capability) is less than $(LogDensityProblems.LogDensityOrder{1}())" *
-            "Will attempt to directly differentiate through `LogDensityProblems.logdensity`." * "If this is not intended, please supply a log-density problem with cabality at least $(LogDensityProblems.LogDensityOrder{1}())"
+            "Will attempt to directly differentiate through `LogDensityProblems.logdensity`." *
+            "If this is not intended, please supply a log-density problem with cabality at least $(LogDensityProblems.LogDensityOrder{1}())"
         prob
     else
         MixedADLogDensityProblem(prob)
@@ -143,7 +144,7 @@ function estimate_gradient!(
     params,
     restructure,
     state,
-    args...
+    args...,
 )
     (; obj_ad_prep, problem) = state
     q_stop = restructure(params)

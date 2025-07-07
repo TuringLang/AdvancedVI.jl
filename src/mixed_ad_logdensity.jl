@@ -37,7 +37,9 @@ function LogDensityProblems.capabilities(mixedad_prob::MixedADLogDensityProblem)
 end
 
 function ChainRulesCore.rrule(
-    ::typeof(LogDensityProblems.logdensity), mixedad_prob::MixedADLogDensityProblem, x::AbstractArray
+    ::typeof(LogDensityProblems.logdensity),
+    mixedad_prob::MixedADLogDensityProblem,
+    x::AbstractArray,
 )
     ℓπ, ∇ℓπ = LogDensityProblems.logdensity_and_gradient(mixedad_prob.problem, x)
     function logdensity_pullback(∂y)
@@ -46,6 +48,3 @@ function ChainRulesCore.rrule(
     end
     return ℓπ, logdensity_pullback
 end
-
-
-

@@ -52,6 +52,7 @@ model = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y .^ 2));
 ```
 
 The algorithm we will use requires the target problem to have at least first-order differentiation capability.
+
 ```@example elboexample
 using LogDensityProblemsAD
 
@@ -117,7 +118,9 @@ Passing `objective` and the initial variational approximation `q` to `optimize` 
 
 ```@example elboexample
 n_max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(alg, n_max_iter, model_ad, q0_trans; show_progress=false);
+q_out, info, _ = AdvancedVI.optimize(
+    alg, n_max_iter, model_ad, q0_trans; show_progress=false
+);
 nothing
 ```
 

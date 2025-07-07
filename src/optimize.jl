@@ -64,9 +64,7 @@ function optimize(
     for t in 1:max_iter
         info = (iteration=t,)
 
-        state, terminate, info′ = step(
-            rng, algorithm, state, callback, args...; kwargs...
-        )
+        state, terminate, info′ = step(rng, algorithm, state, callback, args...; kwargs...)
         info = merge(info′, info)
 
         if terminate

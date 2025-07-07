@@ -31,7 +31,7 @@ function init(
     obj_ad_prep = AdvancedVI._prepare_gradient(
         estimate_scoregradelbo_ad_forward, adtype, params, aux
     )
-    return (obj_ad_prep=obj_ad_prep, problem=prob,)
+    return (obj_ad_prep=obj_ad_prep, problem=prob)
 end
 
 function Base.show(io::IO, obj::ScoreGradELBO)
@@ -86,7 +86,7 @@ function AdvancedVI.estimate_gradient!(
     params,
     restructure,
     state,
-    args...
+    args...,
 )
     q = restructure(params)
     (; obj_ad_prep, problem) = state

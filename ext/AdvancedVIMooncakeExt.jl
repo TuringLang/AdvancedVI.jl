@@ -4,6 +4,8 @@ using AdvancedVI
 using LogDensityProblems
 using Mooncake
 
-Mooncake.@from_rrule Mooncake.DefaultCtx Tuple{typeof(LogDensityProblems.logdensity), AdvancedVI.MixedADLogDensityProblem, AbstractVector}
+Mooncake.@from_rrule Mooncake.DefaultCtx Tuple{
+    typeof(LogDensityProblems.logdensity),AdvancedVI.MixedADLogDensityProblem,AbstractVector
+}
 
-end 
+end

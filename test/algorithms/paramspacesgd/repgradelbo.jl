@@ -7,11 +7,7 @@ AD_repgradelbo_interface = if TEST_GROUP == "Enzyme"
         ),
     ]
 else
-    [
-        AutoReverseDiff(),
-        AutoZygote(),
-        AutoMooncake(; config=Mooncake.Config()),
-    ]
+    [AutoReverseDiff(), AutoZygote(), AutoMooncake(; config=Mooncake.Config())]
 end
 
 @testset "interface RepGradELBO" begin
