@@ -39,12 +39,11 @@ begin
     ]
         max_iter = 10^4
         d = LogDensityProblems.dimension(prob)
-        optimizer = Optimisers.Adam(T(1e-3))
-        operator = ClipScale()
+        opt = Optimisers.Adam(T(1e-3))
 
-        for (objname, obj) in [
-                ("RepGradELBO", RepGradELBO(10)),
-                ("RepGradELBO + STL", RepGradELBO(10; entropy=StickingTheLandingEntropy())),
+        for (objname, entropy) in [
+                ("RepGradELBO", ClosedFormEntropy()),
+                ("RepGradELBO + STL", StickingTheLandingEntropy()),
             ],
             (adname, adtype) in [
                 ("Zygote", AutoZygote()),
@@ -64,17 +63,11 @@ begin
             b = Bijectors.bijector(prob)
             binv = inverse(b)
             q = Bijectors.TransformedDistribution(family, binv)
+            alg = KLMinRepGradDescent(adtype; optimizer=opt, entropy)
 
             SUITES[probname][objname][familyname][adname] = begin
                 @benchmarkable AdvancedVI.optimize(
-                    $prob,
-                    $obj,
-                    $q,
-                    $max_iter;
-                    adtype=$adtype,
-                    optimizer=$optimizer,
-                    operator=$operator,
-                    show_progress=false,
+                    $alg, $max_iter, $prob, $q; show_progress=false
                 )
             end
         end

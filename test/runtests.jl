@@ -25,6 +25,7 @@ using ForwardDiff, ReverseDiff, Zygote, Mooncake
 
 using AdvancedVI
 
+const PROGRESS = haskey(ENV, "PROGRESS")
 const TEST_GROUP = get(ENV, "TEST_GROUP", "All")
 
 if TEST_GROUP == "Enzyme"
@@ -43,20 +44,18 @@ end
 include("models/normal.jl")
 include("models/normallognormal.jl")
 
-if TEST_GROUP == "All" || TEST_GROUP == "Interface"
+if TEST_GROUP == "All" || TEST_GROUP == "General"
     # Interface tests that do not involve testing on Enzyme
-    include("interface/optimize.jl")
-    include("interface/rules.jl")
-    include("interface/averaging.jl")
-    include("interface/scoregradelbo.jl")
-    include("interface/clip_scale.jl")
-    include("interface/proximal_location_scale_entropy.jl")
+    include("general/optimize.jl")
+    include("general/rules.jl")
+    include("general/averaging.jl")
+    include("general/clip_scale.jl")
+    include("general/proximal_location_scale_entropy.jl")
 end
 
-if TEST_GROUP == "All" || TEST_GROUP == "Interface" || TEST_GROUP == "Enzyme"
+if TEST_GROUP == "All" || TEST_GROUP == "General" || TEST_GROUP == "Enzyme"
     # Interface tests that involve testing on Enzyme
-    include("interface/ad.jl")
-    include("interface/repgradelbo.jl")
+    include("general/ad.jl")
 end
 
 if TEST_GROUP == "All" || TEST_GROUP == "Families"
@@ -64,15 +63,15 @@ if TEST_GROUP == "All" || TEST_GROUP == "Families"
     include("families/location_scale_low_rank.jl")
 end
 
-const PROGRESS = haskey(ENV, "PROGRESS")
-
-if TEST_GROUP == "All" || TEST_GROUP == "Inference" || TEST_GROUP == "Enzyme"
-    include("inference/repgradelbo_distributionsad.jl")
-    include("inference/repgradelbo_locationscale.jl")
-    include("inference/repgradelbo_locationscale_bijectors.jl")
-    include("inference/repgradelbo_proximal_locationscale.jl")
-    include("inference/repgradelbo_proximal_locationscale_bijectors.jl")
-    include("inference/scoregradelbo_distributionsad.jl")
-    include("inference/scoregradelbo_locationscale.jl")
-    include("inference/scoregradelbo_locationscale_bijectors.jl")
+if TEST_GROUP == "All" || TEST_GROUP == "ParamSpaceSGD" || TEST_GROUP == "Enzyme"
+    include("algorithms/paramspacesgd/repgradelbo.jl")
+    include("algorithms/paramspacesgd/scoregradelbo.jl")
+    include("algorithms/paramspacesgd/repgradelbo_distributionsad.jl")
+    include("algorithms/paramspacesgd/repgradelbo_locationscale.jl")
+    include("algorithms/paramspacesgd/repgradelbo_locationscale_bijectors.jl")
+    include("algorithms/paramspacesgd/repgradelbo_proximal_locationscale.jl")
+    include("algorithms/paramspacesgd/repgradelbo_proximal_locationscale_bijectors.jl")
+    include("algorithms/paramspacesgd/scoregradelbo_distributionsad.jl")
+    include("algorithms/paramspacesgd/scoregradelbo_locationscale.jl")
+    include("algorithms/paramspacesgd/scoregradelbo_locationscale_bijectors.jl")
 end

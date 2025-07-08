@@ -32,31 +32,23 @@ end
         modelstats = modelconstr(rng, realtype)
         (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
+        μ0 = zeros(realtype, n_dims)
+        L0 = Diagonal(ones(realtype, n_dims))
+        q0 = TuringDiagMvNormal(μ0, diag(L0))
+
         T = 1000
         η = 1e-3
-        opt = Optimisers.Descent(η)
+        alg = KLMinRepGradDescent(adtype; operator=IdentityOperator(), optimizer=Descent(η))
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),
         # where ρ = 1 - ημ, μ is the strong convexity constant.
         contraction_rate = 1 - η * strong_convexity
 
-        μ0 = zeros(realtype, n_dims)
-        L0 = Diagonal(ones(realtype, n_dims))
-        q0 = TuringDiagMvNormal(μ0, diag(L0))
-
         @testset "convergence" begin
             Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
-            q_avg, _, stats, _ = optimize(
-                rng,
-                model,
-                objective,
-                q0,
-                T;
-                optimizer=opt,
-                show_progress=PROGRESS,
-                adtype=adtype,
-            )
+
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
 
             μ = mean(q_avg)
             L = sqrt(cov(q_avg))
@@ -69,30 +61,12 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, _, stats, _ = optimize(
-                rng,
-                model,
-                objective,
-                q0,
-                T;
-                optimizer=opt,
-                show_progress=PROGRESS,
-                adtype=adtype,
-            )
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
             μ = mean(q_avg)
             L = sqrt(cov(q_avg))
 
             rng_repl = StableRNG(seed)
-            q_avg, _, stats, _ = optimize(
-                rng_repl,
-                model,
-                objective,
-                q0,
-                T;
-                optimizer=opt,
-                show_progress=PROGRESS,
-                adtype=adtype,
-            )
+            q_avg, stats, _ = optimize(rng_repl, alg, T, model, q0; show_progress=PROGRESS)
             μ_repl = mean(q_avg)
             L_repl = sqrt(cov(q_avg))
             @test μ == μ_repl

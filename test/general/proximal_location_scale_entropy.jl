@@ -43,7 +43,7 @@
             # This unit test will check that this equation is satisfied.
 
             params, re = Optimisers.destructure(q)
-            opt_st = AdvancedVI.maybe_init_optimizer(NamedTuple(), optimizer, params)
+            opt_st = Optimisers.setup(optimizer, params)
             params′ = AdvancedVI.apply(
                 ProximalLocationScaleEntropy(), typeof(q), opt_st, params, re
             )

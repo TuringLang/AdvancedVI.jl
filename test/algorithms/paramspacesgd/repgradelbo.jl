@@ -27,18 +27,14 @@ end
 
     @testset "basic" begin
         @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
-            obj = RepGradELBO(n_montecarlo)
-            _, _, stats, _ = optimize(
-                rng,
-                model,
-                obj,
-                q0,
-                10;
-                optimizer=Descent(1e-5),
-                show_progress=false,
-                adtype=adtype,
+            alg = KLMinRepGradDescent(
+                adtype;
+                n_samples=n_montecarlo,
+                operator=IdentityOperator(),
+                averager=PolynomialAveraging(),
             )
-            @assert isfinite(last(stats).elbo)
+            _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
+            @assert isfinite(last(info).elbo)
         end
     end
 

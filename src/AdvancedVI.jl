@@ -1,3 +1,4 @@
+
 module AdvancedVI
 
 using Accessors
@@ -94,116 +95,6 @@ This is an indirection for handling the type stability of `restructure`, as some
 """
 restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restructure(params)
 
-# estimators
-"""
-    AbstractVariationalObjective
-
-Abstract type for the VI algorithms supported by `AdvancedVI`.
-
-# Implementations
-To be supported by `AdvancedVI`, a VI algorithm must implement `AbstractVariationalObjective` and `estimate_objective`.
-Also, it should provide gradients by implementing the function `estimate_gradient!`.
-If the estimator is stateful, it can implement `init` to initialize the state.
-"""
-abstract type AbstractVariationalObjective end
-
-"""
-    init(rng, obj, adtype, prob, params, restructure)
-
-Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
-This function needs to be implemented only if `obj` is stateful.
-
-# Arguments
-- `rng::Random.AbstractRNG`: Random number generator.
-- `obj::AbstractVariationalObjective`: Variational objective.
-` `adtype::ADTypes.AbstractADType`: Automatic differentiation backend.
-- `params`: Initial variational parameters.
-- `restructure`: Function that reconstructs the variational approximation from `λ`.
-"""
-init(
-    ::Random.AbstractRNG,
-    ::AbstractVariationalObjective,
-    ::ADTypes.AbstractADType,
-    ::Any,
-    ::Any,
-    ::Any,
-) = nothing
-
-"""
-    estimate_objective([rng,] obj, q, prob; kwargs...)
-
-Estimate the variational objective `obj` targeting `prob` with respect to the variational approximation `q`.
-
-# Arguments
-- `rng::Random.AbstractRNG`: Random number generator.
-- `obj::AbstractVariationalObjective`: Variational objective.
-- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
-- `q`: Variational approximation.
-
-# Keyword Arguments
-Depending on the objective, additional keyword arguments may apply.
-Please refer to the respective documentation of each variational objective for more info.
-
-# Returns
-- `obj_est`: Estimate of the objective value.
-"""
-function estimate_objective end
-
-export estimate_objective
-
-"""
-    estimate_gradient!(rng, obj, adtype, out, prob, params, restructure, obj_state)
-
-Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
-
-# Arguments
-- `rng::Random.AbstractRNG`: Random number generator.
-- `obj::AbstractVariationalObjective`: Variational objective.
-- `adtype::ADTypes.AbstractADType`: Automatic differentiation backend. 
-- `out::DiffResults.MutableDiffResult`: Buffer containing the objective value and gradient estimates. 
-- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
-- `params`: Variational parameters to evaluate the gradient on.
-- `restructure`: Function that reconstructs the variational approximation from `params`.
-- `obj_state`: Previous state of the objective.
-
-# Returns
-- `out::MutableDiffResult`: Buffer containing the objective value and gradient estimates.
-- `obj_state`: The updated state of the objective.
-- `stat::NamedTuple`: Statistics and logs generated during estimation.
-"""
-function estimate_gradient! end
-
-# ELBO-specific interfaces
-abstract type AbstractEntropyEstimator end
-
-"""
-    estimate_entropy(entropy_estimator, mc_samples, q, q_stop)
-
-Estimate the entropy of `q`.
-
-# Arguments
-- `entropy_estimator`: Entropy estimation strategy.
-- `q`: Variational approximation.
-- `q_stop`: Variational approximation with detached from the automatic differentiation graph.
-- `mc_samples`: Monte Carlo samples used to estimate the entropy. (Only used for Monte Carlo strategies.)
-
-# Returns
-- `obj_est`: Estimate of the objective value.
-"""
-function estimate_entropy end
-
-export RepGradELBO,
-    ScoreGradELBO,
-    ClosedFormEntropy,
-    StickingTheLandingEntropy,
-    MonteCarloEntropy,
-    ClosedFormEntropyZeroGradient,
-    StickingTheLandingEntropyZeroGradient
-
-include("objectives/elbo/entropy.jl")
-include("objectives/elbo/repgradelbo.jl")
-include("objectives/elbo/scoregradelbo.jl")
-
 # Variational Families
 export MvLocationScale, MeanFieldGaussian, FullRankGaussian
 
@@ -295,6 +186,64 @@ include("optimization/proximal_location_scale_entropy.jl")
 
 export IdentityOperator, ClipScale, ProximalLocationScaleEntropy
 
+# Algorithms
+
+"""
+    AbstractAlgorithm
+
+Abstract type for a variational inference algorithm.
+"""
+abstract type AbstractAlgorithm end
+
+"""
+    init(rng, alg, prob, q_init)
+
+Initialize `alg` given the initial variational approximation `q_init` and the target `prob`.
+
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `alg::AbstractAlgorithm`: Variational inference algorithm.
+- `prob`: Target problem.
+` `q_init`: Initial variational approximation.
+"""
+init(::Random.AbstractRNG, ::AbstractAlgorithm, ::Any, ::Any) = nothing
+
+"""
+    step(rng, alg, state, callback, objargs...; kwargs...)
+
+Perform a single step of `alg` given the previous `stat`.
+
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `alg::AbstractAlgorithm`: Variational inference algorithm.
+- `state`: Previous state of the algorithm.
+- `callback`: Callback function to be called during the step.
+
+# Returns
+- state: New state generated by performing the step.
+- terminate::Bool: Whether to terminate the algorithm after the step.
+- info::NamedTuple: Information generated during the step. 
+"""
+function step(
+    ::Random.AbstractRNG, ::AbstractAlgorithm, ::Any, callback, objargs...; kwargs...
+)
+    nothing
+end
+
+"""
+    output(alg, state)
+
+Generate an output variational approximation using the last `state` of `alg`.
+
+# Arguments
+- `alg::AbstractAlgorithm`: Variational inference algorithm used to compute the state.
+- `state`: The last state generated by the algorithm.
+
+# Returns
+- `out`: The output of the algorithm. 
+"""
+output(::AbstractAlgorithm, ::Any) = nothing
+
 # Main optimization routine
 function optimize end
 
@@ -302,5 +251,48 @@ export optimize
 
 include("utils.jl")
 include("optimize.jl")
+
+## Parameter Space SGD
+include("algorithms/paramspacesgd/abstractobjective.jl")
+include("algorithms/paramspacesgd/paramspacesgd.jl")
+
+export ParamSpaceSGD
+
+## Parameter Space SGD Implementations
+### ELBO Maximization
+
+abstract type AbstractEntropyEstimator end
+
+"""
+    estimate_entropy(entropy_estimator, mc_samples, q, q_stop)
+
+Estimate the entropy of `q`.
+
+# Arguments
+- `entropy_estimator`: Entropy estimation strategy.
+- `q`: Variational approximation.
+- `q_stop`: Variational approximation with detached from the automatic differentiation graph.
+- `mc_samples`: Monte Carlo samples used to estimate the entropy. (Only used for Monte Carlo strategies.)
+
+# Returns
+- `obj_est`: Estimate of the objective value.
+"""
+function estimate_entropy end
+
+include("algorithms/paramspacesgd/repgradelbo.jl")
+include("algorithms/paramspacesgd/scoregradelbo.jl")
+include("algorithms/paramspacesgd/entropy.jl")
+
+export RepGradELBO,
+    ScoreGradELBO,
+    ClosedFormEntropy,
+    StickingTheLandingEntropy,
+    MonteCarloEntropy,
+    ClosedFormEntropyZeroGradient,
+    StickingTheLandingEntropyZeroGradient
+
+include("algorithms/paramspacesgd/constructors.jl")
+
+export KLMinRepGradDescent, KLMinRepGradProxDescent, KLMinScoreGradDescent, ADVI, BBVI
 
 end

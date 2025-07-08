@@ -15,10 +15,8 @@ else
 end
 
 @testset "inference ScoreGradELBO DistributionsAD" begin
-    @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
-                                                                     [Float64, Float32],
+    @testset "$(modelname) $(realtype) $(adbackname)" for realtype in [Float64, Float32],
         (modelname, modelconstr) in Dict(:Normal => normal_meanfield),
-        (objname, objective) in Dict(:ScoreGradELBO => ScoreGradELBO(10)),
         (adbackname, adtype) in AD_scoregradelbo_distributionsad
 
         seed = (0x38bef07cf9cc549d)
@@ -30,6 +28,7 @@ end
         T = 1000
         η = 1e-4
         opt = Optimisers.Descent(η)
+        alg = KLMinScoreGradDescent(adtype; n_samples=10, optimizer=opt)
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),
@@ -42,16 +41,7 @@ end
 
         @testset "convergence" begin
             Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
-            q_avg, _, stats, _ = optimize(
-                rng,
-                model,
-                objective,
-                q0,
-                T;
-                optimizer=opt,
-                show_progress=PROGRESS,
-                adtype=adtype,
-            )
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
 
             μ = mean(q_avg)
             L = sqrt(cov(q_avg))
@@ -64,30 +54,12 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, _, stats, _ = optimize(
-                rng,
-                model,
-                objective,
-                q0,
-                T;
-                optimizer=opt,
-                show_progress=PROGRESS,
-                adtype=adtype,
-            )
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
             μ = mean(q_avg)
             L = sqrt(cov(q_avg))
 
             rng_repl = StableRNG(seed)
-            q_avg, _, stats, _ = optimize(
-                rng_repl,
-                model,
-                objective,
-                q0,
-                T;
-                optimizer=opt,
-                show_progress=PROGRESS,
-                adtype=adtype,
-            )
+            q_avg, stats, _ = optimize(rng_repl, alg, T, model, q0; show_progress=PROGRESS)
             μ_repl = mean(q_avg)
             L_repl = sqrt(cov(q_avg))
             @test μ ≈ μ_repl rtol = 1e-5

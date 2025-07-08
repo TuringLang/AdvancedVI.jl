@@ -2,39 +2,37 @@
 
 ## Overview
 
-The reparameterization gradient[^TL2014][^RMW2014][^KW2014] is an unbiased gradient estimator of the ELBO.
-Consider some variational family
+The `RepGradELBO` objective implements the reparameterization gradient estimator[^HC1983][^G1991][^R1992][^P1996] of the ELBO gradient.
+The reparameterization gradient, also known as the push-in gradient or the pathwise gradient, was introduced to VI in [^TL2014][^RMW2014][^KW2014].
+For the variational family $\mathcal{Q} = \{q_{\lambda} \mid \lambda \in \Lambda\}$, suppose the process of sampling from $q_{\lambda}$ can be described by some differentiable reparameterization function $$T_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
 
-```math
-\mathcal{Q} = \{q_{\lambda} \mid \lambda \in \Lambda \},
-```
-
-where $$\lambda$$ is the *variational parameters* of $$q_{\lambda}$$.
-If its sampling process can be described by some differentiable reparameterization function $$\mathcal{T}_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
-
+[^HC1983]: Ho, Y. C., & Cao, X. (1983). Perturbation analysis and optimization of queueing networks. Journal of optimization theory and Applications, 40(4), 559-582.
+[^G1991]: Glasserman, P. (1991). Gradient estimation via perturbation analysis (Vol. 116). Springer Science & Business Media.
+[^R1992]: Rubinstein, R. Y. (1992). Sensitivity analysis of discrete event systems by the “push out” method. Annals of Operations Research, 39(1), 229-250.
+[^P1996]: Pflug, G. C. (1996). Optimization of stochastic models: the interface between simulation and optimization (Vol. 373). Springer Science & Business Media.
+[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*.
+[^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*.
+[^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
-z \stackrel{d}{=} \mathcal{T}_{\lambda}\left(\epsilon\right);\quad \epsilon \sim \varphi
+z \stackrel{d}{=} T_{\lambda}\left(\epsilon\right);\quad \epsilon \sim \varphi \; .
 ```
 
-we can effectively estimate the gradient of the ELBO by directly differentiating
+In these cases, denoting the target log denstiy as $\log \pi$, we can effectively estimate the gradient of the ELBO by directly differentiating the stochastic estimate of the ELBO objective
 
 ```math
-  \widehat{\mathrm{ELBO}}\left(\lambda\right) = \frac{1}{M}\sum^M_{m=1} \log \pi\left(\mathcal{T}_{\lambda}\left(\epsilon_m\right)\right) + \mathbb{H}\left(q_{\lambda}\right),
+  \widehat{\mathrm{ELBO}}\left(\lambda\right) = \frac{1}{M}\sum^M_{m=1} \log \pi\left(T_{\lambda}\left(\epsilon_m\right)\right) + \mathbb{H}\left(q_{\lambda}\right),
 ```
 
-where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples, with respect to $$\lambda$$.
-This estimator is called the reparameterization gradient estimator.
+where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples.
+The resulting gradient estimate is called the reparameterization gradient estimator.
 
 In addition to the reparameterization gradient, `AdvancedVI` provides the following features:
 
  1. **Posteriors with constrained supports** are handled through [`Bijectors`](https://github.com/TuringLang/Bijectors.jl), which is known as the automatic differentiation VI (ADVI; [^KTRGB2017]) formulation. (See [this section](@ref bijectors).)
  2. **The gradient of the entropy** can be estimated through various strategies depending on the capabilities of the variational family. (See [this section](@ref entropygrad).)
 
-[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*.
-[^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*.
-[^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-## The `RepGradELBO` Objective
+## `RepGradELBO`
 
 To use the reparameterization gradient, `AdvancedVI` provides the following variational objective:
 
@@ -120,8 +118,6 @@ The main downside of the STL estimator is that it needs to evaluate and differen
 Depending on the variational family, this might be computationally inefficient or even numerically unstable.
 For example, if ``q_{\lambda}`` is a Gaussian with a full-rank covariance, a back-substitution must be performed at every step, making the per-iteration complexity ``\mathcal{O}(d^3)`` and reducing numerical stability.
 
-The STL control variate can be used by changing the entropy estimator using the following object:
-
 ```@setup repgradelbo
 using Bijectors
 using FillArrays
@@ -188,16 +184,18 @@ binv = inverse(b)
 
 q0_trans = Bijectors.TransformedDistribution(q0, binv)
 
-cfe = AdvancedVI.RepGradELBO(n_montecarlo)
+cfe = KLMinRepGradDescent(
+    AutoForwardDiff(); entropy=ClosedFormEntropy(), optimizer=Adam(1e-2)
+)
 nothing
 ```
 
 The repgradelbo estimator can instead be created as follows:
 
 ```@example repgradelbo
-repgradelbo = AdvancedVI.RepGradELBO(
-    n_montecarlo; entropy=AdvancedVI.StickingTheLandingEntropy()
-);
+stl = KLMinRepGradDescent(
+    AutoForwardDiff(); entropy=StickingTheLandingEntropy(), optimizer=Adam(1e-2)
+)
 nothing
 ```
 
@@ -211,35 +209,29 @@ function callback(; params, restructure, kwargs...)
     (dist = sqrt(dist2),)
 end
 
-_, _, stats_cfe, _ = AdvancedVI.optimize(
-    model,
+_, info_cfe, _ = AdvancedVI.optimize(
     cfe,
-    q0_trans,
-    max_iter;
-    show_progress = false,
-    adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(3e-3),
-    operator      = ClipScale(),
-    callback      = callback,
-); 
-
-_, _, stats_stl, _ = AdvancedVI.optimize(
+    max_iter,
     model,
-    repgradelbo,
-    q0_trans,
-    max_iter;
+    q0_trans;
     show_progress = false,
-    adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(3e-3),
-    operator      = ClipScale(),
     callback      = callback,
 ); 
 
-t        = [stat.iteration for stat in stats_cfe]
-elbo_cfe = [stat.elbo      for stat in stats_cfe]
-elbo_stl = [stat.elbo      for stat in stats_stl]
-dist_cfe = [stat.dist      for stat in stats_cfe]
-dist_stl = [stat.dist      for stat in stats_stl]
+_, info_stl, _ = AdvancedVI.optimize(
+    stl,
+    max_iter,
+    model,
+    q0_trans;
+    show_progress = false,
+    callback      = callback,
+); 
+
+t        = [i.iteration for i in info_cfe]
+elbo_cfe = [i.elbo      for i in info_cfe]
+elbo_stl = [i.elbo      for i in info_stl]
+dist_cfe = [i.dist      for i in info_cfe]
+dist_stl = [i.dist      for i in info_stl]
 plot( t, elbo_cfe, label="BBVI CFE", xlabel="Iteration", ylabel="ELBO")
 plot!(t, elbo_stl, label="BBVI STL", xlabel="Iteration", ylabel="ELBO")
 savefig("advi_stl_elbo.svg")
@@ -309,23 +301,18 @@ nothing
 (Note that this is a quick-and-dirty example, and there are more sophisticated ways to implement this.)
 
 ```@setup repgradelbo
-repgradelbo = AdvancedVI.RepGradELBO(n_montecarlo);
-
-_, _, stats_qmc, _ = AdvancedVI.optimize(
+_, info_qmc, _ = AdvancedVI.optimize(
+    KLMinRepGradDescent(AutoForwardDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2)),
+    max_iter,
     model,
-    repgradelbo,
-    q0_trans,
-    max_iter;
+    q0_trans;
     show_progress = false,
-    adtype        = AutoForwardDiff(),
-    optimizer     = Optimisers.Adam(3e-3),
-    operator      = ClipScale(),
     callback      = callback,
 ); 
 
-t        = [stat.iteration for stat in stats_qmc]
-elbo_qmc = [stat.elbo      for stat in stats_qmc]
-dist_qmc = [stat.dist      for stat in stats_qmc]
+t        = [i.iteration for i in info_qmc]
+elbo_qmc = [i.elbo      for i in info_qmc]
+dist_qmc = [i.dist      for i in info_qmc]
 plot( t, elbo_cfe, label="BBVI CFE",     xlabel="Iteration", ylabel="ELBO")
 plot!(t, elbo_qmc, label="BBVI CFE QMC", xlabel="Iteration", ylabel="ELBO")
 savefig("advi_qmc_elbo.svg")

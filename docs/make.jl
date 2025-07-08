@@ -2,6 +2,10 @@
 using AdvancedVI
 using Documenter
 
+# Necessary for invoking the docstring specializations
+using Random
+using ADTypes
+
 DocMeta.setdocmeta!(AdvancedVI, :DocTestSetup, :(using AdvancedVI); recursive=true)
 
 makedocs(;
@@ -13,9 +17,18 @@ makedocs(;
         "AdvancedVI" => "index.md",
         "General Usage" => "general.md",
         "Examples" => "examples.md",
-        "ELBO Maximization" => [
-            "Overview" => "elbo/overview.md",
-            "Reparameterization Gradient Estimator" => "elbo/repgradelbo.md",
+        "Algorithms" => [
+            "KLMinRepGradDescent" => "paramspacesgd/klminrepgraddescent.md",
+            "KLMinRepGradProxDescent" => "paramspacesgd/klminrepgradproxdescent.md",
+            "KLMinScoreGradDescent" => "paramspacesgd/klminscoregraddescent.md",
+            "Parameter Space SGD" => [
+                "General" => "paramspacesgd/general.md",
+                "Objectives" => [
+                    "Overview" => "paramspacesgd/objectives.md",
+                    "RepGradELBO" => "paramspacesgd/repgradelbo.md",
+                    "ScoreGradELBO" => "paramspacesgd/scoregradelbo.md",
+                ],
+            ],
         ],
         "Variational Families" => "families.md",
         "Optimization" => "optimization.md",
