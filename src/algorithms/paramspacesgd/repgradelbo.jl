@@ -13,7 +13,7 @@ Evidence lower-bound objective with the reparameterization gradient formulation[
 # Requirements
 - The variational approximation ``q_{\\lambda}`` implements `rand`.
 - The target distribution and the variational approximation have the same support.
-- The target `logdensity(prob, x)` must be differentiable with respect to `x` by the selected AD backend.
+- The target `LogDensityProblems.logdensity(prob, x)` must be differentiable with respect to `x` by the selected AD backend.
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
 """

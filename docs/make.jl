@@ -17,12 +17,17 @@ makedocs(;
         "AdvancedVI" => "index.md",
         "General Usage" => "general.md",
         "Examples" => "examples.md",
-        "Parameter Space SGD" => [
-            "General" => "paramspacesgd/general.md",
-            "Objectives" => [
-                "Overview" => "paramspacesgd/objectives.md",
-                "RepGradELBO" => "paramspacesgd/repgradelbo.md",
-                "ScoreGradELBO" => "paramspacesgd/scoregradelbo.md",
+        "Algorithms" => [
+            "KLMinRepGradDescent" => "paramspacesgd/klminrepgraddescent.md",
+            "KLMinRepGradProxDescent" => "paramspacesgd/klminrepgradproxdescent.md",
+            "KLMinScoreGradDescent" => "paramspacesgd/klminscoregraddescent.md",
+            "Parameter Space SGD" => [
+                "General" => "paramspacesgd/general.md",
+                "Objectives" => [
+                    "Overview" => "paramspacesgd/objectives.md",
+                    "RepGradELBO" => "paramspacesgd/repgradelbo.md",
+                    "ScoreGradELBO" => "paramspacesgd/scoregradelbo.md",
+                ],
             ],
         ],
         "Variational Families" => "families.md",

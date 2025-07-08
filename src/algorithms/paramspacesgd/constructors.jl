@@ -14,6 +14,12 @@ KL divergence minimization by running stochastic gradient descent with the repar
 - `averager::AbstractAverager`: Parameter averaging strategy. 
 - `operator::Union{<:IdentityOperator, <:ClipScale}`: Operator to be applied after each gradient descent step. (default: `ClipScale()`)
 
+# Requirements
+- The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`. This requires the variational approximation to be marked as a functor through `Functors.@functor`.
+- The variational approximation ``q_{\\lambda}`` implements `rand`.
+- The target distribution and the variational approximation have the same support.
+- The target `LogDensityProblems.logdensity(prob, x)` must be differentiable with respect to `x` by the selected AD backend.
+- Additonal requirements on `q` may apply depending on the choice of `entropy`.
 """
 function KLMinRepGradDescent(
     adtype::ADTypes.AbstractADType;
@@ -46,6 +52,12 @@ Thus, only the entropy estimators with a "ZeroGradient" suffix are allowed.
 - `optimizer::Optimisers.AbstractRule`: Optimization algorithm to be used. Only `DoG`, `DoWG` and `Optimisers.Descent` are supported. (default: `DoWG()`)
 - `n_samples::Int`: Number of Monte Carlo samples to be used for estimating each gradient.
 - `averager::AbstractAverager`: Parameter averaging strategy. (default: `PolynomialAveraging()`)
+
+# Requirements
+- The variational family is `MvLocationScale`.
+- The target distribution and the variational approximation have the same support.
+- The target `LogDensityProblems.logdensity(prob, x)` must be differentiable with respect to `x` by the selected AD backend.
+- Additonal requirements on `q` may apply depending on the choice of `entropy_zerograd`.
 """
 function KLMinRepGradProxDescent(
     adtype::ADTypes.AbstractADType;
@@ -74,6 +86,12 @@ KL divergence minimization by running stochastic gradient descent with the score
 - `n_samples::Int`: Number of Monte Carlo samples to be used for estimating each gradient.
 - `averager::AbstractAverager`: Parameter averaging strategy. (default: `PolynomialAveraging()`)
 - `operator::Union{<:IdentityOperator, <:ClipScale}`: Operator to be applied after each gradient descent step. (default: `ClipScale()`)
+
+# Requirements
+- The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`. This requires the variational approximation to be marked as a functor through `Functors.@functor`.
+- The variational approximation ``q_{\\lambda}`` implements `rand`.
+- The variational approximation ``q_{\\lambda}`` implements `logpdf(q, x)`, which should also be differentiable with respect to `x`.
+- The target distribution and the variational approximation have the same support.
 """
 function KLMinScoreGradDescent(
     adtype::ADTypes.AbstractADType;
@@ -85,3 +103,5 @@ function KLMinScoreGradDescent(
     objective = ScoreGradELBO(n_samples)
     return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
 end
+
+const BBVI = KLMinScoreGradDescent
