@@ -27,7 +27,7 @@ end
 
     @testset "basic" begin
         @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
-            alg = BBVIRepGrad(
+            alg = KLMinRepGradDescent(
                 adtype;
                 n_samples=n_montecarlo,
                 operator=IdentityOperator(),

@@ -38,7 +38,7 @@ end
 
         T = 1000
         η = 1e-3
-        alg = BBVIRepGrad(adtype; operator=IdentityOperator(), optimizer=Descent(η))
+        alg = KLMinRepGradDescent(adtype; operator=IdentityOperator(), optimizer=Descent(η))
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),

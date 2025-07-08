@@ -35,7 +35,7 @@ end
 
         T = 1000
         η = 1e-3
-        alg = BBVIRepGradProxLocScale(adtype; optimizer=Descent(η))
+        alg = KLMinRepGradProxDescent(adtype; optimizer=Descent(η))
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)
