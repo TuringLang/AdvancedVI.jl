@@ -22,12 +22,8 @@ end
 
     @testset "basic" begin
         @testset for adtype in AD_scoregradelbo_interface, n_montecarlo in [1, 10]
-            alg = ParamSpaceSGD(
-                ScoreGradELBO(n_montecarlo),
-                adtype,
-                Descent(1e-5),
-                PolynomialAveraging(),
-                IdentityOperator(),
+            alg = KLMinScoreGradDescent(
+                adtype; n_samples=n_montecarlo, optimizer=Descent(1e-5)
             )
             _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
             @assert isfinite(last(info).elbo)

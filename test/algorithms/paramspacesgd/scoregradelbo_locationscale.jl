@@ -16,11 +16,9 @@ else
 end
 
 @testset "inference ScoreGradELBO VILocationScale" begin
-    @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
-                                                                     [Float64, Float32],
+    @testset "$(modelname) $(realtype) $(adbackname)" for realtype in [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:Normal => normal_meanfield, :Normal => normal_fullrank),
-        (objname, objective) in Dict(:ScoreGradELBO => ScoreGradELBO(10)),
         (adbackname, adtype) in AD_scoregradelbo_locationscale
 
         seed = (0x38bef07cf9cc549d)
@@ -32,9 +30,7 @@ end
         T = 1000
         η = 1e-4
         opt = Optimisers.Descent(η)
-        op = ClipScale()
-        avg = PolynomialAveraging()
-        alg = ParamSpaceSGD(objective, adtype, opt, avg, op)
+        alg = KLMinScoreGradDescent(adtype; n_samples=10, optimizer=opt)
 
         q0 = if is_meanfield
             MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))
