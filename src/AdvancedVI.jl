@@ -293,6 +293,6 @@ export RepGradELBO,
 
 include("algorithms/paramspacesgd/constructors.jl")
 
-export BBVIRepGrad, BBVIRepGradProxLocScale
+export KLMinRepGradDescent, KLMinRepGradProxDescent, ADVI
 
 end

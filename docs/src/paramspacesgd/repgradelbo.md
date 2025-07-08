@@ -184,14 +184,16 @@ binv = inverse(b)
 
 q0_trans = Bijectors.TransformedDistribution(q0, binv)
 
-cfe = BBVIRepGrad(AutoForwardDiff(); entropy=ClosedFormEntropy(), optimizer=Adam(1e-2))
+cfe = KLMinRepGradDescent(
+    AutoForwardDiff(); entropy=ClosedFormEntropy(), optimizer=Adam(1e-2)
+)
 nothing
 ```
 
 The repgradelbo estimator can instead be created as follows:
 
 ```@example repgradelbo
-stl = BBVIRepGrad(
+stl = KLMinRepGradDescent(
     AutoForwardDiff(); entropy=StickingTheLandingEntropy(), optimizer=Adam(1e-2)
 )
 nothing
@@ -300,7 +302,7 @@ nothing
 
 ```@setup repgradelbo
 _, info_qmc, _ = AdvancedVI.optimize(
-    BBVIRepGrad(AutoForwardDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2)),
+    KLMinRepGradDescent(AutoForwardDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2)),
     max_iter,
     model,
     q0_trans;
