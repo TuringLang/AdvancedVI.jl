@@ -33,7 +33,7 @@ end
 
         T = 1000
         η = 1e-3
-        alg = BBVIRepGrad(adtype; optimizer=Descent(η))
+        alg = KLMinRepGradDescent(adtype; optimizer=Descent(η))
 
         model_ad = ADgradient(AutoForwardDiff(), model)
 
@@ -71,6 +71,7 @@ end
         @testset "determinism" begin
             rng = StableRNG(seed)
             q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0_z; show_progress=PROGRESS)
+
             μ = q_avg.dist.location
             L = q_avg.dist.scale
 

@@ -35,7 +35,8 @@ end
 
         T = 1000
         η = 1e-3
-        alg = BBVIRepGrad(adtype; optimizer=Descent(η))
+
+        alg = KLMinRepGradDescent(adtype; optimizer=Descent(η))
 
         q0 = if is_meanfield
             MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))
@@ -65,6 +66,7 @@ end
         @testset "determinism" begin
             rng = StableRNG(seed)
             q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0; show_progress=PROGRESS)
+
             μ = q_avg.location
             L = q_avg.scale
 

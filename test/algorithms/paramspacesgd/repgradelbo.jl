@@ -23,7 +23,7 @@ end
     @testset "basic" begin
         @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
             model_ad = ADgradient(AutoForwardDiff(), model)
-            alg = BBVIRepGrad(
+            alg = KLMinRepGradDescent(
                 adtype;
                 n_samples=n_montecarlo,
                 operator=IdentityOperator(),

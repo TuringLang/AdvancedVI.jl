@@ -55,8 +55,9 @@ The algorithm we will use requires the target problem to have at least first-ord
 
 ```@example elboexample
 using LogDensityProblemsAD
+using ADTypes, ReverseDiff
 
-model_ad = ADgradient(AutoForwardDiff(), model)
+model_ad = ADgradient(AutoReverseDiff(), model)
 nothing
 ```
 
@@ -86,7 +87,6 @@ Here, we will use `ForwardDiff`, which can be selected by later passing `ADTypes
 
 ```@example elboexample
 using Optimisers
-using ADTypes, ForwardDiff, ReverseDiff
 using AdvancedVI
 ```
 
@@ -94,7 +94,7 @@ We now need to select 1. a variational objective, and 2. a variational family.
 Here, we will use the [`RepGradELBO` objective](@ref repgradelbo), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
 
 ```@example elboexample
-alg = BBVIRepGrad(AutoReverseDiff())
+alg = KLMinRepGradDescent(AutoReverseDiff())
 ```
 
 For the variational family, we will use the classic mean-field Gaussian family.
