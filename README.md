@@ -82,18 +82,15 @@ We can perform VI with stochastic gradient descent (SGD) using reparameterizatio
 
 ```julia
 using Optimisers
-using ADTypes, ForwardDiff
+using ADTypes, ReverseDiff
 using AdvancedVI
 
-# ELBO objective with the reparameterization gradient
-n_montecarlo = 10
-elbo = AdvancedVI.RepGradELBO(n_montecarlo)
+# ELBO maximization via stochastic gradient descent with the reparameterization gradient
+alg = KLMinRepGradDescent(AutoReverseDiff())
 
 # Mean-field Gaussian variational family
 d = LogDensityProblems.dimension(model)
-μ = zeros(d)
-L = Diagonal(ones(d))
-q = AdvancedVI.MeanFieldGaussian(μ, L)
+q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)))
 
 # Match support by applying the `model`'s inverse bijector
 b = Bijectors.bijector(model)
@@ -102,18 +99,12 @@ q_transformed = Bijectors.TransformedDistribution(q, binv)
 
 # Run inference
 max_iter = 10^3
-q_avg, _, stats, _ = AdvancedVI.optimize(
+q_avg, info, _ = AdvancedVI.optimize(
+    alg,
+    max_iter,
     model,
-    elbo,
-    q_transformed,
-    max_iter;
-    adtype=ADTypes.AutoForwardDiff(),
-    optimizer=Optimisers.Adam(1e-3),
-    operator=ClipScale(),
+    q_transformed;
 )
-
-# Evaluate final ELBO with 10^3 Monte Carlo samples
-estimate_objective(elbo, q_avg, model; n_samples=10^4)
 ```
 
 For more examples and details, please refer to the documentation.
