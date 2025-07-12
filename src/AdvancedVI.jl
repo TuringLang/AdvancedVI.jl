@@ -18,6 +18,7 @@ using LogDensityProblems
 using ADTypes
 using DiffResults
 using DifferentiationInterface
+using ChainRulesCore
 
 using FillArrays
 
@@ -94,6 +95,8 @@ This is an indirection for handling the type stability of `restructure`, as some
 - `params`: Variational Parameters.
 """
 restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restructure(params)
+
+include("mixed_ad_logdensity.jl")
 
 # Variational Families
 export MvLocationScale, MeanFieldGaussian, FullRankGaussian
