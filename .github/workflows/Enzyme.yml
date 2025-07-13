@@ -1,4 +1,4 @@
-name: Enzyme
+name: AD
 on:
   push:
     branches:
@@ -14,9 +14,6 @@ concurrency:
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
-    env: 
-      GROUP: AD
-      AD: Enzyme
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -30,6 +27,11 @@ jobs:
           - windows-latest
         arch:
           - x64
+        AD:
+          - Enzyme
+          - ReverseDiff
+          - Zygote
+          - Mooncake
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
@@ -39,3 +41,10 @@ jobs:
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        env:
+          GROUP: AD
+          AD: ${{ matrix.AD }}
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v3
+        with:
+          files: lcov.info
