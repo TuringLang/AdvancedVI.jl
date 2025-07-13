@@ -96,7 +96,7 @@ This is an indirection for handling the type stability of `restructure`, as some
 """
 restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restructure(params)
 
-include("mixed_ad_logdensity.jl")
+include("mixedad_logdensity.jl")
 
 # Variational Families
 export MvLocationScale, MeanFieldGaussian, FullRankGaussian
