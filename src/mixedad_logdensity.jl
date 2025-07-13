@@ -29,7 +29,7 @@ end
 function LogDensityProblems.logdensity_gradient_and_hessian(
     mixedad_prob::MixedADLogDensityProblem, x::AbstractArray
 )
-    return LogDensityProblems.logdensity_and_gradient(mixedad_prob.problem, x)
+    return LogDensityProblems.logdensity_gradient_and_hessian(mixedad_prob.problem, x)
 end
 
 function LogDensityProblems.capabilities(mixedad_prob::MixedADLogDensityProblem)

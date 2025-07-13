@@ -62,13 +62,14 @@ if GROUP == "All" || GROUP == "General"
     include("general/proximal_location_scale_entropy.jl")
 end
 
+if GROUP == "All" || GROUP == "General" || GROUP == "AD"
+    include("general/ad.jl")
+    include("general/mixedad_logdensity.jl")
+end
+
 if GROUP == "All" || GROUP == "Families"
     include("families/location_scale.jl")
     include("families/location_scale_low_rank.jl")
-end
-
-if GROUP == "All" || GROUP == "General" || GROUP == "AD"
-    include("general/ad.jl")
 end
 
 if GROUP == "All" || GROUP == "ParamSpaceSGD" || GROUP == "AD"
