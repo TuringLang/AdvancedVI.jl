@@ -8,7 +8,7 @@ using Bijectors
 using DiffResults
 using Distributions
 using FillArrays
-using ForwardDiff, ReverseDiff
+using ForwardDiff
 using LinearAlgebra
 using LogDensityProblems, LogDensityProblemsAD
 using Optimisers
@@ -23,6 +23,7 @@ using AdvancedVI
 AD_str = get(ENV, "AD", "ReverseDiff")
 
 const AD = if AD_str == "ReverseDiff"
+    using ReverseDiff
     AutoReverseDiff()
 elseif AD_str == "Mooncake"
     using Mooncake
