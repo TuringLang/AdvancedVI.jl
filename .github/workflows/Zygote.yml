@@ -1,0 +1,16 @@
+name: Zygote Integration 
+on:
+  push:
+    branches:
+      - main
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    uses: ./.github/workflows/AutoDiffIntegration.yml
+    with:
+      AD: Zygote
+    secrets:
+      personal_access_token: ${{ secrets.token }}
