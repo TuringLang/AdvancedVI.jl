@@ -20,17 +20,17 @@ using StatsBase
 
 using AdvancedVI
 
-AD_str = get(ENV, "AD", "ReverseDiff") 
+AD_str = get(ENV, "AD", "ReverseDiff")
 
 const AD = if AD_str == "ReverseDiff"
     AutoReverseDiff()
-elseif AD_str
+elseif AD_str == "Mooncake"
     using Mooncake
     AutoMooncake(; config=Mooncake.Config())
-elseif AD_str
+elseif AD_str == "Zygote"
     using Zygote
     AutoZygote()
-elseif AD_str
+elseif AD_str == "Enzyme"
     using Enzyme
     AutoEnzyme()
 end
