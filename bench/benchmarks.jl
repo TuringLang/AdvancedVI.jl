@@ -50,7 +50,13 @@ begin
                 ("Zygote", AutoZygote()),
                 ("Mooncake", AutoMooncake(; config=Mooncake.Config())),
                 ("ReverseDiff", AutoReverseDiff()),
-                ("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),
+                (
+                    "Enzyme",
+                    AutoEnzyme(;
+                        mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+                        function_annotation=Enzyme.Const,
+                    ),
+                ),
             ],
             (familyname, family) in [
                 ("meanfield", MeanFieldGaussian(zeros(T, d), Diagonal(ones(T, d)))),
