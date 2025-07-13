@@ -8,10 +8,10 @@
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
     q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
+    model_ad = ADgradient(AutoForwardDiff(), model)
 
     @testset "basic" begin
         @testset for n_montecarlo in [1, 10]
-            model_ad = ADgradient(AutoForwardDiff(), model)
             alg = KLMinRepGradDescent(
                 AD;
                 n_samples=n_montecarlo,
@@ -19,7 +19,7 @@
                 averager=PolynomialAveraging(),
             )
             _, info, _ = optimize(rng, alg, 10, model_ad, q0; show_progress=false)
-            @assert isfinite(last(info).elbo)
+            @test isfinite(last(info).elbo)
         end
     end
 
@@ -32,7 +32,7 @@
                 averager=PolynomialAveraging(),
             )
             _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
-            @assert isfinite(last(info).elbo)
+            @test isfinite(last(info).elbo)
         end
     end
 

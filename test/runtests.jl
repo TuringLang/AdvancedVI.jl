@@ -60,11 +60,11 @@ if GROUP == "All" || GROUP == "General"
     include("general/averaging.jl")
     include("general/clip_scale.jl")
     include("general/proximal_location_scale_entropy.jl")
+    include("general/mixedad_logdensity.jl")
 end
 
 if GROUP == "All" || GROUP == "General" || GROUP == "AD"
     include("general/ad.jl")
-    include("general/mixedad_logdensity.jl")
 end
 
 if GROUP == "All" || GROUP == "Families"
