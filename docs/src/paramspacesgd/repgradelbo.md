@@ -231,7 +231,7 @@ _, info_stl, _ = AdvancedVI.optimize(
 _, info_stl, _ = AdvancedVI.optimize(
     stl,
     max_iter,
-    model,
+    model_ad,
     q0_trans;
     show_progress = false,
     callback      = callback,
