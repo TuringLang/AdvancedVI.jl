@@ -11,9 +11,7 @@
 
     @testset "basic" begin
         @testset for n_montecarlo in [1, 10]
-            alg = KLMinScoreGradDescent(
-                AD; n_samples=n_montecarlo, optimizer=Descent(1e-5)
-            )
+            alg = KLMinScoreGradDescent(AD; n_samples=n_montecarlo, optimizer=Descent(1e-5))
             _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
             @assert isfinite(last(info).elbo)
         end
