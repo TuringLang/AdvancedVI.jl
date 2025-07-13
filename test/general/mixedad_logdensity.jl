@@ -21,8 +21,12 @@ function LogDensityProblems.logdensity_gradient_and_hessian(::MixedADTestModel, 
     return (Float64(ℯ), [1.0, 2.0, 3.0], [1.0 1.0 1.0; 2.0 2.0 2.0; 3.0 3.0 3.0])
 end
 
-function mixedad_prob_test_ad_fwd(x, aux)
-    return LogDensityProblems.logdensity(aux.model, x)
+@eval AdvancedVI begin
+    using LogDensityProblems
+
+    function mixedad_prob_test_ad_fwd(x, aux)
+        return LogDensityProblems.logdensity(aux.model, x)
+    end
 end
 
 @testset "interface MixedADLogDensityProblem" begin
@@ -41,6 +45,8 @@ end
         last(LogDensityProblems.logdensity_gradient_and_hessian(model_ad, x))
 
     buf = DiffResults.DiffResult(zero(Float64), zeros(d))
-    AdvancedVI._value_and_gradient!(mixedad_prob_test_ad_fwd, buf, AD, x, (model=model_ad,))
+    AdvancedVI._value_and_gradient!(
+        AdvancedVI.mixedad_prob_test_ad_fwd, buf, AD, x, (model=model_ad,)
+    )
     @test DiffResults.gradient(buf) ≈ [1, 2, 3]
 end
