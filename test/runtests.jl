@@ -32,7 +32,10 @@ elseif AD_str == "Zygote"
     AutoZygote()
 elseif AD_str == "Enzyme"
     using Enzyme
-    AutoEnzyme()
+    AutoEnzyme(;
+        mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+        function_annotation=Enzyme.Const,
+    )
 end
 
 const PROGRESS = haskey(ENV, "PROGRESS")
