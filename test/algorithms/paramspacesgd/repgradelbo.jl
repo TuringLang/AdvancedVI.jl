@@ -23,6 +23,19 @@
         end
     end
 
+    @testset "without mixed ad" begin
+        @testset for n_montecarlo in [1, 10]
+            alg = KLMinRepGradDescent(
+                AD;
+                n_samples=n_montecarlo,
+                operator=IdentityOperator(),
+                averager=PolynomialAveraging(),
+            )
+            _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
+            @assert isfinite(last(info).elbo)
+        end
+    end
+
     obj = RepGradELBO(10)
     rng = StableRNG(seed)
     elbo_ref = estimate_objective(rng, obj, q0, model; n_samples=10^4)
