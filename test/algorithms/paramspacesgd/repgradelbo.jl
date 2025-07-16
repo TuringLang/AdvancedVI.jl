@@ -1,20 +1,4 @@
 
-AD_repgradelbo_interface = if TEST_GROUP == "Enzyme"
-    [
-        AutoEnzyme(;
-            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
-            function_annotation=Enzyme.Const,
-        ),
-    ]
-else
-    [
-        AutoForwardDiff(),
-        AutoReverseDiff(),
-        AutoZygote(),
-        AutoMooncake(; config=Mooncake.Config()),
-    ]
-end
-
 @testset "interface RepGradELBO" begin
     seed = (0x38bef07cf9cc549d)
     rng = StableRNG(seed)
@@ -24,17 +8,31 @@ end
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
     q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
+    model_ad = ADgradient(AutoForwardDiff(), model)
 
     @testset "basic" begin
-        @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
+        @testset for n_montecarlo in [1, 10]
             alg = KLMinRepGradDescent(
-                adtype;
+                AD;
+                n_samples=n_montecarlo,
+                operator=IdentityOperator(),
+                averager=PolynomialAveraging(),
+            )
+            _, info, _ = optimize(rng, alg, 10, model_ad, q0; show_progress=false)
+            @test isfinite(last(info).elbo)
+        end
+    end
+
+    @testset "without mixed ad" begin
+        @testset for n_montecarlo in [1, 10]
+            alg = KLMinRepGradDescent(
+                AD;
                 n_samples=n_montecarlo,
                 operator=IdentityOperator(),
                 averager=PolynomialAveraging(),
             )
             _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
-            @assert isfinite(last(info).elbo)
+            @test isfinite(last(info).elbo)
         end
     end
 
@@ -61,7 +59,10 @@ end
     modelstats = normal_meanfield(rng, Float64)
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
+    model_ad = ADgradient(AutoForwardDiff(), model)
+    mixed_ad = AdvancedVI.MixedADLogDensityProblem(model_ad)
+
+    @testset for n_montecarlo in [1, 10]
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
@@ -69,11 +70,9 @@ end
         obj = RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy())
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
-        aux = (
-            rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=adtype
-        )
+        aux = (rng=rng, obj=obj, problem=mixed_ad, restructure=re, q_stop=q_true, adtype=AD)
         AdvancedVI._value_and_gradient!(
-            AdvancedVI.estimate_repgradelbo_ad_forward, out, adtype, params, aux
+            AdvancedVI.estimate_repgradelbo_ad_forward, out, AD, params, aux
         )
         grad = DiffResults.gradient(out)
         @test norm(grad) ≈ 0 atol = 1e-5

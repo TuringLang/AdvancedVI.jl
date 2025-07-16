@@ -45,7 +45,7 @@ function optimize(
     max_iter::Int,
     prob,
     q_init,
-    objargs...;
+    args...;
     show_progress::Bool=true,
     state::Union{<:Any,Nothing}=nothing,
     callback=nothing,
@@ -64,9 +64,7 @@ function optimize(
     for t in 1:max_iter
         info = (iteration=t,)
 
-        state, terminate, info′ = step(
-            rng, algorithm, state, callback, objargs...; kwargs...
-        )
+        state, terminate, info′ = step(rng, algorithm, state, callback, args...; kwargs...)
         info = merge(info′, info)
 
         if terminate

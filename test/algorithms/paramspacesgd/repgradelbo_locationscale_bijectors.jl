@@ -1,30 +1,13 @@
-AD_repgradelbo_locationscale_bijectors = if TEST_GROUP == "Enzyme"
-    Dict(
-        :Enzyme => AutoEnzyme(;
-            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
-            function_annotation=Enzyme.Const,
-        ),
-    )
-else
-    Dict(
-        :ForwarDiff => AutoForwardDiff(),
-        :ReverseDiff => AutoReverseDiff(),
-        :Zygote => AutoZygote(),
-        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
-    )
-end
 
 @testset "inference RepGradELBO VILocationScale Bijectors" begin
-    @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
-                                                                     [Float64, Float32],
+    @testset "$(modelname) $(objname) $(realtype)" for realtype in [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:NormalLogNormalMeanField => normallognormal_meanfield),
         (objname, objective) in Dict(
             :RepGradELBOClosedFormEntropy => RepGradELBO(10),
             :RepGradELBOStickingTheLanding =>
                 RepGradELBO(10; entropy=StickingTheLandingEntropy()),
-        ),
-        (adbackname, adtype) in AD_repgradelbo_locationscale_bijectors
+        )
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
@@ -34,7 +17,9 @@ end
 
         T = 1000
         η = 1e-3
-        alg = KLMinRepGradDescent(adtype; optimizer=Descent(η))
+        alg = KLMinRepGradDescent(AD; optimizer=Descent(η))
+
+        model_ad = ADgradient(AutoForwardDiff(), model)
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)
@@ -56,7 +41,7 @@ end
 
         @testset "convergence" begin
             Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
-            q_avg, stats, _ = optimize(rng, alg, T, model, q0_z; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0_z; show_progress=PROGRESS)
 
             μ = q_avg.dist.location
             L = q_avg.dist.scale
@@ -69,13 +54,14 @@ end
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng, alg, T, model, q0_z; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0_z; show_progress=PROGRESS)
+
             μ = q_avg.dist.location
             L = q_avg.dist.scale
 
             rng_repl = StableRNG(seed)
             q_avg, stats, _ = optimize(
-                rng_repl, alg, T, model, q0_z; show_progress=PROGRESS
+                rng_repl, alg, T, model_ad, q0_z; show_progress=PROGRESS
             )
             μ_repl = q_avg.dist.location
             L_repl = q_avg.dist.scale
