@@ -1,8 +1,24 @@
+AD_scoregradelbo_locationscale = if TEST_GROUP == "Enzyme"
+    Dict(
+        :Enzyme => AutoEnzyme(;
+            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+            function_annotation=Enzyme.Const,
+        ),
+    )
+else
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    )
+end
 
 @testset "inference ScoreGradELBO VILocationScale" begin
-    @testset "$(modelname) $(realtype)" for realtype in [Float64, Float32],
+    @testset "$(modelname) $(realtype) $(adbackname)" for realtype in [Float64, Float32],
         (modelname, modelconstr) in
-        Dict(:Normal => normal_meanfield, :Normal => normal_fullrank)
+        Dict(:Normal => normal_meanfield, :Normal => normal_fullrank),
+        (adbackname, adtype) in AD_scoregradelbo_locationscale
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
@@ -13,7 +29,7 @@
         T = 1000
         η = 1e-4
         opt = Optimisers.Descent(η)
-        alg = KLMinScoreGradDescent(AD; n_samples=10, optimizer=opt)
+        alg = KLMinScoreGradDescent(adtype; n_samples=10, optimizer=opt)
 
         q0 = if is_meanfield
             MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))

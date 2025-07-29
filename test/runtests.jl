@@ -2,15 +2,13 @@
 using Test
 using Test: @testset, @test
 
-using ADTypes
 using Base.Iterators
 using Bijectors
 using DiffResults
 using Distributions
 using FillArrays
-using ForwardDiff, Zygote
 using LinearAlgebra
-using LogDensityProblems, LogDensityProblemsAD
+using LogDensityProblems
 using Optimisers
 using PDMats
 using Pkg
@@ -18,28 +16,17 @@ using Random, StableRNGs
 using Statistics
 using StatsBase
 
+using ADTypes
+using ForwardDiff, ReverseDiff, Zygote, Mooncake
+
 using AdvancedVI
 
-AD_str = get(ENV, "AD", "ReverseDiff")
-
-const AD = if AD_str == "ReverseDiff"
-    using ReverseDiff
-    AutoReverseDiff()
-elseif AD_str == "Mooncake"
-    using Mooncake
-    AutoMooncake(; config=Mooncake.Config())
-elseif AD_str == "Zygote"
-    AutoZygote()
-elseif AD_str == "Enzyme"
-    using Enzyme
-    AutoEnzyme(;
-        mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
-        function_annotation=Enzyme.Const,
-    )
-end
-
 const PROGRESS = haskey(ENV, "PROGRESS")
-const GROUP = get(ENV, "GROUP", "All")
+const TEST_GROUP = get(ENV, "TEST_GROUP", "All")
+
+if TEST_GROUP == "Enzyme"
+    using Enzyme
+end
 
 # Models for Inference Tests
 struct TestModel{M,L,S,SC}
@@ -53,7 +40,8 @@ end
 include("models/normal.jl")
 include("models/normallognormal.jl")
 
-if GROUP == "All" || GROUP == "General"
+if TEST_GROUP == "All" || TEST_GROUP == "General"
+    # Interface tests that do not involve testing on Enzyme
     include("general/optimize.jl")
     include("general/rules.jl")
     include("general/averaging.jl")
@@ -62,16 +50,17 @@ if GROUP == "All" || GROUP == "General"
     include("general/mixedad_logdensity.jl")
 end
 
-if GROUP == "All" || GROUP == "General" || GROUP == "AD"
+if TEST_GROUP == "All" || TEST_GROUP == "General" || TEST_GROUP == "Enzyme"
+    # Interface tests that involve testing on Enzyme
     include("general/ad.jl")
 end
 
-if GROUP == "All" || GROUP == "Families"
+if TEST_GROUP == "All" || TEST_GROUP == "Families"
     include("families/location_scale.jl")
     include("families/location_scale_low_rank.jl")
 end
 
-if GROUP == "All" || GROUP == "ParamSpaceSGD" || GROUP == "AD"
+if TEST_GROUP == "All" || TEST_GROUP == "ParamSpaceSGD" || TEST_GROUP == "Enzyme"
     include("algorithms/paramspacesgd/repgradelbo.jl")
     include("algorithms/paramspacesgd/scoregradelbo.jl")
     include("algorithms/paramspacesgd/repgradelbo_locationscale.jl")

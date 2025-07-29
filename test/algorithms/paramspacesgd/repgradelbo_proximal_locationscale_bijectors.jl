@@ -1,6 +1,22 @@
+AD_repgradelbo_locationscale_bijectors = if TEST_GROUP == "Enzyme"
+    Dict(
+        :Enzyme => AutoEnzyme(;
+            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+            function_annotation=Enzyme.Const,
+        ),
+    )
+else
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    )
+end
 
 @testset "inference RepGradELBO Proximal VILocationScale Bijectors" begin
-    @testset "$(modelname) $(objname) $(realtype)" for realtype in [Float64, Float32],
+    @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
+                                                                     [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:NormalLogNormalMeanField => normallognormal_meanfield),
         (objname, objective) in Dict(
@@ -8,7 +24,8 @@
                 RepGradELBO(10; entropy=ClosedFormEntropyZeroGradient()),
             :RepGradELBOStickingTheLanding =>
                 RepGradELBO(10; entropy=StickingTheLandingEntropyZeroGradient()),
-        )
+        ),
+        (adbackname, adtype) in AD_repgradelbo_locationscale_bijectors
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
@@ -18,7 +35,7 @@
 
         T = 1000
         η = 1e-3
-        alg = KLMinRepGradProxDescent(AD; optimizer=Descent(η))
+        alg = KLMinRepGradProxDescent(adtype; optimizer=Descent(η))
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)

@@ -1,4 +1,15 @@
 
+AD_scoregradelbo_interface = if TEST_GROUP == "Enzyme"
+    [AutoEnzyme()]
+else
+    [
+        AutoForwardDiff(),
+        AutoReverseDiff(),
+        AutoZygote(),
+        AutoMooncake(; config=Mooncake.Config()),
+    ]
+end
+
 @testset "interface ScoreGradELBO" begin
     seed = (0x38bef07cf9cc549d)
     rng = StableRNG(seed)
@@ -10,8 +21,10 @@
     q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
 
     @testset "basic" begin
-        @testset for n_montecarlo in [1, 10]
-            alg = KLMinScoreGradDescent(AD; n_samples=n_montecarlo, optimizer=Descent(1e-5))
+        @testset for adtype in AD_scoregradelbo_interface, n_montecarlo in [1, 10]
+            alg = KLMinScoreGradDescent(
+                adtype; n_samples=n_montecarlo, optimizer=Descent(1e-5)
+            )
             _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
             @assert isfinite(last(info).elbo)
         end

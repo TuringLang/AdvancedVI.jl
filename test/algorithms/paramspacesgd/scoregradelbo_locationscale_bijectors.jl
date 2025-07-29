@@ -1,8 +1,24 @@
+AD_scoregradelbo_locationscale_bijectors = if TEST_GROUP == "Enzyme"
+    Dict(
+        :Enzyme => AutoEnzyme(;
+            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+            function_annotation=Enzyme.Const,
+        ),
+    )
+else
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        #:Zygote => AutoZygote(),
+        #:Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    )
+end
 
 @testset "inference ScoreGradELBO VILocationScale Bijectors" begin
-    @testset "$(modelname) $(realtype)" for realtype in [Float64, Float32],
+    @testset "$(modelname) $(realtype) $(adbackname)" for realtype in [Float64, Float32],
         (modelname, modelconstr) in
-        Dict(:NormalLogNormalMeanField => normallognormal_meanfield)
+        Dict(:NormalLogNormalMeanField => normallognormal_meanfield),
+        (adbackname, adtype) in AD_scoregradelbo_locationscale_bijectors
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
@@ -13,7 +29,7 @@
         T = 1000
         η = 1e-4
         opt = Optimisers.Descent(η)
-        alg = KLMinScoreGradDescent(AD; n_samples=10, optimizer=opt)
+        alg = KLMinScoreGradDescent(adtype; n_samples=10, optimizer=opt)
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)

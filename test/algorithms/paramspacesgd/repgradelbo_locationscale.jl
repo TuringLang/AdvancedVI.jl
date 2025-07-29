@@ -1,13 +1,30 @@
+AD_repgradelbo_locationscale = if TEST_GROUP == "Enzyme"
+    Dict(
+        :Enzyme => AutoEnzyme(;
+            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+            function_annotation=Enzyme.Const,
+        ),
+    )
+else
+    Dict(
+        :ForwarDiff => AutoForwardDiff(),
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    )
+end
 
 @testset "inference RepGradELBO VILocationScale" begin
-    @testset "$(modelname) $(objname) $(realtype)" for realtype in [Float64, Float32],
+    @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
+                                                                     [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:Normal => normal_meanfield, :Normal => normal_fullrank),
         (objname, objective) in Dict(
             :RepGradELBOClosedFormEntropy => RepGradELBO(10),
             :RepGradELBOStickingTheLanding =>
                 RepGradELBO(10; entropy=StickingTheLandingEntropy()),
-        )
+        ),
+        (adbackname, adtype) in AD_repgradelbo_locationscale
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
@@ -17,7 +34,7 @@
 
         T = 1000
         η = 1e-3
-        alg = KLMinRepGradDescent(AD; optimizer=Descent(η))
+        alg = KLMinRepGradDescent(adtype; optimizer=Descent(η))
 
         q0 = if is_meanfield
             MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))
