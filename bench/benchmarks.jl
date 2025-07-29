@@ -8,7 +8,7 @@ using Enzyme, ForwardDiff, ReverseDiff, Zygote, Mooncake
 using FillArrays
 using InteractiveUtils
 using LinearAlgebra
-using LogDensityProblems, LogDensityProblemsAD
+using LogDensityProblems
 using Optimisers
 using Random
 
