@@ -7,7 +7,6 @@ AD_repgradelbo_locationscale = if TEST_GROUP == "Enzyme"
     )
 else
     Dict(
-        :ForwarDiff => AutoForwardDiff(),
         :ReverseDiff => AutoReverseDiff(),
         :Zygote => AutoZygote(),
         :Mooncake => AutoMooncake(; config=Mooncake.Config()),

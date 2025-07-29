@@ -38,7 +38,7 @@ end
     end
 
     @testset "without mixed ad" begin
-        @testset for n_montecarlo in [1, 10]
+        @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
             alg = KLMinRepGradDescent(
                 adtype;
                 n_samples=n_montecarlo,

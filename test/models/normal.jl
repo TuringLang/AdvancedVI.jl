@@ -12,7 +12,7 @@ end
 function LogDensityProblems.logdensity_and_gradient(model::TestNormal, θ)
     return (
         LogDensityProblems.logdensity(model, θ),
-        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity), model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
     )
 end
 
@@ -21,7 +21,7 @@ function LogDensityProblems.dimension(model::TestNormal)
 end
 
 function LogDensityProblems.capabilities(::Type{<:TestNormal})
-    return LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 
 function normal_fullrank(rng::Random.AbstractRNG, realtype::Type)
