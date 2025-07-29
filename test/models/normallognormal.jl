@@ -11,12 +11,19 @@ function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
     return logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
+function LogDensityProblems.logdensity_and_gradient(model::NormalLogNormal, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity), model, θ)
+    )
+end
+
 function LogDensityProblems.dimension(model::NormalLogNormal)
     return length(model.μ_y) + 1
 end
 
 function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
-    return LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 
 function Bijectors.bijector(model::NormalLogNormal)
