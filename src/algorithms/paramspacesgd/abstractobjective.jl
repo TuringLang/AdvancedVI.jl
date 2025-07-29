@@ -59,7 +59,7 @@ function estimate_objective end
 export estimate_objective
 
 """
-    estimate_gradient!(rng, obj, adtype, out, params, restructure, obj_state, args...)
+    estimate_gradient!(rng, obj, adtype, out, params, restructure, obj_state)
 
 Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
 

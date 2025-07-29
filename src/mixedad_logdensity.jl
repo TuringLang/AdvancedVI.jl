@@ -32,8 +32,8 @@ function LogDensityProblems.logdensity_gradient_and_hessian(
     return LogDensityProblems.logdensity_gradient_and_hessian(mixedad_prob.problem, x)
 end
 
-function LogDensityProblems.capabilities(mixedad_prob::MixedADLogDensityProblem)
-    return LogDensityProblems.capabilities(mixedad_prob.problem)
+function LogDensityProblems.capabilities(::Type{MixedADLogDensityProblem{Prob}}) where {Prob}
+    return LogDensityProblems.capabilities(Prob)
 end
 
 function ChainRulesCore.rrule(

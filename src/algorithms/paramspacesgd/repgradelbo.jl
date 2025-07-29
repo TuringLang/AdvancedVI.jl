@@ -141,24 +141,23 @@ function estimate_gradient!(
     obj::RepGradELBO,
     adtype::ADTypes.AbstractADType,
     out::DiffResults.MutableDiffResult,
-    prob,
     params,
     restructure,
     state,
     args...,
 )
-    prep = state
+    (; obj_ad_prep, problem) = state
     q_stop = restructure(params)
     aux = (
         rng=rng,
         adtype=adtype,
         obj=obj,
-        problem=prob,
+        problem=problem,
         restructure=restructure,
         q_stop=q_stop,
     )
     AdvancedVI._value_and_gradient!(
-        estimate_repgradelbo_ad_forward, out, prep, adtype, params, aux
+        estimate_repgradelbo_ad_forward, out, obj_ad_prep, adtype, params, aux
     )
     nelbo = DiffResults.value(out)
     stat = (elbo=(-nelbo),)
