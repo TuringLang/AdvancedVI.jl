@@ -29,7 +29,7 @@ end
     x = ones(Float64, d)
 
     @test LogDensityProblems.dimension(model) == LogDensityProblems.dimension(model_ad)
-    @test LogDensityProblems.capabilities(typeof(model)) ≈
+    @test LogDensityProblems.capabilities(typeof(model)) ==
         LogDensityProblems.capabilities(typeof(model_ad))
     @test last(LogDensityProblems.logdensity(model, x)) ≈
         last(LogDensityProblems.logdensity(model_ad, x))
