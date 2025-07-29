@@ -19,8 +19,6 @@
         η = 1e-3
         alg = KLMinRepGradDescent(AD; optimizer=Descent(η))
 
-        model_ad = ADgradient(AutoForwardDiff(), model)
-
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)
         μ0 = Zeros(realtype, n_dims)
@@ -41,7 +39,7 @@
 
         @testset "convergence" begin
             Δλ0 = sum(abs2, μ0 - μ_true) + sum(abs2, L0 - L_true)
-            q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0_z; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0_z; show_progress=PROGRESS)
 
             μ = q_avg.dist.location
             L = q_avg.dist.scale
@@ -54,14 +52,14 @@
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0_z; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0_z; show_progress=PROGRESS)
 
             μ = q_avg.dist.location
             L = q_avg.dist.scale
 
             rng_repl = StableRNG(seed)
             q_avg, stats, _ = optimize(
-                rng_repl, alg, T, model_ad, q0_z; show_progress=PROGRESS
+                rng_repl, alg, T, model, q0_z; show_progress=PROGRESS
             )
             μ_repl = q_avg.dist.location
             L_repl = q_avg.dist.scale

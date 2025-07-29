@@ -8,7 +8,6 @@
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
     q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
-    model_ad = ADgradient(AutoForwardDiff(), model)
 
     @testset "basic" begin
         @testset for n_montecarlo in [1, 10]
@@ -18,7 +17,7 @@
                 operator=IdentityOperator(),
                 averager=PolynomialAveraging(),
             )
-            _, info, _ = optimize(rng, alg, 10, model_ad, q0; show_progress=false)
+            _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
             @test isfinite(last(info).elbo)
         end
     end
@@ -59,8 +58,8 @@ end
     modelstats = normal_meanfield(rng, Float64)
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    model_ad = ADgradient(AutoForwardDiff(), model)
-    mixed_ad = AdvancedVI.MixedADLogDensityProblem(model_ad)
+    model = ADgradient(AutoForwardDiff(), model)
+    mixed_ad = AdvancedVI.MixedADLogDensityProblem(model)
 
     @testset for n_montecarlo in [1, 10]
         q_true = MeanFieldGaussian(

@@ -16,8 +16,6 @@
         modelstats = modelconstr(rng, realtype)
         (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
-        model_ad = ADgradient(AutoForwardDiff(), model)
-
         q0 = if is_meanfield
             MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))
         else
@@ -36,7 +34,7 @@
 
         @testset "convergence" begin
             Δλ0 = sum(abs2, q0.location - μ_true) + sum(abs2, q0.scale - L_true)
-            q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
 
             μ = q_avg.location
             L = q_avg.scale
@@ -49,13 +47,13 @@
 
         @testset "determinism" begin
             rng = StableRNG(seed)
-            q_avg, stats, _ = optimize(rng, alg, T, model_ad, q0; show_progress=PROGRESS)
+            q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
             μ = q_avg.location
             L = q_avg.scale
 
             rng_repl = StableRNG(seed)
             q_avg, stats, _ = optimize(
-                rng_repl, alg, T, model_ad, q0; show_progress=PROGRESS
+                rng_repl, alg, T, model, q0; show_progress=PROGRESS
             )
             μ_repl = q_avg.location
             L_repl = q_avg.scale
