@@ -28,10 +28,9 @@ function init(
     samples = rand(rng, q, obj.n_samples)
     ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
     aux = (adtype=adtype, logprob_stop=ℓπ, samples_stop=samples, restructure=restructure)
-    obj_ad_prep = AdvancedVI._prepare_gradient(
+    return AdvancedVI._prepare_gradient(
         estimate_scoregradelbo_ad_forward, adtype, params, aux
     )
-    return (obj_ad_prep=obj_ad_prep, problem=prob)
 end
 
 function Base.show(io::IO, obj::ScoreGradELBO)
@@ -83,18 +82,19 @@ function AdvancedVI.estimate_gradient!(
     obj::ScoreGradELBO,
     adtype::ADTypes.AbstractADType,
     out::DiffResults.MutableDiffResult,
+    prob,
     params,
     restructure,
     state,
     args...,
 )
     q = restructure(params)
-    (; obj_ad_prep, problem) = state
+    prep = state
     samples = rand(rng, q, obj.n_samples)
-    ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, problem), eachsample(samples))
+    ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
     aux = (adtype=adtype, logprob_stop=ℓπ, samples_stop=samples, restructure=restructure)
     AdvancedVI._value_and_gradient!(
-        estimate_scoregradelbo_ad_forward, out, obj_ad_prep, adtype, params, aux
+        estimate_scoregradelbo_ad_forward, out, prep, adtype, params, aux
     )
     ℓq = logpdf.(Ref(q), AdvancedVI.eachsample(samples))
     elbo = mean(ℓπ - ℓq)

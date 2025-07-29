@@ -81,7 +81,7 @@ function output(alg::ParamSpaceSGD, state)
 end
 
 function step(
-    rng::Random.AbstractRNG, alg::ParamSpaceSGD, state, callback, args...; kwargs...
+    rng::Random.AbstractRNG, alg::ParamSpaceSGD, state, callback, objargs...; kwargs...
 )
     (; adtype, objective, operator, averager) = alg
     (; prob, q, iteration, grad_buf, opt_st, obj_st, avg_st) = state
@@ -91,7 +91,7 @@ function step(
     params, re = Optimisers.destructure(q)
 
     grad_buf, obj_st, info = estimate_gradient!(
-        rng, objective, adtype, grad_buf, params, re, obj_st, args...
+        rng, objective, adtype, grad_buf, prob, params, re, obj_st, objargs...
     )
 
     grad = DiffResults.gradient(grad_buf)
