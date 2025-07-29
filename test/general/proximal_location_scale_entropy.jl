@@ -1,6 +1,4 @@
 
-using Zygote
-
 @testset "interface ProximalLocationScaleEntropy" begin
     @testset "MvLocationScale" begin
         @testset "$(string(covtype)) $(realtype) $(bijector)" for covtype in
@@ -53,8 +51,8 @@ using Zygote
             q′ = re(params′)
             scale′ = isnothing(bijector) ? q′.scale : q′.dist.scale
 
-            grad_left = first(Zygote.gradient(L_ -> first(logabsdet(L_)), scale′))
-            grad_right = first(
+            grad_left = only(Zygote.gradient(L_ -> first(logabsdet(L_)), scale′))
+            grad_right = only(
                 Zygote.gradient(L_ -> sum(abs2, L_ - L) / (2 * stepsize), scale′)
             )
 

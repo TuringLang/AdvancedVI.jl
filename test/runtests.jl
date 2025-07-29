@@ -8,7 +8,7 @@ using Bijectors
 using DiffResults
 using Distributions
 using FillArrays
-using ForwardDiff
+using ForwardDiff, Zygote
 using LinearAlgebra
 using LogDensityProblems, LogDensityProblemsAD
 using Optimisers
@@ -29,7 +29,6 @@ elseif AD_str == "Mooncake"
     using Mooncake
     AutoMooncake(; config=Mooncake.Config())
 elseif AD_str == "Zygote"
-    using Zygote
     AutoZygote()
 elseif AD_str == "Enzyme"
     using Enzyme
