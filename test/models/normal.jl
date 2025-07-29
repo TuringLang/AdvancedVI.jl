@@ -12,7 +12,7 @@ end
 function LogDensityProblems.logdensity_and_gradient(model::TestNormal, θ)
     return (
         LogDensityProblems.logdensity(model, θ),
-        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity), model, θ)
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity), model, θ),
     )
 end
 
