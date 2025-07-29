@@ -17,7 +17,6 @@
 
         T = 1000
         η = 1e-3
-
         alg = KLMinRepGradDescent(AD; optimizer=Descent(η))
 
         q0 = if is_meanfield
@@ -48,14 +47,11 @@
         @testset "determinism" begin
             rng = StableRNG(seed)
             q_avg, stats, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
-
             μ = q_avg.location
             L = q_avg.scale
 
             rng_repl = StableRNG(seed)
-            q_avg, stats, _ = optimize(
-                rng_repl, alg, T, model, q0; show_progress=PROGRESS
-            )
+            q_avg, stats, _ = optimize(rng_repl, alg, T, model, q0; show_progress=PROGRESS)
             μ_repl = q_avg.location
             L_repl = q_avg.scale
             @test μ == μ_repl

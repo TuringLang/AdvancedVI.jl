@@ -53,7 +53,6 @@
         @testset "determinism" begin
             rng = StableRNG(seed)
             q_avg, stats, _ = optimize(rng, alg, T, model, q0_z; show_progress=PROGRESS)
-
             μ = q_avg.dist.location
             L = q_avg.dist.scale
 
