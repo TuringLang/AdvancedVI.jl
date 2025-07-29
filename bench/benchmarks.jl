@@ -40,7 +40,6 @@ begin
         max_iter = 10^4
         d = LogDensityProblems.dimension(prob)
         opt = Optimisers.Adam(T(1e-3))
-        prob_ad = ADgradient(AutoForwardDiff(), prob)
 
         for (objname, entropy) in [
                 ("RepGradELBO", ClosedFormEntropy()),
@@ -73,7 +72,7 @@ begin
 
             SUITES[probname][objname][familyname][adname] = begin
                 @benchmarkable AdvancedVI.optimize(
-                    $alg, $max_iter, $prob_ad, $q; show_progress=false
+                    $alg, $max_iter, $prob, $q; show_progress=false
                 )
             end
         end
