@@ -135,7 +135,7 @@ using ADTypes
 using AdvancedVI
 using Distributions
 using LinearAlgebra
-using LogDensityProblems, LogDensityProblemsAD
+using LogDensityProblems
 using Optimisers
 using Plots
 using ForwardDiff, ReverseDiff
@@ -148,12 +148,19 @@ function LogDensityProblems.logdensity(model::Target, θ)
     logpdf(model.dist, θ)
 end
 
+function LogDensityProblems.logdensity_and_gradient(model::Target, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
+    )
+end
+
 function LogDensityProblems.dimension(model::Target)
     return length(model.dist)
 end
 
 function LogDensityProblems.capabilities(::Type{<:Target})
-    return LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 
 n_dims     = 30
@@ -163,7 +170,6 @@ D_true     = Diagonal(log.(1 .+ exp.(randn(n_dims))))
 Σsqrt_true = sqrt(Σ_true)
 μ_true     = randn(n_dims)
 model      = Target(MvNormal(μ_true, Σ_true));
-model_ad   = ADgradient(AutoForwardDiff(), model)
 
 d  = LogDensityProblems.dimension(model);
 μ  = zeros(d);
@@ -189,19 +195,19 @@ function callback(; params, averaged_params, restructure, kwargs...)
 end
 
 _, info_fr, _ = AdvancedVI.optimize(
-    alg, max_iter, model_ad, q0_fr;
+    alg, max_iter, model, q0_fr;
     show_progress = false,
     callback      = callback,
 ); 
 
 _, info_mf, _ = AdvancedVI.optimize(
-    alg, max_iter, model_ad, q0_mf;
+    alg, max_iter, model, q0_mf;
     show_progress = false,
     callback      = callback,
 ); 
 
 _, info_lr, _ = AdvancedVI.optimize(
-    alg, max_iter, model_ad, q0_lr;
+    alg, max_iter, model, q0_lr;
     show_progress = false,
     callback      = callback,
 ); 

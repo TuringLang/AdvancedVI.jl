@@ -122,7 +122,7 @@ For example, if ``q_{\lambda}`` is a Gaussian with a full-rank covariance, a bac
 using Bijectors
 using FillArrays
 using LinearAlgebra
-using LogDensityProblems, LogDensityProblemsAD
+using LogDensityProblems
 using Plots
 using Random
 
@@ -142,21 +142,27 @@ function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
     logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
+function LogDensityProblems.logdensity_and_gradient(model::NormalLogNormal, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
+    )
+end
+
 function LogDensityProblems.dimension(model::NormalLogNormal)
     length(model.μ_y) + 1
 end
 
 function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
-    LogDensityProblems.LogDensityOrder{0}()
+    LogDensityProblems.LogDensityOrder{1}()
 end
 
-n_dims   = 10
-μ_x      = 2.0
-σ_x      = 0.3
-μ_y      = Fill(2.0, n_dims)
-σ_y      = Fill(1.0, n_dims)
-model    = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2));
-model_ad = ADgradient(AutoForwardDiff(), model)
+n_dims = 10
+μ_x    = 2.0
+σ_x    = 0.3
+μ_y    = Fill(2.0, n_dims)
+σ_y    = Fill(1.0, n_dims)
+model  = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2));
 
 d  = LogDensityProblems.dimension(model);
 μ  = zeros(d);
@@ -213,7 +219,7 @@ end
 _, info_cfe, _ = AdvancedVI.optimize(
     cfe,
     max_iter,
-    model_ad,
+    model,
     q0_trans;
     show_progress = false,
     callback      = callback,
@@ -222,7 +228,7 @@ _, info_cfe, _ = AdvancedVI.optimize(
 _, info_stl, _ = AdvancedVI.optimize(
     stl,
     max_iter,
-    model_ad,
+    model,
     q0_trans;
     show_progress = false,
     callback      = callback,
@@ -231,7 +237,7 @@ _, info_stl, _ = AdvancedVI.optimize(
 _, info_stl, _ = AdvancedVI.optimize(
     stl,
     max_iter,
-    model_ad,
+    model,
     q0_trans;
     show_progress = false,
     callback      = callback,
@@ -314,7 +320,7 @@ nothing
 _, info_qmc, _ = AdvancedVI.optimize(
     KLMinRepGradDescent(AutoReverseDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2)),
     max_iter,
-    model_ad,
+    model,
     q0_trans;
     show_progress = false,
     callback      = callback,

@@ -15,6 +15,7 @@ Using the `LogDensityProblems` interface, we the model can be defined as follows
 
 ```@example elboexample
 using LogDensityProblems
+using ForwardDiff
 
 struct NormalLogNormal{MX,SX,MY,SY}
     μ_x::MX
@@ -28,14 +29,24 @@ function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
     return logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
+function LogDensityProblems.logdensity_and_gradient(model::NormalLogNormal, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
+    )
+end
+
 function LogDensityProblems.dimension(model::NormalLogNormal)
     return length(model.μ_y) + 1
 end
 
 function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
-    return LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 ```
+Notice that the model supports first-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/stable/#LogDensityProblems.capabilities).
+The required order of differentiation capability will vary depending on the VI algorithm.
+In this example, we will use `KLMinRepGradDescent`, which requires first-order capability.
 
 Let's now instantiate the model
 
@@ -51,27 +62,15 @@ model = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y .^ 2));
 nothing
 ```
 
-Some of the VI algorithms require gradients of the target log-density.
-In this example, we will use `KLMinRepGradDescent`, which requires first-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/stable/#LogDensityProblems.capabilities).
-For this, we can rely on `LogDensityProblemsAD`:
-
-```@example elboexample
-using LogDensityProblemsAD
-using ADTypes, ReverseDiff
-
-model_ad = ADgradient(AutoReverseDiff(), model)
-nothing
-```
-
 Let's now load `AdvancedVI`.
 In addition to gradients of the target log-density, `KLMinRepGradDescent` internally uses automatic differentiation.
 Therefore, we have to select an AD framework to be used within `KLMinRepGradDescent`.
-(This does not need to be the same as the backend used by `model_ad`.)
+(This does not need to be the same as the AD backend used for the first-order capability of `model`.)
 The selected AD framework needs to be communicated to `AdvancedVI` using the [ADTypes](https://github.com/SciML/ADTypes.jl) interface.
 Here, we will use `ForwardDiff`, which can be selected by later passing `ADTypes.AutoForwardDiff()`.
 
 ```@example elboexample
-using Optimisers
+using ADTypes, ReverseDiff
 using AdvancedVI
 
 alg = KLMinRepGradDescent(AutoReverseDiff());
@@ -119,9 +118,7 @@ Passing `objective` and the initial variational approximation `q` to `optimize` 
 
 ```@example elboexample
 n_max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(
-    alg, n_max_iter, model_ad, q0_trans; show_progress=false
-);
+q_out, info, _ = AdvancedVI.optimize(alg, n_max_iter, model, q0_trans; show_progress=false);
 nothing
 ```
 
