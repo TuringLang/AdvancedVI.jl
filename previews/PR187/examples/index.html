@@ -517,96 +517,7 @@ nothing</code></pre><p>Let&#39;s now load <code>AdvancedVI</code>. In addition t
 using AdvancedVI
 
 alg = KLMinRepGradDescent(AutoReverseDiff());
-nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌ Error: Error during loading of extension AdvancedVIReverseDiffExt of AdvancedVI, use `Base.retry_load_extensions()` to retry.
-│   exception =
-│    1-element ExceptionStack:
-│    ArgumentError: Package AdvancedVIReverseDiffExt [a0c447fa-e329-55e2-8a75-a86a703cb796] is required but does not seem to be installed:
-│     - Run `Pkg.instantiate()` to install all recorded dependencies.
-│
-│    Stacktrace:
-│      [1] _require(pkg::Base.PkgId, env::Nothing)
-│        @ Base ./loading.jl:2515
-│      [2] __require_prelocked(uuidkey::Base.PkgId, env::Nothing)
-│        @ Base ./loading.jl:2388
-│      [3] #invoke_in_world#3
-│        @ ./essentials.jl:1089 [inlined]
-│      [4] invoke_in_world
-│        @ ./essentials.jl:1086 [inlined]
-│      [5] _require_prelocked
-│        @ ./loading.jl:2375 [inlined]
-│      [6] _require_prelocked
-│        @ ./loading.jl:2374 [inlined]
-│      [7] run_extension_callbacks(extid::Base.ExtensionId)
-│        @ Base ./loading.jl:1544
-│      [8] run_extension_callbacks(pkgid::Base.PkgId)
-│        @ Base ./loading.jl:1576
-│      [9] run_package_callbacks(modkey::Base.PkgId)
-│        @ Base ./loading.jl:1396
-│     [10] __require_prelocked(uuidkey::Base.PkgId, env::String)
-│        @ Base ./loading.jl:2399
-│     [11] #invoke_in_world#3
-│        @ ./essentials.jl:1089 [inlined]
-│     [12] invoke_in_world
-│        @ ./essentials.jl:1086 [inlined]
-│     [13] _require_prelocked(uuidkey::Base.PkgId, env::String)
-│        @ Base ./loading.jl:2375
-│     [14] macro expansion
-│        @ ./loading.jl:2314 [inlined]
-│     [15] macro expansion
-│        @ ./lock.jl:273 [inlined]
-│     [16] __require(into::Module, mod::Symbol)
-│        @ Base ./loading.jl:2271
-│     [17] #invoke_in_world#3
-│        @ ./essentials.jl:1089 [inlined]
-│     [18] invoke_in_world
-│        @ ./essentials.jl:1086 [inlined]
-│     [19] require(into::Module, mod::Symbol)
-│        @ Base ./loading.jl:2260
-│     [20] eval
-│        @ ./boot.jl:430 [inlined]
-│     [21] #59
-│        @ ~/.julia/packages/Documenter/eoWm2/src/expander_pipeline.jl:856 [inlined]
-│     [22] cd(f::Documenter.var&quot;#59#61&quot;{Module, Expr}, dir::String)
-│        @ Base.Filesystem ./file.jl:112
-│     [23] (::Documenter.var&quot;#58#60&quot;{Documenter.Page, Module, Expr})()
-│        @ Documenter ~/.julia/packages/Documenter/eoWm2/src/expander_pipeline.jl:855
-│     [24] (::IOCapture.var&quot;#5#9&quot;{DataType, Documenter.var&quot;#58#60&quot;{Documenter.Page, Module, Expr}, IOContext{Base.PipeEndpoint}, IOContext{Base.PipeEndpoint}, Base.PipeEndpoint, Base.PipeEndpoint})()
-│        @ IOCapture ~/.julia/packages/IOCapture/Y5rEA/src/IOCapture.jl:170
-│     [25] with_logstate(f::IOCapture.var&quot;#5#9&quot;{DataType, Documenter.var&quot;#58#60&quot;{Documenter.Page, Module, Expr}, IOContext{Base.PipeEndpoint}, IOContext{Base.PipeEndpoint}, Base.PipeEndpoint, Base.PipeEndpoint}, logstate::Base.CoreLogging.LogState)
-│        @ Base.CoreLogging ./logging/logging.jl:524
-│     [26] with_logger(f::Function, logger::Base.CoreLogging.ConsoleLogger)
-│        @ Base.CoreLogging ./logging/logging.jl:635
-│     [27] capture(f::Documenter.var&quot;#58#60&quot;{Documenter.Page, Module, Expr}; rethrow::Type, color::Bool, passthrough::Bool, capture_buffer::IOBuffer, io_context::Vector{Any})
-│        @ IOCapture ~/.julia/packages/IOCapture/Y5rEA/src/IOCapture.jl:167
-│     [28] runner(::Type{Documenter.Expanders.ExampleBlocks}, node::MarkdownAST.Node{Nothing}, page::Documenter.Page, doc::Documenter.Document)
-│        @ Documenter ~/.julia/packages/Documenter/eoWm2/src/expander_pipeline.jl:854
-│     [29] dispatch(::Type{Documenter.Expanders.ExpanderPipeline}, ::MarkdownAST.Node{Nothing}, ::Vararg{Any})
-│        @ Documenter.Selectors ~/.julia/packages/Documenter/eoWm2/src/utilities/Selectors.jl:170
-│     [30] expand(doc::Documenter.Document)
-│        @ Documenter ~/.julia/packages/Documenter/eoWm2/src/expander_pipeline.jl:59
-│     [31] runner(::Type{Documenter.Builder.ExpandTemplates}, doc::Documenter.Document)
-│        @ Documenter ~/.julia/packages/Documenter/eoWm2/src/builder_pipeline.jl:224
-│     [32] dispatch(::Type{Documenter.Builder.DocumentPipeline}, x::Documenter.Document)
-│        @ Documenter.Selectors ~/.julia/packages/Documenter/eoWm2/src/utilities/Selectors.jl:170
-│     [33] #88
-│        @ ~/.julia/packages/Documenter/eoWm2/src/makedocs.jl:280 [inlined]
-│     [34] withenv(::Documenter.var&quot;#88#90&quot;{Documenter.Document}, ::Pair{String, Nothing}, ::Vararg{Pair{String, Nothing}})
-│        @ Base ./env.jl:265
-│     [35] #87
-│        @ ~/.julia/packages/Documenter/eoWm2/src/makedocs.jl:279 [inlined]
-│     [36] cd(f::Documenter.var&quot;#87#89&quot;{Documenter.Document}, dir::String)
-│        @ Base.Filesystem ./file.jl:112
-│     [37] makedocs(; debug::Bool, format::Documenter.HTMLWriter.HTML, kwargs::@Kwargs{modules::Vector{Module}, sitename::String, repo::String, pages::Vector{Pair{String, Any}}, warnonly::Vector{Symbol}})
-│        @ Documenter ~/.julia/packages/Documenter/eoWm2/src/makedocs.jl:278
-│     [38] top-level scope
-│        @ ~/work/AdvancedVI.jl/AdvancedVI.jl/docs/make.jl:11
-│     [39] include(mod::Module, _path::String)
-│        @ Base ./Base.jl:562
-│     [40] exec_options(opts::Base.JLOptions)
-│        @ Base ./client.jl:323
-│     [41] _start()
-│        @ Base ./client.jl:531
-└ @ Base loading.jl:1550</code></pre><p>Now, <code>KLMinRepGradDescent</code> requires the variational approximation and the target log-density to have the same support. Since <code>y</code> follows a log-normal prior, its support is bounded to be the positive half-space <span>$\mathbb{R}_+$</span>. Thus, we will use <a href="https://github.com/TuringLang/Bijectors.jl">Bijectors</a> to match the support of our target posterior and the variational approximation.</p><pre><code class="language-julia hljs">using Bijectors
+nothing</code></pre><p>Now, <code>KLMinRepGradDescent</code> requires the variational approximation and the target log-density to have the same support. Since <code>y</code> follows a log-normal prior, its support is bounded to be the positive half-space <span>$\mathbb{R}_+$</span>. Thus, we will use <a href="https://github.com/TuringLang/Bijectors.jl">Bijectors</a> to match the support of our target posterior and the variational approximation.</p><pre><code class="language-julia hljs">using Bijectors
 
 function Bijectors.bijector(model::NormalLogNormal)
     (; μ_x, σ_x, μ_y, Σ_y) = model
@@ -631,4 +542,4 @@ t = [i.iteration for i in info]
 y = [i.elbo for i in info]
 plot(t, y; label=&quot;BBVI&quot;, xlabel=&quot;Iteration&quot;, ylabel=&quot;ELBO&quot;)
 savefig(&quot;bbvi_example_elbo.svg&quot;)
-nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">GKS: cannot open display - headless operation mode active</code></pre><p><img src="../bbvi_example_elbo.svg" alt/></p><p>Further information can be gathered by defining your own <code>callback!</code>.</p><p>The final ELBO can be estimated by calling the objective directly with a different number of Monte Carlo samples as follows:</p><pre><code class="language-julia hljs">estimate_objective(RepGradELBO(10^4), q_out, model)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">-3.708913015771227</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../general/">« General Usage</a><a class="docs-footer-nextpage" href="../paramspacesgd/klminrepgraddescent/">KLMinRepGradDescent »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Wednesday 30 July 2025 22:46">Wednesday 30 July 2025</span>. Using Julia version 1.11.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">GKS: cannot open display - headless operation mode active</code></pre><p><img src="../bbvi_example_elbo.svg" alt/></p><p>Further information can be gathered by defining your own <code>callback!</code>.</p><p>The final ELBO can be estimated by calling the objective directly with a different number of Monte Carlo samples as follows:</p><pre><code class="language-julia hljs">estimate_objective(RepGradELBO(10^4), q_out, model)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">-1.8586230075831693</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../general/">« General Usage</a><a class="docs-footer-nextpage" href="../paramspacesgd/klminrepgraddescent/">KLMinRepGradDescent »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Wednesday 30 July 2025 23:00">Wednesday 30 July 2025</span>. Using Julia version 1.11.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
