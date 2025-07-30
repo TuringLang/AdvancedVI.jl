@@ -51,6 +51,7 @@ if TEST_GROUP == "All" || TEST_GROUP == "General"
     include("general/averaging.jl")
     include("general/clip_scale.jl")
     include("general/proximal_location_scale_entropy.jl")
+    include("general/mixedad_logdensity.jl")
 end
 
 if TEST_GROUP == "All" || TEST_GROUP == "General" || TEST_GROUP == "Enzyme"

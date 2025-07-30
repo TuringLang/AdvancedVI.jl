@@ -8,7 +8,6 @@ AD_repgradelbo_interface = if TEST_GROUP == "Enzyme"
     ]
 else
     [
-        AutoForwardDiff(),
         AutoReverseDiff(),
         AutoZygote(),
         AutoMooncake(; config=Mooncake.Config()),
@@ -34,7 +33,20 @@ end
                 averager=PolynomialAveraging(),
             )
             _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
-            @assert isfinite(last(info).elbo)
+            @test isfinite(last(info).elbo)
+        end
+    end
+
+    @testset "without mixed ad" begin
+        @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
+            alg = KLMinRepGradDescent(
+                adtype;
+                n_samples=n_montecarlo,
+                operator=IdentityOperator(),
+                averager=PolynomialAveraging(),
+            )
+            _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
+            @test isfinite(last(info).elbo)
         end
     end
 
@@ -60,6 +72,8 @@ end
 
     modelstats = normal_meanfield(rng, Float64)
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
+
+    mixed_ad = AdvancedVI.MixedADLogDensityProblem(model)
 
     @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
         q_true = MeanFieldGaussian(

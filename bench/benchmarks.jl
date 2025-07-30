@@ -47,7 +47,6 @@ begin
             ],
             (adname, adtype) in [
                 ("Zygote", AutoZygote()),
-                ("ForwardDiff", AutoForwardDiff()),
                 ("ReverseDiff", AutoReverseDiff()),
                 ("Mooncake", AutoMooncake(; config=Mooncake.Config())),
                 # ("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),

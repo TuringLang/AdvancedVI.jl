@@ -127,7 +127,7 @@ using Plots
 using Random
 
 using Optimisers
-using ADTypes, ForwardDiff
+using ADTypes, ForwardDiff, ReverseDiff
 using AdvancedVI
 
 struct NormalLogNormal{MX,SX,MY,SY}
@@ -142,12 +142,19 @@ function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
     logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
+function LogDensityProblems.logdensity_and_gradient(model::NormalLogNormal, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
+    )
+end
+
 function LogDensityProblems.dimension(model::NormalLogNormal)
     length(model.μ_y) + 1
 end
 
 function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
-    LogDensityProblems.LogDensityOrder{0}()
+    LogDensityProblems.LogDensityOrder{1}()
 end
 
 n_dims = 10
@@ -185,7 +192,7 @@ binv = inverse(b)
 q0_trans = Bijectors.TransformedDistribution(q0, binv)
 
 cfe = KLMinRepGradDescent(
-    AutoForwardDiff(); entropy=ClosedFormEntropy(), optimizer=Adam(1e-2)
+    AutoReverseDiff(); entropy=ClosedFormEntropy(), optimizer=Adam(1e-2)
 )
 nothing
 ```
@@ -194,7 +201,7 @@ The repgradelbo estimator can instead be created as follows:
 
 ```@example repgradelbo
 stl = KLMinRepGradDescent(
-    AutoForwardDiff(); entropy=StickingTheLandingEntropy(), optimizer=Adam(1e-2)
+    AutoReverseDiff(); entropy=StickingTheLandingEntropy(), optimizer=Adam(1e-2)
 )
 nothing
 ```
@@ -211,6 +218,15 @@ end
 
 _, info_cfe, _ = AdvancedVI.optimize(
     cfe,
+    max_iter,
+    model,
+    q0_trans;
+    show_progress = false,
+    callback      = callback,
+); 
+
+_, info_stl, _ = AdvancedVI.optimize(
+    stl,
     max_iter,
     model,
     q0_trans;
@@ -302,7 +318,7 @@ nothing
 
 ```@setup repgradelbo
 _, info_qmc, _ = AdvancedVI.optimize(
-    KLMinRepGradDescent(AutoForwardDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2)),
+    KLMinRepGradDescent(AutoReverseDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2)),
     max_iter,
     model,
     q0_trans;

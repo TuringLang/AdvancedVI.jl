@@ -15,6 +15,7 @@ Using the `LogDensityProblems` interface, we the model can be defined as follows
 
 ```@example elboexample
 using LogDensityProblems
+using ForwardDiff
 
 struct NormalLogNormal{MX,SX,MY,SY}
     μ_x::MX
@@ -28,14 +29,25 @@ function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
     return logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
+function LogDensityProblems.logdensity_and_gradient(model::NormalLogNormal, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
+    )
+end
+
 function LogDensityProblems.dimension(model::NormalLogNormal)
     return length(model.μ_y) + 1
 end
 
 function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
-    return LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 ```
+
+Notice that the model supports first-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/stable/#LogDensityProblems.capabilities).
+The required order of differentiation capability will vary depending on the VI algorithm.
+In this example, we will use `KLMinRepGradDescent`, which requires first-order capability.
 
 Let's now instantiate the model
 
@@ -51,7 +63,23 @@ model = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y .^ 2));
 nothing
 ```
 
-Since the `y` follows a log-normal prior, its support is bounded to be the positive half-space ``\mathbb{R}_+``.
+Let's now load `AdvancedVI`.
+In addition to gradients of the target log-density, `KLMinRepGradDescent` internally uses automatic differentiation.
+Therefore, we have to select an AD framework to be used within `KLMinRepGradDescent`.
+(This does not need to be the same as the AD backend used for the first-order capability of `model`.)
+The selected AD framework needs to be communicated to `AdvancedVI` using the [ADTypes](https://github.com/SciML/ADTypes.jl) interface.
+Here, we will use `ForwardDiff`, which can be selected by later passing `ADTypes.AutoForwardDiff()`.
+
+```@example elboexample
+using ADTypes, ReverseDiff
+using AdvancedVI
+
+alg = KLMinRepGradDescent(AutoReverseDiff());
+nothing
+```
+
+Now, `KLMinRepGradDescent` requires the variational approximation and the target log-density to have the same support.
+Since `y` follows a log-normal prior, its support is bounded to be the positive half-space ``\mathbb{R}_+``.
 Thus, we will use [Bijectors](https://github.com/TuringLang/Bijectors.jl) to match the support of our target posterior and the variational approximation.
 
 ```@example elboexample
@@ -68,24 +96,6 @@ end
 b = Bijectors.bijector(model);
 binv = inverse(b)
 nothing
-```
-
-Let's now load `AdvancedVI`.
-Since BBVI relies on automatic differentiation (AD), we need to load an AD library, *before* loading `AdvancedVI`.
-Also, the selected AD framework needs to be communicated to `AdvancedVI` using the [ADTypes](https://github.com/SciML/ADTypes.jl) interface.
-Here, we will use `ForwardDiff`, which can be selected by later passing `ADTypes.AutoForwardDiff()`.
-
-```@example elboexample
-using Optimisers
-using ADTypes, ForwardDiff
-using AdvancedVI
-```
-
-We now need to select 1. a variational objective, and 2. a variational family.
-Here, we will use the [`RepGradELBO` objective](@ref repgradelbo), which expects an object implementing the [`LogDensityProblems`](https://github.com/tpapp/LogDensityProblems.jl) interface, and the inverse bijector.
-
-```@example elboexample
-alg = KLMinRepGradDescent(AutoForwardDiff())
 ```
 
 For the variational family, we will use the classic mean-field Gaussian family.

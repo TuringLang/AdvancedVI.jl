@@ -13,7 +13,9 @@ Evidence lower-bound objective with the reparameterization gradient formulation[
 # Requirements
 - The variational approximation ``q_{\\lambda}`` implements `rand`.
 - The target distribution and the variational approximation have the same support.
-- The target `LogDensityProblems.logdensity(prob, x)` must be differentiable with respect to `x` by the selected AD backend.
+- The target `LogDensityProblem` must have a capability at least `LogDensityProblems.LogDensityOrder{1}()`.
+- Only the AD backend `ReverseDiff`, `Zygote`, `Mooncake` are supported.
+- The sampling process `rand(q)` must be differentiable by the selected AD backend.
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
 """
@@ -26,23 +28,33 @@ function init(
     rng::Random.AbstractRNG,
     obj::RepGradELBO,
     adtype::ADTypes.AbstractADType,
-    prob,
+    prob::Prob,
     params,
     restructure,
-)
+) where {Prob}
     q_stop = restructure(params)
+    capability = LogDensityProblems.capabilities(Prob)
+    @assert adtype isa Union{<:AutoReverseDiff,<:AutoZygote,<:AutoMooncake,<:AutoEnzyme}
+    ad_prob = if capability < LogDensityProblems.LogDensityOrder{1}()
+        @warn "The capability of the provided log-density problem $(capability) is less than $(LogDensityProblems.LogDensityOrder{1}()) " *
+            "Will attempt to directly differentiate through `LogDensityProblems.logdensity`. " *
+            "If this is not intended, please supply a log-density problem with cabality at least $(LogDensityProblems.LogDensityOrder{1}())"
+        prob
+    else
+        MixedADLogDensityProblem(prob)
+    end
     aux = (
         rng=rng,
         adtype=adtype,
         obj=obj,
-        problem=prob,
+        problem=ad_prob,
         restructure=restructure,
         q_stop=q_stop,
     )
     obj_ad_prep = AdvancedVI._prepare_gradient(
         estimate_repgradelbo_ad_forward, adtype, params, aux
     )
-    return (obj_ad_prep=obj_ad_prep, problem=prob)
+    return (obj_ad_prep=obj_ad_prep, problem=ad_prob)
 end
 
 function RepGradELBO(n_samples::Int; entropy::AbstractEntropyEstimator=ClosedFormEntropy())
@@ -132,6 +144,7 @@ function estimate_gradient!(
     params,
     restructure,
     state,
+    args...,
 )
     (; obj_ad_prep, problem) = state
     q_stop = restructure(params)

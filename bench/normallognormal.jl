@@ -12,12 +12,19 @@ function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
     return log_density_x + log_density_y
 end
 
+function LogDensityProblems.logdensity_and_gradient(model::NormalLogNormal, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
+    )
+end
+
 function LogDensityProblems.dimension(model::NormalLogNormal)
     return length(model.μ_y) + 1
 end
 
 function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
-    return LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 
 function Bijectors.bijector(model::NormalLogNormal)
