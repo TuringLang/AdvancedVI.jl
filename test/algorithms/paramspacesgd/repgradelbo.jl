@@ -73,7 +73,6 @@ end
     modelstats = normal_meanfield(rng, Float64)
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    model = ADgradient(AutoForwardDiff(), model)
     mixed_ad = AdvancedVI.MixedADLogDensityProblem(model)
 
     @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
