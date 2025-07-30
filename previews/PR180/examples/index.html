@@ -478,6 +478,7 @@
 x &amp;\sim \mathrm{LogNormal}\left(\mu_x, \sigma_x^2\right) \\
 y &amp;\sim \mathcal{N}\left(\mu_y, \sigma_y^2\right)
 \end{aligned}\]</p><p>BBVI with <code>Bijectors.Exp</code> bijectors is able to infer this model exactly.</p><p>Using the <code>LogDensityProblems</code> interface, we the model can be defined as follows:</p><pre><code class="language-julia hljs">using LogDensityProblems
+using ForwardDiff
 
 struct NormalLogNormal{MX,SX,MY,SY}
     μ_x::MX
@@ -491,13 +492,20 @@ function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
     return logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
 end
 
+function LogDensityProblems.logdensity_and_gradient(model::NormalLogNormal, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
+    )
+end
+
 function LogDensityProblems.dimension(model::NormalLogNormal)
     return length(model.μ_y) + 1
 end
 
 function LogDensityProblems.capabilities(::Type{&lt;:NormalLogNormal})
-    return LogDensityProblems.LogDensityOrder{0}()
-end</code></pre><p>Let&#39;s now instantiate the model</p><pre><code class="language-julia hljs">using LinearAlgebra
+    return LogDensityProblems.LogDensityOrder{1}()
+end</code></pre><p>Notice that the model supports first-order differentiation <a href="https://www.tamaspapp.eu/LogDensityProblems.jl/stable/#LogDensityProblems.capabilities">capability</a>. The required order of differentiation capability will vary depending on the VI algorithm. In this example, we will use <code>KLMinRepGradDescent</code>, which requires first-order capability.</p><p>Let&#39;s now instantiate the model</p><pre><code class="language-julia hljs">using LinearAlgebra
 
 n_dims = 10
 μ_x = randn()
@@ -505,11 +513,7 @@ n_dims = 10
 μ_y = randn(n_dims)
 σ_y = exp.(randn(n_dims))
 model = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y .^ 2));
-nothing</code></pre><p>Some of the VI algorithms require gradients of the target log-density. In this example, we will use <code>KLMinRepGradDescent</code>, which requires first-order differentiation <a href="https://www.tamaspapp.eu/LogDensityProblems.jl/stable/#LogDensityProblems.capabilities">capability</a>. For this, we can rely on <code>LogDensityProblemsAD</code>:</p><pre><code class="language-julia hljs">using LogDensityProblemsAD
-using ADTypes, ReverseDiff
-
-model_ad = ADgradient(AutoReverseDiff(), model)
-nothing</code></pre><p>Let&#39;s now load <code>AdvancedVI</code>. In addition to gradients of the target log-density, <code>KLMinRepGradDescent</code> internally uses automatic differentiation. Therefore, we have to select an AD framework to be used within <code>KLMinRepGradDescent</code>. (This does not need to be the same as the backend used by <code>model_ad</code>.) The selected AD framework needs to be communicated to <code>AdvancedVI</code> using the <a href="https://github.com/SciML/ADTypes.jl">ADTypes</a> interface. Here, we will use <code>ForwardDiff</code>, which can be selected by later passing <code>ADTypes.AutoForwardDiff()</code>.</p><pre><code class="language-julia hljs">using Optimisers
+nothing</code></pre><p>Let&#39;s now load <code>AdvancedVI</code>. In addition to gradients of the target log-density, <code>KLMinRepGradDescent</code> internally uses automatic differentiation. Therefore, we have to select an AD framework to be used within <code>KLMinRepGradDescent</code>. (This does not need to be the same as the AD backend used for the first-order capability of <code>model</code>.) The selected AD framework needs to be communicated to <code>AdvancedVI</code> using the <a href="https://github.com/SciML/ADTypes.jl">ADTypes</a> interface. Here, we will use <code>ForwardDiff</code>, which can be selected by later passing <code>ADTypes.AutoForwardDiff()</code>.</p><pre><code class="language-julia hljs">using ADTypes, ReverseDiff
 using AdvancedVI
 
 alg = KLMinRepGradDescent(AutoReverseDiff());
@@ -531,13 +535,11 @@ L = Diagonal(ones(d));
 q0 = AdvancedVI.MeanFieldGaussian(μ, L)
 nothing</code></pre><p>And then, we now apply the bijector to the variational family.</p><pre><code class="language-julia hljs">q0_trans = Bijectors.TransformedDistribution(q0, binv)
 nothing</code></pre><p>Passing <code>objective</code> and the initial variational approximation <code>q</code> to <code>optimize</code> performs inference.</p><pre><code class="language-julia hljs">n_max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(
-    alg, n_max_iter, model_ad, q0_trans; show_progress=false
-);
+q_out, info, _ = AdvancedVI.optimize(alg, n_max_iter, model, q0_trans; show_progress=false);
 nothing</code></pre><p><code>ClipScale</code> is a projection operator, which ensures that the variational approximation stays within a stable region of the variational family. For more information see <a href="../optimization/#clipscale">this section</a>.</p><p><code>q_out</code> is the final output of the optimization procedure. If a parameter averaging strategy is used through the keyword argument <code>averager</code>, <code>q_out</code> is be the output of the averaging strategy.</p><p>The selected inference procedure stores per-iteration statistics into <code>stats</code>. For instance, the ELBO can be ploted as follows:</p><pre><code class="language-julia hljs">using Plots
 
 t = [i.iteration for i in info]
 y = [i.elbo for i in info]
 plot(t, y; label=&quot;BBVI&quot;, xlabel=&quot;Iteration&quot;, ylabel=&quot;ELBO&quot;)
 savefig(&quot;bbvi_example_elbo.svg&quot;)
-nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">GKS: cannot open display - headless operation mode active</code></pre><p><img src="../bbvi_example_elbo.svg" alt/></p><p>Further information can be gathered by defining your own <code>callback!</code>.</p><p>The final ELBO can be estimated by calling the objective directly with a different number of Monte Carlo samples as follows:</p><pre><code class="language-julia hljs">estimate_objective(RepGradELBO(10^4), q_out, model)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">-5.202141234300328</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../general/">« General Usage</a><a class="docs-footer-nextpage" href="../paramspacesgd/klminrepgraddescent/">KLMinRepGradDescent »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Wednesday 30 July 2025 19:16">Wednesday 30 July 2025</span>. Using Julia version 1.11.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">GKS: cannot open display - headless operation mode active</code></pre><p><img src="../bbvi_example_elbo.svg" alt/></p><p>Further information can be gathered by defining your own <code>callback!</code>.</p><p>The final ELBO can be estimated by calling the objective directly with a different number of Monte Carlo samples as follows:</p><pre><code class="language-julia hljs">estimate_objective(RepGradELBO(10^4), q_out, model)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">-1.2098419916655399</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../general/">« General Usage</a><a class="docs-footer-nextpage" href="../paramspacesgd/klminrepgraddescent/">KLMinRepGradDescent »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Wednesday 30 July 2025 19:32">Wednesday 30 July 2025</span>. Using Julia version 1.11.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
