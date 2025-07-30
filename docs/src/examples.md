@@ -44,6 +44,7 @@ function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
     return LogDensityProblems.LogDensityOrder{1}()
 end
 ```
+
 Notice that the model supports first-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/stable/#LogDensityProblems.capabilities).
 The required order of differentiation capability will vary depending on the VI algorithm.
 In this example, we will use `KLMinRepGradDescent`, which requires first-order capability.
