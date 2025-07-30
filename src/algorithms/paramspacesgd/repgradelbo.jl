@@ -39,9 +39,10 @@ function init(
         restructure=restructure,
         q_stop=q_stop,
     )
-    return AdvancedVI._prepare_gradient(
+    obj_ad_prep = AdvancedVI._prepare_gradient(
         estimate_repgradelbo_ad_forward, adtype, params, aux
     )
+    return (obj_ad_prep=obj_ad_prep, problem=prob)
 end
 
 function RepGradELBO(n_samples::Int; entropy::AbstractEntropyEstimator=ClosedFormEntropy())
@@ -128,23 +129,22 @@ function estimate_gradient!(
     obj::RepGradELBO,
     adtype::ADTypes.AbstractADType,
     out::DiffResults.MutableDiffResult,
-    prob,
     params,
     restructure,
     state,
 )
-    prep = state
+    (; obj_ad_prep, problem) = state
     q_stop = restructure(params)
     aux = (
         rng=rng,
         adtype=adtype,
         obj=obj,
-        problem=prob,
+        problem=problem,
         restructure=restructure,
         q_stop=q_stop,
     )
     AdvancedVI._value_and_gradient!(
-        estimate_repgradelbo_ad_forward, out, prep, adtype, params, aux
+        estimate_repgradelbo_ad_forward, out, obj_ad_prep, adtype, params, aux
     )
     nelbo = DiffResults.value(out)
     stat = (elbo=(-nelbo),)
