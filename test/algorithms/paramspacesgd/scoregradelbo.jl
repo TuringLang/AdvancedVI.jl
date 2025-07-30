@@ -3,10 +3,10 @@ AD_scoregradelbo_interface = if TEST_GROUP == "Enzyme"
     [AutoEnzyme()]
 else
     [
+        AutoMooncake(; config=Mooncake.Config()),
         AutoForwardDiff(),
         AutoReverseDiff(),
         AutoZygote(),
-        AutoMooncake(; config=Mooncake.Config()),
     ]
 end
 

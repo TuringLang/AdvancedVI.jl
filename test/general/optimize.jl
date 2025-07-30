@@ -11,7 +11,7 @@
     q0 = MeanFieldGaussian(zeros(Float64, n_dims), Diagonal(ones(Float64, n_dims)))
     obj = RepGradELBO(10)
 
-    adtype = AutoReverseDiff()
+    adtype = AutoZygote()
     optimizer = Optimisers.Adam(1e-2)
     averager = PolynomialAveraging()
 

@@ -7,9 +7,9 @@ AD_repgradelbo_locationscale_bijectors = if TEST_GROUP == "Enzyme"
     )
 else
     Dict(
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
         :ReverseDiff => AutoReverseDiff(),
         :Zygote => AutoZygote(),
-        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
     )
 end
 

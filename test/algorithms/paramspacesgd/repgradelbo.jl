@@ -8,9 +8,9 @@ AD_repgradelbo_interface = if TEST_GROUP == "Enzyme"
     ]
 else
     [
+        AutoMooncake(; config=Mooncake.Config()),
         AutoReverseDiff(),
         AutoZygote(),
-        AutoMooncake(; config=Mooncake.Config()),
     ]
 end
 
