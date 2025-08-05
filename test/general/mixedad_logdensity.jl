@@ -1,8 +1,23 @@
 
+AD_mixedad = if TEST_GROUP == "Enzyme"
+    Dict(
+        :Enzyme => AutoEnzyme(;
+            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+            function_annotation=Enzyme.Const,
+        ),
+    )
+else
+    Dict(
+        :ReverseDiff => AutoReverseDiff(),
+        :Zygote => AutoZygote(),
+        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
+    )
+end
+
 struct MixedADTestModel end
 
 function LogDensityProblems.logdensity(::MixedADTestModel, θ)
-    return Float64(ℯ)
+    return sum(abs2, θ)
 end
 
 function LogDensityProblems.dimension(::MixedADTestModel)
@@ -10,31 +25,33 @@ function LogDensityProblems.dimension(::MixedADTestModel)
 end
 
 function LogDensityProblems.capabilities(::Type{<:MixedADTestModel})
-    return LogDensityProblems.LogDensityOrder{2}()
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 
 function LogDensityProblems.logdensity_and_gradient(::MixedADTestModel, θ)
     return (Float64(ℯ), [1.0, 2.0, 3.0])
 end
 
-function LogDensityProblems.logdensity_gradient_and_hessian(::MixedADTestModel, θ)
-    return (Float64(ℯ), [1.0, 2.0, 3.0], [1.0 1.0 1.0; 2.0 2.0 2.0; 3.0 3.0 3.0])
+function mixedad_test_fwd(x, prob)
+    return LogDensityProblems.logdensity(prob, x)
 end
 
-@testset "interface MixedADLogDensityProblem" begin
+@testset "MixedADLogDensityProblem" begin
     model = MixedADTestModel()
     model_ad = AdvancedVI.MixedADLogDensityProblem(model)
 
     d = 3
     x = ones(Float64, d)
 
-    @test LogDensityProblems.dimension(model) == LogDensityProblems.dimension(model_ad)
-    @test LogDensityProblems.capabilities(typeof(model)) ==
-        LogDensityProblems.capabilities(typeof(model_ad))
-    @test last(LogDensityProblems.logdensity(model, x)) ≈
-        last(LogDensityProblems.logdensity(model_ad, x))
-    @test last(LogDensityProblems.logdensity_and_gradient(model, x)) ≈
-        last(LogDensityProblems.logdensity_and_gradient(model_ad, x))
-    @test last(LogDensityProblems.logdensity_gradient_and_hessian(model, x)) ≈
-        last(LogDensityProblems.logdensity_gradient_and_hessian(model_ad, x))
+    @testset "interface" begin
+        @test LogDensityProblems.dimension(model) == LogDensityProblems.dimension(model_ad)
+        @test last(LogDensityProblems.logdensity(model, x)) ≈
+            last(LogDensityProblems.logdensity(model_ad, x))
+    end
+
+    @testset "rrule under $(adname)" for (adname, adtype) in AD_mixedad
+        out = DiffResults.DiffResult(0.0, zeros(d))
+        AdvancedVI._value_and_gradient!(mixedad_test_fwd, out, adtype, x, model_ad)
+        @test DiffResults.gradient(out) ≈ [1.0, 2.0, 3.0]
+    end
 end

@@ -20,24 +20,6 @@ function LogDensityProblems.logdensity(
     return LogDensityProblems.logdensity(mixedad_prob.problem, x)
 end
 
-function LogDensityProblems.logdensity_and_gradient(
-    mixedad_prob::MixedADLogDensityProblem, x::AbstractArray
-)
-    return LogDensityProblems.logdensity_and_gradient(mixedad_prob.problem, x)
-end
-
-function LogDensityProblems.logdensity_gradient_and_hessian(
-    mixedad_prob::MixedADLogDensityProblem, x::AbstractArray
-)
-    return LogDensityProblems.logdensity_gradient_and_hessian(mixedad_prob.problem, x)
-end
-
-function LogDensityProblems.capabilities(
-    ::Type{MixedADLogDensityProblem{Prob}}
-) where {Prob}
-    return LogDensityProblems.capabilities(Prob)
-end
-
 function ChainRulesCore.rrule(
     ::typeof(LogDensityProblems.logdensity),
     mixedad_prob::MixedADLogDensityProblem,
