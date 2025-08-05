@@ -73,8 +73,6 @@ end
     modelstats = normal_meanfield(rng, Float64)
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    mixed_ad = AdvancedVI.MixedADLogDensityProblem(model)
-
     @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
