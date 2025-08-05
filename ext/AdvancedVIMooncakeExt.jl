@@ -14,7 +14,7 @@ Mooncake.@from_rrule Mooncake.DefaultCtx Tuple{
 Mooncake.@from_rrule Mooncake.DefaultCtx Tuple{
     typeof(LogDensityProblems.logdensity),
     AdvancedVI.MixedADLogDensityProblem,
-    SubArray{<:IEEEFloat, 1},
+    SubArray{<:IEEEFloat,1},
 }
 
 end
