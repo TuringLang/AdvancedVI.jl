@@ -14,7 +14,7 @@ Evidence lower-bound objective with the reparameterization gradient formulation[
 - The variational approximation ``q_{\\lambda}`` implements `rand`.
 - The target distribution and the variational approximation have the same support.
 - The target `LogDensityProblem` must have a capability at least `LogDensityProblems.LogDensityOrder{1}()`.
-- Only the AD backend `ReverseDiff`, `Zygote`, `Mooncake` are supported.
+- The AD backends `ReverseDiff`, `Zygote`, `Mooncake`, `Enzyme` can be used.
 - The sampling process `rand(q)` must be differentiable by the selected AD backend.
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
