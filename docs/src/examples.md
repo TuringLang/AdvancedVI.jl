@@ -68,7 +68,7 @@ In addition to gradients of the target log-density, `KLMinRepGradDescent` intern
 Therefore, we have to select an AD framework to be used within `KLMinRepGradDescent`.
 (This does not need to be the same as the AD backend used for the first-order capability of `model`.)
 The selected AD framework needs to be communicated to `AdvancedVI` using the [ADTypes](https://github.com/SciML/ADTypes.jl) interface.
-Here, we will use `ForwardDiff`, which can be selected by later passing `ADTypes.AutoForwardDiff()`.
+Here, we will use `ReverseDiff`, which can be selected by later passing `ADTypes.AutoReverseDiff()`.
 
 ```@example elboexample
 using ADTypes, ReverseDiff
