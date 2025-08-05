@@ -38,7 +38,7 @@ function init(
     ad_prob = if capability < LogDensityProblems.LogDensityOrder{1}()
         @warn "The capability of the provided log-density problem $(capability) is less than $(LogDensityProblems.LogDensityOrder{1}()) " *
             "Will attempt to directly differentiate through `LogDensityProblems.logdensity`. " *
-            "If this is not intended, please supply a log-density problem with cabality at least $(LogDensityProblems.LogDensityOrder{1}())"
+            "If this is not intended, please supply a log-density problem with capability at least $(LogDensityProblems.LogDensityOrder{1}())"
         prob
     else
         MixedADLogDensityProblem(prob)
