@@ -27,8 +27,8 @@ function ChainRulesCore.rrule(
 )
     ℓπ, ∇ℓπ = LogDensityProblems.logdensity_and_gradient(mixedad_prob.problem, x)
     function logdensity_pullback(∂y)
-        ∂x = @thunk(∂y' * ∇ℓπ)
-        return NoTangent(), NoTangent(), ∂x
+        ∂x = ChainRulesCore.@thunk(∂y' * ∇ℓπ)
+        return ChainRulesCore.NoTangent(), ChainRulesCore.NoTangent(), ∂x
     end
     return ℓπ, logdensity_pullback
 end
