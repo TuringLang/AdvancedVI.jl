@@ -18,7 +18,7 @@ using LogDensityProblems
 using ADTypes
 using DiffResults
 using DifferentiationInterface
-import ChainRulesCore
+using ChainRulesCore: ChainRulesCore
 
 using FillArrays
 
