@@ -33,7 +33,11 @@ function LogDensityProblems.logdensity_and_gradient(::MixedADTestModel, θ)
 end
 
 function mixedad_test_fwd(x, prob)
-    return LogDensityProblems.logdensity(prob, x)
+    xs = repeat(x, 1, 2)
+    return (
+        mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachcol(xs)) +
+        LogDensityProblems.logdensity(prob, x)
+    )/2
 end
 
 @testset "MixedADLogDensityProblem" begin

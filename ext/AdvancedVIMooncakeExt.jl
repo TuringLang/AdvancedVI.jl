@@ -1,20 +1,32 @@
 module AdvancedVIMooncakeExt
 
 using AdvancedVI
-using Base: IEEEFloat
 using LogDensityProblems
 using Mooncake
 
-Mooncake.@from_rrule Mooncake.DefaultCtx Tuple{
-    typeof(LogDensityProblems.logdensity),
-    AdvancedVI.MixedADLogDensityProblem,
-    Array{<:IEEEFloat,1},
-}
+Mooncake.@is_primitive(
+    Mooncake.MinimalCtx,
+    Tuple{
+        typeof(LogDensityProblems.logdensity),
+        AdvancedVI.MixedADLogDensityProblem,
+        <:AbstractArray{<:Base.IEEEFloat},
+    }
+)
 
-Mooncake.@from_rrule Mooncake.DefaultCtx Tuple{
-    typeof(LogDensityProblems.logdensity),
-    AdvancedVI.MixedADLogDensityProblem,
-    SubArray{<:IEEEFloat,1},
-}
+function Mooncake.rrule!!(
+    ::Mooncake.CoDual{typeof(LogDensityProblems.logdensity)},
+    mixedad_prob::Mooncake.CoDual{<:AdvancedVI.MixedADLogDensityProblem},
+    x::Mooncake.CoDual{<:AbstractArray{<:Base.IEEEFloat}},
+)
+    x, dx = Mooncake.arrayify(x)
+    ℓπ, ∇ℓπ = LogDensityProblems.logdensity_and_gradient(
+        Mooncake.primal(mixedad_prob).problem, x
+    )
+    function logdensity_pb(∂y)
+        view(dx, 1:length(x)) .+= ∂y' * ∇ℓπ
+        return Mooncake.NoRData(), Mooncake.NoRData(), Mooncake.NoRData()
+    end
+    return Mooncake.zero_fcodual(ℓπ), logdensity_pb
+end
 
 end
