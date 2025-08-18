@@ -9,9 +9,11 @@ Mooncake.@is_primitive(
     Tuple{
         typeof(LogDensityProblems.logdensity),
         AdvancedVI.MixedADLogDensityProblem,
-        <:AbstractArray{<:Base.IEEEFloat},
+        AbstractArray{<:Base.IEEEFloat},
     }
 )
+
+Mooncake.tangent_type(::Type{<:AdvancedVI.MixedADLogDensityProblem}) = Mooncake.NoTangent
 
 function Mooncake.rrule!!(
     ::Mooncake.CoDual{typeof(LogDensityProblems.logdensity)},
@@ -23,6 +25,7 @@ function Mooncake.rrule!!(
         Mooncake.primal(mixedad_prob).problem, x
     )
     function logdensity_pb(∂y)
+        mixedad_prob
         view(dx, 1:length(x)) .+= ∂y' * ∇ℓπ
         return Mooncake.NoRData(), Mooncake.NoRData(), Mooncake.NoRData()
     end

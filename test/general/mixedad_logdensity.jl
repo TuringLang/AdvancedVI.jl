@@ -57,5 +57,10 @@ end
         out = DiffResults.DiffResult(0.0, zeros(d))
         AdvancedVI._value_and_gradient!(mixedad_test_fwd, out, adtype, x, model_ad)
         @test DiffResults.gradient(out) ≈ [1.0, 2.0, 3.0]
+
+        out = DiffResults.DiffResult(0.0, zeros(d))
+        prep = AdvancedVI._prepare_gradient(mixedad_test_fwd, adtype, x, model_ad)
+        AdvancedVI._value_and_gradient!(mixedad_test_fwd, out, prep, adtype, x, model_ad)
+        @test DiffResults.gradient(out) ≈ [1.0, 2.0, 3.0]
     end
 end
