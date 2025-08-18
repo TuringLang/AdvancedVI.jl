@@ -28,8 +28,14 @@ function LogDensityProblems.capabilities(::Type{<:MixedADTestModel})
     return LogDensityProblems.LogDensityOrder{1}()
 end
 
+# The tests below will check that the deliberately incorrect derivative below
+# is returned when differentiating through `LogDensityProblems.logdensity`.
+# This would mean that the AD backend is indeed using this (wrong) implementation of
+# `logdensity_and_gradient` instead of directly differentiating through `logdensity`.
+const EXPECTED_RESULT = [1.0, 2.0, 3.0]
+
 function LogDensityProblems.logdensity_and_gradient(::MixedADTestModel, θ)
-    return (Float64(ℯ), [1.0, 2.0, 3.0])
+    return (Float64(ℯ), EXPECTED_RESULT)
 end
 
 function mixedad_test_fwd(x, prob)
@@ -56,11 +62,11 @@ end
     @testset "rrule under $(adname)" for (adname, adtype) in AD_mixedad
         out = DiffResults.DiffResult(0.0, zeros(d))
         AdvancedVI._value_and_gradient!(mixedad_test_fwd, out, adtype, x, model_ad)
-        @test DiffResults.gradient(out) ≈ [1.0, 2.0, 3.0]
+        @test DiffResults.gradient(out) ≈ EXPECTED_RESULT
 
         out = DiffResults.DiffResult(0.0, zeros(d))
         prep = AdvancedVI._prepare_gradient(mixedad_test_fwd, adtype, x, model_ad)
         AdvancedVI._value_and_gradient!(mixedad_test_fwd, out, prep, adtype, x, model_ad)
-        @test DiffResults.gradient(out) ≈ [1.0, 2.0, 3.0]
+        @test DiffResults.gradient(out) ≈ EXPECTED_RESULT
     end
 end
