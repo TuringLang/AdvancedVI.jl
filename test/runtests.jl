@@ -24,7 +24,7 @@ using AdvancedVI
 const PROGRESS = haskey(ENV, "PROGRESS")
 const TEST_GROUP = get(ENV, "TEST_GROUP", "All")
 
-if GROUP == "Enzyme"
+if TEST_GROUP == "Enzyme"
     using Enzyme
 end
 
