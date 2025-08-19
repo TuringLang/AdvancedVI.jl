@@ -16,10 +16,6 @@ using Random, StableRNGs
 using Statistics
 using StatsBase
 
-using Functors
-using DistributionsAD
-@functor TuringDiagMvNormal
-
 using ADTypes
 using ForwardDiff, ReverseDiff, Zygote, Mooncake
 
@@ -67,12 +63,10 @@ end
 if TEST_GROUP == "All" || TEST_GROUP == "ParamSpaceSGD" || TEST_GROUP == "Enzyme"
     include("algorithms/paramspacesgd/repgradelbo.jl")
     include("algorithms/paramspacesgd/scoregradelbo.jl")
-    include("algorithms/paramspacesgd/repgradelbo_distributionsad.jl")
     include("algorithms/paramspacesgd/repgradelbo_locationscale.jl")
     include("algorithms/paramspacesgd/repgradelbo_locationscale_bijectors.jl")
     include("algorithms/paramspacesgd/repgradelbo_proximal_locationscale.jl")
     include("algorithms/paramspacesgd/repgradelbo_proximal_locationscale_bijectors.jl")
-    include("algorithms/paramspacesgd/scoregradelbo_distributionsad.jl")
     include("algorithms/paramspacesgd/scoregradelbo_locationscale.jl")
     include("algorithms/paramspacesgd/scoregradelbo_locationscale_bijectors.jl")
 end
