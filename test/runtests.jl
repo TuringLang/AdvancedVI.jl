@@ -22,7 +22,7 @@ using ForwardDiff, ReverseDiff, Zygote, Mooncake
 using AdvancedVI
 
 const PROGRESS = haskey(ENV, "PROGRESS")
-const GROUP = get(ENV, "GROUP", "All")
+const TEST_GROUP = get(ENV, "TEST_GROUP", "All")
 
 if GROUP == "Enzyme"
     using Enzyme
