@@ -53,13 +53,15 @@ include("models/normal.jl")
 include("models/normallognormal.jl")
 
 if GROUP == "All" || GROUP == "General"
-    include("general/ad.jl")
-    include("general/optimize.jl")
+    if  GROUP == "AD"
+        include("general/ad.jl")
+        include("general/optimize.jl")
+        include("general/proximal_location_scale_entropy.jl")
+        include("general/mixedad_logdensity.jl")
+    end
     include("general/rules.jl")
     include("general/averaging.jl")
     include("general/clip_scale.jl")
-    include("general/proximal_location_scale_entropy.jl")
-    include("general/mixedad_logdensity.jl")
 end
 
 if GROUP == "All" || GROUP == "General" || GROUP == "Families"
@@ -67,7 +69,7 @@ if GROUP == "All" || GROUP == "General" || GROUP == "Families"
     include("families/location_scale_low_rank.jl")
 end
 
-if GROUP == "All" || GROUP == "ParamSpaceSGD"
+if GROUP == "All" || GROUP == "ParamSpaceSGD" || GROUP == "AD"
     include("algorithms/paramspacesgd/repgradelbo.jl")
     include("algorithms/paramspacesgd/scoregradelbo.jl")
     include("algorithms/paramspacesgd/repgradelbo_locationscale.jl")
