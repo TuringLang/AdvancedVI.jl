@@ -41,7 +41,7 @@ function init(
             adtype isa Union{<:AutoReverseDiff,<:AutoZygote,<:AutoMooncake,<:AutoEnzyme} &&
             ADTypes.mode(adtype) == ADTypes.ReverseMode
         )
-            @info "The supplied target `LogDensityProblem` has a differentiation capability of $(capability) > `LogDensityProblems.LogDensityOrder{1}()`. To make use of this, the `adtype` argument for AdvancedVI must be one of `AutoReverseDiff`, `AutoZygote`, `AutoMooncake`, or `AutoEnzyme{Enzyme.Reverse,<:Any}`."
+            @info "The supplied target `LogDensityProblem` has a differentiation capability of $(capability) >= `LogDensityProblems.LogDensityOrder{1}()`. To make use of this, the `adtype` argument for AdvancedVI must be one of `AutoReverseDiff`, `AutoZygote`, `AutoMooncake`, or `AutoEnzyme{Enzyme.Reverse,<:Any}`."
         end
         MixedADLogDensityProblem(prob)
     end
