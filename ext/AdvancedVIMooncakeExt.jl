@@ -25,7 +25,6 @@ function Mooncake.rrule!!(
         Mooncake.primal(mixedad_prob).problem, x
     )
     function logdensity_pb(∂y)
-        mixedad_prob
         view(dx, 1:length(x)) .+= ∂y' * ∇ℓπ
         return Mooncake.NoRData(), Mooncake.NoRData(), Mooncake.NoRData()
     end
