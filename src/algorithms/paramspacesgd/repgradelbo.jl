@@ -13,8 +13,7 @@ Evidence lower-bound objective with the reparameterization gradient formulation[
 # Requirements
 - The variational approximation ``q_{\\lambda}`` implements `rand`.
 - The target distribution and the variational approximation have the same support.
-- The target `LogDensityProblem` must have a capability at least `LogDensityProblems.LogDensityOrder{1}()`.
-- The AD backends `ReverseDiff`, `Zygote`, `Mooncake`, `Enzyme` can be used.
+- The target `LogDensityProblem` should satisfy either of the following: The target has a capability of at least `LogDensityProblems.LogDensityOrder{1}()` and the AD backend is one of `ReverseDiff`, `Zygote`, `Mooncake`, and `Enzyme`, then `LogDensity`. (In this case, `AdvancedVI` will take advantage of the existing `LogDensityProblems.logdensity_and_gradient`.) Otherwise, `LogDensityProblems.logdensity` should be differentiable under the selected AD backend.
 - The sampling process `rand(q)` must be differentiable by the selected AD backend.
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
@@ -35,17 +34,11 @@ function init(
     q_stop = restructure(params)
     capability = LogDensityProblems.capabilities(Prob)
     ad_prob = if capability < LogDensityProblems.LogDensityOrder{1}()
-        @warn "The capability of the provided log-density problem $(capability) is less than $(LogDensityProblems.LogDensityOrder{1}()) " *
-            "Will attempt to directly differentiate through `LogDensityProblems.logdensity`. " *
-            "If this is not intended, please supply a log-density problem with capability at least $(LogDensityProblems.LogDensityOrder{1}())"
+        @info "The capability of the provided log-density problem $(capability) is less than $(LogDensityProblems.LogDensityOrder{1}()). `AdvancedVI` will attempt to directly differentiate through `LogDensityProblems.logdensity`. If this is not intended, please supply a log-density problem with capability at least $(LogDensityProblems.LogDensityOrder{1}())"
         prob
     else
         if !(adtype isa Union{<:AutoReverseDiff,<:AutoZygote,<:AutoMooncake,<:AutoEnzyme})
-            throw(
-                ArgumentError(
-                    "The supplied log-density problem already contains existing gradient calculation capabilities. To make use of this, the `adtype` argument for AdvancedVI must be one of `AutoReverseDiff`, `AutoZygote`, `AutoMooncake`, or `AutoEnzyme`.",
-                ),
-            )
+            @info "The supplied target `LogDensityProblem` has a differentiation capability of $(capability) > `LogDensityProblems.LogDensityOrder{1}()`. To make use of this, the `adtype` argument for AdvancedVI must be one of `AutoReverseDiff`, `AutoZygote`, `AutoMooncake`, or `AutoEnzyme`."
         end
         MixedADLogDensityProblem(prob)
     end
