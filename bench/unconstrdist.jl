@@ -7,6 +7,13 @@ function LogDensityProblems.logdensity(model::UnconstrDist, x)
     return logpdf(model.dist, x)
 end
 
+function LogDensityProblems.logdensity_and_gradient(model::UnconstrDist, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
+    )
+end
+
 function LogDensityProblems.dimension(model::UnconstrDist)
     return length(model.dist)
 end

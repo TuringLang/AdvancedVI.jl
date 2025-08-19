@@ -1,6 +1,4 @@
 
-using Test
-
 AD_interface = if TEST_GROUP == "Enzyme"
     Dict(
         :Enzyme => AutoEnzyme(;

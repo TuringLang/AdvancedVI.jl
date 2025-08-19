@@ -138,7 +138,7 @@ using LinearAlgebra
 using LogDensityProblems
 using Optimisers
 using Plots
-using ReverseDiff
+using ForwardDiff, ReverseDiff
 
 struct Target{D}
     dist::D
@@ -148,12 +148,19 @@ function LogDensityProblems.logdensity(model::Target, θ)
     logpdf(model.dist, θ)
 end
 
+function LogDensityProblems.logdensity_and_gradient(model::Target, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
+    )
+end
+
 function LogDensityProblems.dimension(model::Target)
     return length(model.dist)
 end
 
 function LogDensityProblems.capabilities(::Type{<:Target})
-    return LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 
 n_dims     = 30

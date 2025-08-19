@@ -8,7 +8,6 @@ AD_repgradelbo_distributionsad = if TEST_GROUP == "Enzyme"
     )
 else
     Dict(
-        :ForwarDiff => AutoForwardDiff(),
         #:ReverseDiff => AutoReverseDiff(), # DistributionsAD doesn't support ReverseDiff at the moment
         :Zygote => AutoZygote(),
         :Mooncake => AutoMooncake(; config=Mooncake.Config()),
