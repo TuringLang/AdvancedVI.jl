@@ -28,7 +28,7 @@ function LogDensityProblems.capabilities(::Type{<:MixedADTestModel})
     return LogDensityProblems.LogDensityOrder{1}()
 end
 
-# The tests below will check that the deliberately incorrect derivative below
+# We will check that the deliberately incorrect derivative below
 # is returned when differentiating through `LogDensityProblems.logdensity`.
 # This would mean that the AD backend is indeed using this (wrong) implementation of
 # `logdensity_and_gradient` instead of directly differentiating through `logdensity`.
