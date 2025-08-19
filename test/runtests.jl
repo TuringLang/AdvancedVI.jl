@@ -26,6 +26,8 @@ const AD_str = get(ENV, "AD", "ReverseDiff")
 
 const AD = if AD_str == "ReverseDiff"
     AutoReverseDiff()
+elseif AD_str == "ForwardDiff"
+    AutoForwardDiff()
 elseif AD_str == "Zygote"
     using Zygote
     AutoZygote()
