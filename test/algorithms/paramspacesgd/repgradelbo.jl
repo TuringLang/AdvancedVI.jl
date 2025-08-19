@@ -58,7 +58,7 @@ end
     modelstats = normal_meanfield(rng, Float64)
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
-    @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
+    @testset for n_montecarlo in [1, 10]
         q_true = MeanFieldGaussian(
             Vector{eltype(μ_true)}(μ_true), Diagonal(Vector{eltype(L_true)}(diag(L_true)))
         )
@@ -67,10 +67,10 @@ end
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
         aux = (
-            rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=adtype
+            rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=AD
         )
         AdvancedVI._value_and_gradient!(
-            AdvancedVI.estimate_repgradelbo_ad_forward, out, adtype, params, aux
+            AdvancedVI.estimate_repgradelbo_ad_forward, out, AD, params, aux
         )
         grad = DiffResults.gradient(out)
         @test norm(grad) ≈ 0 atol = 1e-5

@@ -2,11 +2,13 @@
 using Test
 using Test: @testset, @test
 
+using ADTypes
 using Base.Iterators
 using Bijectors
 using DiffResults
 using Distributions
 using FillArrays
+using ForwardDiff, ReverseDiff
 using LinearAlgebra
 using LogDensityProblems
 using Optimisers
@@ -16,16 +18,26 @@ using Random, StableRNGs
 using Statistics
 using StatsBase
 
-using ADTypes
-using ForwardDiff, ReverseDiff, Zygote, Mooncake
-
 using AdvancedVI
 
 const PROGRESS = haskey(ENV, "PROGRESS")
-const TEST_GROUP = get(ENV, "TEST_GROUP", "All")
+const GROUP = get(ENV, "GROUP", "All")
+const AD_str = get(ENV, "AD", "ReverseDiff")
 
-if TEST_GROUP == "Enzyme"
+const AD = if AD_str == "ReverseDiff"
+    AutoReverseDiff()
+elseif AD_str == "Zygote"
+    using Zygote
+    AutoZygote()
+elseif AD_str == "Mooncake"
+    using Mooncake
+    AutoMooncake(; config=Mooncake.Config())
+elseif AD_str == "Enzyme"
     using Enzyme
+    AutoEnzyme(;
+        mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
+        function_annotation=Enzyme.Const,
+    )
 end
 
 # Models for Inference Tests
@@ -40,8 +52,8 @@ end
 include("models/normal.jl")
 include("models/normallognormal.jl")
 
-if TEST_GROUP == "All" || TEST_GROUP == "General"
-    # Interface tests that do not involve testing on Enzyme
+if GROUP == "All" || GROUP == "General"
+    include("general/ad.jl")
     include("general/optimize.jl")
     include("general/rules.jl")
     include("general/averaging.jl")
@@ -50,17 +62,12 @@ if TEST_GROUP == "All" || TEST_GROUP == "General"
     include("general/mixedad_logdensity.jl")
 end
 
-if TEST_GROUP == "All" || TEST_GROUP == "General" || TEST_GROUP == "Enzyme"
-    # Interface tests that involve testing on Enzyme
-    include("general/ad.jl")
-end
-
-if TEST_GROUP == "All" || TEST_GROUP == "Families"
+if GROUP == "All" || GROUP == "General" || GROUP == "Families"
     include("families/location_scale.jl")
     include("families/location_scale_low_rank.jl")
 end
 
-if TEST_GROUP == "All" || TEST_GROUP == "ParamSpaceSGD" || TEST_GROUP == "Enzyme"
+if GROUP == "All" || GROUP == "ParamSpaceSGD"
     include("algorithms/paramspacesgd/repgradelbo.jl")
     include("algorithms/paramspacesgd/scoregradelbo.jl")
     include("algorithms/paramspacesgd/repgradelbo_locationscale.jl")
