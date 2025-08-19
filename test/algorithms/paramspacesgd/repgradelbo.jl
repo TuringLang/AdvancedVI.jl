@@ -66,9 +66,7 @@ end
         obj = RepGradELBO(n_montecarlo; entropy=StickingTheLandingEntropy())
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
 
-        aux = (
-            rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=AD
-        )
+        aux = (rng=rng, obj=obj, problem=model, restructure=re, q_stop=q_true, adtype=AD)
         AdvancedVI._value_and_gradient!(
             AdvancedVI.estimate_repgradelbo_ad_forward, out, AD, params, aux
         )
