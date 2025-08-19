@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Enzyme:
+  Tests:
     uses: ./.github/workflows/AutoDiffIntegration.yml
     with:
       AD: ForwardDiff
