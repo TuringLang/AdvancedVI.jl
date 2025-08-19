@@ -1,4 +1,4 @@
-name: Enzyme Integration 
+name: ReverseDiff Integration 
 on:
   push:
     branches:
@@ -11,4 +11,4 @@ jobs:
   Enzyme:
     uses: ./.github/workflows/AutoDiffIntegration.yml
     with:
-      AD: Enzyme
+      AD: ReverseDiff

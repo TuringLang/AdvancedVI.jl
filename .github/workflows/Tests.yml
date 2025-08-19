@@ -1,4 +1,4 @@
-name: CI
+name: Tests
 on:
   push:
     branches:
@@ -36,6 +36,9 @@ jobs:
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        env:
+          GROUP: All
+          AD: ReverseDiff
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v3
         with:

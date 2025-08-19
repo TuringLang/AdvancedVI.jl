@@ -1,22 +1,5 @@
-
-AD_repgradelbo_locationscale = if TEST_GROUP == "Enzyme"
-    Dict(
-        :Enzyme => AutoEnzyme(;
-            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
-            function_annotation=Enzyme.Const,
-        ),
-    )
-else
-    Dict(
-        :ReverseDiff => AutoReverseDiff(),
-        :Zygote => AutoZygote(),
-        :Mooncake => AutoMooncake(; config=Mooncake.Config()),
-    )
-end
-
 @testset "inference RepGradELBO Proximal VILocationScale" begin
-    @testset "$(modelname) $(objname) $(realtype) $(adbackname)" for realtype in
-                                                                     [Float64, Float32],
+    @testset "$(modelname) $(objname) $(realtype)" for realtype in [Float64, Float32],
         (modelname, modelconstr) in
         Dict(:Normal => normal_meanfield, :Normal => normal_fullrank),
         (objname, objective) in Dict(
@@ -24,8 +7,7 @@ end
                 RepGradELBO(10; entropy=ClosedFormEntropyZeroGradient()),
             :RepGradELBOStickingTheLanding =>
                 RepGradELBO(10; entropy=StickingTheLandingEntropyZeroGradient()),
-        ),
-        (adbackname, adtype) in AD_repgradelbo_locationscale
+        )
 
         seed = (0x38bef07cf9cc549d)
         rng = StableRNG(seed)
@@ -42,7 +24,7 @@ end
 
         T = 1000
         η = 1e-3
-        alg = KLMinRepGradProxDescent(adtype; optimizer=Descent(η))
+        alg = KLMinRepGradProxDescent(AD; optimizer=Descent(η))
 
         # For small enough η, the error of SGD, Δλ, is bounded as
         #     Δλ ≤ ρ^T Δλ0 + O(η),
