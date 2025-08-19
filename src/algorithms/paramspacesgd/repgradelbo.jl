@@ -41,7 +41,11 @@ function init(
         prob
     else
         if !(adtype isa Union{<:AutoReverseDiff,<:AutoZygote,<:AutoMooncake,<:AutoEnzyme})
-            throw(ArgumentError("The supplied log-density problem already contains existing gradient calculation capabilities. To make use of this, the `adtype` argument for AdvancedVI must be one of `AutoReverseDiff`, `AutoZygote`, `AutoMooncake`, or `AutoEnzyme`."))
+            throw(
+                ArgumentError(
+                    "The supplied log-density problem already contains existing gradient calculation capabilities. To make use of this, the `adtype` argument for AdvancedVI must be one of `AutoReverseDiff`, `AutoZygote`, `AutoMooncake`, or `AutoEnzyme`.",
+                ),
+            )
         end
         MixedADLogDensityProblem(prob)
     end
