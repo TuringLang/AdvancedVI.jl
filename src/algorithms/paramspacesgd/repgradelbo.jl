@@ -39,7 +39,7 @@ function init(
     else
         if !(
             adtype isa Union{<:AutoReverseDiff,<:AutoZygote,<:AutoMooncake,<:AutoEnzyme} &&
-            ADTypes.mode(adtype) == ADTypes.ReverseMode
+            ADTypes.mode(adtype) isa ADTypes.ReverseMode
         )
             @info "The capability of the supplied target `LogDensityProblem` $(capability) is >= `LogDensityProblems.LogDensityOrder{1}()`. To make use of this, the `adtype` argument for AdvancedVI must be one of `AutoReverseDiff`, `AutoZygote`, `AutoMooncake`, or `AutoEnzyme` in reverse mode."
         end
