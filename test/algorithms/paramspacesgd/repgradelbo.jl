@@ -1,19 +1,4 @@
 
-AD_repgradelbo_interface = if TEST_GROUP == "Enzyme"
-    [
-        AutoEnzyme(;
-            mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
-            function_annotation=Enzyme.Const,
-        ),
-    ]
-else
-    [
-        AutoReverseDiff(),
-        AutoZygote(),
-        AutoMooncake(; config=Mooncake.Config()),
-    ]
-end
-
 @testset "interface RepGradELBO" begin
     seed = (0x38bef07cf9cc549d)
     rng = StableRNG(seed)
@@ -25,9 +10,9 @@ end
     q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
 
     @testset "basic" begin
-        @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
+        @testset for n_montecarlo in [1, 10]
             alg = KLMinRepGradDescent(
-                adtype;
+                AD;
                 n_samples=n_montecarlo,
                 operator=IdentityOperator(),
                 averager=PolynomialAveraging(),
@@ -38,9 +23,9 @@ end
     end
 
     @testset "without mixed ad" begin
-        @testset for adtype in AD_repgradelbo_interface, n_montecarlo in [1, 10]
+        @testset for n_montecarlo in [1, 10]
             alg = KLMinRepGradDescent(
-                adtype;
+                AD;
                 n_samples=n_montecarlo,
                 operator=IdentityOperator(),
                 averager=PolynomialAveraging(),
