@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755645564525,
+  "lastUpdate": 1755714139245,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -18968,6 +18968,170 @@ window.BENCHMARK_DATA = {
             "value": 3850105205,
             "unit": "ns",
             "extra": "gctime=122041744.5\nmemory=1009662664\nallocs=17311449\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "committer": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "id": "e843e57628bec6d41d8bc67d141fd5d7177df791",
+          "message": "Split AD tests into workflows",
+          "timestamp": "2025-08-19T22:59:04Z",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/pull/190/commits/e843e57628bec6d41d8bc67d141fd5d7177df791"
+        },
+        "date": 1755714127469,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal/RepGradELBO + STL/meanfield/Zygote",
+            "value": 3943462019,
+            "unit": "ns",
+            "extra": "gctime=139401327\nmemory=1370890640\nallocs=20068277\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/meanfield/ReverseDiff",
+            "value": 1120985631,
+            "unit": "ns",
+            "extra": "gctime=99517938\nmemory=748660640\nallocs=16638292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/meanfield/Mooncake",
+            "value": 1177314939,
+            "unit": "ns",
+            "extra": "gctime=54201438\nmemory=470261912\nallocs=7110203\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/fullrank/Zygote",
+            "value": 3947680023,
+            "unit": "ns",
+            "extra": "gctime=132749147.5\nmemory=1337770352\nallocs=19608275\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/fullrank/ReverseDiff",
+            "value": 1594172402,
+            "unit": "ns",
+            "extra": "gctime=153336267.5\nmemory=1280180352\nallocs=30598290\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/fullrank/Mooncake",
+            "value": 1219101387,
+            "unit": "ns",
+            "extra": "gctime=56025324\nmemory=494724032\nallocs=6730013\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/meanfield/Zygote",
+            "value": 2781931979.5,
+            "unit": "ns",
+            "extra": "gctime=86786041.5\nmemory=1040170640\nallocs=11888277\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/meanfield/ReverseDiff",
+            "value": 773753328,
+            "unit": "ns",
+            "extra": "gctime=52965989\nmemory=489454880\nallocs=9318291\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/meanfield/Mooncake",
+            "value": 1053355569,
+            "unit": "ns",
+            "extra": "gctime=53144854\nmemory=431003352\nallocs=6399609\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/fullrank/Zygote",
+            "value": 2862942506,
+            "unit": "ns",
+            "extra": "gctime=84564266.5\nmemory=1056810352\nallocs=11808275\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/fullrank/ReverseDiff",
+            "value": 950015768,
+            "unit": "ns",
+            "extra": "gctime=80905451.5\nmemory=690420352\nallocs=14368290\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal/RepGradELBO/fullrank/Mooncake",
+            "value": 1099716002,
+            "unit": "ns",
+            "extra": "gctime=53717499\nmemory=438196632\nallocs=6329503\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/meanfield/Zygote",
+            "value": 5550655105,
+            "unit": "ns",
+            "extra": "gctime=155971959\nmemory=1879207456\nallocs=24438322\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/meanfield/ReverseDiff",
+            "value": 2390309106,
+            "unit": "ns",
+            "extra": "gctime=115673684\nmemory=946737856\nallocs=17758338\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/meanfield/Mooncake",
+            "value": 4096442891.5,
+            "unit": "ns",
+            "extra": "gctime=124122181\nmemory=1029577696\nallocs=17762114\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/fullrank/Zygote",
+            "value": 5597660946,
+            "unit": "ns",
+            "extra": "gctime=155912024\nmemory=1854727552\nallocs=24058328\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/fullrank/ReverseDiff",
+            "value": 3033564742.5,
+            "unit": "ns",
+            "extra": "gctime=185586941\nmemory=1597777952\nallocs=34798344\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO + STL/fullrank/Mooncake",
+            "value": 4189766663,
+            "unit": "ns",
+            "extra": "gctime=126139936\nmemory=1070677776\nallocs=17711967\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/meanfield/Zygote",
+            "value": 4331797788,
+            "unit": "ns",
+            "extra": "gctime=110731597\nmemory=1522567456\nallocs=15628322\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/meanfield/ReverseDiff",
+            "value": 2011872797,
+            "unit": "ns",
+            "extra": "gctime=72562320\nmemory=661772096\nallocs=9718337\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/meanfield/Mooncake",
+            "value": 3894587517,
+            "unit": "ns",
+            "extra": "gctime=109728472\nmemory=997030648\nallocs=17341550\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/fullrank/Zygote",
+            "value": 4332794406.5,
+            "unit": "ns",
+            "extra": "gctime=108281538\nmemory=1542887552\nallocs=15628328\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/fullrank/ReverseDiff",
+            "value": 2240251681,
+            "unit": "ns",
+            "extra": "gctime=97180807\nmemory=911537952\nallocs=15948344\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "normal + bijector/RepGradELBO/fullrank/Mooncake",
+            "value": 3963791817,
+            "unit": "ns",
+            "extra": "gctime=120748812.5\nmemory=1009662664\nallocs=17311449\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
