@@ -2,6 +2,7 @@
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 AdvancedVI = "b5ca4192-6429-45e5-a2d9-87aec30a685c"
 Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"

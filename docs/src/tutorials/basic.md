@@ -1,4 +1,3 @@
-
 # [Basic Example](@id basic)
 
 In this tutorial, we will demonstrate the basic usage of `AdvancedVI` with [`LogDensityProblem`](https://github.com/tpapp/LogDensityProblems.jl) interface.
@@ -17,8 +16,9 @@ y &\sim \mathrm{BernoulliLogit}\left(X \beta\right)
 ```
 
 The `LogDensityProblem` corresponding to this model can be constructed as
+
 ```@example basic
-import LogDensityProblems
+using LogDensityProblems: LogDensityProblems
 using Distributions
 using FillArrays
 
@@ -50,15 +50,15 @@ end
 nothing
 ```
 
-Since the support of `σ` is constrained to be positive and most VI algorithms assume an unconstrained Euclidean support, we need to use a *bijector* to transform `θ`. 
+Since the support of `σ` is constrained to be positive and most VI algorithms assume an unconstrained Euclidean support, we need to use a *bijector* to transform `θ`.
 We will use [`Bijectors`](https://github.com/TuringLang/Bijectors.jl) for this purpose.
 This corresponds to the automatic differentiation variational inference (ADVI) formulation[^KTRGB2017].
 
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of machine learning research*.
-
 The bijector can be constructed as follows:
+
 ```@example basic
-import Bijectors
+using Bijectors: Bijectors
 
 function Bijectors.bijector(model::LogReg)
     d = size(model.X, 2)
@@ -75,20 +75,24 @@ This can be automatically downloaded using [`OpenML`](https://github.com/JuliaAI
 The sonar dataset corresponds to the dataset id 40.
 
 ```@example basic
-import OpenML
-import DataFrames
+using OpenML: OpenML
+using DataFrames: DataFrames
 data = Array(DataFrames.DataFrame(OpenML.load(40)))
 X = Matrix{Float64}(data[:, 1:(end - 1)])
 y = Vector{Bool}(data[:, end] .== "Mine")
 nothing
 ```
+
 Let's apply some basic pre-processing and add an intercept column:
+
 ```@example basic
 X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
 X = hcat(X, ones(size(X, 1)))
 nothing
 ```
+
 The model can now be instantiated as follows:
+
 ```@example basic
 model = LogReg(X, y)
 nothing
@@ -97,6 +101,7 @@ nothing
 ## Basic Usage
 
 For the VI algorithm, we will use `KLMinRepGradDescent`:
+
 ```@example basic
 using ADTypes, ReverseDiff
 using AdvancedVI
@@ -104,25 +109,27 @@ using AdvancedVI
 alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff())
 nothing
 ```
+
 This algorithm minimizes the exclusive/reverse KL divergence via stochastic gradient descent in the (Euclidean) space of the parameters of the variational approximation with the reparametrization gradient[^TL2014][^RMW2014][^KW2014].
 This is also commonly referred as automatic differentiation VI, black-box VI, stochastic gradient VI, and so on.
 
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-
 `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
 If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
 For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
+
 ```@example basic
-import DifferentiationInterface
-import LogDensityProblemsAD
+using DifferentiationInterface: DifferentiationInterface
+using LogDensityProblemsAD: LogDensityProblemsAD
 
 model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model)
 nothing
 ```
 
 For the variational family, we will consider a `FullRankGaussian` approximation:
+
 ```@example basic
 using LinearAlgebra
 
@@ -130,22 +137,22 @@ d = LogDensityProblems.dimension(model_ad)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
 nothing
 ```
+
 The bijector can now be applied to `q` to match the support of the target problem.
+
 ```@example basic
 b = Bijectors.bijector(model)
 binv = Bijectors.inverse(b)
 q_transformed = Bijectors.TransformedDistribution(q, binv)
 nothing
 ```
+
 We can now run VI:
+
 ```@example basic
 max_iter = 10^4
 q_out, info, _ = AdvancedVI.optimize(
-    alg,
-    max_iter,
-    model_ad,
-    q_transformed;
-    show_progress=false,
+    alg, max_iter, model_ad, q_transformed; show_progress=false
 )
 nothing
 ```
@@ -157,7 +164,13 @@ Since `KLMinRepGradDescent` stores the ELBO estimate at each iteration in `info`
 ```@example basic
 using Plots
 
-plot([i.iteration for i in info], [i.elbo for i in info]; xlabel="Iteration", ylabel="ELBO", label=nothing)
+plot(
+    [i.iteration for i in info],
+    [i.elbo for i in info];
+    xlabel="Iteration",
+    ylabel="ELBO",
+    label=nothing,
+)
 savefig("basic_example_elbo.svg")
 nothing
 ```
@@ -176,7 +189,7 @@ For both use cases above, defining a custom `callback` function can be useful.
 In this example, we will compute a more accurate estimate of the ELBO and the classification accuracy every `logging_interval = 10` iterations.
 
 ```@example basic
-import StatsFuns
+using StatsFuns: StatsFuns
 
 logging_interval = 100
 function callback(; iteration, averaged_params, restructure, kwargs...)
@@ -185,48 +198,46 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
 
         # Use the averaged parameters (the eventual output of the algorithm)
         q_avg = restructure(averaged_params)
-        
+
         # Draw samples from variational posterior
-        samples   = rand(q_avg, n_samples)
-        β         = samples[1:end-1,:]
-        
+        samples = rand(q_avg, n_samples)
+        β = samples[1:(end - 1), :]
+
         # Compute predictions
-        logit     = model.X*β
-        pred_prob = mean(StatsFuns.logistic.(logit), dims=2)
-        y_pred    = pred_prob .> 0.5
+        logit = model.X*β
+        pred_prob = mean(StatsFuns.logistic.(logit); dims=2)
+        y_pred = pred_prob .> 0.5
 
         # Prediction accuracy
         acc = mean(y_pred .== model.y)
-        
+
         # Higher fidelity estimate of the ELBO on the averaged parameters
         obj = AdvancedVI.RepGradELBO(n_samples)
         elbo_callback = estimate_objective(obj, q_avg, model)
 
-        (elbo_callback = elbo_callback, accuracy = acc,)
+        (elbo_callback=elbo_callback, accuracy=acc)
     else
         nothing
     end
 end
 nothing
 ```
+
 Note that the interface for the callback function will depend on the VI algorithm being used.
 Therefore, please refer to the documentation of each VI algorithm.
 
 The `callback` can be supplied to `optimize`:
+
 ```@example basic
 max_iter = 10^4
 q_out, info, _ = AdvancedVI.optimize(
-    alg,
-    max_iter,
-    model_ad,
-    q_transformed;
-    show_progress=false,
-    callback=callback,
+    alg, max_iter, model_ad, q_transformed; show_progress=false, callback=callback
 )
 nothing
 ```
 
 First, let's compare the default estimate of the ELBO, which uses a small number of samples and is evaluated in the current iterate, versus the ELBO computed in the callback, which uses a large number of samples and is evaluated on the averaged iterate.
+
 ```@example basic
 t = 1:max_iter
 elbo = [i.elbo for i in info[t]]
@@ -240,18 +251,26 @@ plot!(t_callback, elbo_callback; label="Callback")
 savefig("basic_example_elbo_callback.svg")
 nothing
 ```
+
 ![](basic_example_elbo_callback.svg)
 We can see that the default ELBO estimates are noisy compared to the higher fidelity estimates from the callback.
 After a few thousands of iterations, it is difficult to judge if we are still making progress or not.
 In contrast, the estimates from callback show that the objective is increasing smoothly.
 
 Similarly, we can monitor the evolution of the prediction accuracy.
+
 ```@example basic
 acc_callback = [i.accuracy for i in info[t_callback]]
-plot(t_callback, acc_callback; xlabel="Iteration", ylabel="Prediction Accuracy", label=nothing)
+plot(
+    t_callback,
+    acc_callback;
+    xlabel="Iteration",
+    ylabel="Prediction Accuracy",
+    label=nothing,
+)
 savefig("basic_example_acc.svg")
 nothing
 ```
+
 ![](basic_example_acc.svg)
 Clearly, the accuracy is improving over time.
-

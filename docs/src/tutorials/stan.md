@@ -1,16 +1,15 @@
-
 # Usage with Stan Models
 
 Since `AdvancedVI` supports the [`LogDensityProblem`](https://github.com/tpapp/LogDensityProblems.jl) interface, it can also be used with Stan models through [`StanLogDensityProblems`](https://github.com/sethaxen/StanLogDensityProblems.jl) interface.
 Specifically, `StanLogDensityProblems` wraps any Stan model into a `LogDensityProblem` using [`BridgeStan`](https://github.com/roualdes/bridgestan).
 
-## Problem Setup 
+## Problem Setup
 
 Recall the hierarchical logistic regression example in the [Basic Example](@ref basic).
 Here, we will define the same model in Stan.
 
 ```@example stan
-model_src =  """
+model_src = """
 data {
   int<lower=0> N;
   int<lower=0> D;
@@ -19,7 +18,7 @@ data {
 }
 parameters {
   vector[D] beta;
-  real<lower=0> sigma;
+  real<lower=1e-5> sigma;
 }
 model {
   sigma ~ lognormal(0, 3);
@@ -31,22 +30,24 @@ nothing
 ```
 
 We also need to prepare the data.
+
 ```@example stan
-import OpenML
-import DataFrames
+using OpenML: OpenML
+using DataFrames: DataFrames
 
 data = Array(DataFrames.DataFrame(OpenML.load(40)))
 
 X = Matrix{Float64}(data[:, 1:(end - 1)])
 y = Vector{Int}(data[:, end] .== "Mine")
 
-stan_data = (X=transpose(X), y=y, N=size(X,1), D=size(X,2))
+stan_data = (X=transpose(X), y=y, N=size(X, 1), D=size(X, 2))
 nothing
 ```
 
 Since `StanLogDensityProblems` expects files for both the model and the data, we need to store both on the file system.
+
 ```@example stan
-import JSON
+using JSON: JSON
 
 open("logistic_model.stan", "w") do io
     println(io, model_src)
@@ -60,14 +61,16 @@ nothing
 ## Using AdvancedVI on Stan Models
 
 We can now call `StanLogDensityProblems` to recieve a `LogDensityProblem`.
+
 ```@example stan
-import StanLogDensityProblems
+using StanLogDensityProblems: StanLogDensityProblems
 
 model = StanLogDensityProblems.StanProblem("logistic_model.stan", "logistic_data.json")
 nothing
 ```
 
 The rest is the same as all `LogDensityProblem` with the exception of how to deal with constrainted variables: Since `StanLogDensityProblems` automatically transforms the support of the target problem to be unconstrained, we do not need to involve `Bijectors`.
+
 ```@example stan
 using ADTypes, ReverseDiff
 using AdvancedVI
@@ -75,19 +78,13 @@ using LinearAlgebra
 using LogDensityProblems
 using Plots
 
-alg = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(), optimizer=DoG())
+alg = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(); optimizer=DoG())
 
 d = LogDensityProblems.dimension(model)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
 
 max_iter = 10^3
-q_out, info, _ = AdvancedVI.optimize(
-    alg,
-    max_iter,
-    model,
-    q;
-    show_progress=false,
-)
+q_out, info, _ = AdvancedVI.optimize(alg, max_iter, model, q; show_progress=false)
 
 obj = AdvancedVI.RepGradELBO(128)
 estimate_objective(obj, q_out, model)
@@ -95,4 +92,3 @@ estimate_objective(obj, q_out, model)
 
 From variational posterior `q_out` we can draw samples from the unconstrained support of the model.
 To convert the samples back to the original (constrained) support of the model, it suffices to call [BridgeStan.param_constrain](https://roualdes.us/bridgestan/latest/languages/julia.html#BridgeStan.param_constrain).
-
