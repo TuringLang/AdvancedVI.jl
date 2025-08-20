@@ -21,7 +21,7 @@ $$
 \begin{aligned}
 \sigma &\sim \text{Student-t}_{3}(0, 1) \\
 \beta &\sim \text{Normal}\left(0_d, \sigma \mathrm{I}_d\right) \\
-y &\sim \mathrm{Bernoulli}\left(X \beta\right)
+y &\sim \mathrm{BernoulliLogit}\left(X \beta\right)
 \end{aligned}
 $$
 
