@@ -18,6 +18,7 @@ makedocs(;
         "General Usage" => "general.md",
         "Tutorials" => [
             "Basic Example" => "tutorials/basic.md",
+            "Ussage with Stan" => "tutorials/stan.md",
         ],
         "Algorithms" => [
             "KLMinRepGradDescent" => "paramspacesgd/klminrepgraddescent.md",
