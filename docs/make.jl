@@ -18,7 +18,7 @@ makedocs(;
         "General Usage" => "general.md",
         "Tutorials" => [
             "basic.md",
-        ]
+        ],
         "Algorithms" => [
             "KLMinRepGradDescent" => "paramspacesgd/klminrepgraddescent.md",
             "KLMinRepGradProxDescent" => "paramspacesgd/klminrepgradproxdescent.md",
