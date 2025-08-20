@@ -19,7 +19,7 @@ For a dataset $(X, y)$ with the design matrix $X \in \mathbb{R}^{n \times d}$ an
 
 $$
 \begin{aligned}
-\sigma &\sim \text{Student-t}_{3}(0, 1) \\
+\sigma &\sim \text{LogNormal}(0, 1) \\
 \beta &\sim \text{Normal}\left(0_d, \sigma \mathrm{I}_d\right) \\
 y &\sim \mathrm{BernoulliLogit}\left(X \beta\right)
 \end{aligned}
@@ -43,10 +43,10 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     β, σ = θ[1:size(X, 2)], θ[end]
 
     logprior_β = logpdf(MvNormal(Zeros(d), σ*I), β)
-    logprior_σ = logpdf(truncated(TDist(3.0); lower=0), σ)
+    logprior_σ = logpdf(LogNormal(0, 3), σ)
 
     logit = X*β
-    loglike_y = sum(@. logpdf(BernoulliLogit(logit), y))
+    loglike_y = mapreduce((li, yi) -> logpdf(BernoulliLogit(li), yi), +, logit, y)
     return loglike_y + logprior_β + logprior_σ
 end
 
@@ -56,7 +56,7 @@ end
 
 function LogDensityProblems.capabilities(::Type{<:LogReg})
     return LogDensityProblems.LogDensityOrder{0}()
-end
+end;
 ```
 
 Since the support of `σ` is constrained to be positive and most VI algorithms assume an unconstrained Euclidean support, we need to use a *bijector* to transform `θ`. 
@@ -69,10 +69,10 @@ import Bijectors
 function Bijectors.bijector(model::LogReg)
     d = size(model.X, 2)
     return Bijectors.Stacked(
-        Bijectors.bijector.([MvNormal(Zeros(d), 1.0), truncated(TDist(3.0); lower=0)]),
+        Bijectors.bijector.([MvNormal(Zeros(d), 1.0), LogNormal(0, 3)]),
         [1:d, (d + 1):(d + 1)],
     )
-end
+end;
 ```
 
 A simpler approach would be to use [`Turing`](https://github.com/TuringLang/Turing.jl), where a `Turing.Model` can be automatically be converted into a `LogDensityProblem` and a corresponding `bijector` is automatically generated.
@@ -86,35 +86,36 @@ import OpenML
 import DataFrames
 data = Array(DataFrames.DataFrame(OpenML.load(40)))
 X = Matrix{Float64}(data[:, 1:(end - 1)])
-y = Vector{Bool}(data[:, end] .== "Mine")
+y = Vector{Bool}(data[:, end] .== "Mine");
 ```
 Let's apply some basic pre-processing and add an intercept column:
 ```julia
 X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
-X = hcat(X, ones(size(X, 1)))
+X = hcat(X, ones(size(X, 1)));
 ```
 The model can now be instantiated as follows:
 ```julia
-model = LogReg(X, y)
+model = LogReg(X, y);
 ```
 
-For the VI algorithm, we will use the following:
+For the VI algorithm, we will use `KLMinRepGradDescent`:
 ```julia
 using ADTypes, ReverseDiff
 using AdvancedVI
 
-alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff())
+alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff());
 ```
 This algorithm minimizes the exclusive/reverse KL divergence via stochastic gradient descent in the (Euclidean) space of the parameters of the variational approximation with the reparametrization gradient[^TL2014][^RMW2014][^KW2014].
 This is also commonly referred as automatic differentiation VI, black-box VI, stochastic gradient VI, and so on.
 
-This `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` has gradients.
-For this, it is straightforward to use `LogDensityProblemsAD`:
+`KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
+If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
+For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
 ```julia
 import DifferentiationInterface
 import LogDensityProblemsAD
 
-model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model)
+model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model);
 ```
 
 For the variational family, we will consider a `FullRankGaussian` approximation:
@@ -122,23 +123,24 @@ For the variational family, we will consider a `FullRankGaussian` approximation:
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(model_ad)
-q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
+q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)));
 ```
 The bijector can now be applied to `q` to match the support of the target problem.
 ```julia
 b = Bijectors.bijector(model)
 binv = Bijectors.inverse(b)
-q_transformed = Bijectors.TransformedDistribution(q, binv)
+q_transformed = Bijectors.TransformedDistribution(q, binv);
 ```
 We can now run VI:
 ```julia
 max_iter = 10^3
-q_avg, info, _ = AdvancedVI.optimize(
+q, info, _ = AdvancedVI.optimize(
     alg,
     max_iter,
     model_ad,
     q_transformed;
-)
+);
 ```
 
 For more examples and details, please refer to the documentation.
