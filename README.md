@@ -28,7 +28,7 @@ $$
 The `LogDensityProblem` corresponding to this model can be constructed as
 
 ```julia
-import LogDensityProblems
+using LogDensityProblems: LogDensityProblems
 using Distributions
 using FillArrays
 
@@ -59,12 +59,12 @@ function LogDensityProblems.capabilities(::Type{<:LogReg})
 end;
 ```
 
-Since the support of `σ` is constrained to be positive and most VI algorithms assume an unconstrained Euclidean support, we need to use a *bijector* to transform `θ`. 
+Since the support of `σ` is constrained to be positive and most VI algorithms assume an unconstrained Euclidean support, we need to use a *bijector* to transform `θ`.
 We will use [`Bijectors`](https://github.com/TuringLang/Bijectors.jl) for this purpose.
 This corresponds to the automatic differentiation variational inference (ADVI) formulation[^KTRGB2017].
 
 ```julia
-import Bijectors
+using Bijectors: Bijectors
 
 function Bijectors.bijector(model::LogReg)
     d = size(model.X, 2)
@@ -82,43 +82,51 @@ This can be automatically downloaded using [`OpenML`](https://github.com/JuliaAI
 The sonar dataset corresponds to the dataset id 40.
 
 ```julia
-import OpenML
-import DataFrames
+using OpenML: OpenML
+using DataFrames: DataFrames
 data = Array(DataFrames.DataFrame(OpenML.load(40)))
 X = Matrix{Float64}(data[:, 1:(end - 1)])
 y = Vector{Bool}(data[:, end] .== "Mine");
 ```
+
 Let's apply some basic pre-processing and add an intercept column:
+
 ```julia
 X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
 X = hcat(X, ones(size(X, 1)));
 ```
+
 The model can now be instantiated as follows:
+
 ```julia
 model = LogReg(X, y);
 ```
 
 For the VI algorithm, we will use `KLMinRepGradDescent`:
+
 ```julia
 using ADTypes, ReverseDiff
 using AdvancedVI
 
 alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff());
 ```
+
 This algorithm minimizes the exclusive/reverse KL divergence via stochastic gradient descent in the (Euclidean) space of the parameters of the variational approximation with the reparametrization gradient[^TL2014][^RMW2014][^KW2014].
 This is also commonly referred as automatic differentiation VI, black-box VI, stochastic gradient VI, and so on.
 
 `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
 If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
 For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
+
 ```julia
-import DifferentiationInterface
-import LogDensityProblemsAD
+using DifferentiationInterface: DifferentiationInterface
+using LogDensityProblemsAD: LogDensityProblemsAD
 
 model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model);
 ```
 
 For the variational family, we will consider a `FullRankGaussian` approximation:
+
 ```julia
 using LinearAlgebra
 
@@ -126,21 +134,20 @@ d = LogDensityProblems.dimension(model_ad)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
 q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)));
 ```
+
 The bijector can now be applied to `q` to match the support of the target problem.
+
 ```julia
 b = Bijectors.bijector(model)
 binv = Bijectors.inverse(b)
 q_transformed = Bijectors.TransformedDistribution(q, binv);
 ```
+
 We can now run VI:
+
 ```julia
 max_iter = 10^3
-q, info, _ = AdvancedVI.optimize(
-    alg,
-    max_iter,
-    model_ad,
-    q_transformed;
-);
+q, info, _ = AdvancedVI.optimize(alg, max_iter, model_ad, q_transformed;);
 ```
 
 For more examples and details, please refer to the documentation.
