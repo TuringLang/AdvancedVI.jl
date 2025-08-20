@@ -16,7 +16,9 @@ makedocs(;
     pages=[
         "AdvancedVI" => "index.md",
         "General Usage" => "general.md",
-        "Examples" => "examples.md",
+        "Tutorials" => [
+            "basic.md",
+        ]
         "Algorithms" => [
             "KLMinRepGradDescent" => "paramspacesgd/klminrepgraddescent.md",
             "KLMinRepGradProxDescent" => "paramspacesgd/klminrepgradproxdescent.md",
