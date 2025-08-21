@@ -31,7 +31,9 @@ function mixedad_test_fwd(x, prob)
     )/2
 end
 
-if AD isa Union{<:AutoReverseDiff,<:AutoZygote,<:AutoEnzyme,<:AutoMooncake}
+# MixedADLogDensityProblem only supports ReverseDiff, Zygote, Enzyme, Mooncake in reverse-mode
+if (AD isa Union{<:AutoReverseDiff,<:AutoZygote,<:AutoEnzyme,<:AutoMooncake}) &&
+    (ADTypes.mode(AD) isa ADTypes.ReverseMode)
     @testset "MixedADLogDensityProblem" begin
         model = MixedADTestModel()
         model_ad = AdvancedVI.MixedADLogDensityProblem(model)
