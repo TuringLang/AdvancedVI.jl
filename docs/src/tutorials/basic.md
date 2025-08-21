@@ -9,8 +9,8 @@ For a dataset $(X, y)$ with the design matrix $X \in \mathbb{R}^{n \times d}$ an
 
 ```math
 \begin{aligned}
-\sigma &\sim \text{LogNormal}(0, 3) \\
-\beta &\sim \text{Normal}\left(0_d, \sigma \mathrm{I}_d\right) \\
+\sigma &\sim \text{LogNormal}(0, 1) \\
+\beta &\sim \text{Normal}\left(0_d, \sigma^2 \mathrm{I}_d\right) \\
 y &\sim \mathrm{BernoulliLogit}\left(X \beta\right)
 \end{aligned}
 ```
@@ -32,7 +32,7 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     d = size(X, 2)
     β, σ = θ[1:size(X, 2)], θ[end]
 
-    logprior_β = logpdf(MvNormal(Zeros(d), σ*I), β)
+    logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
     logprior_σ = logpdf(LogNormal(0, 3), σ)
 
     logit = X*β
