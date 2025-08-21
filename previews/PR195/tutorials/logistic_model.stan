@@ -6,10 +6,10 @@ data {
 }
 parameters {
   vector[D] beta;
-  real<lower=1e-5> sigma;
+  real<lower=0> sigma;
 }
 model {
-  sigma ~ lognormal(0, 3);
+  sigma ~ lognormal(0, 1);
   beta ~ normal(0, sigma);
   y ~ bernoulli_logit(X * beta);
 }
