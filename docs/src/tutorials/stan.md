@@ -99,6 +99,7 @@ plot(
 )
 savefig("stan_example_elbo.svg")
 ```
+
 ![](stan_example_elbo.svg)
 
 From variational posterior `q_out` we can draw samples from the unconstrained support of the model.
