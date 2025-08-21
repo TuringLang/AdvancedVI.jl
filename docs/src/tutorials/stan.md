@@ -95,7 +95,7 @@ plot(
     xlabel="Iteration",
     ylabel="ELBO",
     label=nothing,
-    ylims=(-1000, Inf),
+    ylims=(-2000, Inf),
 )
 savefig("stan_example_elbo.svg")
 ```
