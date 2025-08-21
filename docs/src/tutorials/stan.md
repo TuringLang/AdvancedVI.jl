@@ -1,4 +1,4 @@
-# Usage with Stan Models
+# Stan Models
 
 Since `AdvancedVI` supports the [`LogDensityProblem`](https://github.com/tpapp/LogDensityProblems.jl) interface, it can also be used with Stan models through [`StanLogDensityProblems`](https://github.com/sethaxen/StanLogDensityProblems.jl) interface.
 Specifically, `StanLogDensityProblems` wraps any Stan model into a `LogDensityProblem` using [`BridgeStan`](https://github.com/roualdes/bridgestan).
@@ -18,10 +18,10 @@ data {
 }
 parameters {
   vector[D] beta;
-  real<lower=1e-5> sigma;
+  real<lower=0> sigma;
 }
 model {
-  sigma ~ lognormal(0, 3);
+  sigma ~ lognormal(0, 1);
   beta ~ normal(0, sigma);
   y ~ bernoulli_logit(X * beta);
 }
@@ -32,12 +32,15 @@ nothing
 We also need to prepare the data.
 
 ```@example stan
-using OpenML: OpenML
 using DataFrames: DataFrames
+using OpenML: OpenML
+using Statistics
 
 data = Array(DataFrames.DataFrame(OpenML.load(40)))
 
 X = Matrix{Float64}(data[:, 1:(end - 1)])
+X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
+X = hcat(X, ones(size(X, 1)))
 y = Vector{Int}(data[:, end] .== "Mine")
 
 stan_data = (X=transpose(X), y=y, N=size(X, 1), D=size(X, 2))
@@ -58,7 +61,7 @@ end
 nothing
 ```
 
-## Using AdvancedVI on Stan Models
+## Inference via AdvancedVI
 
 We can now call `StanLogDensityProblems` to recieve a `LogDensityProblem`.
 
@@ -78,17 +81,24 @@ using LinearAlgebra
 using LogDensityProblems
 using Plots
 
-alg = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(); optimizer=DoG())
+alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff())
 
 d = LogDensityProblems.dimension(model)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
 
-max_iter = 10^3
+max_iter = 10^4
 q_out, info, _ = AdvancedVI.optimize(alg, max_iter, model, q; show_progress=false)
 
-obj = AdvancedVI.RepGradELBO(128)
-estimate_objective(obj, q_out, model)
+plot(
+    [i.iteration for i in info],
+    [i.elbo for i in info];
+    xlabel="Iteration",
+    ylabel="ELBO",
+    label=nothing,
+)
+savefig("stan_example_elbo.svg")
 ```
+![](stan_example_elbo.svg)
 
 From variational posterior `q_out` we can draw samples from the unconstrained support of the model.
 To convert the samples back to the original (constrained) support of the model, it suffices to call [BridgeStan.param_constrain](https://roualdes.us/bridgestan/latest/languages/julia.html#BridgeStan.param_constrain).
