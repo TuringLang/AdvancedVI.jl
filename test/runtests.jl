@@ -54,7 +54,7 @@ end
 include("models/normal.jl")
 include("models/normallognormal.jl")
 
-if GROUP == "All" || GROUP == "General"
+if GROUP == "All" || GROUP == "General" || GROUP == "AD"
     if GROUP == "AD"
         include("general/ad.jl")
         include("general/optimize.jl")
