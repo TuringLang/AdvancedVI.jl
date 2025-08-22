@@ -254,6 +254,7 @@ nothing
 ```
 
 ![](basic_example_elbo_callback.svg)
+
 We can see that the default ELBO estimates are noisy compared to the higher fidelity estimates from the callback.
 After a few thousands of iterations, it is difficult to judge if we are still making progress or not.
 In contrast, the estimates from callback show that the objective is increasing smoothly.
@@ -274,4 +275,5 @@ nothing
 ```
 
 ![](basic_example_acc.svg)
+
 Clearly, the accuracy is improving over time.

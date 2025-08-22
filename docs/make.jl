@@ -19,6 +19,7 @@ makedocs(;
         "Tutorials" => [
             "Basic Example" => "tutorials/basic.md",
             "Stan Models" => "tutorials/stan.md",
+            "Normalizing Flows" => "tutorials/flows.md",
         ],
         "Algorithms" => [
             "KLMinRepGradDescent" => "paramspacesgd/klminrepgraddescent.md",
