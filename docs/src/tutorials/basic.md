@@ -55,8 +55,7 @@ We will use [`Bijectors`](https://github.com/TuringLang/Bijectors.jl) for this p
 This corresponds to the automatic differentiation variational inference (ADVI) formulation[^KTRGB2017].
 
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of machine learning research*.
-The bijector can be constructed as follows:
-
+    The bijector can be constructed as follows:
 ```@example basic
 using Bijectors: Bijectors
 
@@ -116,10 +115,9 @@ This is also commonly referred as automatic differentiation VI, black-box VI, st
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-`KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
-If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
-For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
-
+    `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
+    If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
+    For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
 ```@example basic
 using DifferentiationInterface: DifferentiationInterface
 using LogDensityProblemsAD: LogDensityProblemsAD
