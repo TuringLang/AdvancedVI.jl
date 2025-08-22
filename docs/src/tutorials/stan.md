@@ -18,7 +18,7 @@ data {
 }
 parameters {
   vector[D] beta;
-  real<lower=0> sigma;
+  real<lower=1e-4> sigma;
 }
 model {
   sigma ~ lognormal(0, 1);
