@@ -51,9 +51,11 @@
             q′ = re(params′)
             scale′ = isnothing(bijector) ? q′.scale : q′.dist.scale
 
-            grad_left = only(Zygote.gradient(L_ -> first(logabsdet(L_)), scale′))
-            grad_right = only(
-                Zygote.gradient(L_ -> sum(abs2, L_ - L) / (2 * stepsize), scale′)
+            grad_left = ReverseDiff.gradient(
+                L_ -> first(logabsdet(LowerTriangular(reshape(L_, d, d)))), vec(scale′)
+            )
+            grad_right = ReverseDiff.gradient(
+                L_ -> sum(abs2, reshape(L_, d, d) - L) / (2 * stepsize), vec(scale′)
             )
 
             @test grad_left ≈ grad_right
