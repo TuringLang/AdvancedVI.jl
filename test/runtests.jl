@@ -54,7 +54,6 @@ end
 include("models/normal.jl")
 include("models/normallognormal.jl")
 
-
 if GROUP == "All" || GROUP == "GENERAL"
     # Tests that do not need to check correct integration with AD backends
     include("general/optimize.jl")
