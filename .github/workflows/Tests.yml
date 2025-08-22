@@ -1,4 +1,4 @@
-name: All Tests with ReverseDiff Integration
+name: General Tests
 on:
   push:
     branches:

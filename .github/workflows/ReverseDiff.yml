@@ -1,4 +1,4 @@
-name: ForwardDiff Integration Tests
+name: ReverseDiff Integration Tests
 on:
   push:
     branches:
@@ -11,4 +11,4 @@ jobs:
   test:
     uses: ./.github/workflows/AutoDiffIntegration.yml
     with:
-      AD: ForwardDiff
+      AD: ReverseDiff

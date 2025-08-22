@@ -54,24 +54,24 @@ end
 include("models/normal.jl")
 include("models/normallognormal.jl")
 
-if GROUP == "All" || GROUP == "General" || GROUP == "AD"
-    if GROUP == "AD"
-        include("general/ad.jl")
-        include("general/optimize.jl")
-        include("general/proximal_location_scale_entropy.jl")
-        include("general/mixedad_logdensity.jl")
-    end
+
+if GROUP == "All" || GROUP == "GENERAL"
+    # Tests that do not need to check correct integration with AD backends
+    include("general/optimize.jl")
+    include("general/proximal_location_scale_entropy.jl")
     include("general/rules.jl")
     include("general/averaging.jl")
     include("general/clip_scale.jl")
-end
 
-if GROUP == "All" || GROUP == "General" || GROUP == "Families"
     include("families/location_scale.jl")
     include("families/location_scale_low_rank.jl")
 end
 
-if GROUP == "All" || GROUP == "ParamSpaceSGD" || GROUP == "AD"
+if GROUP == "All" || GROUP == "AD"
+    # Tests that need to check correctness of the integration with AD backends
+    include("general/ad.jl")
+    include("general/mixedad_logdensity.jl")
+
     include("algorithms/paramspacesgd/repgradelbo.jl")
     include("algorithms/paramspacesgd/scoregradelbo.jl")
     include("algorithms/paramspacesgd/repgradelbo_locationscale.jl")
