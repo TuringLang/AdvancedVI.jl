@@ -159,11 +159,10 @@ Now, let's try to optimize over a variational family formed by normalizing flows
 Normalizing flows, or *flow* for short, is a class of parametric models leveraging neural networks for density estimation.
 (For a detailed tutorial on flows, refer to the review by Papamakarios *et al.*[^PNRML2021])
 Within the Julia ecosystem, the package [`NormalizingFlows`](https://github.com/TuringLang/NormalizingFlows.jl) provides a collection of popular flow models.
-
-[^PNRML2021]: Papamakarios, G., Nalisnick, E., Rezende, D. J., Mohamed, S., & Lakshminarayanan, B. (2021). Normalizing flows for probabilistic modeling and inference. *Journal of Machine Learning Research*, 22(57), 1-64.
 In this example, we will use the popular `RealNVP` flow model[^DSB2017].
 We will use a standard Gaussian base distribution with three layers, each with 16 hidden units.
 
+[^PNRML2021]: Papamakarios, G., Nalisnick, E., Rezende, D. J., Mohamed, S., & Lakshminarayanan, B. (2021). Normalizing flows for probabilistic modeling and inference. *Journal of Machine Learning Research*, 22(57), 1-64.
 [^DSB2017]: Dinh, L., Sohl-Dickstein, J., & Bengio, S. (2016). Density estimation using real nvp. In *Proceedings of the International Conference on Learning Representations*.
 ```@example flow
 using NormalizingFlows
@@ -193,11 +192,12 @@ The default objective of `KLMinRepGradDescent` essentially assumes a `MvLocation
   - `entropy=RepGradELBO()`: The default `entropy` gradient estimator  is `ClosedFormEntropy()`, which assumes that the entropy of the variational family `entropy(q)` is available. For flows, the entropy is (usually) not available.
   - `operator=ClipScale()`: The `operator` applied after a gradient descent step is `ClipScale` by default. This operator only works on `MvLocationScale` and `MvLocationScaleLowRank`.
     Therefore, we have to customize the two keyword arguments above to make it work with flows.
-    In particular, for the `operator`, we will use `IdentityOperator()`, which is a no-op.
-    For `entropy`, we can use any gradient estimator that only relies on the log-density of the variational family `logpdf(q)`, `StickingTheLandingEntropy()` or `MonteCarloEntropy()`.
-    Here, we will use `StickingTheLandingEntropy()`[^RWD2017].
-    When the variational family is "expressive," this gradient estimator has a variance reduction effect, resulting in faster convergence[^ASD2020].
-    Furthermore, Agrawal *et al.*[^AD2025] claim that using a larger number of Monte Carlo samples `n_samples` is beneficial.
+
+In particular, for the `operator`, we will use `IdentityOperator()`, which is a no-op.
+For `entropy`, we can use any gradient estimator that only relies on the log-density of the variational family `logpdf(q)`, `StickingTheLandingEntropy()` or `MonteCarloEntropy()`.
+Here, we will use `StickingTheLandingEntropy()`[^RWD2017].
+When the variational family is "expressive," this gradient estimator has a variance reduction effect, resulting in faster convergence[^ASD2020].
+Furthermore, Agrawal *et al.*[^AD2025] claim that using a larger number of Monte Carlo samples `n_samples` is beneficial.
 
 [^RM2015]: Rezende, D., & Mohamed, S. (2015, June). Variational inference with normalizing flows. In *Proceedings of the International conference on machine learning*. PMLR.
 [^RWD2017]: Roeder, G., Wu, Y., & Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. In *Advances in Neural Information Processing Systems*, 30.
