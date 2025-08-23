@@ -16,7 +16,7 @@ struct ScoreGradELBO <: AbstractVariationalObjective
     n_samples::Int
 end
 
-struct ScoreGradELBOState{Problem, ObjADPrep}
+struct ScoreGradELBOState{Problem,ObjADPrep}
     problem::Problem
     obj_ad_prep::ObjADPrep
 end

@@ -23,7 +23,7 @@ struct RepGradELBO{EntropyEst<:AbstractEntropyEstimator} <: AbstractVariationalO
     n_samples::Int
 end
 
-struct RepGradELBOState{Problem, ObjADPrep}
+struct RepGradELBOState{Problem,ObjADPrep}
     problem::Problem
     obj_ad_prep::ObjADPrep
 end
