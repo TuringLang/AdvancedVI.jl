@@ -37,7 +37,7 @@ end
     n_data = 8
     prob = SubsampledNormals(Random.default_rng(), n_data)
 
-    μ0 = [ mean([mean(dist) for dist in prob.dists]) ]
+    μ0 = [mean([mean(dist) for dist in prob.dists])]
     q0 = MeanFieldGaussian(μ0, Diagonal(ones(1)))
     full_obj = RepGradELBO(10)
 
