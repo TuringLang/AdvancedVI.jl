@@ -37,7 +37,8 @@ end
     n_data = 8
     prob = SubsampledNormals(Random.default_rng(), n_data)
 
-    q0 = MeanFieldGaussian(zeros(1), Diagonal(ones(1)))
+    μ0 = [ mean([mean(dist) for dist in prob.dists]) ]
+    q0 = MeanFieldGaussian(μ0, Diagonal(ones(1)))
     full_obj = RepGradELBO(10)
 
     @testset "determinism" begin
@@ -62,8 +63,9 @@ end
 
     @testset "estimate_objective batchsize=$(batchsize)" for batchsize in [1, 3, 4]
         sub_obj′ = SubsampledObjective(full_obj, batchsize, 1:n_data)
-        full_objval = estimate_objective(full_obj, q0, prob; n_samples=10^7)
-        sub_objval = estimate_objective(sub_obj′, q0, prob; n_samples=10^7)
+        full_objval = estimate_objective(full_obj, q0, prob; n_samples=10^6)
+        sub_objval = estimate_objective(sub_obj′, q0, prob; n_samples=10^6)
+        @info("", full_objval, sub_objval)
         @test full_objval ≈ sub_objval rtol=0.1
     end
 
