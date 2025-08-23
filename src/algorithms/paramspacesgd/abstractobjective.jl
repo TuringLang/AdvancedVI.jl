@@ -58,7 +58,6 @@ function estimate_objective end
 
 export estimate_objective
 
-
 """
     set_objective_state_problem(state, prob)
 
