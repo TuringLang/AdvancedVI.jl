@@ -32,6 +32,7 @@ makedocs(;
                 ],
             ],
         ],
+        "Subsampling" => "subsampling.md",
         "Variational Families" => "families.md",
         "Optimization" => "optimization.md",
     ],
