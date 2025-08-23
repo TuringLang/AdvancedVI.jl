@@ -16,6 +16,11 @@ struct ScoreGradELBO <: AbstractVariationalObjective
     n_samples::Int
 end
 
+struct ScoreGradELBOState{Problem, ObjADPrep}
+    problem::Problem
+    obj_ad_prep::ObjADPrep
+end
+
 function init(
     rng::Random.AbstractRNG,
     obj::ScoreGradELBO,
@@ -31,7 +36,7 @@ function init(
     obj_ad_prep = AdvancedVI._prepare_gradient(
         estimate_scoregradelbo_ad_forward, adtype, params, aux
     )
-    return (obj_ad_prep=obj_ad_prep, problem=prob)
+    return ScoreGradELBOState(prob, obj_ad_prep)
 end
 
 function Base.show(io::IO, obj::ScoreGradELBO)
@@ -83,9 +88,9 @@ function AdvancedVI.estimate_gradient!(
     obj::ScoreGradELBO,
     adtype::ADTypes.AbstractADType,
     out::DiffResults.MutableDiffResult,
+    state::ScoreGradELBOState,
     params,
     restructure,
-    state,
 )
     q = restructure(params)
     (; obj_ad_prep, problem) = state

@@ -91,7 +91,7 @@ function step(
     params, re = Optimisers.destructure(q)
 
     grad_buf, obj_st, info = estimate_gradient!(
-        rng, objective, adtype, grad_buf, params, re, obj_st, objargs...
+        rng, objective, adtype, grad_buf, obj_st, params, re, objargs...
     )
 
     grad = DiffResults.gradient(grad_buf)
