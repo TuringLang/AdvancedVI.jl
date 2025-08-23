@@ -49,11 +49,11 @@ function estimate_objective(
 )
     (; objective, subsampling) = subobj
     sub_st = init(rng, subsampling)
-    return mean(1:length(subsampling)) do _
+    return mapreduce(+, 1:length(subsampling)) do _
         batch, sub_st, _ = step(rng, subsampling, sub_st)
         prob_sub = subsample(prob, batch)
         q_sub = subsample(q, batch)
-        estimate_objective(rng, objective, q_sub, prob_sub; kwargs...)
+        estimate_objective(rng, objective, q_sub, prob_sub; kwargs...) / length(subsampling)
     end
 end
 

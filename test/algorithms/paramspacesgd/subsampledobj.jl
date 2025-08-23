@@ -63,9 +63,8 @@ end
 
     @testset "estimate_objective batchsize=$(batchsize)" for batchsize in [1, 3, 4]
         sub_obj′ = SubsampledObjective(full_obj, batchsize, 1:n_data)
-        full_objval = estimate_objective(full_obj, q0, prob; n_samples=10^6)
-        sub_objval = estimate_objective(sub_obj′, q0, prob; n_samples=10^6)
-        @info("", full_objval, sub_objval)
+        full_objval = estimate_objective(full_obj, q0, prob; n_samples=10^8)
+        sub_objval = estimate_objective(sub_obj′, q0, prob; n_samples=10^8)
         @test full_objval ≈ sub_objval rtol=0.1
     end
 
