@@ -30,7 +30,7 @@ end
 function LogDensityProblems.logdensity(model::LogReg, θ)
     (; X, y) = model
     d = size(X, 2)
-    β, σ = θ[1:size(X, 2)], θ[end]
+    β, σ = θ[1:d], θ[end]
 
     logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
     logprior_σ = logpdf(LogNormal(0, 3), σ)
