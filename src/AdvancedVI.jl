@@ -247,6 +247,20 @@ Generate an output variational approximation using the last `state` of `alg`.
 """
 output(::AbstractAlgorithm, ::Any) = nothing
 
+# Subsampling
+"""
+    subsample(model, batch)
+    subsample(q, batch)
+
+Inform `model` or `q` to only use the data points designated by the iterable collection `batch`.
+For `model`, the log-density should also be adjusted to account for the change in number of data points.
+"""
+subsample(model_or_q::Any, ::Any) = model_or_q
+
+abstract type AbstractSubsampling end
+
+include("reshuffling.jl")
+
 # Main optimization routine
 function optimize end
 
@@ -282,6 +296,7 @@ Estimate the entropy of `q`.
 """
 function estimate_entropy end
 
+include("algorithms/paramspacesgd/subsampledobjective.jl")
 include("algorithms/paramspacesgd/repgradelbo.jl")
 include("algorithms/paramspacesgd/scoregradelbo.jl")
 include("algorithms/paramspacesgd/entropy.jl")
@@ -292,7 +307,8 @@ export RepGradELBO,
     StickingTheLandingEntropy,
     MonteCarloEntropy,
     ClosedFormEntropyZeroGradient,
-    StickingTheLandingEntropyZeroGradient
+    StickingTheLandingEntropyZeroGradient,
+    SubsampledObjective
 
 include("algorithms/paramspacesgd/constructors.jl")
 

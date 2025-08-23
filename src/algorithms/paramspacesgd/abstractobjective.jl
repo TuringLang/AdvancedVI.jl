@@ -58,6 +58,15 @@ function estimate_objective end
 
 export estimate_objective
 
+
+"""
+    set_objective_state_problem(state, prob)
+
+Update the target problem object `prob` in the `state` of the associated objective.
+This should be implemented for the objective to support `SubsampledObjective`.
+"""
+function set_objective_state_problem end
+
 """
     estimate_gradient!(rng, obj, adtype, out, obj_state, params, restructure)
 
