@@ -261,6 +261,8 @@ abstract type AbstractSubsampling end
 
 include("reshuffling.jl")
 
+export ReshufflingBatchSubsampling
+
 # Main optimization routine
 function optimize end
 
