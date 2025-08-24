@@ -1,16 +1,12 @@
 
 """
     SubsampledObjective(objective, subsampling)
-    SubsampledObjective(objective, batchsize, dataset)
 
 Subsample `objective` according to the `subsampling` strategy.
-The specialization with `batchsize` and `dataset` uses the `ReshufflingBatchSubsampling` by default.
 
 # Arguments
 - `objective::AbstractVariationalObjective`: A variational objective that is compatible with subsampling.
 - `subsampling::AbstractSubsampling`: Subsampling strategy.
-- `batchsize::Int`: Batch size
-- `dataset::AbstractVector`: Iterable sequence representing the data points.
 """
 struct SubsampledObjective{Obj<:AbstractVariationalObjective,Sub<:AbstractSubsampling} <:
        AbstractVariationalObjective
@@ -22,12 +18,6 @@ struct SubsampledObjectiveState{Prob,SubSt,ObjSt}
     prob::Prob
     sub_st::SubSt
     obj_st::ObjSt
-end
-
-function SubsampledObjective(
-    objective::AbstractVariationalObjective, batchsize::Int, dataset::AbstractVector;
-)
-    return SubsampledObjective(objective, ReshufflingBatchSubsampling(dataset, batchsize))
 end
 
 function init(
