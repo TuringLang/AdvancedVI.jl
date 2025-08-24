@@ -34,10 +34,7 @@ function KLMinRepGradDescent(
     objective = if isnothing(subsampling)
         RepGradELBO(n_samples; entropy=entropy)
     else
-        SubsampledObjective(
-            RepGradELBO(n_samples; entropy=entropy),
-            subsampling,
-        )
+        SubsampledObjective(RepGradELBO(n_samples; entropy=entropy), subsampling)
     end
     return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
 end
@@ -83,10 +80,7 @@ function KLMinRepGradProxDescent(
     objective = if isnothing(subsampling)
         RepGradELBO(n_samples; entropy=entropy_zerograd)
     else
-        SubsampledObjective(
-            RepGradELBO(n_samples; entropy=entropy_zerograd)
-            subsampling,
-        )
+        SubsampledObjective(RepGradELBO(n_samples; entropy=entropy_zerograd), subsampling)
     end
     return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
 end
@@ -120,13 +114,10 @@ function KLMinScoreGradDescent(
     operator::Union{<:IdentityOperator,<:ClipScale}=IdentityOperator(),
     subsampling::Union{<:Nothing,<:AbstractSubsampling}=nothing,
 )
-    objective =  if isnothing(subsampling)
+    objective = if isnothing(subsampling)
         ScoreGradELBO(n_samples)
     else
-        SubsampledObjective(
-            ScoreGradELBO(n_samples)
-            subsampling,
-        )
+        SubsampledObjective(ScoreGradELBO(n_samples), subsampling)
     end
     return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
 end
