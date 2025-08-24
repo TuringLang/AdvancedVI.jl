@@ -13,6 +13,7 @@ KL divergence minimization by running stochastic gradient descent with the repar
 - `n_samples::Int`: Number of Monte Carlo samples to be used for estimating each gradient. (default: `1`)
 - `averager::AbstractAverager`: Parameter averaging strategy. 
 - `operator::Union{<:IdentityOperator, <:ClipScale}`: Operator to be applied after each gradient descent step. (default: `ClipScale()`)
+- `subsampling::Union{<:Nothing,<:AbstractSubsampling}`: Data point subsampling strategy. If `nothing`, subsampling is not used. (default: `nothing`)
 
 # Requirements
 - The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`. This requires the variational approximation to be marked as a functor through `Functors.@functor`.
@@ -28,8 +29,16 @@ function KLMinRepGradDescent(
     n_samples::Int=1,
     averager::AbstractAverager=PolynomialAveraging(),
     operator::Union{<:IdentityOperator,<:ClipScale}=ClipScale(),
+    subsampling::Union{<:Nothing,<:AbstractSubsampling}=nothing,
 )
-    objective = RepGradELBO(n_samples; entropy=entropy)
+    objective = if isnothing(subsampling)
+        RepGradELBO(n_samples; entropy=entropy)
+    else
+        SubsampledObjective(
+            RepGradELBO(n_samples; entropy=entropy),
+            subsampling,
+        )
+    end
     return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
 end
 
@@ -52,6 +61,7 @@ Thus, only the entropy estimators with a "ZeroGradient" suffix are allowed.
 - `optimizer::Optimisers.AbstractRule`: Optimization algorithm to be used. Only `DoG`, `DoWG` and `Optimisers.Descent` are supported. (default: `DoWG()`)
 - `n_samples::Int`: Number of Monte Carlo samples to be used for estimating each gradient.
 - `averager::AbstractAverager`: Parameter averaging strategy. (default: `PolynomialAveraging()`)
+- `subsampling::Union{<:Nothing,<:AbstractSubsampling}`: Data point subsampling strategy. If `nothing`, subsampling is not used. (default: `nothing`)
 
 # Requirements
 - The variational family is `MvLocationScale`.
@@ -67,9 +77,17 @@ function KLMinRepGradProxDescent(
     optimizer::Union{<:Descent,<:DoG,<:DoWG}=DoWG(),
     n_samples::Int=1,
     averager::AbstractAverager=PolynomialAveraging(),
+    subsampling::Union{<:Nothing,<:AbstractSubsampling}=nothing,
 )
-    objective = RepGradELBO(n_samples; entropy=entropy_zerograd)
     operator = ProximalLocationScaleEntropy()
+    objective = if isnothing(subsampling)
+        RepGradELBO(n_samples; entropy=entropy_zerograd)
+    else
+        SubsampledObjective(
+            RepGradELBO(n_samples; entropy=entropy_zerograd)
+            subsampling,
+        )
+    end
     return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
 end
 
@@ -86,6 +104,7 @@ KL divergence minimization by running stochastic gradient descent with the score
 - `n_samples::Int`: Number of Monte Carlo samples to be used for estimating each gradient.
 - `averager::AbstractAverager`: Parameter averaging strategy. (default: `PolynomialAveraging()`)
 - `operator::Union{<:IdentityOperator, <:ClipScale}`: Operator to be applied after each gradient descent step. (default: `IdentityOperator()`)
+- `subsampling::Union{<:Nothing,<:AbstractSubsampling}`: Data point subsampling strategy. If `nothing`, subsampling is not used. (default: `nothing`)
 
 # Requirements
 - The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`. This requires the variational approximation to be marked as a functor through `Functors.@functor`.
@@ -99,8 +118,16 @@ function KLMinScoreGradDescent(
     n_samples::Int=1,
     averager::AbstractAverager=PolynomialAveraging(),
     operator::Union{<:IdentityOperator,<:ClipScale}=IdentityOperator(),
+    subsampling::Union{<:Nothing,<:AbstractSubsampling}=nothing,
 )
-    objective = ScoreGradELBO(n_samples)
+    objective =  if isnothing(subsampling)
+        ScoreGradELBO(n_samples)
+    else
+        SubsampledObjective(
+            ScoreGradELBO(n_samples)
+            subsampling,
+        )
+    end
     return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
 end
 
