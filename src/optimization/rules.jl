@@ -12,7 +12,7 @@ Depending on the problem, DoWG can be too aggressive and result in unstable beha
 If this is suspected, try using DoG instead.
 
 # Parameters
-- `alpha`: Scaling factor for initial guess (`repsilon` in the original paper) of the Euclidean distance between the initial point and the optimum. For the initial parameter `x0`, `repsilon` is calculated as `repsilon = alpha*(1 + norm(x0)`. (default value: `1e-6`)
+- `alpha`: Scaling factor for initial guess (`repsilon` in the original paper) of the Euclidean distance between the initial point and the optimum. For the initial parameter `lambda0`, `repsilon` is calculated as `repsilon = alpha*(1 + norm(lambda0))`. (default value: `1e-6`)
 """
 Optimisers.@def struct DoWG <: Optimisers.AbstractRule
     alpha = 1e-6
@@ -41,7 +41,7 @@ DoG works by starting from a AdaGrad-like update rule with a small step size, bu
 If `alpha` is too large, the optimzier can initially diverge, while if it is too small, the warm up period can be too long.
 
 # Parameters
-- `alpha`: Scaling factor for initial guess (`repsilon` in the original paper) of the Euclidean distance between the initial point and the optimum. For the initial parameter `x0`, `repsilon` is calculated as `repsilon = alpha*(1 + norm(x0)`. (default value: `1e-6`)
+- `alpha`: Scaling factor for initial guess (`repsilon` in the original paper) of the Euclidean distance between the initial point and the optimum. For the initial parameter `lambda0`, `repsilon` is calculated as `repsilon = alpha*(1 + norm(lambda0))`. (default value: `1e-6`)
 """
 Optimisers.@def struct DoG <: Optimisers.AbstractRule
     alpha = 1e-6
