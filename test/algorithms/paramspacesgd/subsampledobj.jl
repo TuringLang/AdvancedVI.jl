@@ -41,9 +41,29 @@ end
     q0 = MeanFieldGaussian(μ0, Diagonal(ones(1)))
     full_obj = RepGradELBO(10)
 
+    @testset "algorithm constructors" begin
+        @testset for batchsize in [1, 3, 4]
+            sub = ReshufflingBatchSubsampling(1:n_data, batchsize)
+            alg = KLMinRepGradDescent(AD; n_samples=10, subsampling=sub)
+            _, info, _ = optimize(alg, 10, prob, q0; show_progress=false)
+            @test isfinite(last(info).elbo)
+
+            alg = KLMinRepGradProxDescent(AD; n_samples=10, subsampling=sub)
+            _, info, _ = optimize(alg, 10, prob, q0; show_progress=false)
+            @test isfinite(last(info).elbo)
+
+            alg = KLMinScoreGradDescent(
+                AD; n_samples=100, subsampling=sub, operator=ClipScale()
+            )
+            _, info, _ = optimize(alg, 10, prob, q0; show_progress=false)
+            @test isfinite(last(info).elbo)
+        end
+    end
+
     @testset "determinism" begin
         T = 128
-        sub_obj = SubsampledObjective(full_obj, 1, 1:n_data)
+        sub = ReshufflingBatchSubsampling(1:n_data, 1)
+        sub_obj = SubsampledObjective(full_obj, sub)
         alg = ParamSpaceSGD(sub_obj, AD, DoWG(), PolynomialAveraging(), ClipScale())
 
         rng = StableRNG(seed)
@@ -62,7 +82,8 @@ end
     end
 
     @testset "estimate_objective batchsize=$(batchsize)" for batchsize in [1, 3, 4]
-        sub_obj′ = SubsampledObjective(full_obj, batchsize, 1:n_data)
+        sub = ReshufflingBatchSubsampling(1:n_data, batchsize)
+        sub_obj′ = SubsampledObjective(full_obj, sub)
         full_objval = estimate_objective(full_obj, q0, prob; n_samples=10^8)
         sub_objval = estimate_objective(sub_obj′, q0, prob; n_samples=10^8)
         @test full_objval ≈ sub_objval rtol=0.1
@@ -72,7 +93,8 @@ end
         params, restructure = Optimisers.destructure(q0)
 
         out = DiffResults.DiffResult(zero(eltype(params)), similar(params))
-        sub_obj = SubsampledObjective(full_obj, batchsize, 1:n_data)
+        sub = ReshufflingBatchSubsampling(1:n_data, batchsize)
+        sub_obj = SubsampledObjective(full_obj, sub)
 
         # Estimate using full batch
         rng = StableRNG(seed)
