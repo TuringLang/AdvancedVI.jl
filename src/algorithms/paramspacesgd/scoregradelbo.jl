@@ -21,6 +21,16 @@ struct ScoreGradELBOState{Problem,ObjADPrep}
     obj_ad_prep::ObjADPrep
 end
 
+function set_objective_state_problem(state::ScoreGradELBOState, prob::Prob) where {Prob}
+    capability = LogDensityProblems.capabilities(Prob)
+    ad_prob = if capability < LogDensityProblems.LogDensityOrder{1}()
+        prob
+    else
+        MixedADLogDensityProblem(prob)
+    end
+    return @set state.problem = ad_prob
+end
+
 function init(
     rng::Random.AbstractRNG,
     obj::ScoreGradELBO,
