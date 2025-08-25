@@ -259,8 +259,6 @@ subsample(model_or_q::Any, ::Any) = model_or_q
 
 abstract type AbstractSubsampling end
 
-include("reshuffling.jl")
-
 export ReshufflingBatchSubsampling
 
 # Main optimization routine
