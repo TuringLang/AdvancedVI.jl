@@ -1,19 +1,24 @@
 
 """
-    DoWG(repsilon)
+    DoWG(alpha)
 
 Distance over weighted gradient (DoWG[^KMJ2024]) optimizer.
-It's only parameter is the initial guess of the Euclidean distance to the optimum repsilon.
+Its only parameter is the guess for the distance between the optimum and the initialization `alpha`, which shouldn't need much tuning.
+
+DoWG is a minor modification to DoG so that the step sizes are always provably larger than DoG.
+Similarly to DoG, it works by starting from a AdaGrad-like update rule with a small step size, but then automatically increases the step size ("warming up") to be as large as possible.
+If `alpha` is too large, the optimzier can initially diverge, while if it is too small, the warm up period can be too long.
+Depending on the problem, DoWG can be too aggressive and result in unstable behavior.
+If this is suspected, try using DoG instead.
 
 # Parameters
-- `repsilon`: Initial guess of the Euclidean distance between the initial point and
-            the optimum. (default value: `1e-6`)
+- `alpha`: Scaling factor for initial guess (`repsilon` in the original paper) of the Euclidean distance between the initial point and the optimum. For the initial parameter `lambda0`, `repsilon` is calculated as `repsilon = alpha*(1 + norm(lambda0))`. (default value: `1e-6`)
 """
 Optimisers.@def struct DoWG <: Optimisers.AbstractRule
-    repsilon = 1e-6
+    alpha = 1e-6
 end
 
-Optimisers.init(o::DoWG, x::AbstractArray{T}) where {T} = (copy(x), zero(T), T(o.repsilon))
+Optimisers.init(o::DoWG, x::AbstractArray{T}) where {T} = (copy(x), zero(T), T(o.alpha)*(1 + norm(x)))
 
 function Optimisers.apply!(::DoWG, state, x::AbstractArray{T}, dx) where {T}
     x0, v, r = state
@@ -27,20 +32,22 @@ function Optimisers.apply!(::DoWG, state, x::AbstractArray{T}, dx) where {T}
 end
 
 """
-    DoG(repsilon)
+    DoG(alpha)
 
 Distance over gradient (DoG[^IHC2023]) optimizer.
-It's only parameter is the initial guess of the Euclidean distance to the optimum repsilon.
-The original paper recommends \$ 10^{-4} ( 1 + \\lVert \\lambda_0 \\rVert ) \$, but the default value is \$ 10^{-6} \$.
+Its only parameter is the guess for the distance between the optimum and the initialization `alpha`, which shouldn't need much tuning.
+
+DoG works by starting from a AdaGrad-like update rule with a small step size, but then automatically increases the step size ("warming up") to be as large as possible.
+If `alpha` is too large, the optimzier can initially diverge, while if it is too small, the warm up period can be too long.
 
 # Parameters
-- `repsilon`: Initial guess of the Euclidean distance between the initial point and the optimum. (default value: `1e-6`)
+- `alpha`: Scaling factor for initial guess (`repsilon` in the original paper) of the Euclidean distance between the initial point and the optimum. For the initial parameter `lambda0`, `repsilon` is calculated as `repsilon = alpha*(1 + norm(lambda0))`. (default value: `1e-6`)
 """
 Optimisers.@def struct DoG <: Optimisers.AbstractRule
-    repsilon = 1e-6
+    alpha = 1e-6
 end
 
-Optimisers.init(o::DoG, x::AbstractArray{T}) where {T} = (copy(x), zero(T), T(o.repsilon))
+Optimisers.init(o::DoG, x::AbstractArray{T}) where {T} = (copy(x), zero(T), T(o.alpha)*(1 + norm(x)))
 
 function Optimisers.apply!(::DoG, state, x::AbstractArray{T}, dx) where {T}
     x0, v, r = state
@@ -57,7 +64,7 @@ end
 
 Continuous Coin Betting (COCOB[^OT2017]) optimizer.
 We use the "COCOB-Backprop" variant, which is closer to the Adam optimizer.
-Its only parameter is the maximum change per parameter α, which shouldn't need much tuning.
+Its only parameter is the maximum change per parameter `alpha`, which shouldn't need much tuning.
 
 # Parameters
 - `alpha`: Scaling parameter. (default value: `100`)
