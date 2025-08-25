@@ -5,7 +5,7 @@ In this example, we will see how to use [`NormalizingFlows`](https://github.com/
 ## Problem Setup
 
 For the problem, we will look into a toy problem where `NormalizingFlows` can be benficial.
-For a dataset of real valued data$y_1, \ldots, y_n$, consider the following generative model:
+For a dataset of real valued data $y_1, \ldots, y_n$, consider the following generative model:
 
 ```math
 \begin{aligned}
