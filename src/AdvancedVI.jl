@@ -298,7 +298,7 @@ Estimate the entropy of `q`.
 """
 function estimate_entropy end
 
-include("algorithms/paramspacesgd/subsampledobj.jl")
+include("algorithms/paramspacesgd/subsampledobjective.jl")
 include("algorithms/paramspacesgd/repgradelbo.jl")
 include("algorithms/paramspacesgd/scoregradelbo.jl")
 include("algorithms/paramspacesgd/entropy.jl")
