@@ -66,8 +66,7 @@ end
 
 function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init, prob)
     (; adtype, optimizer, averager, objective, operator) = alg
-    if q_init isa AdvancedVI.MvLocationScale &&
-        operator isa AdvancedVI.IdentityOperator
+    if q_init isa AdvancedVI.MvLocationScale && operator isa AdvancedVI.IdentityOperator
         @warn(
             "IdentityOperator is used with a variational family <:MvLocationScale. Optimization can easily fail under this combination due to singular scale matrices. Consider using the operator `ClipScale` instead.",
             typeof(q_init),
