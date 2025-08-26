@@ -199,15 +199,15 @@ Abstract type for a variational inference algorithm.
 abstract type AbstractAlgorithm end
 
 """
-    init(rng, alg, prob, q_init)
+    init(rng, alg, q_init, prob)
 
 Initialize `alg` given the initial variational approximation `q_init` and the target `prob`.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `alg::AbstractAlgorithm`: Variational inference algorithm.
-- `prob`: Target problem.
 - `q_init`: Initial variational approximation.
+- `prob`: Target problem.
 
 # Returns
 - `state`: Initial state of the algorithm.

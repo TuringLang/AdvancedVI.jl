@@ -56,7 +56,7 @@ function optimize(
 )
     info_total = NamedTuple[]
     state = if isnothing(state)
-        init(rng, algorithm, prob, q_init)
+        init(rng, algorithm, q_init, prob)
     else
         state
     end

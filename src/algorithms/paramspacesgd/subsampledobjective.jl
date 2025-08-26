@@ -76,6 +76,7 @@ function init(
     rng::Random.AbstractRNG,
     subobj::SubsampledObjective,
     adtype::ADTypes.AbstractADType,
+    ::Any,
     prob,
     params,
     restructure,

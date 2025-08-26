@@ -42,12 +42,13 @@ function init(
     rng::Random.AbstractRNG,
     obj::RepGradELBO,
     adtype::ADTypes.AbstractADType,
-    prob::Prob,
+    q,
+    prob,
     params,
     restructure,
-) where {Prob}
-    q_stop = restructure(params)
-    capability = LogDensityProblems.capabilities(Prob)
+)
+    q_stop = q
+    capability = LogDensityProblems.capabilities(typeof(prob))
     ad_prob = if capability < LogDensityProblems.LogDensityOrder{1}()
         @info "The capability of the supplied `LogDensityProblem` $(capability) is less than $(LogDensityProblems.LogDensityOrder{1}()). `AdvancedVI` will attempt to directly differentiate through `LogDensityProblems.logdensity`. If this is not intended, please supply a log-density problem with capability at least $(LogDensityProblems.LogDensityOrder{1}())"
         prob
