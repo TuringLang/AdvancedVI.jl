@@ -106,7 +106,7 @@ For the VI algorithm, we will use the following:
 using ADTypes, ReverseDiff
 using AdvancedVI
 
-alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(), operator=ClipScale())
+alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(); operator=ClipScale())
 ```
 This algorithm minimizes the exclusive/reverse KL divergence via stochastic gradient descent in the (Euclidean) space of the parameters of the variational approximation with the reparametrization gradient[^TL2014][^RMW2014][^KW2014].
 This is also commonly referred as automatic differentiation VI, black-box VI, stochastic gradient VI, and so on.
