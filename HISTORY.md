@@ -1,5 +1,10 @@
 # Release 0.5
 
+## Default Configuration Changes
+
+The default parameters for the parameter-free optimizers `DoG` and `DoWG` has been changed.
+Now, the choice of parameter should be more invariant to dimension such that convergence will become faster than before on high dimensional problems.
+
 ## Interface Changes
 
 An additional layer of indirection, `AbstractAlgorithms` has been added.
