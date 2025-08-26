@@ -119,6 +119,7 @@ Here, the projection operator `ClipScale` ensures this.
 
 This `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` has gradients.
 For this, it is straightforward to use `LogDensityProblemsAD`:
+
 ```julia
 import DifferentiationInterface
 import LogDensityProblemsAD
