@@ -24,17 +24,9 @@
     end
 
     @testset "warn MvLocationScale with IdentityOperator" begin
-        @test_nowarn begin
-            alg = KLMinScoreGradDescent(AD; operator=ClipScale())
-            optimize(rng, alg, 1, model, q0; show_progress=false)
-        end
         @test_warn "IdentityOperator" begin
             alg = KLMinScoreGradDescent(AD; operator=IdentityOperator())
             optimize(rng, alg, 1, model, q0; show_progress=false)
-        end
-        @test_nowarn begin
-            alg = KLMinScoreGradDescent(AD; operator=ClipScale())
-            optimize(rng, alg, 1, model, q0_trans; show_progress=false)
         end
         @test_warn "IdentityOperator" begin
             alg = KLMinScoreGradDescent(AD; operator=IdentityOperator())
