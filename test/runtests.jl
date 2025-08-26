@@ -71,6 +71,7 @@ if GROUP == "All" || GROUP == "AD"
     include("general/ad.jl")
     include("general/mixedad_logdensity.jl")
 
+    include("algorithms/paramspacesgd/subsampledobj.jl")
     include("algorithms/paramspacesgd/repgradelbo.jl")
     include("algorithms/paramspacesgd/scoregradelbo.jl")
     include("algorithms/paramspacesgd/repgradelbo_locationscale.jl")
