@@ -98,7 +98,7 @@ end
 
         # Estimate using full batch
         rng = StableRNG(seed)
-        full_state = AdvancedVI.init(rng, full_obj, AD, prob, params, restructure)
+        full_state = AdvancedVI.init(rng, full_obj, AD, q0, prob, params, restructure)
         AdvancedVI.estimate_gradient!(
             rng, full_obj, AD, out, full_state, params, restructure
         )
@@ -106,7 +106,7 @@ end
 
         # Estimate the full batch gradient by averaging the minibatch gradients
         rng = StableRNG(seed)
-        sub_state = AdvancedVI.init(rng, sub_obj, AD, prob, params, restructure)
+        sub_state = AdvancedVI.init(rng, sub_obj, AD, q0, prob, params, restructure)
         grad = mean(1:length(sub_obj.subsampling)) do _
             # Fixing the RNG so that the same Monte Carlo samples are used across the batches
             rng = StableRNG(seed)

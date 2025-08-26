@@ -64,11 +64,11 @@ struct ParamSpaceSGDState{P,Q,GradBuf,OptSt,ObjSt,AvgSt}
     avg_st::AvgSt
 end
 
-function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, prob, q_init)
+function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init, prob)
     (; adtype, optimizer, averager, objective) = alg
     params, re = Optimisers.destructure(q_init)
     opt_st = Optimisers.setup(optimizer, params)
-    obj_st = init(rng, objective, adtype, prob, params, re)
+    obj_st = init(rng, objective, adtype, q_init, prob, params, re)
     avg_st = init(averager, params)
     grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
     return ParamSpaceSGDState(prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st)

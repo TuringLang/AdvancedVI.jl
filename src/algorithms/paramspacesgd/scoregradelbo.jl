@@ -35,12 +35,12 @@ function init(
     rng::Random.AbstractRNG,
     obj::ScoreGradELBO,
     adtype::ADTypes.AbstractADType,
+    q_init,
     prob,
     params,
     restructure,
 )
-    q = restructure(params)
-    samples = rand(rng, q, obj.n_samples)
+    samples = rand(rng, q_init, obj.n_samples)
     ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
     aux = (adtype=adtype, logprob_stop=ℓπ, samples_stop=samples, restructure=restructure)
     obj_ad_prep = AdvancedVI._prepare_gradient(

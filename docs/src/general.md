@@ -38,7 +38,7 @@ The operation of `optimize` can be simplified as follows:
 ```julia
 function optimize([rng,] algorithm, max_iter, q_init, objargs; kwargs...)
     info_total = NamedTuple[]
-    state = init(rng, algorithm, q_init)
+    state = init(rng, algorithm, q_init, prob)
     for t in 1:max_iter
         info = (iteration=t,)
         state, terminate, info′ = step(
