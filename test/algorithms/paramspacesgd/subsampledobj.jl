@@ -98,7 +98,7 @@ end
 
         # Estimate using full batch
         rng = StableRNG(seed)
-        full_state = AdvancedVI.init(rng, full_obj, AD, prob, params, restructure)
+        full_state = AdvancedVI.init(rng, full_obj, AD, q0, prob, params, restructure)
         AdvancedVI.estimate_gradient!(
             rng, full_obj, AD, out, full_state, params, restructure
         )
