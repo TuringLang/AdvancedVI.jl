@@ -76,14 +76,14 @@ function init(
     rng::Random.AbstractRNG,
     subobj::SubsampledObjective,
     adtype::ADTypes.AbstractADType,
-    ::Any,
+    q_init,
     prob,
     params,
     restructure,
 )
     (; objective, subsampling) = subobj
     sub_st = init(rng, subsampling)
-    obj_st = AdvancedVI.init(rng, objective, adtype, prob, params, restructure)
+    obj_st = AdvancedVI.init(rng, objective, adtype, q_init, prob, params, restructure)
     return SubsampledObjectiveState(prob, sub_st, obj_st)
 end
 
