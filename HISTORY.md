@@ -5,6 +5,9 @@
 The default parameters for the parameter-free optimizers `DoG` and `DoWG` has been changed.
 Now, the choice of parameter should be more invariant to dimension such that convergence will become faster than before on high dimensional problems.
 
+The default value of the `operator` keyword argument of `KLMinRepGradDescent` has been changed to `IdentityOperator` from `ClipScale`. This means that for variational families `<:MvLocationScale`, optimization may fail since there is nothing enforcing the scale matrix to be positive definite.
+Therefore, in case a variational family of `<:MvLocationScale` is used in combination with `IdentityOperator`, a warning message instruting to use `ClipScale` will be displayed.
+
 ## Interface Changes
 
 An additional layer of indirection, `AbstractAlgorithms` has been added.
