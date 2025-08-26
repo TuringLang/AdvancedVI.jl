@@ -121,8 +121,8 @@ This `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityPr
 For this, it is straightforward to use `LogDensityProblemsAD`:
 
 ```julia
-import DifferentiationInterface
-import LogDensityProblemsAD
+using DifferentiationInterface: DifferentiationInterface
+using LogDensityProblemsAD: LogDensityProblemsAD
 
 model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model)
 ```
