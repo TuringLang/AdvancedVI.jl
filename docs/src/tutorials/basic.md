@@ -11,7 +11,7 @@ y &\sim \mathcal{N}\left(\mu_y, \sigma_y^2\right)
 
 BBVI with `Bijectors.Exp` bijectors is able to infer this model exactly.
 
-Using the `LogDensityProblems` interface, we the model can be defined as follows:
+Using the `LogDensityProblems` interface, the model can be defined as follows:
 
 ```@example elboexample
 using LogDensityProblems
@@ -79,7 +79,7 @@ nothing
 ```
 
 Now, `KLMinRepGradDescent` requires the variational approximation and the target log-density to have the same support.
-Since `y` follows a log-normal prior, its support is bounded to be the positive half-space ``\mathbb{R}_+``.
+Since `x` follows a log-normal prior, its support is bounded to be the positive half-space ``\mathbb{R}_+``.
 Thus, we will use [Bijectors](https://github.com/TuringLang/Bijectors.jl) to match the support of our target posterior and the variational approximation.
 
 ```@example elboexample
@@ -127,10 +127,10 @@ nothing
 For more information see [this section](@ref clipscale).
 
 `q_out` is the final output of the optimization procedure.
-If a parameter averaging strategy is used through the keyword argument `averager`, `q_out` is be the output of the averaging strategy.
+If a parameter averaging strategy is used through the keyword argument `averager`, `q_out` will be the output of the averaging strategy.
 
 The selected inference procedure stores per-iteration statistics into `stats`.
-For instance, the ELBO can be ploted as follows:
+For instance, the ELBO can be plotted as follows:
 
 ```@example elboexample
 using Plots
