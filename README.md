@@ -106,10 +106,15 @@ For the VI algorithm, we will use the following:
 using ADTypes, ReverseDiff
 using AdvancedVI
 
-alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff())
+alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(), operator=ClipScale())
 ```
 This algorithm minimizes the exclusive/reverse KL divergence via stochastic gradient descent in the (Euclidean) space of the parameters of the variational approximation with the reparametrization gradient[^TL2014][^RMW2014][^KW2014].
 This is also commonly referred as automatic differentiation VI, black-box VI, stochastic gradient VI, and so on.
+
+Also, projection or proximal operators can be used through the keyword argument `operator`.
+For this example, we will use Gaussian variational family, which is part of the more broad location-scale family.
+These require the scale matrix to have strictly positive eigenvalues at all times.
+Here, the projection operator `ClipScale` ensures this.
 
 This `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` has gradients.
 For this, it is straightforward to use `LogDensityProblemsAD`:

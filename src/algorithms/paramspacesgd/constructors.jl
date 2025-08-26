@@ -4,6 +4,9 @@
 
 KL divergence minimization by running stochastic gradient descent with the reparameterization gradient in the Euclidean space of variational parameters.
 
+!!! note
+    For a `<:MvLocationScale` variational family, `IdentityOperator` should be avoided for `operator` since optimization can result in a singular scale matrix. Instead, consider using [`ClipScale`](@ref).
+ 
 # Arguments
 - `adtype::ADTypes.AbstractADType`: Automatic differentiation backend. 
 
@@ -12,7 +15,7 @@ KL divergence minimization by running stochastic gradient descent with the repar
 - `optimizer::Optimisers.AbstractRule`: Optimization algorithm to be used. (default: `DoWG()`)
 - `n_samples::Int`: Number of Monte Carlo samples to be used for estimating each gradient. (default: `1`)
 - `averager::AbstractAverager`: Parameter averaging strategy. 
-- `operator::Union{<:IdentityOperator, <:ClipScale}`: Operator to be applied after each gradient descent step. (default: `ClipScale()`)
+- `operator::AbstractOperator`: Operator to be applied after each gradient descent step. (default: `IdentityOperator()`)
 - `subsampling::Union{<:Nothing,<:AbstractSubsampling}`: Data point subsampling strategy. If `nothing`, subsampling is not used. (default: `nothing`)
 
 # Requirements
@@ -28,7 +31,7 @@ function KLMinRepGradDescent(
     optimizer::Optimisers.AbstractRule=DoWG(),
     n_samples::Int=1,
     averager::AbstractAverager=PolynomialAveraging(),
-    operator::Union{<:IdentityOperator,<:ClipScale}=ClipScale(),
+    operator::AbstractOperator=IdentityOperator(),
     subsampling::Union{<:Nothing,<:AbstractSubsampling}=nothing,
 )
     objective = if isnothing(subsampling)
@@ -90,6 +93,9 @@ end
 
 KL divergence minimization by running stochastic gradient descent with the score gradient in the Euclidean space of variational parameters.
 
+!!! note
+    If a `<:MvLocationScale` variational family is used, for `operator`, `IdentityOperator` should be avoided since optimization can result in a singular scale matrix. Instead, consider using [`ClipScale`](@ref).
+
 # Arguments
 - `adtype`: Automatic differentiation backend. 
 
@@ -111,7 +117,7 @@ function KLMinScoreGradDescent(
     optimizer::Union{<:Descent,<:DoG,<:DoWG}=DoWG(),
     n_samples::Int=1,
     averager::AbstractAverager=PolynomialAveraging(),
-    operator::Union{<:IdentityOperator,<:ClipScale}=IdentityOperator(),
+    operator::AbstractOperator=IdentityOperator(),
     subsampling::Union{<:Nothing,<:AbstractSubsampling}=nothing,
 )
     objective = if isnothing(subsampling)

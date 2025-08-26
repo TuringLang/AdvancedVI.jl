@@ -184,7 +184,7 @@ D     = ones(n_dims)
 U     = zeros(n_dims, 3)
 q0_lr = LowRankGaussian(μ, D, U)
 
-alg = KLMinRepGradDescent(AutoReverseDiff(); optimizer=Adam(0.01))
+alg = KLMinRepGradDescent(AutoReverseDiff(); optimizer=Adam(0.01), operator=ClipScale())
 
 max_iter = 10^4
 

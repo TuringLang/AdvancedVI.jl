@@ -16,7 +16,7 @@
 
         T = 1000
         η = 1e-3
-        alg = KLMinRepGradDescent(AD; optimizer=Descent(η))
+        alg = KLMinRepGradDescent(AD; optimizer=Descent(η), operator=ClipScale())
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)

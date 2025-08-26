@@ -47,7 +47,6 @@ function init(
     params,
     restructure,
 )
-    q_stop = q
     capability = LogDensityProblems.capabilities(typeof(prob))
     ad_prob = if capability < LogDensityProblems.LogDensityOrder{1}()
         @info "The capability of the supplied `LogDensityProblem` $(capability) is less than $(LogDensityProblems.LogDensityOrder{1}()). `AdvancedVI` will attempt to directly differentiate through `LogDensityProblems.logdensity`. If this is not intended, please supply a log-density problem with capability at least $(LogDensityProblems.LogDensityOrder{1}())"
@@ -67,7 +66,7 @@ function init(
         obj=obj,
         problem=ad_prob,
         restructure=restructure,
-        q_stop=q_stop,
+        q_stop=q,
     )
     obj_ad_prep = AdvancedVI._prepare_gradient(
         estimate_repgradelbo_ad_forward, adtype, params, aux

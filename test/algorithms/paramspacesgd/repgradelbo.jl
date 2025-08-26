@@ -8,17 +8,41 @@
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
     q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
+    q0_trans = Bijectors.transformed(q0, identity)
 
     @testset "basic" begin
         @testset for n_montecarlo in [1, 10]
             alg = KLMinRepGradDescent(
                 AD;
                 n_samples=n_montecarlo,
-                operator=IdentityOperator(),
+                operator=ClipScale(),
                 averager=PolynomialAveraging(),
             )
+
             _, info, _ = optimize(rng, alg, 10, model, q0; show_progress=false)
             @test isfinite(last(info).elbo)
+
+            _, info, _ = optimize(rng, alg, 10, model, q0_trans; show_progress=false)
+            @test isfinite(last(info).elbo)
+        end
+    end
+
+    @testset "warn MvLocationScale with IdentityOperator" begin
+        @test_nowarn "IdentityOperator" begin
+            alg = KLMinRepGradDescent(AD; operator=ClipScale())
+            optimize(rng, alg, 1, model, q0; show_progress=false)
+        end
+        @test_warn "IdentityOperator" begin
+            alg = KLMinRepGradDescent(AD; operator=IdentityOperator())
+            optimize(rng, alg, 1, model, q0; show_progress=false)
+        end
+        @test_nowarn "IdentityOperator" begin
+            alg = KLMinRepGradDescent(AD; operator=ClipScale())
+            optimize(rng, alg, 1, model, q0_trans; show_progress=false)
+        end
+        @test_warn "IdentityOperator" begin
+            alg = KLMinRepGradDescent(AD; operator=IdentityOperator())
+            optimize(rng, alg, 1, model, q0_trans; show_progress=false)
         end
     end
 

@@ -1,10 +1,35 @@
 module AdvancedVIBijectorsExt
 
 using AdvancedVI
+using DiffResults: DiffResults
 using Bijectors
 using LinearAlgebra
 using Optimisers
 using Random
+
+function AdvancedVI.init(
+    rng::Random.AbstractRNG,
+    alg::AdvancedVI.ParamSpaceSGD,
+    q_init::Bijectors.TransformedDistribution,
+    prob,
+)
+    (; adtype, optimizer, averager, objective, operator) = alg
+    if q_init.dist isa AdvancedVI.MvLocationScale &&
+        operator isa AdvancedVI.IdentityOperator
+        @warn(
+            "IdentityOperator is used with a variational family <:MvLocationScale. Optimization can easily fail under this combination due to singular scale matrices. Consider using the operator `ClipScale` instead.",
+            typeof(q_init),
+            typeof(q_init.dist),
+            typeof(operator)
+        )
+    end
+    params, re = Optimisers.destructure(q_init)
+    opt_st = Optimisers.setup(optimizer, params)
+    obj_st = AdvancedVI.init(rng, objective, adtype, q_init, prob, params, re)
+    avg_st = AdvancedVI.init(averager, params)
+    grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
+    return AdvancedVI.ParamSpaceSGDState(prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st)
+end
 
 function AdvancedVI.apply(
     op::ClipScale,

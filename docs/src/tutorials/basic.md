@@ -74,9 +74,14 @@ Here, we will use `ReverseDiff`, which can be selected by later passing `ADTypes
 using ADTypes, ReverseDiff
 using AdvancedVI
 
-alg = KLMinRepGradDescent(AutoReverseDiff());
+alg = KLMinRepGradDescent(AutoReverseDiff(); operator=ClipScale());
 nothing
 ```
+
+Projection or proximal operators can be used through the keyword argument `operator`.
+For this example, we will use Gaussian variational family, which is part of the more broad [location-scale family](@ref locscale).
+Location-scale family distributions require the scale matrix to have strictly positive eigenvalues at all times.
+Here, the projection operator `ClipScale` ensures this.
 
 Now, `KLMinRepGradDescent` requires the variational approximation and the target log-density to have the same support.
 Since `y` follows a log-normal prior, its support is bounded to be the positive half-space ``\mathbb{R}_+``.

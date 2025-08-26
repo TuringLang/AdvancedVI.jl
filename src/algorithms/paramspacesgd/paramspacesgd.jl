@@ -65,7 +65,15 @@ struct ParamSpaceSGDState{P,Q,GradBuf,OptSt,ObjSt,AvgSt}
 end
 
 function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init, prob)
-    (; adtype, optimizer, averager, objective) = alg
+    (; adtype, optimizer, averager, objective, operator) = alg
+    if q_init isa AdvancedVI.MvLocationScale &&
+        operator isa AdvancedVI.IdentityOperator
+        @warn(
+            "IdentityOperator is used with a variational family <:MvLocationScale. Optimization can easily fail under this combination due to singular scale matrices. Consider using the operator `ClipScale` instead.",
+            typeof(q_init),
+            typeof(operator)
+        )
+    end
     params, re = Optimisers.destructure(q_init)
     opt_st = Optimisers.setup(optimizer, params)
     obj_st = init(rng, objective, adtype, q_init, prob, params, re)
