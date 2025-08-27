@@ -54,8 +54,10 @@ Since the support of `σ` is constrained to be positive and most VI algorithms a
 We will use [`Bijectors`](https://github.com/TuringLang/Bijectors.jl) for this purpose.
 This corresponds to the automatic differentiation variational inference (ADVI) formulation[^KTRGB2017].
 
+In our case, we need a bijector that applies an identity map for the first `size(X,2)` coordinates, and map the last coordinate to the support of `LogNormal(0, 3)`.
+This can be done as  follows:
+
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of machine learning research*.
-    The bijector can be constructed as follows:
 ```@example basic
 using Bijectors: Bijectors
 
@@ -68,6 +70,7 @@ function Bijectors.bijector(model::LogReg)
 end
 nothing
 ```
+For more details, please refer to the documentation of [`Bijectors`](https://github.com/TuringLang/Bijectors.jl).
 
 For the dataset, we will use the popular [sonar classification dataset](https://archive.ics.uci.edu/dataset/151/connectionist+bench+sonar+mines+vs+rocks) from the UCI repository.
 This can be automatically downloaded using [`OpenML`](https://github.com/JuliaAI/OpenML.jl).
