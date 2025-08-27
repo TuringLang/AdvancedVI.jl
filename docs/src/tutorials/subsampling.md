@@ -50,7 +50,7 @@ Notice that, to use subsampling, we need be able to rescale the likelihood stren
 That is, for the gradient of the log-density with a batch of data points of size `n` to be an unbiased estimate of the gradient using the full dataset of size `n_data`, we need to scale the likelihood by `n_data/n`.
 This part is critical to ensure that the algorithm correctly approximates the posterior with the full dataset.
 
-As usual, we will setup a bijector:
+As usual, we will set up a bijector:
 
 ```@example subsampling
 using Bijectors: Bijectors
@@ -92,7 +92,7 @@ X = hcat(X, ones(size(X, 1)))
 nothing
 ```
 
-Let's now istantiate the model and setup automatic differentiation using [`LogDensityProblemsAD`](https://github.com/tpapp/LogDensityProblemsAD.jl?tab=readme-ov-file).
+Let's now istantiate the model and set up automatic differentiation using [`LogDensityProblemsAD`](https://github.com/tpapp/LogDensityProblemsAD.jl?tab=readme-ov-file).
 
 ```@example subsampling
 using ADTypes, ReverseDiff
@@ -125,7 +125,7 @@ nothing
 !!! info
     
     The default implementation of `AdvancedVI.subsample` is `AdvancedVI.subsample(model, idx) = model`.
-    Therefore, if the specialization of `AdvancedVI.subsample` is not setup properly, `AdvancedVI` will silently use full-batch gradients instead of subsampling.
+    Therefore, if the specialization of `AdvancedVI.subsample` is not set up properly, `AdvancedVI` will silently use full-batch gradients instead of subsampling.
     It is thus useful to check whether the right specialization of `AdvancedVI.subsample` is being called.
 
 ## Scalable Inference via AdvancedVI
@@ -162,7 +162,7 @@ alg_full = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
 nothing
 ```
 
-The variational family will be setup as follows:
+The variational family will be set up as follows:
 
 ```@example subsampling
 using LinearAlgebra
