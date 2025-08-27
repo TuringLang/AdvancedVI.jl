@@ -110,6 +110,7 @@ function Bijectors.bijector(model::MultDegen)
         Bijectors.bijector.([LogNormal(0, 1), Normal(0, 10)]), [1:1, 2:2]
     )
 end
+nothing
 ```
 
 For the algorithm, we will use the `KLMinRepGradProxDescent` objective.
@@ -210,6 +211,7 @@ alg_flow = KLMinRepGradDescent(
     operator=IdentityOperator(),
     entropy=StickingTheLandingEntropy(),
 )
+nothing
 ```
 
 Without further due, let's now run VI:
@@ -226,6 +228,7 @@ We can do a quick visual diagnostic of whether the optimization went smoothly:
 ```@example flow
 plot([i.elbo for i in info_flow]; xlabel="Iteration", ylabel="ELBO", ylims=(-10, Inf))
 savefig("flow_example_flow_elbo.svg")
+nothing
 ```
 
 ![](flow_example_flow_elbo.svg)
@@ -245,6 +248,7 @@ histogram2d(
     ylims=(-3, 25),
 )
 savefig("flow_example_flow.svg")
+nothing
 ```
 
 ![](flow_example_flow.svg)
