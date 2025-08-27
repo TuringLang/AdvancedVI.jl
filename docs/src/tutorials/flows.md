@@ -224,7 +224,7 @@ nothing
 We can do a quick visual diagnostic of whether the optimization went smoothly:
 
 ```@example flow
-plot([i.elbo for i in info_flow]; xlabel="Iteration", ylabel="ELBO", ylims=(-15, Inf))
+plot([i.elbo for i in info_flow]; xlabel="Iteration", ylabel="ELBO", ylims=(-10, Inf))
 savefig("flow_example_flow_elbo.svg")
 ```
 
