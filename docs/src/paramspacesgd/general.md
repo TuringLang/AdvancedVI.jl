@@ -77,6 +77,7 @@ AdvancedVI.init(
     ::Any,
     ::Any,
     ::Any,
+    ::Any,
 )
 ```
 If this method is not implemented, the state will be automatically be `nothing`.

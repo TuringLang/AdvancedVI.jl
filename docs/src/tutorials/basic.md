@@ -17,10 +17,14 @@ y &\sim \mathrm{BernoulliLogit}\left(X \beta\right)
 
 The `LogDensityProblem` corresponding to this model can be constructed as
 
+<<<<<<< HEAD
 ```@example basic
 using LogDensityProblems: LogDensityProblems
 using Distributions
 using FillArrays
+=======
+Using the `LogDensityProblems` interface, the model can be defined as follows:
+>>>>>>> 8409678047024e8d02c99b28b55094861e312ad1
 
 struct LogReg{XType,YType}
     X::XType

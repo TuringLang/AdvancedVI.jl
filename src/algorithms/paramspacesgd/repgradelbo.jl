@@ -23,16 +23,32 @@ struct RepGradELBO{EntropyEst<:AbstractEntropyEstimator} <: AbstractVariationalO
     n_samples::Int
 end
 
+struct RepGradELBOState{Problem,ObjADPrep}
+    problem::Problem
+    obj_ad_prep::ObjADPrep
+end
+
+function set_objective_state_problem(state::RepGradELBOState, prob::Prob) where {Prob}
+    capability = LogDensityProblems.capabilities(Prob)
+    ad_prob = if capability < LogDensityProblems.LogDensityOrder{1}()
+        prob
+    else
+        MixedADLogDensityProblem(prob)
+    end
+    return @set state.problem = ad_prob
+end
+
 function init(
     rng::Random.AbstractRNG,
     obj::RepGradELBO,
     adtype::ADTypes.AbstractADType,
-    prob::Prob,
+    q,
+    prob,
     params,
     restructure,
-) where {Prob}
-    q_stop = restructure(params)
-    capability = LogDensityProblems.capabilities(Prob)
+)
+    q_stop = q
+    capability = LogDensityProblems.capabilities(typeof(prob))
     ad_prob = if capability < LogDensityProblems.LogDensityOrder{1}()
         @info "The capability of the supplied `LogDensityProblem` $(capability) is less than $(LogDensityProblems.LogDensityOrder{1}()). `AdvancedVI` will attempt to directly differentiate through `LogDensityProblems.logdensity`. If this is not intended, please supply a log-density problem with capability at least $(LogDensityProblems.LogDensityOrder{1}())"
         prob
@@ -56,7 +72,7 @@ function init(
     obj_ad_prep = AdvancedVI._prepare_gradient(
         estimate_repgradelbo_ad_forward, adtype, params, aux
     )
-    return (obj_ad_prep=obj_ad_prep, problem=ad_prob)
+    return RepGradELBOState(ad_prob, obj_ad_prep)
 end
 
 function RepGradELBO(n_samples::Int; entropy::AbstractEntropyEstimator=ClosedFormEntropy())
@@ -121,12 +137,12 @@ AD-guaranteed forward path of the reparameterization gradient objective.
 - `aux`: Auxiliary information excluded from the AD path.
 
 # Auxiliary Information 
-`aux` should containt the following entries:
+`aux` should contain the following entries:
 - `rng`: Random number generator.
 - `obj`: The `RepGradELBO` objective.
 - `problem`: The target `LogDensityProblem`.
 - `adtype`: The `ADType` used for differentiating the forward path.
-- `restructure`: Callable for restructuring the varitional distribution from `params`.
+- `restructure`: Callable for restructuring the variational distribution from `params`.
 - `q_stop`: A copy of `restructure(params)` with its gradient "stopped" (excluded from the AD path).
 """
 function estimate_repgradelbo_ad_forward(params, aux)
@@ -143,9 +159,9 @@ function estimate_gradient!(
     obj::RepGradELBO,
     adtype::ADTypes.AbstractADType,
     out::DiffResults.MutableDiffResult,
+    state::RepGradELBOState,
     params,
     restructure,
-    state,
     args...,
 )
     (; obj_ad_prep, problem) = state
@@ -162,6 +178,6 @@ function estimate_gradient!(
         estimate_repgradelbo_ad_forward, out, obj_ad_prep, adtype, params, aux
     )
     nelbo = DiffResults.value(out)
-    stat = (elbo=(-nelbo),)
-    return out, state, stat
+    info = (elbo=(-nelbo),)
+    return out, state, info
 end

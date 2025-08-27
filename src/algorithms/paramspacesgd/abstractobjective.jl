@@ -13,22 +13,25 @@ If the estimator is stateful, it can implement `init` to initialize the state.
 abstract type AbstractVariationalObjective end
 
 """
-    init(rng, obj, adtype, prob, params, restructure)
+    init(rng, obj, adtype, q_init, prob, params, restructure)
 
-Initialize a state of the variational objective `obj` given the initial variational parameters `λ`.
+Initialize a state of the variational objective `obj` given the initial variational approximation `q_init` and its parameters `params`.
 This function needs to be implemented only if `obj` is stateful.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `obj::AbstractVariationalObjective`: Variational objective.
 ` `adtype::ADTypes.AbstractADType`: Automatic differentiation backend.
+- `q_init`: Initial variational approximation.
+- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 - `params`: Initial variational parameters.
-- `restructure`: Function that reconstructs the variational approximation from `λ`.
+- `restructure`: Function that reconstructs the variational approximation from `params`.
 """
 function init(
     ::Random.AbstractRNG,
     ::AbstractVariationalObjective,
     ::ADTypes.AbstractADType,
+    ::Any,
     ::Any,
     ::Any,
     ::Any,
@@ -59,18 +62,26 @@ function estimate_objective end
 export estimate_objective
 
 """
-    estimate_gradient!(rng, obj, adtype, out, params, restructure, obj_state)
+    set_objective_state_problem(state, prob)
 
-Estimate (possibly stochastic) gradients of the variational objective `obj` targeting `prob` with respect to the variational parameters `λ`
+Update the target problem object `prob` in the `state` of the associated objective.
+This should be implemented for the objective to support `SubsampledObjective`.
+"""
+function set_objective_state_problem end
+
+"""
+    estimate_gradient!(rng, obj, adtype, out, obj_state, params, restructure)
+
+Estimate (possibly stochastic) gradients of the variational objective `obj` with respect to the variational parameters `params`
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `obj::AbstractVariationalObjective`: Variational objective.
 - `adtype::ADTypes.AbstractADType`: Automatic differentiation backend. 
 - `out::DiffResults.MutableDiffResult`: Buffer containing the objective value and gradient estimates. 
+- `obj_state`: Previous state of the objective.
 - `params`: Variational parameters to evaluate the gradient on.
 - `restructure`: Function that reconstructs the variational approximation from `params`.
-- `obj_state`: Previous state of the objective.
 
 # Returns
 - `out::MutableDiffResult`: Buffer containing the objective value and gradient estimates.
