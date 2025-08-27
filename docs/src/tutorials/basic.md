@@ -194,27 +194,34 @@ In this example, we will compute a more accurate estimate of the ELBO and the cl
 ```@example basic
 using StatsFuns: StatsFuns
 
+"""
+    logistic_prediction(X, μ_β, Σ_β)
+    
+Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
+"""
+function logistic_prediction(X, μ_β, Σ_β)
+    xtΣx = sum((model.X*Σ_β).*model.X, dims=2)[:,1]
+    κ = @. 1/sqrt(1 + π/8*xtΣx)
+    return StatsFuns.logistic.(κ.*X*μ_β)
+end
+
 logging_interval = 100
 function callback(; iteration, averaged_params, restructure, kwargs...)
     if mod(iteration, logging_interval) == 1
-        n_samples = 256
 
         # Use the averaged parameters (the eventual output of the algorithm)
         q_avg = restructure(averaged_params)
 
-        # Draw samples from variational posterior
-        samples = rand(q_avg, n_samples)
-        β = samples[1:(end - 1), :]
-
         # Compute predictions
-        logit = model.X*β
-        pred_prob = mean(StatsFuns.logistic.(logit); dims=2)
-        y_pred = pred_prob .> 0.5
+        μ_β = mean(q_avg.dist)[1:end-1] # posterior mean of β
+        Σ_β = cov(q_avg.dist)[1:end-1, end-1] # marginal posterior covariance of β
+        y_pred = logistic_prediction(X, μ_β, Σ_β) .> 0.5
 
         # Prediction accuracy
         acc = mean(y_pred .== model.y)
 
         # Higher fidelity estimate of the ELBO on the averaged parameters
+        n_samples = 256
         obj = AdvancedVI.RepGradELBO(n_samples)
         elbo_callback = estimate_objective(obj, q_avg, model)
 
