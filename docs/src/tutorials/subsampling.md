@@ -8,8 +8,8 @@ In this tutorial, we will see how to perform subsampling with `KLMinRepGradProxD
 [^HBWP2013]: Hoffman, M. D., Blei, D. M., Wang, C., & Paisley, J. (2013). Stochastic variational inference. *Journal of Machine Learning Research*, 14(1), 1303-1347.
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *Proceedings of the International Conference on Machine Learning* (pp. 1971-1979). PMLR.
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of Machine Learning Research*, 18(14), 1-45.
-
 ## Setting Up a `LogDensityProblem` for Subsampling
+
 We will consider the same hierarchical logistic regression example used in the [Basic Example](@ref basic).
 
 ```@example subsampling
@@ -43,7 +43,9 @@ end
 function LogDensityProblems.capabilities(::Type{<:LogReg})
     return LogDensityProblems.LogDensityOrder{0}()
 end
+nothing
 ```
+
 Notice that, to use subsampling, we need be able to rescale the likelihood strength.
 That is, for the gradient of the log-density with a batch of data points of size `n` to be an unbiased estimate of the gradient using the full dataset of size `n_data`, we need to scale the likelihood by `n_data/n`.
 This part is critical to ensure that the algorithm correctly approximates the posterior with the full dataset.
@@ -60,6 +62,7 @@ function Bijectors.bijector(model::LogReg)
         [1:d, (d + 1):(d + 1)],
     )
 end
+nothing
 ```
 
 For the dataset, we will use one that is larger than that used in the [Basic Example](@ref basic).
@@ -69,7 +72,6 @@ The goal is to predict whether the features of a specific website indicate wheth
 The [dataset](https://www.openml.org/search?type=data&status=active&id=46722) id on the [`OpenML`](https://github.com/JuliaAI/OpenML.jl) repository is 46722.
 
 [^Tan2018]: Tan, Choon Lin (2018), "Phishing Dataset for Machine Learning: Feature Evaluation", Mendeley Data, V1, doi: 10.17632/h3cgnj8hft.1]
-
 ```@example subsampling
 using OpenML: OpenML
 using DataFrames: DataFrames
@@ -77,6 +79,7 @@ using DataFrames: DataFrames
 data = Array(DataFrames.DataFrame(OpenML.load(46722)))
 X = Matrix{Float64}(data[:, 2:end])
 y = Vector{Bool}(data[:, end])
+nothing
 ```
 
 The features start from the seoncd column, while the last column are the class labels.
@@ -86,6 +89,7 @@ Let's also apply some basic pre-processing.
 ```@example subsampling
 X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
 X = hcat(X, ones(size(X, 1)))
+nothing
 ```
 
 Let's now istantiate the model and setup automatic differentiation using [`LogDensityProblemsAD`](https://github.com/tpapp/LogDensityProblemsAD.jl?tab=readme-ov-file).
@@ -94,8 +98,9 @@ Let's now istantiate the model and setup automatic differentiation using [`LogDe
 using ADTypes, ReverseDiff
 using LogDensityProblemsAD
 
-model = LogReg(X, y, size(X,1))
+model = LogReg(X, y, size(X, 1))
 model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model)
+nothing
 ```
 
 To enable subsampling, `LogReg` has to implement the method `AdvancedVI.subsample`.
@@ -114,9 +119,11 @@ function AdvancedVI.subsample(model::typeof(model_ad), idx)
     model′′ = @set model′.ℓ.y = y[idx]
     return model′′
 end
+nothing
 ```
 
 !!! info
+    
     The default implementation of `AdvancedVI.subsample` is `AdvancedVI.subsample(model, idx) = model`.
     Therefore, if the specialization of `AdvancedVI.subsample` is not setup properly, `AdvancedVI` will silently use full-batch gradients instead of subsampling.
     It is thus useful to check whether the right specialization of `AdvancedVI.subsample` is being called.
@@ -125,24 +132,38 @@ end
 
 In this example, we will compare the convergence speed of `KLMinRepGradProxDescent` with and without subsampling.
 Subsampling can be turned on by supplying a subsampling strategy.
-Here, we will use `ReshufflingBatchSubsampling`, which implements random reshuffling:
+Here, we will use `ReshufflingBatchSubsampling`, which implements random reshuffling.
+We will us a batch size of 32, which results in `313 = length(subsampling) = ceil(Int, size(X,2)/32)` steps per epoch.
 
 ```@example subsampling
 dataset = 1:size(model.X, 1)
 batchsize = 32
-alg_sub = KLMinRepGradProxDescent(
-    ADTypes.AutoReverseDiff(; compile=true); 
-    subsampling=ReshufflingBatchSubsampling(dataset, batchsize)
-)
+subsampling = ReshufflingBatchSubsampling(dataset, batchsize)
+alg_sub = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true); subsampling)
+nothing
 ```
 
-If we don't supply a subsampling strategy, subsampling will not be used:
+Recall that each epoch is 313 steps.
+When using `ReshufflingBatchSubsampling`, it is best to choose the number of iterations to be a multiple of the number of steps `length(subsampling)` in an epoch.
+This is due to a peculiar property of `ReshufflingBatchSubsampling`: the objective value tends to *increase* during an epoch, and come down nearing the end. (Theoretically, this is due to conditionally *biased* nature of random reshuffling[^MKR2020].)
+Therefore, the objective value is minimized exactly after the last step of each epoch.
+
+[^MKR2020]: Mishchenko, K., Khaled, A., & Richtárik, P. (2020). Random reshuffling: Simple analysis with vast improvements. Advances in Neural Information Processing Systems, 33, 17309-17320.
+```@example subsampling
+num_epochs = 10
+max_iter = num_epochs * length(subsampling)
+nothing
+```
+
+If we don't supply a subsampling strategy to `KLMinRepGradProxDescent`, subsampling will not be used.
 
 ```@example subsampling
 alg_full = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
+nothing
 ```
 
 The variational family will be setup as follows:
+
 ```@example subsampling
 using LinearAlgebra
 
@@ -151,6 +172,7 @@ q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
 b = Bijectors.bijector(model)
 binv = Bijectors.inverse(b)
 q_transformed = Bijectors.TransformedDistribution(q, binv)
+nothing
 ```
 
 It now remains to run VI.
@@ -168,9 +190,9 @@ time_begin = nothing
 Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
 """
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((model.X*Σ_β).*model.X, dims=2)[:,1]
+    xtΣx = sum((model.X*Σ_β) .* model.X; dims=2)[:, 1]
     κ = @. 1/sqrt(1 + π/8*xtΣx)
-    return StatsFuns.logistic.(κ.*X*μ_β)
+    return StatsFuns.logistic.(κ .* X*μ_β)
 end
 
 function callback(; iteration, averaged_params, restructure, kwargs...)
@@ -178,10 +200,10 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
 
         # Use the averaged parameters (the eventual output of the algorithm)
         q_avg = restructure(averaged_params)
-    
+
         # Compute predictions using 
-        μ_β = mean(q_avg.dist)[1:end-1] # posterior mean of β
-        Σ_β = cov(q_avg.dist)[1:end-1, end-1] # marginal posterior covariance of β
+        μ_β = mean(q_avg.dist)[1:(end - 1)] # posterior mean of β
+        Σ_β = cov(q_avg.dist)[1:(end - 1), end - 1] # marginal posterior covariance of β
         y_pred = logistic_prediction(X, μ_β, Σ_β) .> 0.5
 
         # Prediction accuracy
@@ -198,16 +220,16 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
     end
 end
 
-max_iter = 5000
 time_begin = time()
 _, info_full, _ = AdvancedVI.optimize(
-    alg_full, max_iter, model_ad, q_transformed; show_progress=true, callback,
+    alg_full, max_iter, model_ad, q_transformed; show_progress=false, callback
 );
 
 time_begin = time()
 _, info_sub, _ = AdvancedVI.optimize(
-    alg_sub, max_iter, model_ad, q_transformed; show_progress=true, callback,
+    alg_sub, max_iter, model_ad, q_transformed; show_progress=false, callback
 );
+nothing
 ```
 
 Let's visualize the ELBO over time.
@@ -216,10 +238,17 @@ Let's visualize the ELBO over time.
 using Plots
 
 t = 1:logging_interval:max_iter
-plot([i.iteration for i in info_full[t]], [i.elbo_callback for i in info_full[t]], xlabel="Iteration", ylabel="ELBO")
+plot(
+    [i.iteration for i in info_full[t]],
+    [i.elbo_callback for i in info_full[t]];
+    xlabel="Iteration",
+    ylabel="ELBO",
+)
 plot!([i.iteration for i in info_sub[t]], [i.elbo_callback for i in info_sub[t]])
 savefig("subsampling_example_iteration_elbo.svg")
+nothing
 ```
+
 ![](subsampling_example_iteration_elbo.svg)
 
 According to this plot, it might seem like subsampling has no effect.
@@ -229,18 +258,32 @@ But in return, it reduces the time spent at each iteration.
 Therefore, we need to plot against the elapsed time:
 
 ```@example subsampling
-plot([i.time_elapsed for i in info_full[t]], [i.elbo_callback for i in info_full[t]], xlabel="Wallclock Time (sec)", ylabel="ELBO")
+plot(
+    [i.time_elapsed for i in info_full[t]],
+    [i.elbo_callback for i in info_full[t]];
+    xlabel="Wallclock Time (sec)",
+    ylabel="ELBO",
+)
 plot!([i.time_elapsed for i in info_sub[t]], [i.elbo_callback for i in info_sub[t]])
 savefig("subsampling_example_time_elbo.svg")
+nothing
 ```
+
 ![](subsampling_example_time_elbo.svg)
 
 We can now see the dramatic effect of subsampling.
 The picture is similar if we visualize the prediction accuracy over time.
 
 ```@example subsampling
-plot([i.time_elapsed for i in info_full[t]], [i.accuracy for i in info_full[t]], xlabel="Wallclock Time (sec)", ylabel="Prediction Accuracy")
+plot(
+    [i.time_elapsed for i in info_full[t]],
+    [i.accuracy for i in info_full[t]];
+    xlabel="Wallclock Time (sec)",
+    ylabel="Prediction Accuracy",
+)
 plot!([i.time_elapsed for i in info_sub[t]], [i.accuracy for i in info_sub[t]])
 savefig("subsampling_example_time_accuracy.svg")
+nothing
 ```
+
 ![](subsampling_example_time_accuracy.svg)

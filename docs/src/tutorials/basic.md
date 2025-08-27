@@ -111,13 +111,14 @@ nothing
 
 This algorithm minimizes the exclusive/reverse KL divergence via stochastic gradient descent in the (Euclidean) space of the parameters of the variational approximation with the reparametrization gradient[^TL2014][^RMW2014][^KW2014].
 This is also commonly referred as automatic differentiation VI, black-box VI, stochastic gradient VI, and so on.
+`KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
+If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
 
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-    `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
-    If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
-    For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
+For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
+
 ```@example basic
 using DifferentiationInterface: DifferentiationInterface
 using LogDensityProblemsAD: LogDensityProblemsAD
@@ -196,9 +197,9 @@ using StatsFuns: StatsFuns
 Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
 """
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((model.X*Σ_β).*model.X, dims=2)[:,1]
+    xtΣx = sum((model.X*Σ_β) .* model.X; dims=2)[:, 1]
     κ = @. 1/sqrt(1 + π/8*xtΣx)
-    return StatsFuns.logistic.(κ.*X*μ_β)
+    return StatsFuns.logistic.(κ .* X*μ_β)
 end
 
 logging_interval = 100
@@ -209,8 +210,8 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
         q_avg = restructure(averaged_params)
 
         # Compute predictions
-        μ_β = mean(q_avg.dist)[1:end-1] # posterior mean of β
-        Σ_β = cov(q_avg.dist)[1:end-1, end-1] # marginal posterior covariance of β
+        μ_β = mean(q_avg.dist)[1:(end - 1)] # posterior mean of β
+        Σ_β = cov(q_avg.dist)[1:(end - 1), end - 1] # marginal posterior covariance of β
         y_pred = logistic_prediction(X, μ_β, Σ_β) .> 0.5
 
         # Prediction accuracy
