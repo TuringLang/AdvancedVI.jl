@@ -9,7 +9,7 @@ For a dataset $(X, y)$ with the design matrix $X \in \mathbb{R}^{n \times d}$ an
 
 ```math
 \begin{aligned}
-\sigma &\sim \text{LogNormal}(0, 1) \\
+\sigma &\sim \text{LogNormal}(0, 3) \\
 \beta &\sim \text{Normal}\left(0_d, \sigma^2 \mathrm{I}_d\right) \\
 y &\sim \mathrm{BernoulliLogit}\left(X \beta\right)
 \end{aligned}
