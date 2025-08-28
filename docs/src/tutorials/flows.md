@@ -157,10 +157,10 @@ For this, we will need a more "expressive" variational family that is capable of
 ## Normalizing Flow Variational Family
 
 Now, let's try to optimize over a variational family formed by normalizing flows.
-Normalizing flows, or *flow* for short, is a class of parametric models leveraging neural networks for density estimation.
+Normalizing flows, or *flows* for short, is a class of parametric models leveraging neural networks for density estimation.
 (For a detailed tutorial on flows, refer to the review by Papamakarios *et al.*[^PNRML2021])
 Within the Julia ecosystem, the package [`NormalizingFlows`](https://github.com/TuringLang/NormalizingFlows.jl) provides a collection of popular flow models.
-In this example, we will use the popular `RealNVP` flow model[^DSB2017].
+In this example, we will use the popular `RealNVP`[^DSB2017].
 We will use a standard Gaussian base distribution with three layers, each with 16 hidden units.
 
 [^PNRML2021]: Papamakarios, G., Nalisnick, E., Rezende, D. J., Mohamed, S., & Lakshminarayanan, B. (2021). Normalizing flows for probabilistic modeling and inference. *Journal of Machine Learning Research*, 22(57), 1-64.
@@ -171,7 +171,9 @@ using Functors
 
 @leaf MvNormal
 
-q_flow = realnvp(MvNormal(zeros(d), I); paramtype=Float64)
+n_layers = 3
+hidden_dims = [16, 16]
+q_flow = realnvp(MvNormal(zeros(d), I), hidden_dims, n_layers; paramtype=Float64)
 nothing
 ```
 
