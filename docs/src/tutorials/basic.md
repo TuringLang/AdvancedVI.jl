@@ -89,6 +89,8 @@ nothing
 Let's apply some basic pre-processing and add an intercept column:
 
 ```@example basic
+using Statistics
+
 X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
 X = hcat(X, ones(size(X, 1)))
 nothing

@@ -87,6 +87,8 @@ The features start from the seoncd column, while the last column are the class l
 Let's also apply some basic pre-processing.
 
 ```@example subsampling
+using Statistics
+
 X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
 X = hcat(X, ones(size(X, 1)))
 nothing
