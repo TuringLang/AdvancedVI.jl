@@ -136,7 +136,7 @@ For the variational family, we will consider a `FullRankGaussian` approximation:
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(model_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.1*I, d, d)))
 nothing
 ```
 
@@ -172,7 +172,6 @@ plot(
     xlabel="Iteration",
     ylabel="ELBO",
     label=nothing,
-    ylims=(-1000, Inf),
 )
 savefig("basic_example_elbo.svg")
 nothing
@@ -256,7 +255,7 @@ t_callback = 1:logging_interval:max_iter
 elbo_callback = [i.elbo_callback for i in info[t_callback]]
 
 plot(t, elbo; xlabel="Iteration", ylabel="ELBO", label="Default")
-plot!(t_callback, elbo_callback; label="Callback", ylims=(-1000, Inf), linewidth=2)
+plot!(t_callback, elbo_callback; label="Callback", ylims=(-500, Inf), linewidth=2)
 
 savefig("basic_example_elbo_callback.svg")
 nothing

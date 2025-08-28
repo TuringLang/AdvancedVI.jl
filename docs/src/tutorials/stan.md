@@ -84,7 +84,7 @@ using Plots
 alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff())
 
 d = LogDensityProblems.dimension(model)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.3*I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.1*I, d, d)))
 
 max_iter = 10^4
 q_out, info, _ = AdvancedVI.optimize(alg, max_iter, model, q; show_progress=false)

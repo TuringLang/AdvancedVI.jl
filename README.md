@@ -134,7 +134,7 @@ For the variational family, we will consider a `FullRankGaussian` approximation:
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(model_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.1*I, d, d)))
 q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)));
 ```
 
