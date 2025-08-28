@@ -256,8 +256,8 @@ nothing
 
 ![](subsampling_example_iteration_elbo.svg)
 
-According to this plot, it might seem like subsampling has no effect.
-However, this is because we are plotting against the number of iterations.
+According to this plot, it might seem like subsampling has no benefit (if not detrimental).
+This is, however, because we are plotting against the number of iterations.
 Subsampling generally converges slower (asymptotically) in terms of iterations.
 But in return, it reduces the time spent at each iteration.
 Therefore, we need to plot against the elapsed time:
