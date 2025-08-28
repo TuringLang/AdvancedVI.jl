@@ -70,6 +70,7 @@ function Bijectors.bijector(model::LogReg)
 end
 nothing
 ```
+
 For more details, please refer to the documentation of [`Bijectors`](https://github.com/TuringLang/Bijectors.jl).
 
 For the dataset, we will use the popular [sonar classification dataset](https://archive.ics.uci.edu/dataset/151/connectionist+bench+sonar+mines+vs+rocks) from the UCI repository.
