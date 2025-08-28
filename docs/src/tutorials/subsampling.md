@@ -234,7 +234,7 @@ _, info_sub, _ = AdvancedVI.optimize(
 nothing
 ```
 
-Let's visualize the ELBO over time.
+Let's visualize the evolution of the ELBO.
 
 ```@example subsampling
 using Plots
