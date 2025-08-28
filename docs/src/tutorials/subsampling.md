@@ -243,8 +243,13 @@ plot(
     [i.elbo_callback for i in info_full[t]];
     xlabel="Iteration",
     ylabel="ELBO",
+    label="Full Batch",
 )
-plot!([i.iteration for i in info_sub[t]], [i.elbo_callback for i in info_sub[t]])
+plot!(
+    [i.iteration for i in info_sub[t]],
+    [i.elbo_callback for i in info_sub[t]];
+    label="Subsampling",
+)
 savefig("subsampling_example_iteration_elbo.svg")
 nothing
 ```
@@ -263,8 +268,13 @@ plot(
     [i.elbo_callback for i in info_full[t]];
     xlabel="Wallclock Time (sec)",
     ylabel="ELBO",
+    label="Full Batch",
 )
-plot!([i.time_elapsed for i in info_sub[t]], [i.elbo_callback for i in info_sub[t]])
+plot!(
+    [i.time_elapsed for i in info_sub[t]],
+    [i.elbo_callback for i in info_sub[t]];
+    label="Subsampling",
+)
 savefig("subsampling_example_time_elbo.svg")
 nothing
 ```
@@ -280,8 +290,13 @@ plot(
     [i.accuracy for i in info_full[t]];
     xlabel="Wallclock Time (sec)",
     ylabel="Prediction Accuracy",
+    label="Full Batch",
 )
-plot!([i.time_elapsed for i in info_sub[t]], [i.accuracy for i in info_sub[t]])
+plot!(
+    [i.time_elapsed for i in info_sub[t]],
+    [i.accuracy for i in info_sub[t]];
+    label="Subsampling",
+)
 savefig("subsampling_example_time_accuracy.svg")
 nothing
 ```
