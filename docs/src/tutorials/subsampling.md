@@ -8,7 +8,7 @@ In this tutorial, we will see how to perform subsampling with `KLMinRepGradProxD
 [^HBWP2013]: Hoffman, M. D., Blei, D. M., Wang, C., & Paisley, J. (2013). Stochastic variational inference. *Journal of Machine Learning Research*, 14(1), 1303-1347.
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *Proceedings of the International Conference on Machine Learning* (pp. 1971-1979). PMLR.
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of Machine Learning Research*, 18(14), 1-45.
-## Setting Up a `LogDensityProblem` for Subsampling
+## Setting Up Subsampling
 
 We will consider the same hierarchical logistic regression example used in the [Basic Example](@ref basic).
 
@@ -287,3 +287,7 @@ nothing
 ```
 
 ![](subsampling_example_time_accuracy.svg)
+
+But remember that subsampling will always be *asymptotically* slower than no subsampling.
+That is, as the number of iterations increase, there will be a point where no subsampling will overtake subsampling even in terms of wallclock time.
+Therefore, subsampling is most beneficial when a crude solution to the VI problem suffices.
