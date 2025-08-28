@@ -172,8 +172,7 @@ using Functors
 @leaf MvNormal
 
 n_layers = 3
-hidden_dim = fill(16, n_layers - 1)
-q_flow = realnvp(MvNormal(zeros(d), I), hidden_dim, n_layers; paramtype=Float64)
+q_flow = realnvp(MvNormal(zeros(d), I), n_layers; paramtype=Float64)
 nothing
 ```
 
