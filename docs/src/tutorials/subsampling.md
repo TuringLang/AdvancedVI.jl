@@ -170,7 +170,7 @@ The variational family will be set up as follows:
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(model_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.1*I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37*I, d, d)))
 b = Bijectors.bijector(model)
 binv = Bijectors.inverse(b)
 q_transformed = Bijectors.TransformedDistribution(q, binv)
