@@ -171,8 +171,7 @@ using Functors
 
 @leaf MvNormal
 
-n_layers = 3
-q_flow = realnvp(MvNormal(zeros(d), I), n_layers; paramtype=Float64)
+q_flow = realnvp(MvNormal(zeros(d), I); paramtype=Float64)
 nothing
 ```
 
