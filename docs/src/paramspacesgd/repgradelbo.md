@@ -82,7 +82,7 @@ q_transformed = Bijectors.TransformedDistribution(q, binv)
 ```
 
 By passing `q_transformed` to `optimize`, the Jacobian adjustment for the bijector `b` is automatically applied.
-(See [Examples](@ref examples) for a fully working example.)
+(See the [Basic Example](@ref basic) for a fully working example.)
 
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of Machine Learning Research*.
 [^DLTBV2017]: Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... & Saurous, R. A. (2017). Tensorflow distributions. arXiv.
@@ -177,7 +177,6 @@ function Bijectors.bijector(model::NormalLogNormal)
 end
 ```
 
-Let us come back to the example in [Examples](@ref examples), where a `LogDensityProblem` is given as `model`.
 In this example, the true posterior is contained within the variational family.
 This setting is known as "perfect variational family specification."
 In this case, the `RepGradELBO` estimator with `StickingTheLandingEntropy` is the only estimator known to converge exponentially fast ("linear convergence") to the true solution.

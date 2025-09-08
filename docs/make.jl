@@ -17,7 +17,10 @@ makedocs(;
         "AdvancedVI" => "index.md",
         "General Usage" => "general.md",
         "Tutorials" => [
-            "tutorials/basic.md",
+            "Basic Example" => "tutorials/basic.md",
+            "Scaling to Large Datasets" => "tutorials/subsampling.md",
+            "Stan Models" => "tutorials/stan.md",
+            "Normalizing Flows" => "tutorials/flows.md",
         ],
         "Algorithms" => [
             "KLMinRepGradDescent" => "paramspacesgd/klminrepgraddescent.md",
