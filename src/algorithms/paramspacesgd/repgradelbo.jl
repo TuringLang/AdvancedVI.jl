@@ -136,12 +136,12 @@ AD-guaranteed forward path of the reparameterization gradient objective.
 - `aux`: Auxiliary information excluded from the AD path.
 
 # Auxiliary Information 
-`aux` should containt the following entries:
+`aux` should contain the following entries:
 - `rng`: Random number generator.
 - `obj`: The `RepGradELBO` objective.
 - `problem`: The target `LogDensityProblem`.
 - `adtype`: The `ADType` used for differentiating the forward path.
-- `restructure`: Callable for restructuring the varitional distribution from `params`.
+- `restructure`: Callable for restructuring the variational distribution from `params`.
 - `q_stop`: A copy of `restructure(params)` with its gradient "stopped" (excluded from the AD path).
 """
 function estimate_repgradelbo_ad_forward(params, aux)

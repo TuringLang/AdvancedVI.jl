@@ -91,7 +91,7 @@ This is an indirection for handling the type stability of `restructure`, as some
 
 # Arguments
 - `ad::ADTypes.AbstractADType`: Automatic differentiation backend. 
-- `restructure`: Callable for restructuring the varitional distribution from `params`.
+- `restructure`: Callable for restructuring the variational distribution from `params`.
 - `params`: Variational Parameters.
 """
 restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restructure(params)
@@ -217,7 +217,7 @@ init(::Random.AbstractRNG, ::AbstractAlgorithm, ::Any, ::Any) = nothing
 """
     step(rng, alg, state, callback, objargs...; kwargs...)
 
-Perform a single step of `alg` given the previous `stat`.
+Perform a single step of `alg` given the previous `state`.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.

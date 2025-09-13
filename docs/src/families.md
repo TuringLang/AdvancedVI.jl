@@ -14,7 +14,7 @@ z \stackrel{d}{=} C u + m;\quad u \sim \varphi
 
 where ``C`` is the *scale*, ``m`` is the location, and ``\varphi`` is the *base distribution*.
 ``m`` and ``C`` form the variational parameters ``\lambda = (m, C)`` of ``q_{\lambda}``.
-The location-scale family encompases many practical variational families, which can be instantiated by setting the *base distribution* of ``u`` and the structure of ``C``.
+The location-scale family encompasses many practical variational families, which can be instantiated by setting the *base distribution* of ``u`` and the structure of ``C``.
 
 The probability density is given by
 
@@ -25,7 +25,7 @@ The probability density is given by
 the covariance is given as
 
 ```math
-  \mathrm{Var}\left(q_{\lambda}\right) = C \mathrm{Var}(q_{\lambda}) C^{\top}
+  \mathrm{Var}\left(q_{\lambda}\right) = C \mathrm{Var}(\varphi) C^{\top}
 ```
 
 and the entropy is given as
@@ -35,7 +35,7 @@ and the entropy is given as
 ```
 
 where ``\mathbb{H}(\varphi)`` is the entropy of the base distribution.
-Notice the ``\mathbb{H}(\varphi)`` does not depend on ``\log |C|``.
+Notice that ``\mathbb{H}(\varphi)`` does not depend on the variational parameters ``\lambda``.
 The derivative of the entropy with respect to ``\lambda`` is thus independent of the base distribution.
 
 ### API

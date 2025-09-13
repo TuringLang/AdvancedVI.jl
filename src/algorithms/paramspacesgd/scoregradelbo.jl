@@ -78,11 +78,11 @@ AD-guaranteed forward path of the score gradient objective.
 - `aux`: Auxiliary information excluded from the AD path.
 
 # Auxiliary Information 
-`aux` should containt the following entries:
+`aux` should contain the following entries:
 - `samples_stop`: Samples drawn from `q = restructure(params)` but with their gradients stopped (excluded from the AD path).
 - `logprob_stop`: Log-densities of the target `LogDensityProblem` evaluated over `samples_stop`.
 - `adtype`: The `ADType` used for differentiating the forward path.
-- `restructure`: Callable for restructuring the varitional distribution from `params`.
+- `restructure`: Callable for restructuring the variational distribution from `params`.
 """
 function estimate_scoregradelbo_ad_forward(params, aux)
     (; samples_stop, logprob_stop, adtype, restructure) = aux

@@ -11,7 +11,7 @@
 [AdvancedVI](https://github.com/TuringLang/AdvancedVI.jl) provides implementations of variational inference (VI) algorithms, which is a family of algorithms aiming for scalable approximate Bayesian inference by leveraging optimization.
 `AdvancedVI` is part of the [Turing](https://turinglang.org/stable/) probabilistic programming ecosystem.
 The purpose of this package is to provide a common accessible interface for various VI algorithms and utilities so that other packages, e.g. `Turing`, only need to write a light wrapper for integration.
-For example, integrating `Turing` with  `AdvancedVI.ADVI` only involves converting a `Turing.Model` into a [`LogDensityProblem`](https://github.com/tpapp/LogDensityProblems.jl) and extracting a corresponding `Bijectors.bijector`.
+For example, integrating `Turing` with `AdvancedVI.ADVI` only involves converting a `Turing.Model` into a [`LogDensityProblem`](https://github.com/tpapp/LogDensityProblems.jl) and extracting a corresponding `Bijectors.bijector`.
 
 ## Basic Example
 
@@ -22,8 +22,8 @@ For a dataset $(X, y)$ with the design matrix $X \in \mathbb{R}^{n \times d}$ an
 
 $$
 \begin{aligned}
-\sigma &\sim \text{Student-t}_{3}(0, 1) \\
-\beta &\sim \text{Normal}\left(0_d, \sigma \mathrm{I}_d\right) \\
+\sigma &\sim \text{LogNormal}(0, 3) \\
+\beta &\sim \text{Normal}\left(0_d, \sigma^2 \mathrm{I}_d\right) \\
 y &\sim \mathrm{BernoulliLogit}\left(X \beta\right)
 \end{aligned}
 $$
@@ -31,7 +31,7 @@ $$
 The `LogDensityProblem` corresponding to this model can be constructed as
 
 ```julia
-import LogDensityProblems
+using LogDensityProblems: LogDensityProblems
 using Distributions
 using FillArrays
 
@@ -45,11 +45,11 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     d = size(X, 2)
     β, σ = θ[1:size(X, 2)], θ[end]
 
-    logprior_β = logpdf(MvNormal(Zeros(d), σ*I), β)
-    logprior_σ = logpdf(truncated(TDist(3.0); lower=0), σ)
+    logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
+    logprior_σ = logpdf(LogNormal(0, 3), σ)
 
     logit = X*β
-    loglike_y = sum(@. logpdf(BernoulliLogit(logit), y))
+    loglike_y = mapreduce((li, yi) -> logpdf(BernoulliLogit(li), yi), +, logit, y)
     return loglike_y + logprior_β + logprior_σ
 end
 
@@ -59,23 +59,23 @@ end
 
 function LogDensityProblems.capabilities(::Type{<:LogReg})
     return LogDensityProblems.LogDensityOrder{0}()
-end
+end;
 ```
 
-Since the support of `σ` is constrained to be positive and most VI algorithms assume an unconstrained Euclidean support, we need to use a *bijector* to transform `θ`. 
+Since the support of `σ` is constrained to be positive and most VI algorithms assume an unconstrained Euclidean support, we need to use a *bijector* to transform `θ`.
 We will use [`Bijectors`](https://github.com/TuringLang/Bijectors.jl) for this purpose.
 This corresponds to the automatic differentiation variational inference (ADVI) formulation[^KTRGB2017].
 
 ```julia
-import Bijectors
+using Bijectors: Bijectors
 
 function Bijectors.bijector(model::LogReg)
     d = size(model.X, 2)
     return Bijectors.Stacked(
-        Bijectors.bijector.([MvNormal(Zeros(d), 1.0), truncated(TDist(3.0); lower=0)]),
+        Bijectors.bijector.([MvNormal(Zeros(d), 1.0), LogNormal(0, 3)]),
         [1:d, (d + 1):(d + 1)],
     )
-end
+end;
 ```
 
 A simpler approach would be to use [`Turing`](https://github.com/TuringLang/Turing.jl), where a `Turing.Model` can be automatically be converted into a `LogDensityProblem` and a corresponding `bijector` is automatically generated.
@@ -85,23 +85,30 @@ This can be automatically downloaded using [`OpenML`](https://github.com/JuliaAI
 The sonar dataset corresponds to the dataset id 40.
 
 ```julia
-import OpenML
-import DataFrames
+using OpenML: OpenML
+using DataFrames: DataFrames
 data = Array(DataFrames.DataFrame(OpenML.load(40)))
 X = Matrix{Float64}(data[:, 1:(end - 1)])
-y = Vector{Bool}(data[:, end] .== "Mine")
-```
-Let's apply some basic pre-processing and add an intercept column:
-```julia
-X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
-X = hcat(X, ones(size(X, 1)))
-```
-The model can now be instantiated as follows:
-```julia
-model = LogReg(X, y)
+y = Vector{Bool}(data[:, end] .== "Mine");
 ```
 
-For the VI algorithm, we will use the following:
+Let's apply some basic pre-processing and add an intercept column:
+
+```julia
+using Statistics
+
+X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
+X = hcat(X, ones(size(X, 1)));
+```
+
+The model can now be instantiated as follows:
+
+```julia
+model = LogReg(X, y);
+```
+
+For the VI algorithm, we will use `KLMinRepGradDescent`:
+
 ```julia
 using ADTypes, ReverseDiff
 using AdvancedVI
@@ -124,31 +131,36 @@ For this, it is straightforward to use `LogDensityProblemsAD`:
 using DifferentiationInterface: DifferentiationInterface
 using LogDensityProblemsAD: LogDensityProblemsAD
 
-model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model)
+```julia
+using DifferentiationInterface: DifferentiationInterface
+using LogDensityProblemsAD: LogDensityProblemsAD
+
+model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model);
 ```
 
 For the variational family, we will consider a `FullRankGaussian` approximation:
+
 ```julia
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(model_ad)
-q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37*I, d, d)))
+q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)));
 ```
+
 The bijector can now be applied to `q` to match the support of the target problem.
+
 ```julia
 b = Bijectors.bijector(model)
 binv = Bijectors.inverse(b)
-q_transformed = Bijectors.TransformedDistribution(q, binv)
+q_transformed = Bijectors.TransformedDistribution(q, binv);
 ```
+
 We can now run VI:
+
 ```julia
 max_iter = 10^3
-q_avg, info, _ = AdvancedVI.optimize(
-    alg,
-    max_iter,
-    model_ad,
-    q_transformed;
-)
+q, info, _ = AdvancedVI.optimize(alg, max_iter, model_ad, q_transformed;);
 ```
 
 For more examples and details, please refer to the documentation.
