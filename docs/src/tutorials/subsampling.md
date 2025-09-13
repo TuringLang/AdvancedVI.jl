@@ -141,9 +141,7 @@ We will us a batch size of 32, which results in `313 = length(subsampling) = cei
 dataset = 1:size(model.X, 1)
 batchsize = 32
 subsampling = ReshufflingBatchSubsampling(dataset, batchsize)
-alg_sub = KLMinRepGradProxDescent(
-    ADTypes.AutoReverseDiff(; compile=true); subsampling, operator=ClipScale()
-)
+alg_sub = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true); subsampling)
 nothing
 ```
 
