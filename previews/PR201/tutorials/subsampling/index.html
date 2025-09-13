@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Scaling to Large Datasets · AdvancedVI.jl</title><meta name="title" content="Scaling to Large Datasets · AdvancedVI.jl"/><meta property="og:title" content="Scaling to Large Datasets · AdvancedVI.jl"/><meta property="twitter:title" content="Scaling to Large Datasets · AdvancedVI.jl"/><meta name="description" content="Documentation for AdvancedVI.jl."/><meta property="og:description" content="Documentation for AdvancedVI.jl."/><meta property="twitter:description" content="Documentation for AdvancedVI.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body>
+<!-- NAVBAR START -->
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
+
+    /* Documenter.jl CSS Overrides */
+    html {
+        scroll-padding-top: calc(var(--navbar-height) + 1rem);
+    }
+    .docs-sidebar, #documenter {
+        margin-top: var(--navbar-height);
+    }
+    .docs-version-selector {
+        margin-bottom: 60px !important;
+    }
+    @media screen and (max-width: 1056px) {
+        .docs-version-selector {
+            margin-bottom: 60px !important;
+        }
+        .docs-sidebar {
+            margin-top: 0 !important;
+        }
+    }
+    /* End of Documenter.jl Tweaks */
+
+    /* Color and Font Variables */
+    :root {
+        --heading-color: #6c757d;
+        --item-color: rgb(165, 165, 165);
+        --primary-bg: white;
+        --hover-color: #8faad2;
+        --deprecated-bg: #ff4d4d;
+        --deprecated-text: white;
+        --icon-color: #6c757d;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --dropdown-hover-bg: #e9ecef;
+        
+        /* Typography */
+        --font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        --nav-link-font-size: 1.0625rem;
+        --turing-title-font-size: 21.25px;
+        --icon-font-size: 1.25rem;
+        --dropdown-arrow-font-size: 0.6875rem;
+        --badge-font-size: 0.75rem;
+
+        /* Sizing and Spacing */
+        --navbar-height: 3.75rem;
+        --logo-height: 31.18px;
+        --logo-width: 52.47px;
+        --logo-padding-top: 7px;
+        --logo-margin-left: 0.3rem;
+        --title-margin-left: 0.4px;
+        --title-nav-spacing: 1.7rem;
+        --nav-item-margin-left: 1.3rem;
+        --icon-margin-left: 1rem;
+        --dropdown-padding: 1.875rem;
+        --dropdown-item-width: 12.5rem;
+        --dropdown-subitem-width: 15.625rem;
+        --dropdown-subitem-padding: 0.125rem 0.625rem;
+    }
+
+    /* Dark Theme Variable Overrides */
+    html.theme--documenter-dark {
+        --heading-color: #e0e0e0;
+        --item-color: #bdbdbd;
+        --primary-bg: #1f2424;
+        --hover-color: #ffffff;
+        --icon-color: #e0e0e0;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #424242;
+    }
+
+    /* Catppuccin Theme Overrides */
+    html.theme--catppuccin-latte {
+        --heading-color: #4c4f69;
+        --primary-bg: #eff1f5;
+        --icon-color: #4c4f69;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --dropdown-hover-bg: #e6e9ef;
+    }
+    html.theme--catppuccin-frappe {
+        --heading-color: #c6d0f5;
+        --primary-bg: #303446;
+        --icon-color: #c6d0f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #51576d;
+    }
+    html.theme--catppuccin-macchiato {
+        --heading-color: #cad3f5;
+        --primary-bg: #24273a;
+        --icon-color: #cad3f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #494d64;
+    }
+    html.theme--catppuccin-mocha {
+        --heading-color: #cad3f5;
+        --primary-bg: #1e1e2e;
+        --icon-color: #cad3f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #45475a;
+    }
+
+
+    /* Main Navigation Bar */
+    .ext-navigation {
+        font-family: var(--font-family);
+        position: fixed;
+        height: var(--navbar-height);
+        top: 0;
+        width: 100%;
+        background-color: var(--primary-bg);
+        z-index: 1000;
+        box-shadow: 0 2px 4px var(--shadow-color);
+        display: flex;
+        align-items: center;
+        padding: 0 1.0625rem;
+        transition: transform 0.3s, background-color 0.3s;
+    }
+
+    nav.ext-navigation .ext-navbar-logo {
+        margin-left: var(--logo-margin-left);
+        height: var(--logo-height);
+        width: var(--logo-width);
+        padding-top: var(--logo-padding-top);
+    }
+    
+    .ext-navbar-title {
+        color: var(--heading-color) !important;
+        font-size: var(--turing-title-font-size) !important;
+        margin-left: var(--title-margin-left);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    .ext-navbar-title:hover {
+        color: var(--hover-color) !important;
+    }
+
+    .ext-nav-links {
+        display: flex;
+        align-items: center;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        flex-grow: 1;
+        margin-left: var(--title-nav-spacing);
+    }
+
+    .ext-nav-links li:first-child {
+        margin-left: 0 !important;
+    }
+
+    .ext-nav-links li {
+        margin-left: var(--nav-item-margin-left) !important;
+    }
+
+    .ext-nav-link {
+        color: var(--heading-color) !important;
+        text-decoration: none;
+        font-size: var(--nav-link-font-size) !important;
+        transition: color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .ext-nav-link:hover,
+    .ext-navbar-item-single a:hover,
+    .ext-navbar-icons a:hover {
+        color: var(--hover-color) !important;
+    }
+
+    .ext-navbar-item-single a {
+        color: var(--heading-color) !important;
+    }
+    
+    .ext-navbar-icons {
+        display: flex;
+        align-items: center;
+    }
+
+    .ext-navbar-icons a {
+        color: var(--icon-color) !important;
+        font-size: var(--icon-font-size) !important;
+        transition: color 0.2s ease;
+        margin-left: var(--icon-margin-left);
+    }
+
+    .ext-menu-toggle {
+        display: none;
+        font-size: 1.5rem;
+        color: var(--heading-color);
+        cursor: pointer;
+    }
+
+    .ext-dropdown {
+        display: none;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        padding: var(--dropdown-padding);
+        position: absolute;
+        top: var(--navbar-height);
+        width: 100%;
+        left: 0;
+        background-color: var(--primary-bg);
+        line-height: 1.875rem;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, background-color 0.3s;
+        transform: translateY(-0.625rem);
+        box-shadow: 0 4px 6px var(--shadow-color);
+    }
+
+    #library-handler::after {
+        content: "▼";
+        font-size: var(--dropdown-arrow-font-size);
+        margin-left: 0.3125rem;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    #library-handler.open::after {
+        content: "▲";
+    }
+
+    .ext-dropdown.show {
+        display: grid;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .ext-dropdown ul {
+        width: var(--dropdown-item-width);
+        margin-bottom: 1.25rem;
+    }
+
+    .ext-dropdown ul li {
+        text-align: left;
+        display: flex;
+        align-items: center;
+    }
+
+    .ext-dropdown ul a li {
+        color: var(--item-color);
+        width: var(--dropdown-subitem-width);
+        border-radius: 3px;
+        padding: var(--dropdown-subitem-padding);
+        transition: background-color 0.2s ease;
+    }
+
+    .ext-dropdown ul a li:hover {
+        background-color: var(--dropdown-hover-bg);
+    }
+
+    .ext-dropdown-item-heading {
+        color: var(--heading-color);
+        text-align: center;
+    }
+
+    .deprecated-badge {
+        background-color: var(--deprecated-bg);
+        color: var(--deprecated-text);
+        font-size: var(--badge-font-size);
+        padding: .1rem;
+        border-radius: 3px;
+        margin-left: 0.5rem;
+        line-height: 1;
+    }
+
+    @media (max-width: 966px) {
+        .ext-dropdown {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .ext-nav-links {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            background-color: var(--primary-bg);
+            position: absolute;
+            top: var(--navbar-height);
+            left: 0;
+            padding: 0.625rem 0;
+            height: auto;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            margin-left: 0;
+        }
+
+        .ext-nav-links.show {
+            display: flex;
+        }
+
+        .ext-nav-links li {
+            margin: 0.625rem 0 !important;
+            text-align: center;
+        }
+        
+        .ext-menu-toggle {
+            display: block;
+            margin-left: auto;
+        }
+
+        .ext-navigation.hide {
+            transform: translateY(calc(-1 * var(--navbar-height)));
+        }
+
+        .ext-dropdown {
+            position: static;
+            display: block;
+            opacity: 1;
+            transform: none;
+            box-shadow: none;
+            grid-template-columns: 1fr;
+            padding: 0.625rem;
+            text-align: center;
+        }
+
+        .ext-dropdown ul {
+            width: auto;
+            display: inline-block;
+            margin: 0 auto 0.3125rem;
+            text-align: left;
+        }
+    }
+</style>
+<nav class="ext-navigation">
+    <a href="https://turinglang.org/">
+        <img src="https://turinglang.org/assets/images/turing-logo.svg" alt="Turing Logo" class="ext-navbar-logo">
+    </a>
+    <a class="ext-navbar-title" href="https://turinglang.org/">Turing.jl</a>
+    
+    <ul class="ext-nav-links">
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/getting-started/">Get Started</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/tutorials/">Tutorials</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/faq/">FAQ</a></li>
+        <li>
+            <p class="ext-nav-link" id="library-handler">Libraries</p>
+            <div class="ext-dropdown" id="ext-dropdown-items">
+                <ul>
+                    <li class="ext-dropdown-item-heading">Modelling Languages</li>
+                    <a href="https://turinglang.org/DynamicPPL.jl/"><li>DynamicPPL</li></a>
+                    <a href="https://turinglang.org/JuliaBUGS.jl/"><li>JuliaBUGS</li></a>
+                    <a href="https://turinglang.org/TuringGLM.jl/"><li>TuringGLM</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">MCMC</li>
+                    <a href="https://turinglang.org/AdvancedHMC.jl/"><li>AdvancedHMC</li></a>
+                    <a href="https://turinglang.org/AbstractMCMC.jl/"><li>AbstractMCMC</li></a>
+                    <a href="https://github.com/theogf/ThermodynamicIntegration.jl"><li>ThermodynamicIntegration</li></a>
+                    <a href="https://turinglang.org/AdvancedPS.jl/"><li>AdvancedPS</li></a>
+                    <a href="https://turinglang.org/SliceSampling.jl/"><li>SliceSampling</li></a>
+                    <a href="https://turinglang.org/EllipticalSliceSampling.jl/"><li>EllipticalSliceSampling</li></a>
+                    <a href="https://turinglang.org/NestedSamplers.jl/"><li>NestedSamplers</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Diagnostics</li>
+                    <a href="https://turinglang.org/MCMCChains.jl/"><li>MCMCChains</li></a>
+                    <a href="https://turinglang.org/MCMCDiagnosticTools.jl/"><li>MCMCDiagnosticTools</li></a>
+                    <a href="https://turinglang.org/ParetoSmooth.jl/"><li>ParetoSmooth</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Gaussian Processes</li>
+                    <a href="https://juliagaussianprocesses.github.io/AbstractGPs.jl/"><li>AbstractGPs</li></a>
+                    <a href="https://juliagaussianprocesses.github.io/KernelFunctions.jl/"><li>KernelFunctions</li></a>
+                    <a href="https://juliagaussianprocesses.github.io/ApproximateGPs.jl/"><li>ApproximateGPs</li></a>
+                </ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/Bijectors.jl/">Bijectors</a></li></ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/TuringCallbacks.jl/">TuringCallbacks</a></li></ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/Deprecated/TuringBenchmarking/">TuringBenchmarking</a><span class="deprecated-badge">Deprecated</span></li></ul>
+            </div>
+        </li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/news/">News</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/team/">Team</a></li>
+    </ul>
+
+    <div class="ext-navbar-icons">
+        <a href="https://x.com/TuringLang" aria-label="Turing on X"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="https://discourse.julialang.org/c/domain/probprog/48" aria-label="Turing on Discourse"><i class="fa-brands fa-discourse"></i></a>
+        <a href="https://julialang.slack.com/archives/CCYDC34A0" aria-label="Turing on Slack"><i class="fa-brands fa-slack"></i></a>
+        <a href="https://github.com/TuringLang/" aria-label="Turing.jl on GitHub"><i class="fa-brands fa-github"></i></a>
+    </div>
+
+    <span class="ext-menu-toggle"><i class="fa-solid fa-bars"></i></span>
+</nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const menuToggle = document.querySelector(".ext-menu-toggle");
+        const navLinks = document.querySelector(".ext-nav-links");
+        const nav = document.querySelector(".ext-navigation");
+        const libraryHandler = document.getElementById("library-handler");
+        const dropdownContainer = document.getElementById("ext-dropdown-items");
+        let lastScrollY = window.scrollY;
+
+        function closeDropdown() {
+            if (dropdownContainer.classList.contains("show")) {
+                libraryHandler.classList.remove("open");
+                dropdownContainer.classList.remove("show");
+                setTimeout(() => {
+                    if (!dropdownContainer.classList.contains("show")) {
+                        dropdownContainer.style.display = "none";
+                    }
+                }, 300);
+            }
+        }
+
+        function openDropdown() {
+            dropdownContainer.style.display = "grid";
+            libraryHandler.classList.add("open");
+            setTimeout(() => {
+                dropdownContainer.classList.add("show");
+            }, 10);
+        }
+
+        function setAppropriateHeight() {
+            if (window.innerWidth <= 768) {
+                const viewportHeight = window.innerHeight;
+                const navHeight = nav.offsetHeight;
+                navLinks.style.maxHeight = `${viewportHeight - navHeight}px`;
+                navLinks.style.overflowY = "auto";
+            } else {
+                navLinks.style.maxHeight = "";
+                navLinks.style.overflowY = "";
+            }
+        }
+
+        menuToggle.addEventListener("click", (event) => {
+            event.stopPropagation();
+            navLinks.classList.toggle("show");
+            if (navLinks.classList.contains("show")) {
+                setAppropriateHeight();
+                closeDropdown();
+                dropdownContainer.style.display = "none";
+            }
+        });
+
+        libraryHandler.addEventListener("click", (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            if (dropdownContainer.classList.contains("show")) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+            setAppropriateHeight();
+        });
+
+        // Close all menus if a click is registered outside the navigation bar.
+        document.addEventListener("click", (event) => {
+            if (!nav.contains(event.target)) {
+                navLinks.classList.remove("show");
+                closeDropdown();
+            }
+        });
+
+        // Hide navigation bar on scroll down in mobile view.
+        window.addEventListener("scroll", () => {
+            if (window.innerWidth <= 768) {
+                if (window.scrollY > lastScrollY && window.scrollY > nav.offsetHeight){
+                    nav.classList.add("hide");
+                } else {
+                    nav.classList.remove("hide");
+                }
+                lastScrollY = window.scrollY;
+            }
+        });
+
+        window.addEventListener("resize", setAppropriateHeight);
+    });
+</script>
+<!-- NAVBAR END -->
+
+<div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AdvancedVI.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">AdvancedVI</a></li><li><a class="tocitem" href="../../general/">General Usage</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../basic/">Basic Example</a></li><li class="is-active"><a class="tocitem" href>Scaling to Large Datasets</a><ul class="internal"><li><a class="tocitem" href="#Setting-Up-Subsampling"><span>Setting Up Subsampling</span></a></li><li><a class="tocitem" href="#Scalable-Inference-via-AdvancedVI"><span>Scalable Inference via AdvancedVI</span></a></li></ul></li><li><a class="tocitem" href="../stan/">Stan Models</a></li><li><a class="tocitem" href="../flows/">Normalizing Flows</a></li></ul></li><li><span class="tocitem">Algorithms</span><ul><li><a class="tocitem" href="../../paramspacesgd/klminrepgraddescent/">KLMinRepGradDescent</a></li><li><a class="tocitem" href="../../paramspacesgd/klminrepgradproxdescent/">KLMinRepGradProxDescent</a></li><li><a class="tocitem" href="../../paramspacesgd/klminscoregraddescent/">KLMinScoreGradDescent</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Parameter Space SGD</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../paramspacesgd/general/">General</a></li><li><input class="collapse-toggle" id="menuitem-4-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-4-2"><span class="docs-label">Objectives</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../paramspacesgd/objectives/">Overview</a></li><li><a class="tocitem" href="../../paramspacesgd/repgradelbo/">RepGradELBO</a></li><li><a class="tocitem" href="../../paramspacesgd/scoregradelbo/">ScoreGradELBO</a></li></ul></li></ul></li></ul></li><li><a class="tocitem" href="../../families/">Variational Families</a></li><li><a class="tocitem" href="../../optimization/">Optimization</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Scaling to Large Datasets</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Scaling to Large Datasets</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/TuringLang/AdvancedVI.jl/blob/main/docs/src/tutorials/subsampling.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Scaling-to-Large-Datasets-with-Subsampling"><a class="docs-heading-anchor" href="#Scaling-to-Large-Datasets-with-Subsampling">Scaling to Large Datasets with Subsampling</a><a id="Scaling-to-Large-Datasets-with-Subsampling-1"></a><a class="docs-heading-anchor-permalink" href="#Scaling-to-Large-Datasets-with-Subsampling" title="Permalink"></a></h1><p>In this tutorial, we will show how to use <code>AdvancedVI</code> on problems with large datasets. Variational inference (VI) has a long and successful history<sup class="footnote-reference"><a id="citeref-HBWP2013" href="#footnote-HBWP2013">[HBWP2013]</a></sup><sup class="footnote-reference"><a id="citeref-TL2014" href="#footnote-TL2014">[TL2014]</a></sup><sup class="footnote-reference"><a id="citeref-HBB2010" href="#footnote-HBB2010">[HBB2010]</a></sup> in large scale inference using (minibatch) subsampling. In this tutorial, we will see how to perform subsampling with <code>KLMinRepGradProxDescent</code>, which was originally described in the paper by Titsias and Lázaro-Gredilla<sup class="footnote-reference"><a id="citeref-TL2014" href="#footnote-TL2014">[TL2014]</a></sup>; Kucukelbir <em>et al</em><sup class="footnote-reference"><a id="citeref-KTRGB2017" href="#footnote-KTRGB2017">[KTRGB2017]</a></sup>.</p><h2 id="Setting-Up-Subsampling"><a class="docs-heading-anchor" href="#Setting-Up-Subsampling">Setting Up Subsampling</a><a id="Setting-Up-Subsampling-1"></a><a class="docs-heading-anchor-permalink" href="#Setting-Up-Subsampling" title="Permalink"></a></h2><p>We will consider the same hierarchical logistic regression example used in the <a href="../basic/#basic">Basic Example</a>.</p><pre><code class="language-julia hljs">using LogDensityProblems: LogDensityProblems
+using Distributions
+using FillArrays
+
+struct LogReg{XType,YType}
+    X::XType
+    y::YType
+    n_data::Int
+end
+
+function LogDensityProblems.logdensity(model::LogReg, θ)
+    (; X, y, n_data) = model
+    n, d = size(X)
+    β, σ = θ[1:size(X, 2)], θ[end]
+
+    logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
+    logprior_σ = logpdf(LogNormal(0, 3), σ)
+
+    logit = X*β
+    loglike_y = mapreduce((li, yi) -&gt; logpdf(BernoulliLogit(li), yi), +, logit, y)
+    return n_data/n*loglike_y + logprior_β + logprior_σ
+end
+
+function LogDensityProblems.dimension(model::LogReg)
+    return size(model.X, 2) + 1
+end
+
+function LogDensityProblems.capabilities(::Type{&lt;:LogReg})
+    return LogDensityProblems.LogDensityOrder{0}()
+end
+nothing</code></pre><p>Notice that, to use subsampling, we need be able to rescale the likelihood strength. That is, for the gradient of the log-density with a batch of data points of size <code>n</code> to be an unbiased estimate of the gradient using the full dataset of size <code>n_data</code>, we need to scale the likelihood by <code>n_data/n</code>. This part is critical to ensure that the algorithm correctly approximates the posterior with the full dataset.</p><p>As usual, we will set up a bijector:</p><pre><code class="language-julia hljs">using Bijectors: Bijectors
+
+function Bijectors.bijector(model::LogReg)
+    d = size(model.X, 2)
+    return Bijectors.Stacked(
+        Bijectors.bijector.([MvNormal(Zeros(d), 1.0), LogNormal(0, 3)]),
+        [1:d, (d + 1):(d + 1)],
+    )
+end
+nothing</code></pre><p>For the dataset, we will use one that is larger than that used in the <a href="../basic/#basic">Basic Example</a>. This is to properly assess the advantage of subsampling. In particular, we will utilize the &quot;Phishing&quot; dataset<sup class="footnote-reference"><a id="citeref-Tan2018" href="#footnote-Tan2018">[Tan2018]</a></sup>, which consists of 10000 data points, each with 48 features. The goal is to predict whether the features of a specific website indicate whether it is a phishing website or a legitimate one. The <a href="https://www.openml.org/search?type=data&amp;status=active&amp;id=46722">dataset</a> id on the <a href="https://github.com/JuliaAI/OpenML.jl"><code>OpenML</code></a> repository is 46722.</p><pre><code class="language-julia hljs">using OpenML: OpenML
+using DataFrames: DataFrames
+
+data = Array(DataFrames.DataFrame(OpenML.load(46722)))
+X = Matrix{Float64}(data[:, 2:end])
+y = Vector{Bool}(data[:, end])
+nothing</code></pre><p>The features start from the seoncd column, while the last column are the class labels.</p><p>Let&#39;s also apply some basic pre-processing.</p><pre><code class="language-julia hljs">using Statistics
+
+X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
+X = hcat(X, ones(size(X, 1)))
+nothing</code></pre><p>Let&#39;s now istantiate the model and set up automatic differentiation using <a href="https://github.com/tpapp/LogDensityProblemsAD.jl?tab=readme-ov-file"><code>LogDensityProblemsAD</code></a>.</p><pre><code class="language-julia hljs">using ADTypes, ReverseDiff
+using LogDensityProblemsAD
+
+model = LogReg(X, y, size(X, 1))
+model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model)
+nothing</code></pre><p>To enable subsampling, <code>LogReg</code> has to implement the method <code>AdvancedVI.subsample</code>. For our model, this is fairly simple: We only need to select the rows of <code>X</code> and the elements of <code>y</code> corresponding to the batch of data points. As subtle point here is that we wrapped <code>model</code> with <code>LogDensityProblemsAD.ADgradient</code> into <code>model_ad</code>. Therefore, <code>AdvancedVI</code> sees <code>model_ad</code> and not <code>model</code>. This means we have to specialize <code>AdvancedVI.subsample</code> to <code>typeof(model_ad)</code> and not <code>LogReg</code>.</p><pre><code class="language-julia hljs">using Accessors
+using AdvancedVI
+
+function AdvancedVI.subsample(model::typeof(model_ad), idx)
+    (; X, y, n_data) = parent(model)
+    model′ = @set model.ℓ.X = X[idx, :]
+    model′′ = @set model′.ℓ.y = y[idx]
+    return model′′
+end
+nothing</code></pre><div class="admonition is-info" id="Info-59a8c2c5b8c5e64c"><header class="admonition-header">Info<a class="admonition-anchor" href="#Info-59a8c2c5b8c5e64c" title="Permalink"></a></header><div class="admonition-body"><p>The default implementation of <code>AdvancedVI.subsample</code> is <code>AdvancedVI.subsample(model, idx) = model</code>. Therefore, if the specialization of <code>AdvancedVI.subsample</code> is not set up properly, <code>AdvancedVI</code> will silently use full-batch gradients instead of subsampling. It is thus useful to check whether the right specialization of <code>AdvancedVI.subsample</code> is being called.</p></div></div><h2 id="Scalable-Inference-via-AdvancedVI"><a class="docs-heading-anchor" href="#Scalable-Inference-via-AdvancedVI">Scalable Inference via AdvancedVI</a><a id="Scalable-Inference-via-AdvancedVI-1"></a><a class="docs-heading-anchor-permalink" href="#Scalable-Inference-via-AdvancedVI" title="Permalink"></a></h2><p>In this example, we will compare the convergence speed of <code>KLMinRepGradProxDescent</code> with and without subsampling. Subsampling can be turned on by supplying a subsampling strategy. Here, we will use <code>ReshufflingBatchSubsampling</code>, which implements random reshuffling. We will us a batch size of 32, which results in <code>313 = length(subsampling) = ceil(Int, size(X,2)/32)</code> steps per epoch.</p><pre><code class="language-julia hljs">dataset = 1:size(model.X, 1)
+batchsize = 32
+subsampling = ReshufflingBatchSubsampling(dataset, batchsize)
+alg_sub = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true); subsampling)
+nothing</code></pre><p>Recall that each epoch is 313 steps. When using <code>ReshufflingBatchSubsampling</code>, it is best to choose the number of iterations to be a multiple of the number of steps <code>length(subsampling)</code> in an epoch. This is due to a peculiar property of <code>ReshufflingBatchSubsampling</code>: the objective value tends to <em>increase</em> during an epoch, and come down nearing the end. (Theoretically, this is due to conditionally <em>biased</em> nature of random reshuffling<sup class="footnote-reference"><a id="citeref-MKR2020" href="#footnote-MKR2020">[MKR2020]</a></sup>.) Therefore, the objective value is minimized exactly after the last step of each epoch.</p><pre><code class="language-julia hljs">num_epochs = 10
+max_iter = num_epochs * length(subsampling)
+nothing</code></pre><p>If we don&#39;t supply a subsampling strategy to <code>KLMinRepGradProxDescent</code>, subsampling will not be used.</p><pre><code class="language-julia hljs">alg_full = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
+nothing</code></pre><p>The variational family will be set up as follows:</p><pre><code class="language-julia hljs">using LinearAlgebra
+
+d = LogDensityProblems.dimension(model_ad)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37*I, d, d)))
+b = Bijectors.bijector(model)
+binv = Bijectors.inverse(b)
+q_transformed = Bijectors.TransformedDistribution(q, binv)
+nothing</code></pre><p>It now remains to run VI. For comparison, we will record both the ELBO (with a large number of Monte Carlo samples) and the prediction accuracy.</p><pre><code class="language-julia hljs">using StatsFuns: StatsFuns
+
+logging_interval = 100
+time_begin = nothing
+
+&quot;&quot;&quot;
+    logistic_prediction(X, μ_β, Σ_β)
+
+Approximate the posterior predictive probability for a logistic link function using Mackay&#39;s approximation (Bishop p. 220).
+&quot;&quot;&quot;
+function logistic_prediction(X, μ_β, Σ_β)
+    xtΣx = sum((model.X*Σ_β) .* model.X; dims=2)[:, 1]
+    κ = @. 1/sqrt(1 + π/8*xtΣx)
+    return StatsFuns.logistic.(κ .* X*μ_β)
+end
+
+function callback(; iteration, averaged_params, restructure, kwargs...)
+    if mod(iteration, logging_interval) == 1
+
+        # Use the averaged parameters (the eventual output of the algorithm)
+        q_avg = restructure(averaged_params)
+
+        # Compute predictions using
+        μ_β = mean(q_avg.dist)[1:(end - 1)] # posterior mean of β
+        Σ_β = cov(q_avg.dist)[1:(end - 1), end - 1] # marginal posterior covariance of β
+        y_pred = logistic_prediction(X, μ_β, Σ_β) .&gt; 0.5
+
+        # Prediction accuracy
+        acc = mean(y_pred .== model.y)
+
+        # Higher fidelity estimate of the ELBO on the averaged parameters
+        n_samples = 256
+        obj = AdvancedVI.RepGradELBO(n_samples; entropy=MonteCarloEntropy())
+        elbo_callback = estimate_objective(obj, q_avg, model)
+
+        (elbo_callback=elbo_callback, accuracy=acc, time_elapsed=time() - time_begin)
+    else
+        nothing
+    end
+end
+
+time_begin = time()
+_, info_full, _ = AdvancedVI.optimize(
+    alg_full, max_iter, model_ad, q_transformed; show_progress=false, callback
+);
+
+time_begin = time()
+_, info_sub, _ = AdvancedVI.optimize(
+    alg_sub, max_iter, model_ad, q_transformed; show_progress=false, callback
+);
+nothing</code></pre><p>Let&#39;s visualize the evolution of the ELBO.</p><pre><code class="language-julia hljs">using Plots
+
+t = 1:logging_interval:max_iter
+plot(
+    [i.iteration for i in info_full[t]],
+    [i.elbo_callback for i in info_full[t]];
+    xlabel=&quot;Iteration&quot;,
+    ylabel=&quot;ELBO&quot;,
+    label=&quot;Full Batch&quot;,
+)
+plot!(
+    [i.iteration for i in info_sub[t]],
+    [i.elbo_callback for i in info_sub[t]];
+    label=&quot;Subsampling&quot;,
+)
+savefig(&quot;subsampling_example_iteration_elbo.svg&quot;)
+nothing</code></pre><p><img src="../subsampling_example_iteration_elbo.svg" alt/></p><p>According to this plot, it might seem like subsampling has no benefit (if not detrimental). This is, however, because we are plotting against the number of iterations. Subsampling generally converges slower (asymptotically) in terms of iterations. But in return, it reduces the time spent at each iteration. Therefore, we need to plot against the elapsed time:</p><pre><code class="language-julia hljs">plot(
+    [i.time_elapsed for i in info_full[t]],
+    [i.elbo_callback for i in info_full[t]];
+    xlabel=&quot;Wallclock Time (sec)&quot;,
+    ylabel=&quot;ELBO&quot;,
+    label=&quot;Full Batch&quot;,
+)
+plot!(
+    [i.time_elapsed for i in info_sub[t]],
+    [i.elbo_callback for i in info_sub[t]];
+    label=&quot;Subsampling&quot;,
+)
+savefig(&quot;subsampling_example_time_elbo.svg&quot;)
+nothing</code></pre><p><img src="../subsampling_example_time_elbo.svg" alt/></p><p>We can now see the dramatic effect of subsampling. The picture is similar if we visualize the prediction accuracy over time.</p><pre><code class="language-julia hljs">plot(
+    [i.time_elapsed for i in info_full[t]],
+    [i.accuracy for i in info_full[t]];
+    xlabel=&quot;Wallclock Time (sec)&quot;,
+    ylabel=&quot;Prediction Accuracy&quot;,
+    label=&quot;Full Batch&quot;,
+)
+plot!(
+    [i.time_elapsed for i in info_sub[t]],
+    [i.accuracy for i in info_sub[t]];
+    label=&quot;Subsampling&quot;,
+)
+savefig(&quot;subsampling_example_time_accuracy.svg&quot;)
+nothing</code></pre><p><img src="../subsampling_example_time_accuracy.svg" alt/></p><p>But remember that subsampling will always be <em>asymptotically</em> slower than no subsampling. That is, as the number of iterations increase, there will be a point where no subsampling will overtake subsampling even in terms of wallclock time. Therefore, subsampling is most beneficial when a crude solution to the VI problem suffices.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-HBB2010"><a class="tag is-link" href="#citeref-HBB2010">HBB2010</a>Hoffman, M., Bach, F., &amp; Blei, D. (2010). Online learning for latent Dirichlet allocation. In <em>Advances in Neural Information Processing Systems</em>, 23.</li><li class="footnote" id="footnote-HBWP2013"><a class="tag is-link" href="#citeref-HBWP2013">HBWP2013</a>Hoffman, M. D., Blei, D. M., Wang, C., &amp; Paisley, J. (2013). Stochastic variational inference. <em>Journal of Machine Learning Research</em>, 14(1), 1303-1347.</li><li class="footnote" id="footnote-TL2014"><a class="tag is-link" href="#citeref-TL2014">TL2014</a>Titsias, M., &amp; Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In <em>Proceedings of the International Conference on Machine Learning</em> (pp. 1971-1979). PMLR.</li><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. <em>Journal of Machine Learning Research</em>, 18(14), 1-45.</li><li class="footnote" id="footnote-Tan2018"><a class="tag is-link" href="#citeref-Tan2018">Tan2018</a>Tan, Choon Lin (2018), &quot;Phishing Dataset for Machine Learning: Feature Evaluation&quot;, Mendeley Data, V1, doi: 10.17632/h3cgnj8hft.1]</li><li class="footnote" id="footnote-MKR2020"><a class="tag is-link" href="#citeref-MKR2020">MKR2020</a>Mishchenko, K., Khaled, A., &amp; Richtárik, P. (2020). Random reshuffling: Simple analysis with vast improvements. Advances in Neural Information Processing Systems, 33, 17309-17320.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../basic/">« Basic Example</a><a class="docs-footer-nextpage" href="../stan/">Stan Models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Saturday 13 September 2025 21:52">Saturday 13 September 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
