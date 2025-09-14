@@ -2,7 +2,7 @@
 """
     optimize(
         [rng::Random.AbstractRNG = Random.default_rng(),]
-        algorithm::AbstractAlgorithm,
+        algorithm::AbstractVariationalAlgorithm,
         max_iter::Int,
         prob,
         q_init,
@@ -41,7 +41,7 @@ The content of the `NamedTuple` will be concatenated into the corresponding entr
 """
 function optimize(
     rng::Random.AbstractRNG,
-    algorithm::AbstractAlgorithm,
+    algorithm::AbstractVariationalAlgorithm,
     max_iter::Int,
     prob,
     q_init,
@@ -81,7 +81,12 @@ function optimize(
 end
 
 function optimize(
-    algorithm::AbstractAlgorithm, max_iter::Int, prob, q_init, objargs...; kwargs...
+    algorithm::AbstractVariationalAlgorithm,
+    max_iter::Int,
+    prob,
+    q_init,
+    objargs...;
+    kwargs...,
 )
     return optimize(
         Random.default_rng(), algorithm, max_iter, prob, q_init, objargs...; kwargs...

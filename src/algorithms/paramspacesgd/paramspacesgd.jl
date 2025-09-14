@@ -46,7 +46,7 @@ struct ParamSpaceSGD{
     Opt<:Optimisers.AbstractRule,
     Avg<:AbstractAverager,
     Op<:AbstractOperator,
-} <: AbstractAlgorithm
+} <: AbstractVariationalAlgorithm
     objective::Obj
     adtype::AD
     optimizer::Opt
