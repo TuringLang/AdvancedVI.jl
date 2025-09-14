@@ -1,4 +1,4 @@
-name: Enzyme Integration
+name: Zygote Integration Tests
 on:
   push:
     branches:
@@ -11,4 +11,4 @@ jobs:
   test:
     uses: ./.github/workflows/AutoDiffIntegration.yml
     with:
-      AD: Enzyme
+      AD: Zygote
