@@ -17,10 +17,7 @@ function AdvancedVI.init(
     if q_init.dist isa AdvancedVI.MvLocationScale &&
         operator isa AdvancedVI.IdentityOperator
         @warn(
-            "IdentityOperator is used with a variational family <:MvLocationScale. Optimization can easily fail under this combination due to singular scale matrices. Consider using the operator `ClipScale` instead.",
-            typeof(q_init),
-            typeof(q_init.dist),
-            typeof(operator)
+            "IdentityOperator is used with a variational family <:MvLocationScale. Optimization can easily fail under this combination due to singular scale matrices. Consider using the operator `ClipScale` in the algorithm instead.",
         )
     end
     params, re = Optimisers.destructure(q_init)
