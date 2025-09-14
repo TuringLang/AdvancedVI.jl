@@ -1,0 +1,14 @@
+name: Zygote Integration Tests
+on:
+  push:
+    branches:
+      - main
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    uses: ./.github/workflows/AutoDiffIntegration.yml
+    with:
+      AD: Zygote
