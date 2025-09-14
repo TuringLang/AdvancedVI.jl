@@ -2,7 +2,7 @@
 # [General Usage](@id general)
 
 AdvancedVI provides multiple variational inference (VI) algorithms.
-Each algorithm defines its subtype of [`AdvancedVI.AbstractAlgorithm`](@ref) with some corresponding methods (see [this section](@ref algorithm)).
+Each algorithm defines its subtype of [`AdvancedVI.AbstractVariationalAlgorithm`](@ref) with some corresponding methods (see [this section](@ref algorithm)).
 Then the algorithm can be executed by invoking `optimize`. (See [this section](@ref optimize)).
 
 ## [Optimize](@id optimize)
