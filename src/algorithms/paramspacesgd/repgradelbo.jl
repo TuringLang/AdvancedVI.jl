@@ -61,12 +61,7 @@ function init(
         MixedADLogDensityProblem(prob)
     end
     aux = (
-        rng=rng,
-        adtype=adtype,
-        obj=obj,
-        problem=ad_prob,
-        restructure=restructure,
-        q_stop=q,
+        rng=rng, adtype=adtype, obj=obj, problem=ad_prob, restructure=restructure, q_stop=q
     )
     obj_ad_prep = AdvancedVI._prepare_gradient(
         estimate_repgradelbo_ad_forward, adtype, params, aux
