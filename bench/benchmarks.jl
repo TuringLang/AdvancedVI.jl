@@ -62,7 +62,7 @@ begin
             b = Bijectors.bijector(prob)
             binv = inverse(b)
             q = Bijectors.TransformedDistribution(family, binv)
-            alg = KLMinRepGradDescent(adtype; optimizer=opt, entropy)
+            alg = KLMinRepGradDescent(adtype; optimizer=opt, entropy, operator=ClipScale())
 
             SUITES[probname][objname][familyname][adname] = begin
                 @benchmarkable AdvancedVI.optimize(

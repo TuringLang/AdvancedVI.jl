@@ -113,15 +113,23 @@ For the VI algorithm, we will use `KLMinRepGradDescent`:
 using ADTypes, ReverseDiff
 using AdvancedVI
 
-alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff());
+alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(); operator=ClipScale())
 ```
 
 This algorithm minimizes the exclusive/reverse KL divergence via stochastic gradient descent in the (Euclidean) space of the parameters of the variational approximation with the reparametrization gradient[^TL2014][^RMW2014][^KW2014].
 This is also commonly referred as automatic differentiation VI, black-box VI, stochastic gradient VI, and so on.
 
-`KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
-If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
-For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
+Also, projection or proximal operators can be used through the keyword argument `operator`.
+For this example, we will use Gaussian variational family, which is part of the more broad location-scale family.
+These require the scale matrix to have strictly positive eigenvalues at all times.
+Here, the projection operator `ClipScale` ensures this.
+
+This `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` has gradients.
+For this, it is straightforward to use `LogDensityProblemsAD`:
+
+```julia
+using DifferentiationInterface: DifferentiationInterface
+using LogDensityProblemsAD: LogDensityProblemsAD
 
 ```julia
 using DifferentiationInterface: DifferentiationInterface

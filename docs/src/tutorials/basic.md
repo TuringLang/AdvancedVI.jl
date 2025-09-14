@@ -111,15 +111,20 @@ For the VI algorithm, we will use `KLMinRepGradDescent`:
 using ADTypes, ReverseDiff
 using AdvancedVI
 
-alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff())
+alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(); operator=ClipScale());
 nothing
 ```
 
 This algorithm minimizes the exclusive/reverse KL divergence via stochastic gradient descent in the (Euclidean) space of the parameters of the variational approximation with the reparametrization gradient[^TL2014][^RMW2014][^KW2014].
 This is also commonly referred as automatic differentiation VI, black-box VI, stochastic gradient VI, and so on.
+
+For certain algorithms such as `KLMinRepGradDescent`, projection or proximal operators can be used through the keyword argument `operator`.
+For this example, we will use Gaussian variational family, which is part of the more broad [location-scale family](@ref locscale).
+Location-scale family distributions require the scale matrix to have strictly positive eigenvalues at all times.
+Here, the projection operator `ClipScale` ensures this.
+
 `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
 If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
-
 For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
 
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
@@ -143,6 +148,9 @@ q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37*I, d, d)))
 nothing
 ```
 
+Now, `KLMinRepGradDescent` requires the variational approximation and the target log-density to have the same support.
+Since `y` follows a log-normal prior, its support is bounded to be the positive half-space ``\mathbb{R}_+``.
+Thus, we will use [Bijectors](https://github.com/TuringLang/Bijectors.jl) to match the support of our target posterior and the variational approximation.
 The bijector can now be applied to `q` to match the support of the target problem.
 
 ```@example basic

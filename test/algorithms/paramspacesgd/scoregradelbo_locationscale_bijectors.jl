@@ -12,7 +12,7 @@
         T = 1000
         η = 1e-4
         opt = Optimisers.Descent(η)
-        alg = KLMinScoreGradDescent(AD; n_samples=10, optimizer=opt)
+        alg = KLMinScoreGradDescent(AD; n_samples=10, optimizer=opt, operator=ClipScale())
 
         b = Bijectors.bijector(model)
         b⁻¹ = inverse(b)
