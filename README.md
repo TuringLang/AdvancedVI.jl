@@ -136,10 +136,6 @@ For this, it is straightforward to use `LogDensityProblemsAD`:
 using DifferentiationInterface: DifferentiationInterface
 using LogDensityProblemsAD: LogDensityProblemsAD
 
-```julia
-using DifferentiationInterface: DifferentiationInterface
-using LogDensityProblemsAD: LogDensityProblemsAD
-
 model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model);
 ```
 
