@@ -188,14 +188,8 @@ nothing
 
 For the variational inference algorithms, we will similarly minimize the KL divergence with stochastic gradient descent as originally proposed by Rezende and Mohamed[^RM2015].
 For this, however, we need to be mindful of the requirements of the variational algorithm.
-The default objective of `KLMinRepGradDescent` essentially assumes a `MvLocationScale` family is being used:
-
-  - `entropy=RepGradELBO()`: The default `entropy` gradient estimator  is `ClosedFormEntropy()`, which assumes that the entropy of the variational family `entropy(q)` is available. For flows, the entropy is (usually) not available.
-  - `operator=ClipScale()`: The `operator` applied after a gradient descent step is `ClipScale` by default. This operator only works on `MvLocationScale` and `MvLocationScaleLowRank`.
-    Therefore, we have to customize the two keyword arguments above to make it work with flows.
-
-In particular, for the `operator`, we will use `IdentityOperator()`, which is a no-op.
-For `entropy`, we can use any gradient estimator that only relies on the log-density of the variational family `logpdf(q)`, `StickingTheLandingEntropy()` or `MonteCarloEntropy()`.
+The default `entropy` gradient estimator of `KLMinRepGradDescent` is `ClosedFormEntropy()`, which assumes that the entropy of the variational family `entropy(q)` is available. For flows, the entropy is (usually) not available.
+Instead, we can use any gradient estimator that only relies on the log-density of the variational family `logpdf(q)`, `StickingTheLandingEntropy()` or `MonteCarloEntropy()`.
 Here, we will use `StickingTheLandingEntropy()`[^RWD2017].
 When the variational family is "expressive," this gradient estimator has a variance reduction effect, resulting in faster convergence[^ASD2020].
 Furthermore, Agrawal *et al.*[^AD2025] claim that using a larger number of Monte Carlo samples `n_samples` is beneficial.
