@@ -9,12 +9,7 @@
     (; model, μ_true, L_true, n_dims, is_meanfield) = modelstats
 
     q0 = MeanFieldGaussian(zeros(Float64, n_dims), Diagonal(ones(Float64, n_dims)))
-    obj = RepGradELBO(10)
-
-    optimizer = Optimisers.Adam(1e-2)
-    averager = PolynomialAveraging()
-
-    alg = ParamSpaceSGD(obj, AD, optimizer, averager, IdentityOperator())
+    alg = KLMinRepGradDescent(AD; optimizer=Optimisers.Adam(1e-2), operator=ClipScale())
 
     @testset "default_rng" begin
         optimize(alg, T, model, q0; show_progress=false)
