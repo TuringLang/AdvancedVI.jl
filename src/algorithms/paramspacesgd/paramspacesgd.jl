@@ -18,7 +18,9 @@ function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init, prob)
     if alg isa KLMinRepGradDescent
         return KLMinRepGradDescentState(prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st)
     elseif alg isa KLMinRepGradProxDescent
-        return KLMinRepGradProxDescentState(prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st)
+        return KLMinRepGradProxDescentState(
+            prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st
+        )
     elseif alg isa KLMinScoreGradDescent
         return KLMinScoreGradDescentState(prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st)
     else
