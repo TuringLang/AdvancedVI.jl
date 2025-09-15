@@ -279,7 +279,6 @@ include("optimize.jl")
 
 ## Parameter Space SGD
 include("algorithms/paramspacesgd/abstractobjective.jl")
-include("algorithms/paramspacesgd/paramspacesgd.jl")
 
 export ParamSpaceSGD
 
@@ -319,6 +318,7 @@ export RepGradELBO,
     SubsampledObjective
 
 include("algorithms/paramspacesgd/constructors.jl")
+include("algorithms/paramspacesgd/paramspacesgd.jl")
 
 export KLMinRepGradDescent, KLMinRepGradProxDescent, KLMinScoreGradDescent, ADVI, BBVI
 
