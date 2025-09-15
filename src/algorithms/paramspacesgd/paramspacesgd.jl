@@ -54,9 +54,7 @@ function step(
     avg_st = apply(averager, avg_st, params)
 
     state = if alg isa KLMinRepGradDescent
-        KLMinRepGradDescentState(
-            prob, re(params), iteration, grad_buf, opt_st, obj_st, avg_st
-        )
+        KLMinRepGradDescentState(prob, re(params), iteration, grad_buf, opt_st, obj_st, avg_st)
     elseif alg isa KLMinRepGradProxDescent
         KLMinRepGradProxDescentState(
             prob, re(params), iteration, grad_buf, opt_st, obj_st, avg_st
