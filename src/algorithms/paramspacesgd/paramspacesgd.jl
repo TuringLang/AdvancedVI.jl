@@ -1,8 +1,6 @@
 
 const ParamSpaceSGD = Union{
-    <:KLMinRepGradDescent,
-    <:KLMinRepGradProxDescent,
-    <:KLMinScoreGradDescent,
+    <:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent
 }
 
 function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init, prob)
