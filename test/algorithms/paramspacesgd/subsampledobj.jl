@@ -63,8 +63,7 @@ end
     @testset "determinism" begin
         T = 128
         sub = ReshufflingBatchSubsampling(1:n_data, 1)
-        sub_obj = SubsampledObjective(full_obj, sub)
-        alg = ParamSpaceSGD(sub_obj, AD, DoWG(), PolynomialAveraging(), ClipScale())
+        alg = KLMinRepGradDescent(AD; subsampling=sub)
 
         rng = StableRNG(seed)
         q_avg, _, _ = optimize(rng, alg, T, prob, q0; show_progress=false)
