@@ -1,5 +1,4 @@
 
-
 """
 This family of algorithms (`<:KLMinRepGradDescent`,`<:KLMinRepGradProxDescent`,`<:KLMinScoreGradDescent`) applies stochastic gradient descent (SGD) to the variational `objective` over the (Euclidean) space of variational parameters.
 The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`.
@@ -21,17 +20,15 @@ function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init, prob)
     obj_st = init(rng, objective, adtype, q_init, prob, params, re)
     avg_st = init(averager, params)
     grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
-    if alg isa KLMinRepGradDescent
-        return KLMinRepGradDescentState(prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st)
-    elseif alg isa KLMinRepGradProxDescent
-        return KLMinRepGradProxDescentState(
-            prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st
-        )
-    elseif alg isa KLMinScoreGradDescent
-        return KLMinScoreGradDescentState(prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st)
-    else
-        throw(InvalidStateException())
-    end
+    return (
+        prob=prob,
+        q=q_init,
+        iteration=0,
+        grad_buf=grad_buf,
+        opt_st=opt_st,
+        obj_st=obj_st,
+        avg_st=avg_st,
+    )
 end
 
 function output(alg::ParamSpaceSGD, state)
@@ -59,19 +56,15 @@ function step(
     params = apply(operator, typeof(q), opt_st, params, re)
     avg_st = apply(averager, avg_st, params)
 
-    state = if alg isa KLMinRepGradDescent
-        KLMinRepGradDescentState(prob, re(params), iteration, grad_buf, opt_st, obj_st, avg_st)
-    elseif alg isa KLMinRepGradProxDescent
-        KLMinRepGradProxDescentState(
-            prob, re(params), iteration, grad_buf, opt_st, obj_st, avg_st
-        )
-    elseif alg isa KLMinScoreGradDescent
-        KLMinScoreGradDescentState(
-            prob, re(params), iteration, grad_buf, opt_st, obj_st, avg_st
-        )
-    else
-        throw(InvalidStateException())
-    end
+    state = (
+        prob=prob,
+        q=re(params),
+        iteration=iteration,
+        grad_buf=grad_buf,
+        opt_st=opt_st,
+        obj_st=obj_st,
+        avg_st=avg_st,
+    )
 
     if !isnothing(callback)
         averaged_params = value(averager, avg_st)
