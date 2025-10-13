@@ -1,4 +1,10 @@
 
+
+"""
+This family of algorithms (`<:KLMinRepGradDescent`,`<:KLMinRepGradProxDescent`,`<:KLMinScoreGradDescent`) applies stochastic gradient descent (SGD) to the variational `objective` over the (Euclidean) space of variational parameters.
+The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`.
+This requires the variational approximation to be marked as a functor through `Functors.@functor`.
+"""
 const ParamSpaceSGD = Union{
     <:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent
 }
