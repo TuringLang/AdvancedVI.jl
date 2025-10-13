@@ -55,16 +55,6 @@ struct KLMinRepGradDescent{
     operator::Op
 end
 
-struct KLMinRepGradDescentState{P,Q,GradBuf,OptSt,ObjSt,AvgSt}
-    prob::P
-    q::Q
-    iteration::Int
-    grad_buf::GradBuf
-    opt_st::OptSt
-    obj_st::ObjSt
-    avg_st::AvgSt
-end
-
 function KLMinRepGradDescent(
     adtype::ADTypes.AbstractADType;
     entropy::Union{<:ClosedFormEntropy,<:StickingTheLandingEntropy,<:MonteCarloEntropy}=ClosedFormEntropy(),
@@ -143,16 +133,6 @@ struct KLMinRepGradProxDescent{
     operator::Op
 end
 
-struct KLMinRepGradProxDescentState{P,Q,GradBuf,OptSt,ObjSt,AvgSt}
-    prob::P
-    q::Q
-    iteration::Int
-    grad_buf::GradBuf
-    opt_st::OptSt
-    obj_st::ObjSt
-    avg_st::AvgSt
-end
-
 function KLMinRepGradProxDescent(
     adtype::ADTypes.AbstractADType;
     entropy_zerograd::Union{
@@ -228,16 +208,6 @@ struct KLMinScoreGradDescent{
     optimizer::Opt
     averager::Avg
     operator::Op
-end
-
-struct KLMinScoreGradDescentState{P,Q,GradBuf,OptSt,ObjSt,AvgSt}
-    prob::P
-    q::Q
-    iteration::Int
-    grad_buf::GradBuf
-    opt_st::OptSt
-    obj_st::ObjSt
-    avg_st::AvgSt
 end
 
 function KLMinScoreGradDescent(
