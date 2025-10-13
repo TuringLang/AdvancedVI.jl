@@ -24,7 +24,7 @@ function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init, prob)
     elseif alg isa KLMinScoreGradDescent
         return KLMinScoreGradDescentState(prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st)
     else
-        nothing
+        throw(InvalidStateException())
     end
 end
 
@@ -64,7 +64,7 @@ function step(
             prob, re(params), iteration, grad_buf, opt_st, obj_st, avg_st
         )
     else
-        nothing
+        throw(InvalidStateException())
     end
 
     if !isnothing(callback)
