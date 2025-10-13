@@ -277,7 +277,6 @@ export optimize
 include("utils.jl")
 include("optimize.jl")
 
-
 ## Parameter Space SGD Implementations
 
 include("algorithms/abstractobjective.jl")

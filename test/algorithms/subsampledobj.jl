@@ -64,6 +64,7 @@ end
         T = 128
         sub = ReshufflingBatchSubsampling(1:n_data, 1)
         alg = KLMinRepGradDescent(AD; subsampling=sub)
+        sub_obj = alg.objective
 
         rng = StableRNG(seed)
         q_avg, _, _ = optimize(rng, alg, T, prob, q0; show_progress=false)
