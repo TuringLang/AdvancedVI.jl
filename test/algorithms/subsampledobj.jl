@@ -44,7 +44,7 @@ end
     @testset "algorithm constructors" begin
         @testset for batchsize in [1, 3, 4]
             sub = ReshufflingBatchSubsampling(1:n_data, batchsize)
-            alg = KLMinRepGradDescent(AD; n_samples=10, subsampling=sub)
+            alg = KLMinRepGradDescent(AD; n_samples=10, subsampling=sub, operator=ClipScale())
             _, info, _ = optimize(alg, 10, prob, q0; show_progress=false)
             @test isfinite(last(info).elbo)
 
@@ -63,7 +63,7 @@ end
     @testset "determinism" begin
         T = 128
         sub = ReshufflingBatchSubsampling(1:n_data, 1)
-        alg = KLMinRepGradDescent(AD; subsampling=sub)
+        alg = KLMinRepGradDescent(AD; subsampling=sub, operator=ClipScale())
         sub_obj = alg.objective
 
         rng = StableRNG(seed)
