@@ -5,7 +5,10 @@ The trainable parameters in the variational approximation are expected to be ext
 This requires the variational approximation to be marked as a functor through `Functors.@functor`.
 """
 const ParamSpaceSGD = Union{
-    <:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent,<:SubsampledObjective
+    <:KLMinRepGradDescent,
+    <:KLMinRepGradProxDescent,
+    <:KLMinScoreGradDescent,
+    <:SubsampledObjective,
 }
 
 function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init, prob)
