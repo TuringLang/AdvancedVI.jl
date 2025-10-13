@@ -44,7 +44,9 @@ end
     @testset "algorithm constructors" begin
         @testset for batchsize in [1, 3, 4]
             sub = ReshufflingBatchSubsampling(1:n_data, batchsize)
-            alg = KLMinRepGradDescent(AD; n_samples=10, subsampling=sub, operator=ClipScale())
+            alg = KLMinRepGradDescent(
+                AD; n_samples=10, subsampling=sub, operator=ClipScale()
+            )
             _, info, _ = optimize(alg, 10, prob, q0; show_progress=false)
             @test isfinite(last(info).elbo)
 
