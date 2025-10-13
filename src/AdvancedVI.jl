@@ -318,7 +318,7 @@ export RepGradELBO,
     SubsampledObjective
 
 include("algorithms/paramspacesgd/constructors.jl")
-include("algorithms/paramspacesgd/paramspacesgd.jl")
+include("algorithms/paramspacesgd/interface.jl")
 
 export KLMinRepGradDescent, KLMinRepGradProxDescent, KLMinScoreGradDescent, ADVI, BBVI
 
