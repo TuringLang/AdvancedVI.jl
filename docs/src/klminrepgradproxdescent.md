@@ -14,10 +14,10 @@ KLMinRepGradProxDescent
 
 The associated objective value can be estimated through the following:
 
-```@docs
+```@docs; canonical=false
 estimate_objective(
     ::Random.AbstractRNG,
-    ::KLMinRepGradProxDescent,
+    ::Union{<:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent},
     ::Any,
     ::Any;
     ::Int,
