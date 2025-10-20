@@ -346,7 +346,7 @@ export RepGradELBO,
     SubsampledObjective
 
 include("algorithms/constructors.jl")
-include("algorithms/interface.jl")
+include("algorithms/common.jl")
 
 export KLMinRepGradDescent, KLMinRepGradProxDescent, KLMinScoreGradDescent, ADVI, BBVI
 

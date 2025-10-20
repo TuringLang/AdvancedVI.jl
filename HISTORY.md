@@ -25,5 +25,5 @@ The state of the objectives `state` may now use a concrete type.
 Therefore, to be able to dispatch based on the type of `state` while avoiding type ambiguities, the `state` argument in `estimate_gradient!` has been moved to the front.
 
 Under the new interface `AbstractVariationalAlgorithms`, the algorithms running SGD in parameter space, currently `KLMinRepGradDescent`, `KLMinRepGradProxDescent`, `KLMinScoreGradDescent`, are treated as distinct algorithms.
-However, they all implicitly share the same `step` function in `src/algorithms/interface.jl` and the same fields for the `state ` object.
+However, they all implicitly share the same `step` function in `src/algorithms/common.jl` and the same fields for the `state ` object.
 This may change in the future.
