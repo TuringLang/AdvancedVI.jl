@@ -27,6 +27,19 @@
         end
     end
 
+    @testset "estimate_objective" begin
+        @testset for alg in [KLMinRepGradDescent(AD), KLMinRepGradProxDescent(AD)]
+            obj_est = estimate_objective(rng, alg, model, q0_trans)
+            isfinite(obj_est)
+
+            obj_est = estimate_objective(rng, alg, model, q0_trans; n_samples=1)
+            isfinite(obj_est)
+
+            obj_est = estimate_objective(rng, alg, model, q0_trans; n_samples=3)
+            isfinite(obj_est)
+        end
+    end
+
     @testset "warn MvLocationScale with IdentityOperator" begin
         @test_warn "IdentityOperator" begin
             alg = KLMinRepGradDescent(AD; operator=IdentityOperator())

@@ -12,6 +12,17 @@ This algorithm is also commonly referred to as automatic differentiation variati
 ```@docs
 KLMinRepGradDescent
 ```
+The associated objective value can be estimated through the following:
+```@docs
+estimate_objective(
+    ::Random.AbstractRNG,
+    ::KLMinRepGradDescent,
+    ::Any,
+    ::Any;
+    ::Int,
+    ::AbstractEntropyEstimator,
+)
+```
 
 ## [Methodology](@id klminrepgraddescent_method)
 
