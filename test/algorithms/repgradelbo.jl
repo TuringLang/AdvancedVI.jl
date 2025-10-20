@@ -28,15 +28,20 @@
     end
 
     @testset "estimate_objective" begin
+        q_true =  MeanFieldGaussian(μ_true, L_true)
+
         @testset for alg in [KLMinRepGradDescent(AD), KLMinRepGradProxDescent(AD)]
-            obj_est = estimate_objective(rng, alg, q0_trans, model)
-            isfinite(obj_est)
+            obj_est = estimate_objective(rng, alg, q_true, model)
+            @test isfinite(obj_est)
 
-            obj_est = estimate_objective(rng, alg, q0_trans, model; n_samples=1)
-            isfinite(obj_est)
+            obj_est = estimate_objective(rng, alg, q_true, model; n_samples=1)
+            @test isfinite(obj_est)
 
-            obj_est = estimate_objective(rng, alg, q0_trans, model; n_samples=3)
-            isfinite(obj_est)
+            obj_est = estimate_objective(rng, alg, q_true, model; n_samples=3)
+            @test isfinite(obj_est)
+
+            obj_est = estimate_objective(rng, alg, q_true, model; n_samples=10^5)
+            @test obj_est ≈ 0 rtol=1e-2
         end
     end
 
