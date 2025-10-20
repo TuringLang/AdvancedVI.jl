@@ -15,6 +15,7 @@ KLMinScoreGradDescent
 ```
 
 The associated objective value can be estimated through the following:
+
 ```@docs
 estimate_objective(
     ::Random.AbstractRNG,
