@@ -14,6 +14,19 @@ However, instead of using the vanilla score gradient estimator, we differentiate
 KLMinScoreGradDescent
 ```
 
+The associated objective value can be estimated through the following:
+
+```@docs; canonical=false
+estimate_objective(
+    ::Random.AbstractRNG,
+    ::Union{<:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent},
+    ::Any,
+    ::Any;
+    ::Int,
+    ::AbstractEntropyEstimator,
+)
+```
+
 ## Methodology
 
 This algorithm aims to solve the problem

@@ -255,6 +255,36 @@ Output a variational approximation from the last `state` of `alg`.
 """
 output(::AbstractVariationalAlgorithm, ::Any) = nothing
 
+"""
+    estimate_objective([rng,] alg, q, prob; kwargs...)
+
+Estimate the variational objective associated with the algorithm `alg` targeting `prob` with respect to the variational approximation `q`.
+
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `alg::AbstractVariationalAlgorithm`: Variational inference algorithm.
+- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
+- `q`: Variational approximation.
+
+# Keyword Arguments
+Depending on the algorithm, additional keyword arguments may apply.
+Please refer to the respective documentation of each algorithm for more info.
+
+# Returns
+- `obj_est`: Estimate of the objective value.
+"""
+function estimate_objective(
+    ::Random.AbstractRNG, ::AbstractVariationalAlgorithm, q, prob; kwargs...
+)
+    nothing
+end
+
+function estimate_objective(alg::AbstractVariationalAlgorithm, q, prob; kwargs...)
+    estimate_objective(Random.default_rng(), alg, q, prob; kwargs...)
+end
+
+export estimate_objective
+
 # Subsampling
 """
     subsample(model, batch)

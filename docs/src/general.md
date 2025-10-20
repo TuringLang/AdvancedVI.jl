@@ -1,11 +1,10 @@
-
 # [General Usage](@id general)
 
 AdvancedVI provides multiple variational inference (VI) algorithms.
 Each algorithm defines its subtype of [`AdvancedVI.AbstractVariationalAlgorithm`](@ref) with some corresponding methods (see [this section](@ref algorithm)).
 Then the algorithm can be executed by invoking `optimize`. (See [this section](@ref optimize)).
 
-## [Optimize](@id optimize)
+## [Running Variational Inference (`optimize`)](@id optimize)
 
 Given a subtype of `AbstractVariationalAlgorithm` associated with each algorithm, it suffices to call the function `optimize`:
 
@@ -15,6 +14,16 @@ optimize
 
 Each algorithm may interact differently with the arguments of `optimize`.
 Therefore, please refer to the documentation of each different algorithm for a detailed description on their behavior and their requirements.
+
+## [Estimating the Objective Value `estimate_objective`](@id estimate_objective)
+
+Furthermore, each algorithm has an associated variational objective.
+The progress made by each optimization algorithm can be diagnosed by monitoring the variational objective value.
+This can be done by calling the following method.
+
+```@docs
+estimate_objective(::Random.AbstractRNG, ::AdvancedVI.AbstractVariationalAlgorithm, ::Any, ::Any; kwargs...)
+```
 
 ## [Algorithm Interface](@id algorithm)
 
@@ -36,7 +45,7 @@ The role of each method should be self-explanatory and should be clear once we t
 The operation of `optimize` can be simplified as follows:
 
 ```julia
-function optimize([rng,] algorithm, max_iter, q_init, objargs; kwargs...)
+function optimize(rng, algorithm, max_iter, q_init, objargs; kwargs...)
     info_total = NamedTuple[]
     state = init(rng, algorithm, q_init, prob)
     for t in 1:max_iter

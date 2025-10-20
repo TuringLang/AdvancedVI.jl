@@ -12,7 +12,18 @@ Thus, for general usage and additional details, please refer to the docs of `KLM
 KLMinRepGradProxDescent
 ```
 
-It implements the stochastic proximal gradient descent-based algorithm described in: .
+The associated objective value can be estimated through the following:
+
+```@docs; canonical=false
+estimate_objective(
+    ::Random.AbstractRNG,
+    ::Union{<:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent},
+    ::Any,
+    ::Any;
+    ::Int,
+    ::AbstractEntropyEstimator,
+)
+```
 
 ## Methodology
 

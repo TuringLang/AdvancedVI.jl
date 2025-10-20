@@ -27,6 +27,24 @@
         end
     end
 
+    @testset "estimate_objective" begin
+        q_true = MeanFieldGaussian(μ_true, L_true)
+
+        @testset for alg in [KLMinRepGradDescent(AD), KLMinRepGradProxDescent(AD)]
+            obj_est = estimate_objective(rng, alg, q_true, model)
+            @test isfinite(obj_est)
+
+            obj_est = estimate_objective(rng, alg, q_true, model; n_samples=1)
+            @test isfinite(obj_est)
+
+            obj_est = estimate_objective(rng, alg, q_true, model; n_samples=3)
+            @test isfinite(obj_est)
+
+            obj_est = estimate_objective(rng, alg, q_true, model; n_samples=10^5)
+            @test obj_est ≈ 0 atol=1e-2
+        end
+    end
+
     @testset "warn MvLocationScale with IdentityOperator" begin
         @test_warn "IdentityOperator" begin
             alg = KLMinRepGradDescent(AD; operator=IdentityOperator())
