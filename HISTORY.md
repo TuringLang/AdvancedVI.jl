@@ -14,10 +14,16 @@ An additional layer of indirection, `AbstractVariationalAlgorithms` has been add
 Previously, all variational inference algorithms were assumed to run SGD in parameter space.
 This desing however, is proving to be too rigid.
 Instead, each algorithm is now assumed to implement three simple interfaces: `init`, `step`, and `output`.
-Algorithms that run SGD in parameter space now need to implement the `AbstractVarationalObjective` interface of `ParamSpaceSGD <: AbstractVariationalAlgorithms`, which is a general implementation of the new interface.
-Therefore, the old behavior of `AdvancedVI` is fully inhereted by `ParamSpaceSGD`.
+
+A new specialization of `estimate_objective` have been added that takes the variational algorithm `alg` as an argument.
+Therefore, each algorithm should now implement `estimate_objective`.
+This will automatically choose the right strategy for estimating the associated objective without having to worry about internal implementation details.
 
 ## Internal Changes
 
-The state of the objectives now use a concrete type.
-Related to this, the objective `state` argument in `estimate_gradient!` has been moved to the front to avoid type ambiguities.
+The state of the objectives `state` may now use a concrete type.
+Therefore, to be able to dispatch based on the type of `state` while avoiding type ambiguities, the `state` argument in `estimate_gradient!` has been moved to the front.
+
+Under the new interface `AbstractVariationalAlgorithms`, the algorithms running SGD in parameter space, currently `KLMinRepGradDescent`, `KLMinRepGradProxDescent`, `KLMinScoreGradDescent`, are treated as distinct algorithms.
+However, they all implicitly share the same `step` function in `src/algorithms/interface.jl` and the same fields for the `state ` object.
+This may change in the future.
