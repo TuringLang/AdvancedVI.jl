@@ -37,7 +37,7 @@
         @test isfinite(obj_est)
 
         obj_est = estimate_objective(rng, alg, q_true, model; n_samples=10^5)
-        @test obj_est ≈ 0 rtol = 1e-2
+        @test obj_est ≈ 0 atol = 1e-2
     end
 
     @testset "warn MvLocationScale with IdentityOperator" begin
