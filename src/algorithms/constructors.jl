@@ -76,35 +76,6 @@ function KLMinRepGradDescent(
     )
 end
 
-"""
-    estimate_objective([rng,] alg::KLMinRepGradDescent, q, prob; n_samples, entropy)
-
-Estimate the ELBO of the variational approximation `q` against the target log-density `prob`.
-
-# Arguments
-- `rng::Random.AbstractRNG`: Random number generator.
-- `alg::KLMinScoreGradDescent`: Variational inference algorithm.
-- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
-- `q`: Variational approximation.
-
-# Keyword Arguments
-- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the the number of samples used for estimating the gradient during optimization.)
-- `entropy::AbstractEntropyEstimator`: Entropy estimator. (default: `MonteCarloEntropy()`)
-
-# Returns
-- `obj_est`: Estimate of the objective value.
-"""
-function estimate_objective(
-    rng::Random.AbstractRNG,
-    alg::KLMinRepGradDescent,
-    q,
-    prob;
-    n_samples::Int=alg.objective.n_samples,
-    entropy::AbstractEntropyEstimator=MonteCarloEntropy(),
-)
-    return estimate_objective(rng, RepGradELBO(n_samples; entropy=entropy), q, prob)
-end
-
 const ADVI = KLMinRepGradDescent
 
 """
@@ -186,35 +157,6 @@ function KLMinRepGradProxDescent(
 end
 
 """
-    estimate_objective([rng,] alg::KLMinRepGradProxDescent, q, prob; n_samples, entropy)
-
-Estimate the ELBO of the variational approximation `q` against the target log-density `prob`.
-
-# Arguments
-- `rng::Random.AbstractRNG`: Random number generator.
-- `alg::KLMinScoreGradDescent`: Variational inference algorithm.
-- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
-- `q`: Variational approximation.
-
-# Keyword Arguments
-- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the the number of samples used for estimating the gradient during optimization.)
-- `entropy::AbstractEntropyEstimator`: Entropy estimator. (default: `MonteCarloEntropy()`)
-
-# Returns
-- `obj_est`: Estimate of the objective value.
-"""
-function estimate_objective(
-    rng::Random.AbstractRNG,
-    alg::KLMinRepGradProxDescent,
-    q,
-    prob;
-    n_samples::Int=alg.objective.n_samples,
-    entropy::AbstractEntropyEstimator=MonteCarloEntropy(),
-)
-    return estimate_objective(rng, RepGradELBO(n_samples; entropy=entropy), q, prob)
-end
-
-"""
     KLMinScoreGradDescent(adtype; optimizer, n_samples, averager, operator)
 
 KL divergence minimization by running stochastic gradient descent with the score gradient in the Euclidean space of variational parameters.
@@ -289,32 +231,3 @@ function KLMinScoreGradDescent(
 end
 
 const BBVI = KLMinScoreGradDescent
-
-"""
-    estimate_objective([rng,] alg::KLMinScoreGradDescent, q, prob; n_samples, entropy)
-
-Estimate the ELBO of the variational approximation `q` against the target log-density `prob`.
-
-# Arguments
-- `rng::Random.AbstractRNG`: Random number generator.
-- `alg::KLMinScoreGradDescent`: Variational inference algorithm.
-- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
-- `q`: Variational approximation.
-
-# Keyword Arguments
-- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the the number of samples used for estimating the gradient during optimization.)
-- `entropy::AbstractEntropyEstimator`: Entropy estimator. (default: `MonteCarloEntropy()`)
-
-# Returns
-- `obj_est`: Estimate of the objective value.
-"""
-function estimate_objective(
-    rng::Random.AbstractRNG,
-    alg::KLMinScoreGradDescent,
-    q,
-    prob;
-    n_samples::Int=alg.objective.n_samples,
-    entropy::AbstractEntropyEstimator=MonteCarloEntropy(),
-)
-    return estimate_objective(rng, RepGradELBO(n_samples; entropy=entropy), q, prob)
-end

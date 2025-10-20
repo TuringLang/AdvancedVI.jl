@@ -8,6 +8,35 @@ const ParamSpaceSGD = Union{
     <:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent
 }
 
+"""
+    estimate_objective([rng,] alg, q, prob; n_samples, entropy)
+
+Estimate the ELBO of the variational approximation `q` against the target log-density `prob`.
+
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `alg::Union{<:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent}`: Variational inference algorithm.
+- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
+- `q`: Variational approximation.
+
+# Keyword Arguments
+- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the the number of samples used for estimating the gradient during optimization.)
+- `entropy::AbstractEntropyEstimator`: Entropy estimator. (default: `MonteCarloEntropy()`)
+
+# Returns
+- `obj_est`: Estimate of the objective value.
+"""
+function estimate_objective(
+    rng::Random.AbstractRNG,
+    alg::Union{<:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent},
+    q,
+    prob;
+    n_samples::Int=alg.objective.n_samples,
+    entropy::AbstractEntropyEstimator=MonteCarloEntropy(),
+)
+    return estimate_objective(rng, RepGradELBO(n_samples; entropy=entropy), q, prob)
+end
+
 function init(rng::Random.AbstractRNG, alg::ParamSpaceSGD, q_init, prob)
     (; adtype, optimizer, averager, objective, operator) = alg
     if q_init isa AdvancedVI.MvLocationScale && operator isa AdvancedVI.IdentityOperator
