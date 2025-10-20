@@ -28,7 +28,7 @@
     end
 
     @testset "estimate_objective" begin
-        q_true =  MeanFieldGaussian(μ_true, L_true)
+        q_true = MeanFieldGaussian(μ_true, L_true)
 
         @testset for alg in [KLMinRepGradDescent(AD), KLMinRepGradProxDescent(AD)]
             obj_est = estimate_objective(rng, alg, q_true, model)
