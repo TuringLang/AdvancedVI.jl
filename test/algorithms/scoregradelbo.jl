@@ -26,13 +26,13 @@
     @testset "estimate_objective" begin
         alg = KLMinScoreGradDescent(AD)
 
-        obj_est = estimate_objective(rng, alg, model, q0_trans)
+        obj_est = estimate_objective(rng, alg, q0_trans, model)
         isfinite(obj_est)
 
-        obj_est = estimate_objective(rng, alg, model, q0_trans; n_samples=1)
+        obj_est = estimate_objective(rng, alg, q0_trans, model; n_samples=1)
         isfinite(obj_est)
 
-        obj_est = estimate_objective(rng, alg, model, q0_trans; n_samples=3)
+        obj_est = estimate_objective(rng, alg, q0_trans, model; n_samples=3)
         isfinite(obj_est)
     end
 
