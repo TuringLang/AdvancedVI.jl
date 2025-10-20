@@ -18,7 +18,7 @@ Therefore, please refer to the documentation of each different algorithm for a d
 ## [Estimating the Objective Value `estimate_objective`](@id estimate_objective)
 
 Furthermore, each algorithm has an associated variational objective.
-The progress made by each optimization algorithm can be diagnosed by monotoring the variational objective value.
+The progress made by each optimization algorithm can be diagnosed by monitoring the variational objective value.
 This can be done by calling the following method.
 
 ```@docs
