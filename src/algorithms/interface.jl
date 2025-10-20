@@ -16,8 +16,8 @@ Estimate the ELBO of the variational approximation `q` against the target log-de
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
 - `alg::Union{<:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent}`: Variational inference algorithm.
-- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 - `q`: Variational approximation.
+- `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 
 # Keyword Arguments
 - `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the the number of samples used for estimating the gradient during optimization.)
