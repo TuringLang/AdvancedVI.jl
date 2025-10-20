@@ -277,13 +277,10 @@ export optimize
 include("utils.jl")
 include("optimize.jl")
 
-## Parameter Space SGD
-include("algorithms/paramspacesgd/abstractobjective.jl")
-include("algorithms/paramspacesgd/paramspacesgd.jl")
-
-export ParamSpaceSGD
-
 ## Parameter Space SGD Implementations
+
+include("algorithms/abstractobjective.jl")
+
 ### ELBO Maximization
 
 abstract type AbstractEntropyEstimator end
@@ -304,10 +301,10 @@ Estimate the entropy of `q`.
 """
 function estimate_entropy end
 
-include("algorithms/paramspacesgd/subsampledobjective.jl")
-include("algorithms/paramspacesgd/repgradelbo.jl")
-include("algorithms/paramspacesgd/scoregradelbo.jl")
-include("algorithms/paramspacesgd/entropy.jl")
+include("algorithms/subsampledobjective.jl")
+include("algorithms/repgradelbo.jl")
+include("algorithms/scoregradelbo.jl")
+include("algorithms/entropy.jl")
 
 export RepGradELBO,
     ScoreGradELBO,
@@ -318,7 +315,8 @@ export RepGradELBO,
     StickingTheLandingEntropyZeroGradient,
     SubsampledObjective
 
-include("algorithms/paramspacesgd/constructors.jl")
+include("algorithms/constructors.jl")
+include("algorithms/interface.jl")
 
 export KLMinRepGradDescent, KLMinRepGradProxDescent, KLMinScoreGradDescent, ADVI, BBVI
 

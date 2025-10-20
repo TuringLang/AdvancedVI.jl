@@ -1,18 +1,51 @@
-# [Reparameterization Gradient Estimator](@id repgradelbo)
+# [`KLMinRepGradDescent`](@id klminrepgraddescent)
 
-## Overview
+## Description
 
-The `RepGradELBO` objective implements the reparameterization gradient estimator[^HC1983][^G1991][^R1992][^P1996] of the ELBO gradient.
+This algorithm aims to minimize the exclusive (or reverse) Kullback-Leibler (KL) divergence via stochastic gradient descent in the space of parameters.
+Specifically, it uses the the *reparameterization gradient estimator*.
+As a result, this algorithm is best applicable when the target log-density is differentiable and the sampling process of the variational family is differentiable.
+(See the [methodology section](@ref klminrepgraddescent_method) for more details.)
+This algorithm is also commonly referred to as automatic differentiation variational inference, black-box variational inference with the reparameterization gradient, and stochastic gradient variational inference.
+`KLMinRepGradDescent` is also an alias of `ADVI` .
+
+```@docs
+KLMinRepGradDescent
+```
+
+## [Methodology](@id klminrepgraddescent_method)
+
+This algorithm aims to solve the problem
+
+```math
+  \mathrm{minimize}_{q \in \mathcal{Q}}\quad \mathrm{KL}\left(q, \pi\right)
+```
+
+where $\mathcal{Q}$ is some family of distributions, often called the variational family, by running stochastic gradient descent in the (Euclidean) space of parameters.
+That is, for all $$q_{\lambda} \in \mathcal{Q}$$, we assume $$q_{\lambda}$$ there is a corresponding vector of parameters $$\lambda \in \Lambda$$, where the space of parameters is Euclidean such that $$\Lambda \subset \mathbb{R}^p$$.
+
+Since we usually only have access to the unnormalized densities of the target distribution $\pi$, we don't have direct access to the KL divergence.
+Instead, the ELBO maximization strategy maximizes a surrogate objective, the *evidence lower bound* (ELBO; [^JGJS1999])
+
+```math
+  \mathrm{ELBO}\left(q\right) \triangleq \mathbb{E}_{\theta \sim q} \log \pi\left(\theta\right) + \mathbb{H}\left(q\right),
+```
+
+which is equivalent to the KL up to an additive constant (the evidence).
+
+Algorithmically, `KLMinRepGradDescent` iterates the step
+
+```math
+  \lambda_{t+1} = \mathrm{operator}\big(
+      \lambda_{t} + \gamma_t \widehat{\nabla_{\lambda} \mathrm{ELBO}} (q_{\lambda_t}) 
+  \big) , 
+```
+
+where $\widehat{\nabla \mathrm{ELBO}}(q_{\lambda})$ is the reparameterization gradient estimate[^HC1983][^G1991][^R1992][^P1996] of the ELBO gradient and $$\mathrm{operator}$$ is an optional operator (*e.g.* projections, identity mapping).
+
 The reparameterization gradient, also known as the push-in gradient or the pathwise gradient, was introduced to VI in [^TL2014][^RMW2014][^KW2014].
-For the variational family $\mathcal{Q} = \{q_{\lambda} \mid \lambda \in \Lambda\}$, suppose the process of sampling from $q_{\lambda}$ can be described by some differentiable reparameterization function $$T_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
+For the variational family $$\mathcal{Q}$$, suppose the process of sampling from $$q_{\lambda} \in \mathcal{Q}$$ can be described by some differentiable reparameterization function $$T_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
 
-[^HC1983]: Ho, Y. C., & Cao, X. (1983). Perturbation analysis and optimization of queueing networks. Journal of optimization theory and Applications, 40(4), 559-582.
-[^G1991]: Glasserman, P. (1991). Gradient estimation via perturbation analysis (Vol. 116). Springer Science & Business Media.
-[^R1992]: Rubinstein, R. Y. (1992). Sensitivity analysis of discrete event systems by the “push out” method. Annals of Operations Research, 39(1), 229-250.
-[^P1996]: Pflug, G. C. (1996). Optimization of stochastic models: the interface between simulation and optimization (Vol. 373). Springer Science & Business Media.
-[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*.
-[^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*.
-[^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
 z \stackrel{d}{=} T_{\lambda}\left(\epsilon\right);\quad \epsilon \sim \varphi \; .
@@ -21,29 +54,22 @@ z \stackrel{d}{=} T_{\lambda}\left(\epsilon\right);\quad \epsilon \sim \varphi \
 In these cases, denoting the target log denstiy as $\log \pi$, we can effectively estimate the gradient of the ELBO by directly differentiating the stochastic estimate of the ELBO objective
 
 ```math
-  \widehat{\mathrm{ELBO}}\left(\lambda\right) = \frac{1}{M}\sum^M_{m=1} \log \pi\left(T_{\lambda}\left(\epsilon_m\right)\right) + \mathbb{H}\left(q_{\lambda}\right),
+  \widehat{\mathrm{ELBO}}\left(q_{\lambda}\right) = \frac{1}{M}\sum^M_{m=1} \log \pi\left(T_{\lambda}\left(\epsilon_m\right)\right) + \mathbb{H}\left(q_{\lambda}\right),
 ```
 
 where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples.
-The resulting gradient estimate is called the reparameterization gradient estimator.
 
-In addition to the reparameterization gradient, `AdvancedVI` provides the following features:
-
- 1. **Posteriors with constrained supports** are handled through [`Bijectors`](https://github.com/TuringLang/Bijectors.jl), which is known as the automatic differentiation VI (ADVI; [^KTRGB2017]) formulation. (See [this section](@ref bijectors).)
- 2. **The gradient of the entropy** can be estimated through various strategies depending on the capabilities of the variational family. (See [this section](@ref entropygrad).)
-
-## `RepGradELBO`
-
-To use the reparameterization gradient, `AdvancedVI` provides the following variational objective:
-
-```@docs
-RepGradELBO
-```
-
+[^JGJS1999]: Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., & Saul, L. K. (1999). An introduction to variational methods for graphical models. Machine learning, 37, 183-233.
+[^HC1983]: Ho, Y. C., & Cao, X. (1983). Perturbation analysis and optimization of queueing networks. Journal of optimization theory and Applications, 40(4), 559-582.
+[^G1991]: Glasserman, P. (1991). Gradient estimation via perturbation analysis (Vol. 116). Springer Science & Business Media.
+[^R1992]: Rubinstein, R. Y. (1992). Sensitivity analysis of discrete event systems by the “push out” method. Annals of Operations Research, 39(1), 229-250.
+[^P1996]: Pflug, G. C. (1996). Optimization of stochastic models: the interface between simulation and optimization (Vol. 373). Springer Science & Business Media.
+[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*.
+[^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*.
+[^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
 ## [Handling Constraints with `Bijectors`](@id bijectors)
 
-As mentioned in the docstring, the `RepGradELBO` objective assumes that the variational approximation $$q_{\lambda}$$ and the target distribution $$\pi$$ have the same support for all $$\lambda \in \Lambda$$.
-
+As mentioned in the docstring, `KLMinRepGradDescent` assumes that the variational approximation $$q_{\lambda}$$ and the target distribution $$\pi$$ have the same support for all $$\lambda \in \Lambda$$.
 However, in general, it is most convenient to use variational families that have the whole Euclidean space $$\mathbb{R}^d$$ as their support.
 This is the case for the [location-scale distributions](@ref locscale) provided by `AdvancedVI`.
 For target distributions which the support is not the full $$\mathbb{R}^d$$, we can apply some transformation $$b$$ to $$q_{\lambda}$$ to match its support such that
@@ -57,9 +83,11 @@ where $$b$$ is often called a *bijector*, since it is often chosen among bijecti
 This idea is known as automatic differentiation VI[^KTRGB2017] and has subsequently been improved by Tensorflow Probability[^DLTBV2017].
 In Julia, [Bijectors.jl](https://github.com/TuringLang/Bijectors.jl)[^FXTYG2020] provides a comprehensive collection of bijections.
 
-One caveat of ADVI is that, after applying the bijection, a Jacobian adjustment needs to be applied.
-That is, the objective is now
-
+[^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of Machine Learning Research*, 18(14), 1-45.
+[^DLTBV2017]: Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... & Saurous, R. A. (2017). Tensorflow distributions. arXiv.
+[^FXTYG2020]: Fjelde, T. E., Xu, K., Tarek, M., Yalburgi, S., & Ge, H. (2020,. Bijectors. jl: Flexible transformations for probability distributions. In *Symposium on Advances in Approximate Bayesian Inference*.
+    One caveat of ADVI is that, after applying the bijection, a Jacobian adjustment needs to be applied.
+    That is, the objective is now
 ```math
 \mathrm{ADVI}\left(\lambda\right)
 \triangleq
@@ -84,13 +112,10 @@ q_transformed = Bijectors.TransformedDistribution(q, binv)
 By passing `q_transformed` to `optimize`, the Jacobian adjustment for the bijector `b` is automatically applied.
 (See the [Basic Example](@ref basic) for a fully working example.)
 
-[^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of Machine Learning Research*.
-[^DLTBV2017]: Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... & Saurous, R. A. (2017). Tensorflow distributions. arXiv.
-[^FXTYG2020]: Fjelde, T. E., Xu, K., Tarek, M., Yalburgi, S., & Ge, H. (2020,. Bijectors. jl: Flexible transformations for probability distributions. In *Symposium on Advances in Approximate Bayesian Inference*.
-## [Entropy Estimators](@id entropygrad)
+## [Entropy Gradient Estimators](@id entropygrad)
 
 For the gradient of the entropy term, we provide three choices with varying requirements.
-The user can select the entropy estimator by passing it as a keyword argument when constructing the `RepGradELBO` objective.
+The user can select the entropy estimator by passing it as a keyword argument when constructing the algorithm object.
 
 | Estimator                   | `entropy(q)` | `logpdf(q)` | Type                             |
 |:--------------------------- |:------------:|:-----------:|:-------------------------------- |
@@ -179,7 +204,7 @@ end
 
 In this example, the true posterior is contained within the variational family.
 This setting is known as "perfect variational family specification."
-In this case, the `RepGradELBO` estimator with `StickingTheLandingEntropy` is the only estimator known to converge exponentially fast ("linear convergence") to the true solution.
+In this case, `KLMinRepGradDescent` with `StickingTheLandingEntropy` is the only estimator known to converge exponentially fast ("linear convergence") to the true solution.
 
 Recall that the original ADVI objective with a closed-form entropy (CFE) is given as follows:
 
@@ -281,7 +306,7 @@ Furthermore, in a lot of cases, a low-accuracy solution may be sufficient.
 [^KMG2024]: Kim, K., Ma, Y., & Gardner, J. (2024). Linear Convergence of Black-Box Variational Inference: Should We Stick the Landing?. In International Conference on Artificial Intelligence and Statistics (pp. 235-243). PMLR.
 ## Advanced Usage
 
-There are two major ways to customize the behavior of `RepGradELBO`
+There are two major ways to customize the behavior of `KLMinRepGradDescent`
 
   - Customize the `Distributions` functions: `rand(q)`, `entropy(q)`, `logpdf(q)`.
   - Customize `AdvancedVI.reparam_with_entropy`.

@@ -18,6 +18,22 @@ KL divergence minimization by running stochastic gradient descent with the repar
 - `operator::AbstractOperator`: Operator to be applied after each gradient descent step. (default: `IdentityOperator()`)
 - `subsampling::Union{<:Nothing,<:AbstractSubsampling}`: Data point subsampling strategy. If `nothing`, subsampling is not used. (default: `nothing`)
 
+# Output
+- `q_averaged`: The variational approximation formed by the averaged SGD iterates.
+
+# Callback
+The callback function `callback` has a signature of
+
+    callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
+
+The arguments are as follows:
+- `rng`: Random number generator internally used by the algorithm.
+- `iteration`: The index of the current iteration.
+- `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(params)` reconstructs the current variational approximation. 
+- `params`: Current variational parameters.
+- `averaged_params`: Variational parameters averaged according to the averaging strategy.
+- `gradient`: The estimated (possibly stochastic) gradient.
+
 # Requirements
 - The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`. This requires the variational approximation to be marked as a functor through `Functors.@functor`.
 - The variational approximation ``q_{\\lambda}`` implements `rand`.
@@ -25,6 +41,20 @@ KL divergence minimization by running stochastic gradient descent with the repar
 - The target `LogDensityProblems.logdensity(prob, x)` must be differentiable with respect to `x` by the selected AD backend.
 - Additonal requirements on `q` may apply depending on the choice of `entropy`.
 """
+struct KLMinRepGradDescent{
+    Obj<:Union{<:RepGradELBO,<:SubsampledObjective},
+    AD<:ADTypes.AbstractADType,
+    Opt<:Optimisers.AbstractRule,
+    Avg<:AbstractAverager,
+    Op<:AbstractOperator,
+} <: AbstractVariationalAlgorithm
+    objective::Obj
+    adtype::AD
+    optimizer::Opt
+    averager::Avg
+    operator::Op
+end
+
 function KLMinRepGradDescent(
     adtype::ADTypes.AbstractADType;
     entropy::Union{<:ClosedFormEntropy,<:StickingTheLandingEntropy,<:MonteCarloEntropy}=ClosedFormEntropy(),
@@ -39,7 +69,11 @@ function KLMinRepGradDescent(
     else
         SubsampledObjective(RepGradELBO(n_samples; entropy=entropy), subsampling)
     end
-    return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
+    return KLMinRepGradDescent{
+        typeof(objective),typeof(adtype),typeof(optimizer),typeof(averager),typeof(operator)
+    }(
+        objective, adtype, optimizer, averager, operator
+    )
 end
 
 const ADVI = KLMinRepGradDescent
@@ -63,12 +97,42 @@ Thus, only the entropy estimators with a "ZeroGradient" suffix are allowed.
 - `averager::AbstractAverager`: Parameter averaging strategy. (default: `PolynomialAveraging()`)
 - `subsampling::Union{<:Nothing,<:AbstractSubsampling}`: Data point subsampling strategy. If `nothing`, subsampling is not used. (default: `nothing`)
 
+# Output
+- `q_averaged`: The variational approximation formed by the averaged SGD iterates.
+
+# Callback
+The callback function `callback` has a signature of
+
+    callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
+
+The arguments are as follows:
+- `rng`: Random number generator internally used by the algorithm.
+- `iteration`: The index of the current iteration.
+- `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(params)` reconstructs the current variational approximation. 
+- `params`: Current variational parameters.
+- `averaged_params`: Variational parameters averaged according to the averaging strategy.
+- `gradient`: The estimated (possibly stochastic) gradient.
+
 # Requirements
 - The variational family is `MvLocationScale`.
 - The target distribution and the variational approximation have the same support.
 - The target `LogDensityProblems.logdensity(prob, x)` must be differentiable with respect to `x` by the selected AD backend.
 - Additonal requirements on `q` may apply depending on the choice of `entropy_zerograd`.
 """
+struct KLMinRepGradProxDescent{
+    Obj<:Union{<:RepGradELBO,<:SubsampledObjective},
+    AD<:ADTypes.AbstractADType,
+    Opt<:Optimisers.AbstractRule,
+    Avg<:AbstractAverager,
+    Op<:ProximalLocationScaleEntropy,
+} <: AbstractVariationalAlgorithm
+    objective::Obj
+    adtype::AD
+    optimizer::Opt
+    averager::Avg
+    operator::Op
+end
+
 function KLMinRepGradProxDescent(
     adtype::ADTypes.AbstractADType;
     entropy_zerograd::Union{
@@ -85,7 +149,11 @@ function KLMinRepGradProxDescent(
     else
         SubsampledObjective(RepGradELBO(n_samples; entropy=entropy_zerograd), subsampling)
     end
-    return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
+    return KLMinRepGradProxDescent{
+        typeof(objective),typeof(adtype),typeof(optimizer),typeof(averager),typeof(operator)
+    }(
+        objective, adtype, optimizer, averager, operator
+    )
 end
 
 """
@@ -106,15 +174,45 @@ KL divergence minimization by running stochastic gradient descent with the score
 - `operator::Union{<:IdentityOperator, <:ClipScale}`: Operator to be applied after each gradient descent step. (default: `IdentityOperator()`)
 - `subsampling::Union{<:Nothing,<:AbstractSubsampling}`: Data point subsampling strategy. If `nothing`, subsampling is not used. (default: `nothing`)
 
+# Output
+- `q_averaged`: The variational approximation formed by the averaged SGD iterates.
+
+# Callback
+The callback function `callback` has a signature of
+
+    callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
+
+The arguments are as follows:
+- `rng`: Random number generator internally used by the algorithm.
+- `iteration`: The index of the current iteration.
+- `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(params)` reconstructs the current variational approximation. 
+- `params`: Current variational parameters.
+- `averaged_params`: Variational parameters averaged according to the averaging strategy.
+- `gradient`: The estimated (possibly stochastic) gradient.
+
 # Requirements
 - The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`. This requires the variational approximation to be marked as a functor through `Functors.@functor`.
 - The variational approximation ``q_{\\lambda}`` implements `rand`.
 - The variational approximation ``q_{\\lambda}`` implements `logpdf(q, x)`, which should also be differentiable with respect to `x`.
 - The target distribution and the variational approximation have the same support.
 """
+struct KLMinScoreGradDescent{
+    Obj<:Union{<:ScoreGradELBO,<:SubsampledObjective},
+    AD<:ADTypes.AbstractADType,
+    Opt<:Optimisers.AbstractRule,
+    Avg<:AbstractAverager,
+    Op<:AbstractOperator,
+} <: AbstractVariationalAlgorithm
+    objective::Obj
+    adtype::AD
+    optimizer::Opt
+    averager::Avg
+    operator::Op
+end
+
 function KLMinScoreGradDescent(
     adtype::ADTypes.AbstractADType;
-    optimizer::Union{<:Descent,<:DoG,<:DoWG}=DoWG(),
+    optimizer::Optimisers.AbstractRule=DoWG(),
     n_samples::Int=1,
     averager::AbstractAverager=PolynomialAveraging(),
     operator::AbstractOperator=IdentityOperator(),
@@ -125,7 +223,11 @@ function KLMinScoreGradDescent(
     else
         SubsampledObjective(ScoreGradELBO(n_samples), subsampling)
     end
-    return ParamSpaceSGD(objective, adtype, optimizer, averager, operator)
+    return KLMinScoreGradDescent{
+        typeof(objective),typeof(adtype),typeof(optimizer),typeof(averager),typeof(operator)
+    }(
+        objective, adtype, optimizer, averager, operator
+    )
 end
 
 const BBVI = KLMinScoreGradDescent

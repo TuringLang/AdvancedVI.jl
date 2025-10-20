@@ -1,6 +1,6 @@
 # [Reparameterizable Variational Families](@id families)
 
-The [RepGradELBO](@ref repgradelbo) objective assumes that the members of the variational family have a differentiable sampling path.
+Algorithms such as [`KLMinRepGradELBO`](@ref klminrepgraddescent) assume that the members of the variational family have a differentiable sampling path.
 We provide multiple pre-packaged variational families that can be readily used.
 
 ## [The `LocationScale` Family](@id locscale)

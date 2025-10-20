@@ -25,7 +25,15 @@ function AdvancedVI.init(
     obj_st = AdvancedVI.init(rng, objective, adtype, q_init, prob, params, re)
     avg_st = AdvancedVI.init(averager, params)
     grad_buf = DiffResults.DiffResult(zero(eltype(params)), similar(params))
-    return AdvancedVI.ParamSpaceSGDState(prob, q_init, 0, grad_buf, opt_st, obj_st, avg_st)
+    return (
+        prob=prob,
+        q=q_init,
+        iteration=0,
+        grad_buf=grad_buf,
+        opt_st=opt_st,
+        obj_st=obj_st,
+        avg_st=avg_st,
+    )
 end
 
 function AdvancedVI.apply(

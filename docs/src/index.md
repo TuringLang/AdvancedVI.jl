@@ -10,7 +10,6 @@ VI algorithms perform scalable and computationally efficient Bayesian inference 
 
 # List of Algorithms
 
-  - [ParamSpaceSGD](@ref paramspacesgd)
   - [KLMinRepGradDescent](@ref klminrepgraddescent) (alias of `ADVI`)
   - [KLMinRepGradProxDescent](@ref klminrepgradproxdescent)
   - [KLMinScoreGradDescent](@ref klminscoregraddescent)  (alias of `BBVI`)
