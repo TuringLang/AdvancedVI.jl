@@ -9,6 +9,7 @@ VI algorithms perform scalable and computationally efficient Bayesian inference 
 `AdvancedVI` is part of the [Turing](https://turinglang.org/stable/) probabilistic programming ecosystem.
 
 For general usage, first refer to following page:
+
   - [General Usage](@ref general)
 
 For using the algorithms implemented in `AdvancedVI`, refer to the corresponding documentations below:
