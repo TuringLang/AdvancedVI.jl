@@ -4,7 +4,7 @@ AdvancedVI provides multiple variational inference (VI) algorithms.
 Each algorithm defines its subtype of [`AdvancedVI.AbstractVariationalAlgorithm`](@ref) with some corresponding methods (see [this section](@ref algorithm)).
 Then the algorithm can be executed by invoking `optimize`. (See [this section](@ref optimize)).
 
-## [Running Variational Inference (`optimize`)](@id optimize)
+## [Running Variational Inference](@id optimize)
 
 Given a subtype of `AbstractVariationalAlgorithm` associated with each algorithm, it suffices to call the function `optimize`:
 
@@ -15,7 +15,7 @@ optimize
 Each algorithm may interact differently with the arguments of `optimize`.
 Therefore, please refer to the documentation of each different algorithm for a detailed description on their behavior and their requirements.
 
-## [Estimating the Objective Value `estimate_objective`](@id estimate_objective)
+## [Monitoring the Objective Value](@id estimate_objective)
 
 Furthermore, each algorithm has an associated variational objective.
 The progress made by each optimization algorithm can be diagnosed by monitoring the variational objective value.
