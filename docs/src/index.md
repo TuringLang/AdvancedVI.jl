@@ -8,7 +8,7 @@ CurrentModule = AdvancedVI
 VI algorithms perform scalable and computationally efficient Bayesian inference at the cost of asymptotic exactness.
 `AdvancedVI` is part of the [Turing](https://turinglang.org/stable/) probabilistic programming ecosystem.
 
-For general usage, first refer to following page:
+For general usage, first refer to the following page:
 
   - [General Usage](@ref general)
 
