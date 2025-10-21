@@ -12,7 +12,7 @@ Therefore, in case a variational family of `<:MvLocationScale` is used in combin
 
 An additional layer of indirection, `AbstractVariationalAlgorithms` has been added.
 Previously, all variational inference algorithms were assumed to run SGD in parameter space.
-This desing however, is proving to be too rigid.
+This design however, has proved to be too rigid.
 Instead, each algorithm is now assumed to implement three simple interfaces: `init`, `step`, and `output`.
 
 A new specialization of `estimate_objective` have been added that takes the variational algorithm `alg` as an argument.
