@@ -31,6 +31,10 @@ function LogDensityProblems.logdensity_gradient_and_hessian(m::SubsampledNormals
     )
 end
 
+function LogDensityProblems.dimension(::SubsampledNormals)
+    return 1
+end
+
 function LogDensityProblems.capabilities(::Type{<:SubsampledNormals})
     return LogDensityProblems.LogDensityOrder{2}()
 end
@@ -44,6 +48,6 @@ function subsamplednormal(rng::Random.AbstractRNG, n_data::Int)
     model = SubsampledNormals(rng, n_data)
     n_dims = 1
     μ_true = [mean([mean(dist) for dist in model.dists])]
-    L_true = Diagonal(ones(1))
+    L_true = Diagonal([sqrt(1/n_data)])
     return TestModel(model, μ_true, L_true, n_dims, 1, true)
 end
