@@ -40,10 +40,10 @@ function AdvancedVI.subsample(m::SubsampledNormals, idx)
     return SubsampledNormals(m.dists[idx], n_data/length(idx))
 end
 
-function subsamplednormal(n_data::Int)
-    model = SubsampledNormals(Random.default_rng(), n_data)
+function subsamplednormal(rng::Random.AbstractRNG, n_data::Int)
+    model = SubsampledNormals(rng, n_data)
     n_dims = 1
-    μ_true = [mean([mean(dist) for dist in prob.dists])]
+    μ_true = [mean([mean(dist) for dist in model.dists])]
     L_true = Diagonal(ones(1))
     return TestModel(model, μ_true, L_true, n_dims, 1, true)
 end

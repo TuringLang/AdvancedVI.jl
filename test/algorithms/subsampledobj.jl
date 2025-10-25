@@ -3,7 +3,7 @@
     seed = (0x38bef07cf9cc549d)
     n_data = 8
 
-    modelstats = subsamplednormal(n_data)
+    modelstats = subsamplednormal(Random.default_rng(), n_data)
     (; model, n_dims, μ_true, L_true) = modelstats
 
     q0 = MeanFieldGaussian(μ_true, Diagonal(diag(L_true)))
