@@ -64,6 +64,8 @@ if GROUP == "All" || GROUP == "GENERAL"
 
     include("families/location_scale.jl")
     include("families/location_scale_low_rank.jl")
+
+    include("algorithms/klminwassfwdbwd.jl")
 end
 
 if GROUP == "All" || GROUP == "AD"
