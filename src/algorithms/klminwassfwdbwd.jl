@@ -152,9 +152,7 @@ function estimate_objective(
 ) where {S,L}
     obj = RepGradELBO(n_samples; entropy=MonteCarloEntropy())
     if isnothing(alg.subsampling)
-        return estimate_objective(
-            rng, obj, q, prob
-        )
+        return estimate_objective(rng, obj, q, prob)
     else
         sub = alg.subsampling
         sub_st = init(rng, sub)
