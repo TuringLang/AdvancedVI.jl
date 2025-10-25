@@ -1,4 +1,3 @@
-
 # Release 0.6
 
 This update adds new variational inference algorithms in light of the flexibility added in the v0.5 update.
