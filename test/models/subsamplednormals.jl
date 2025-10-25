@@ -24,8 +24,16 @@ function LogDensityProblems.logdensity_and_gradient(m::SubsampledNormals, x)
     )
 end
 
-function LogDensityProblems.capabilities(::Type{SubsampledNormals{D,F,C}}) where {D,F,C}
-    return C()
+function LogDensityProblems.logdensity_gradient_and_hessian(m::SubsampledNormals, x)
+    return (
+        LogDensityProblems.logdensity(m, x),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, m), x),
+        ForwardDiff.hessian(Base.Fix1(LogDensityProblems.logdensity, m), x),
+    )
+end
+
+function LogDensityProblems.capabilities(::Type{<:SubsampledNormals})
+    return LogDensityProblems.LogDensityOrder{2}()
 end
 
 function AdvancedVI.subsample(m::SubsampledNormals, idx)
@@ -33,16 +41,8 @@ function AdvancedVI.subsample(m::SubsampledNormals, idx)
     return SubsampledNormals(m.dists[idx], n_data/length(idx))
 end
 
-function subsamplednormal(n_data::Int; capability::Int=1)
-    cap = if capability == 1
-        LogDensityProblems.LogDensityOrder{1}()
-    elseif capability == 2
-        LogDensityProblems.LogDensityOrder{2}()
-    else
-        LogDensityProblems.LogDensityOrder{0}()
-    end
-    model = SubsampledNormals(Random.default_rng(), n_data, cap)
-
+function subsamplednormal(n_data::Int)
+    model = SubsampledNormals(Random.default_rng(), n_data)
     n_dims = 1
     μ_true = [mean([mean(dist) for dist in prob.dists])]
     L_true = Diagonal(ones(1))
