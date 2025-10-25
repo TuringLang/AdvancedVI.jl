@@ -53,9 +53,9 @@ struct TestModel{M,L,S,SC}
 end
 include("models/normal.jl")
 include("models/normallognormal.jl")
+include("models/subsamplednormals.jl")
 
 if GROUP == "All" || GROUP == "GENERAL"
-    # Tests that do not need to check correct integration with AD backends
     include("general/optimize.jl")
     include("general/proximal_location_scale_entropy.jl")
     include("general/rules.jl")
