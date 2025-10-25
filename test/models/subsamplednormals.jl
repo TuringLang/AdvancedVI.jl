@@ -1,8 +1,7 @@
 
-struct SubsampledNormals{D<:Normal,F<:Real,C}
+struct SubsampledNormals{D<:Normal,F<:Real}
     dists::Vector{D}
     likeadj::F
-    cap::C
 end
 
 function SubsampledNormals(rng::Random.AbstractRNG, n_normals::Int)
