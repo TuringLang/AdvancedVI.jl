@@ -56,11 +56,11 @@ For solving this problem, `KLMinWassFwdBwd` relies on proximal stochastic gradie
 
 ```math
   q_{t+1} = \mathrm{JKO}_{\gamma_t \mathcal{H}}\big(
-      q_{t} - \gamma_t \widehat{\nabla_{\mathrm{BW}} \mathcal{V}} (q_{t}) 
+      q_{t} - \gamma_t \widehat{\nabla_{\mathrm{BW}} \mathcal{U}} (q_{t}) 
   \big) , 
 ```
 
-where $$\widehat{\nabla_{\mathrm{BW}} \mathcal{V}}$$ is a stochastic estimate of the Bures-Wasserstein measure-valued gradient of $$\mathcal{V}$$, the JKO (proximal) operator is defined as
+where $$\widehat{\nabla_{\mathrm{BW}} \mathcal{U}}$$ is a stochastic estimate of the Bures-Wasserstein measure-valued gradient of $$\mathcal{U}$$, the JKO (proximal) operator is defined as
 
 ```math
 \mathrm{JKO}_{\gamma_t \mathcal{H}}(\mu)
