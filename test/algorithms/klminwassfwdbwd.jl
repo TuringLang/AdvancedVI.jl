@@ -137,7 +137,7 @@
             @test L == L_repl
         end
 
-        @testset "convergence capability=$(capability)"  for capability in [1,2]
+        @testset "convergence capability=$(capability)" for capability in [1, 2]
             modelstats = subsamplednormal(Random.default_rng(), n_data; capability)
             (; model, n_dims, μ_true, L_true) = modelstats
 
