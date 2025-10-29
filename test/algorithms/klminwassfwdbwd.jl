@@ -47,17 +47,21 @@
         alg = KLMinWassFwdBwd(; n_samples=10, stepsize=1.0)
 
         @testset "error low capability" begin
-            modelstats = normal_meanfield(Random.default_rng(), Float64)
+            modelstats = normal_meanfield(Random.default_rng(), Float64; capability=0)
             (; model, n_dims) = modelstats
 
             L0 = LowerTriangular(Matrix{Float64}(I, n_dims, n_dims))
             q0 = FullRankGaussian(zeros(Float64, n_dims), L0)
-            @test_throws "second-order" optimize(alg, 1, model, q0)
+            @test_throws "first-order" optimize(alg, 1, model, q0)
         end
     end
 
-    @testset "type stability $(realtype)" for realtype in [Float64, Float32]
-        modelstats = normal_meanfield(Random.default_rng(), realtype; capability=2)
+    @testset "type stability type=$(realtype), capability=$(capability)" for realtype in [
+            Float64, Float32
+        ],
+        capability in [1, 2]
+
+        modelstats = normal_meanfield(Random.default_rng(), realtype; capability)
         (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
         alg = KLMinWassFwdBwd(; n_samples=10, stepsize=1e-3)
@@ -72,8 +76,8 @@
         @test eltype(q.scale) == eltype(L_true)
     end
 
-    @testset "convergence" begin
-        modelstats = normal_meanfield(Random.default_rng(), Float64; capability=2)
+    @testset "convergence capability=$(capability)" for capability in [1, 2]
+        modelstats = normal_meanfield(Random.default_rng(), Float64; capability)
         (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
 
         T = 1000

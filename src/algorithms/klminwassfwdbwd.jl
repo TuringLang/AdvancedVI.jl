@@ -5,6 +5,8 @@
 
 KL divergence minimization by running stochastic proximal gradient descent (forward-backward splitting) in Wasserstein space[^DBCS2023].
 
+Denoting the target log-density as \$\$ \\log \\pi \$\$ and the current variational approximation as \$\$q\$\$, the original algorithm requires estimating the quantity \$\$ \\mathbb{E}_q \\nabla^2 \\log \\pi \$\$. It the target `LogDensityProblem` associated with \$\$ \\log \\pi \$\$ has second-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), we use the sample average of the Hessian. If the target has only first-order capability, we use Stein's identity.
+
 # (Keyword) Arguments
 - `n_samples::Int`: Number of samples used to estimate the Wasserstein gradient. (default: `1`)
 - `stepsize::Float64`: Step size of stochastic proximal gradient descent.
@@ -30,13 +32,65 @@ The arguments are as follows:
 # Requirements
 - The variational family is [`FullRankGaussian`](@ref FullRankGaussian).
 - The target distribution has unconstrained support (\$\$\\mathbb{R}^d\$\$).
-- The target `LogDensityProblems.logdensity(prob, x)` has second-order differentiation capability. (`KLMinWassFwdBwd` uses Hessians of the log-density.)
+- The target `LogDensityProblems.logdensity(prob, x)` has at least first-order differentiation capability.
 """
 @kwdef struct KLMinWassFwdBwd{Sub<:Union{Nothing,<:AbstractSubsampling}} <:
               AbstractVariationalAlgorithm
     n_samples::Int = 1
     stepsize::Float64
     subsampling::Sub = nothing
+end
+
+"""
+    gaussian_expectation_gradient_and_hessian!(rng, q, n_samples, grad_buf, hess_buf, prob)
+
+Estimate the expectations of the gradient and Hessians of the log-density of `prob` taken over the Gaussian `q`. For estimating the expectation of the Hessian, if `prob` has second-order differentiation capability, this function internally uses the Bonnet-Price estimator. Otherwise, it uses Stein's identity.
+
+# Arguments
+- `rng::Random.AbstractRNG`: Random number generator.
+- `q::MvLocationScale{<:LowerTriangular,<:Normal,L}`: Gaussian to take expectation over.
+- `n_samples::Int`: Number of samples used for estimation.
+- `grad_buf::AbstractVector`: Buffer for the gradient estimate.
+- `hess_buf::AbstractMatrix`: Buffer for the Hessian estimate.
+- `prob`: `LogDensityProblem` associated with the log-density gradient and Hessian subject to expectation.
+"""
+function gaussian_expectation_gradient_and_hessian!(
+    rng::Random.AbstractRNG,
+    q::MvLocationScale{<:LowerTriangular,<:Normal,L},
+    n_samples::Int,
+    grad_buf::AbstractVector{T},
+    hess_buf::AbstractMatrix{T},
+    prob
+) where {T<:Real,L}
+    logπ_avg = zero(T)
+    fill!(grad_buf, zero(T))
+    fill!(hess_buf, zero(T))
+
+    if LogDensityProblems.capabilities(typeof(prob)) ≤ LogDensityProblems.LogDensityOrder{1}()
+        # Use Stein's identity
+        d = LogDensityProblems.dimension(prob)
+        u = randn(rng, T, d, n_samples)
+        z = q.scale*u .+ q.location
+        for b in 1:n_samples
+            zb, ub = view(z, :, b), view(u, :, b)
+            logπ, ∇logπ = LogDensityProblems.logdensity_and_gradient(prob, zb)
+            logπ_avg += logπ/n_samples
+            grad_buf += ∇logπ/n_samples
+            hess_buf += ub*(∇logπ/n_samples)'
+        end
+        return logπ_avg, grad_buf, hess_buf
+    else
+        # Use sample average of the Hessian.
+        z = rand(rng, q, n_samples)
+        for b in 1:n_samples
+            zb = view(z, :, b)
+            logπ, ∇logπ, ∇2logπ = LogDensityProblems.logdensity_gradient_and_hessian(prob, zb)
+            logπ_avg += logπ/n_samples
+            grad_buf += ∇logπ/n_samples
+            hess_buf += ∇2logπ/n_samples
+        end
+        return logπ_avg, grad_buf, hess_buf
+    end
 end
 
 struct KLMinWassFwdBwdState{Q,P,S,Sigma,GradBuf,HessBuf}
@@ -58,10 +112,10 @@ function init(
     sub = alg.subsampling
     n_dims = LogDensityProblems.dimension(prob)
     capability = LogDensityProblems.capabilities(typeof(prob))
-    if capability < LogDensityProblems.LogDensityOrder{2}()
+    if capability < LogDensityProblems.LogDensityOrder{1}()
         throw(
             ArgumentError(
-                "`KLMinWassFwdBwd` requires second-order differentiation capability. The capability of the supplied `LogDensityProblem` is $(capability).",
+                "`KLMinWassFwdBwd` requires at least first-order differentiation capability. The capability of the supplied `LogDensityProblem` is $(capability).",
             ),
         )
     end
@@ -93,22 +147,13 @@ function step(
         prob_sub, sub_st′, sub_inf
     end
 
-    # Estimate the moments required for computing the Wasserstein gradient
-    z = rand(rng, q, n_samples)
-    V_avg = 0
-    fill!(grad_buf, zero(eltype(grad_buf)))
-    fill!(hess_buf, zero(eltype(hess_buf)))
-    for b in 1:n_samples
-        negVb, neg∇Vb, neg∇2Vb = LogDensityProblems.logdensity_gradient_and_hessian(
-            prob_sub, z[:, b]
-        )
-        V_avg += -negVb/n_samples
-        grad_buf += -neg∇Vb/n_samples
-        hess_buf += -neg∇2Vb/n_samples
-    end
+    # Estimate the Wasserstein gradient
+    logπ_avg, grad_buf, hess_buf = gaussian_expectation_gradient_and_hessian!(
+        rng, q, n_samples, grad_buf, hess_buf, prob_sub
+    )
 
-    m′ = m - η*grad_buf
-    M = I - η*Hermitian(hess_buf)
+    m′ = m - η*-grad_buf
+    M = I - η*Hermitian(-hess_buf)
     Σ_half = Hermitian(M*Σ*M)
 
     # Compute the JKO proximal operator
@@ -116,7 +161,7 @@ function step(
     q′ = MvLocationScale(m′, cholesky(Σ′).L, q.dist)
 
     state = KLMinWassFwdBwdState(q′, prob, Σ′, iteration, sub_st′, grad_buf, hess_buf)
-    elbo = -V_avg + entropy(q′)
+    elbo = logπ_avg + entropy(q′)
     info = merge((elbo=elbo,), sub_inf)
 
     if !isnothing(callback)
