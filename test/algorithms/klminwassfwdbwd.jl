@@ -94,13 +94,13 @@
     @testset "subsampling" begin
         n_data = 8
 
-        modelstats = subsamplednormal(Random.default_rng(), n_data)
-        (; model, n_dims, μ_true, L_true) = modelstats
-
-        L0 = LowerTriangular(Matrix{Float64}(I, n_dims, n_dims))
-        q0 = FullRankGaussian(zeros(Float64, n_dims), L0)
-
         @testset "estimate_objective batchsize=$(batchsize)" for batchsize in [1, 3, 4]
+            modelstats = subsamplednormal(Random.default_rng(), n_data)
+            (; model, n_dims, μ_true, L_true) = modelstats
+
+            L0 = LowerTriangular(Matrix{Float64}(I, n_dims, n_dims))
+            q0 = FullRankGaussian(zeros(Float64, n_dims), L0)
+
             subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
             alg = KLMinWassFwdBwd(; n_samples=10, stepsize=1e-3)
             alg_sub = KLMinWassFwdBwd(; n_samples=10, stepsize=1e-3, subsampling)
@@ -113,6 +113,12 @@
         @testset "determinism" begin
             seed = (0x38bef07cf9cc549d)
             rng = StableRNG(seed)
+
+            modelstats = subsamplednormal(Random.default_rng(), n_data)
+            (; model, n_dims, μ_true, L_true) = modelstats
+
+            L0 = LowerTriangular(Matrix{Float64}(I, n_dims, n_dims))
+            q0 = FullRankGaussian(zeros(Float64, n_dims), L0)
 
             T = 10
             batchsize = 3
@@ -131,7 +137,13 @@
             @test L == L_repl
         end
 
-        @testset "convergence" begin
+        @testset "convergence capability=$(capability)"  for capability in [1,2]
+            modelstats = subsamplednormal(Random.default_rng(), n_data; capability)
+            (; model, n_dims, μ_true, L_true) = modelstats
+
+            L0 = LowerTriangular(Matrix{Float64}(I, n_dims, n_dims))
+            q0 = FullRankGaussian(zeros(Float64, n_dims), L0)
+
             T = 1000
             batchsize = 1
             subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
