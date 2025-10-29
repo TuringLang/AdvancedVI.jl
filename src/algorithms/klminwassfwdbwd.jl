@@ -60,7 +60,7 @@ function gaussian_expectation_gradient_and_hessian!(
     n_samples::Int,
     grad_buf::AbstractVector{T},
     hess_buf::AbstractMatrix{T},
-    prob
+    prob,
 ) where {T<:Real,L}
     logπ_avg = zero(T)
     fill!(grad_buf, zero(T))
