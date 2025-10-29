@@ -44,7 +44,7 @@ end
 """
     gaussian_expectation_gradient_and_hessian!(rng, q, n_samples, grad_buf, hess_buf, prob)
 
-Estimate the expectations of the gradient and Hessians of the log-density of `prob` taken over the Gaussian `q`. For estimating the expectation of the Hessian, if `prob` has second-order differentiation capability, this function internally uses the Bonnet-Price estimator. Otherwise, it uses Stein's identity.
+Estimate the expectations of the gradient and Hessians of the log-density of `prob` taken over the Gaussian `q`. For estimating the expectation of the Hessian, if `prob` has second-order differentiation capability, this function uses the sample average of the Hessian. Otherwise, it uses Stein's identity.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.

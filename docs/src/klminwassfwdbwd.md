@@ -69,10 +69,9 @@ where $$\widehat{\nabla_{\mathrm{BW}} \mathcal{U}}$$ is a stochastic estimate of
 
 and $$\mathrm{W}_2$$ is the Wasserstein-2 distance.
 When $$\mathcal{Q}$$ is set to be the Bures-Wasserstein space of $$\mathbb{R}^d$$, this algorithm is referred to as the Jordan-Kinderlehrer-Otto (JKO) scheme[^JKO1998], which was originally developed to study gradient flows under Wasserstein metrics.
-Within this context, `KLMinWassFwdBwd` can be viewed as a numerical realization of the JKO scheme.
-This also exactly corresponds to the measure-space analog of [KLMinRepGradProxDescent](@ref klminrepgradproxdescent).
-Similarly to `KLMinRepGradProxDescent`, the JKO proximal operator to be tractable, which has to be derived for different variational families on a case-by-case basis.
-Diao *et al.*[^DBCS2023] derived the JKO update for multivariate Gaussians, which is implemented by `KLMinWassFwdBwd`.
+Within this context, `KLMinWassFwdBwd` can be viewed as a numerical realization of the JKO scheme by restricting $$\mathcal{Q}$$ to be a tractable parametric variational family.
+Specifically, Diao *et al.*[^DBCS2023] derived the JKO update for multivariate Gaussians, which is implemented by `KLMinWassFwdBwd`.
+`KLMinWassFwdBwd` also exactly corresponds to the measure-space analog of [KLMinRepGradProxDescent](@ref klminrepgradproxdescent).
 
 [^JKO1998]: Jordan, R., Kinderlehrer, D., & Otto, F. (1998). The variational formulation of the Fokker--Planck equation. *SIAM Journal on Mathematical Analysis*, 29(1).
 [^JGJS1999]: Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., & Saul, L. K. (1999). An introduction to variational methods for graphical models. Machine learning, 37, 183-233.
