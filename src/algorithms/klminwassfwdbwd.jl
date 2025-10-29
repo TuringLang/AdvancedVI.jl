@@ -85,7 +85,9 @@ function gaussian_expectation_gradient_and_hessian!(
         z = rand(rng, q, n_samples)
         for b in 1:n_samples
             zb = view(z, :, b)
-            logπ, ∇logπ, ∇2logπ = LogDensityProblems.logdensity_gradient_and_hessian(prob, zb)
+            logπ, ∇logπ, ∇2logπ = LogDensityProblems.logdensity_gradient_and_hessian(
+                prob, zb
+            )
             logπ_avg += logπ/n_samples
             grad_buf += ∇logπ/n_samples
             hess_buf += ∇2logπ/n_samples
