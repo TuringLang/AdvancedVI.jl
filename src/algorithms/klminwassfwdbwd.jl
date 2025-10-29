@@ -66,7 +66,8 @@ function gaussian_expectation_gradient_and_hessian!(
     fill!(grad_buf, zero(T))
     fill!(hess_buf, zero(T))
 
-    if LogDensityProblems.capabilities(typeof(prob)) ≤ LogDensityProblems.LogDensityOrder{1}()
+    if LogDensityProblems.capabilities(typeof(prob)) ≤
+        LogDensityProblems.LogDensityOrder{1}()
         # Use Stein's identity
         d = LogDensityProblems.dimension(prob)
         u = randn(rng, T, d, n_samples)
