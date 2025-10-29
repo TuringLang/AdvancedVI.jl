@@ -5,7 +5,6 @@
 This algorithm aims to minimize the exclusive (or reverse) Kullback-Leibler (KL) divergence by running proximal gradient descent (also known as forward-backward splitting) in Wasserstein space[^DBCS2023].
 (This algorithm is also sometimes referred to as "Wasserstein VI".)
 Since `KLMinWassFwdBwd` is a measure-space algorithm, its use is restricted to full-rank Gaussian variational families (`FullRankGaussian`) that makes the measure-valued operations tractable.
-Furthermore, it requires Hessians of the target log-density.
 
 ```@docs
 KLMinWassFwdBwd
