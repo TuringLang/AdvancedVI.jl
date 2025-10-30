@@ -155,7 +155,7 @@ function step(
         rng, q, n_samples, grad_buf, hess_buf, prob_sub
     )
 
-    m′ = m - η*-grad_buf
+    m′ = m - η * (-grad_buf)
     M = I - η*Hermitian(-hess_buf)
     Σ_half = Hermitian(M*Σ*M)
 
