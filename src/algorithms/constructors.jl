@@ -21,12 +21,12 @@ KL divergence minimization by running stochastic gradient descent with the repar
 # Output
 - `q_averaged`: The variational approximation formed by the averaged SGD iterates.
 
-# Callback
-The callback function `callback` has a signature of
+# Callback Signature
+The `callback` function supplied to `optimize` needs to have the following signature:
 
     callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
 
-The arguments are as follows:
+The keyword arguments are as follows:
 - `rng`: Random number generator internally used by the algorithm.
 - `iteration`: The index of the current iteration.
 - `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(params)` reconstructs the current variational approximation. 
@@ -100,12 +100,12 @@ Thus, only the entropy estimators with a "ZeroGradient" suffix are allowed.
 # Output
 - `q_averaged`: The variational approximation formed by the averaged SGD iterates.
 
-# Callback
-The callback function `callback` has a signature of
+# Callback Signature
+The `callback` function supplied to `optimize` needs to have the following signature:
 
     callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
 
-The arguments are as follows:
+The keyword arguments are as follows:
 - `rng`: Random number generator internally used by the algorithm.
 - `iteration`: The index of the current iteration.
 - `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(params)` reconstructs the current variational approximation. 
@@ -178,11 +178,11 @@ KL divergence minimization by running stochastic gradient descent with the score
 - `q_averaged`: The variational approximation formed by the averaged SGD iterates.
 
 # Callback
-The callback function `callback` has a signature of
+The `callback` function supplied to `optimize` needs to have the following signature:
 
     callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
 
-The arguments are as follows:
+The keyword arguments are as follows:
 - `rng`: Random number generator internally used by the algorithm.
 - `iteration`: The index of the current iteration.
 - `restructure`: Function that restructures the variational approximation from the variational parameters. Calling `restructure(params)` reconstructs the current variational approximation. 

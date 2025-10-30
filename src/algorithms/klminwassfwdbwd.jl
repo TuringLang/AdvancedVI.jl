@@ -18,12 +18,12 @@ Denoting the target log-density as \$\$ \\log \\pi \$\$ and the current variatio
 # Output
 - `q`: The last iterate of the algorithm.
 
-# Callback
-The callback function `callback` has a signature of
+# Callback Signature
+The `callback` function supplied to `optimize` needs to have the following signature:
 
     callback(; rng, iteration, q, info)
 
-The arguments are as follows:
+The keyword arguments are as follows:
 - `rng`: Random number generator internally used by the algorithm.
 - `iteration`: The index of the current iteration.
 - `q`: Current variational approximation.
