@@ -23,7 +23,6 @@ estimate_objective(
 ```
 
 [^DBCS2023]: Diao, M. Z., Balasubramanian, K., Chewi, S., & Salim, A. (2023). Forward-backward Gaussian variational inference via JKO in the Bures-Wasserstein space. In *International Conference on Machine Learning*. PMLR.
-
 ## [Methodology](@id klminwassfwdbwd_method)
 
 This algorithm aims to solve the problem
