@@ -43,17 +43,15 @@
         end
     end
 
-    begin
+    @testset "error low capability" begin
+        modelstats = normal_meanfield(Random.default_rng(), Float64; capability=0)
+        (; model, n_dims) = modelstats
+
         alg = KLMinWassFwdBwd(; n_samples=10, stepsize=1.0)
 
-        @testset "error low capability" begin
-            modelstats = normal_meanfield(Random.default_rng(), Float64; capability=0)
-            (; model, n_dims) = modelstats
-
-            L0 = LowerTriangular(Matrix{Float64}(I, n_dims, n_dims))
-            q0 = FullRankGaussian(zeros(Float64, n_dims), L0)
-            @test_throws "first-order" optimize(alg, 1, model, q0)
-        end
+        L0 = LowerTriangular(Matrix{Float64}(I, n_dims, n_dims))
+        q0 = FullRankGaussian(zeros(Float64, n_dims), L0)
+        @test_throws "first-order" optimize(alg, 1, model, q0)
     end
 
     @testset "type stability type=$(realtype), capability=$(capability)" for realtype in [
