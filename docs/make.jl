@@ -23,9 +23,10 @@ makedocs(;
             "Normalizing Flows" => "tutorials/flows.md",
         ],
         "Algorithms" => [
-            "KLMinRepGradDescent" => "klminrepgraddescent.md",
-            "KLMinRepGradProxDescent" => "klminrepgradproxdescent.md",
-            "KLMinScoreGradDescent" => "klminscoregraddescent.md",
+            "`KLMinRepGradDescent`" => "klminrepgraddescent.md",
+            "`KLMinRepGradProxDescent`" => "klminrepgradproxdescent.md",
+            "`KLMinScoreGradDescent`" => "klminscoregraddescent.md",
+            "`KLMinWassFwdBwd`" => "klminwassfwdbwd.md",
         ],
         "Variational Families" => "families.md",
         "Optimization" => "optimization.md",

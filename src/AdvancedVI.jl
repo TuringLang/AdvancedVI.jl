@@ -352,4 +352,10 @@ include("algorithms/common.jl")
 
 export KLMinRepGradDescent, KLMinRepGradProxDescent, KLMinScoreGradDescent, ADVI, BBVI
 
+# Other Algorithms
+
+include("algorithms/klminwassfwdbwd.jl")
+
+export KLMinWassFwdBwd
+
 end
