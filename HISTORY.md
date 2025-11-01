@@ -1,4 +1,4 @@
-# Release 0.6
+# Release 0.5.1
 
 This update adds new variational inference algorithms in light of the flexibility added in the v0.5 update.
 Specifically, the following measure-space optimization algorithms have been added:
