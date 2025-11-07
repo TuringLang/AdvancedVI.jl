@@ -352,8 +352,9 @@ include("algorithms/common.jl")
 
 export KLMinRepGradDescent, KLMinRepGradProxDescent, KLMinScoreGradDescent, ADVI, BBVI
 
-# Other Algorithms
+# Natural and Wasserstein gradient descent algorithms
 
+include("algorithms/gauss_expected_grad_hess.jl")
 include("algorithms/klminwassfwdbwd.jl")
 
 export KLMinWassFwdBwd
