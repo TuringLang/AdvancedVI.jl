@@ -101,7 +101,9 @@
 
             subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
             alg = KLMinSqrtNaturalGradDescent(; n_samples=10, stepsize=1e-3)
-            alg_sub = KLMinSqrtNaturalGradDescent(; n_samples=10, stepsize=1e-3, subsampling)
+            alg_sub = KLMinSqrtNaturalGradDescent(;
+                n_samples=10, stepsize=1e-3, subsampling
+            )
 
             obj_full = estimate_objective(alg, q0, model; n_samples=10^5)
             obj_sub = estimate_objective(alg_sub, q0, model; n_samples=10^5)
@@ -121,7 +123,9 @@
             T = 10
             batchsize = 3
             subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
-            alg_sub = KLMinSqrtNaturalGradDescent(; n_samples=10, stepsize=1e-3, subsampling)
+            alg_sub = KLMinSqrtNaturalGradDescent(;
+                n_samples=10, stepsize=1e-3, subsampling
+            )
 
             q, _, _ = optimize(rng, alg_sub, T, model, q0; show_progress=PROGRESS)
             μ = q.location
@@ -145,7 +149,9 @@
             T = 1000
             batchsize = 1
             subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
-            alg_sub = KLMinSqrtNaturalGradDescent(; n_samples=10, stepsize=1e-2, subsampling)
+            alg_sub = KLMinSqrtNaturalGradDescent(;
+                n_samples=10, stepsize=1e-2, subsampling
+            )
 
             q, stats, _ = optimize(alg_sub, T, model, q0; show_progress=PROGRESS)
 

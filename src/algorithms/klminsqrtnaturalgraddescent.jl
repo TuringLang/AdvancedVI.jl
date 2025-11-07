@@ -75,7 +75,12 @@ end
 output(::KLMinSqrtNaturalGradDescent, state) = state.q
 
 function step(
-    rng::Random.AbstractRNG, alg::KLMinSqrtNaturalGradDescent, state, callback, objargs...; kwargs...
+    rng::Random.AbstractRNG,
+    alg::KLMinSqrtNaturalGradDescent,
+    state,
+    callback,
+    objargs...;
+    kwargs...,
 )
     (; n_samples, stepsize, subsampling) = alg
     (; q, prob, iteration, sub_st, grad_buf, hess_buf) = state
@@ -107,7 +112,9 @@ function step(
 
     q′ = MvLocationScale(m′, C′, q.dist)
 
-    state = KLMinSqrtNaturalGradDescentState(q′, prob, iteration, sub_st′, grad_buf, hess_buf)
+    state = KLMinSqrtNaturalGradDescentState(
+        q′, prob, iteration, sub_st′, grad_buf, hess_buf
+    )
     elbo = logπ_avg + entropy(q′)
     info = merge((elbo=elbo,), sub_inf)
 
