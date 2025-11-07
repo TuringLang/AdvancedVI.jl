@@ -66,6 +66,7 @@ if GROUP == "All" || GROUP == "GENERAL"
     include("families/location_scale_low_rank.jl")
 
     include("algorithms/klminwassfwdbwd.jl")
+    include("algorithms/klminsqrtnaturalgraddescent.jl")
 end
 
 if GROUP == "All" || GROUP == "AD"

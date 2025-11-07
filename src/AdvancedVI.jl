@@ -356,7 +356,8 @@ export KLMinRepGradDescent, KLMinRepGradProxDescent, KLMinScoreGradDescent, ADVI
 
 include("algorithms/gauss_expected_grad_hess.jl")
 include("algorithms/klminwassfwdbwd.jl")
+include("algorithms/klminsqrtnaturalgraddescent.jl")
 
-export KLMinWassFwdBwd
+export KLMinWassFwdBwd, KLMinSqrtNaturalGradDescent
 
 end
