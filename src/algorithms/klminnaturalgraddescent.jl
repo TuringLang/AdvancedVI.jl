@@ -12,9 +12,9 @@ This, however, involves an additional set of matrix-matrix system solves that co
 Denoting the target log-density as \$\$ \\log \\pi \$\$ and the current variational approximation as \$\$q\$\$, the original algorithm requires estimating the quantity \$\$ \\mathbb{E}_q \\nabla^2 \\log \\pi \$\$. If the target `LogDensityProblem` associated with \$\$ \\log \\pi \$\$ has second-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), we use the sample average of the Hessian. If the target has only first-order capability, we use Stein's identity.
 
 # (Keyword) Arguments
-- `stepsize::Float64`: Step size of stochastic proximal gradient descent.
+- `stepsize::Float64`: Step size.
 - `ensure_posdef::Bool`: Ensure that the updated precision preserves positive definiteness. (default: `true`)
-- `n_samples::Int`: Number of samples used to estimate the Wasserstein gradient. (default: `1`)
+- `n_samples::Int`: Number of samples used to estimate the natural gradient. (default: `1`)
 - `subsampling::Union{Nothing,<:AbstractSubsampling}`: Optional subsampling strategy.
 
 !!! note
@@ -108,12 +108,10 @@ function step(
         prob_sub, sub_st′, sub_inf
     end
 
-    # Estimate the Wasserstein gradient
     logπ_avg, grad_buf, hess_buf = gaussian_expectation_gradient_and_hessian!(
         rng, q, n_samples, grad_buf, hess_buf, prob_sub
     )
 
-    # Compute natural gradient descent update
     S′ = Hermitian(((1 - η) * S + η * (-hess_buf)))
     if ensure_posdef
         G_hat = S - (-hess_buf)

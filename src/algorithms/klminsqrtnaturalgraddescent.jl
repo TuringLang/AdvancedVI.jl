@@ -1,15 +1,15 @@
 
 """
-    KLMinSqrtNaturalGradDescent(n_samples, stepsize, subsampling)
-    KLMinSqrtNaturalGradDescent(; n_samples, stepsize, subsampling)
+    KLMinSqrtNaturalGradDescent(stepsize, n_samples, subsampling)
+    KLMinSqrtNaturalGradDescent(; stepsize, n_samples, subsampling)
 
-KL divergence minimization algorithm obtained by discretizing the natural gradient flow under the square-root parameterization[^KMKL2025][^LDENKTM2024][^LDLNKS2023].
+KL divergence minimization algorithm obtained by discretizing the natural gradient flow (the Riemmanian gradient flow with the Fisher information matrix as the metric tensor) under the square-root parameterization[^KMKL2025][^LDENKTM2024][^LDLNKS2023][^T2025].
 
 Denoting the target log-density as \$\$ \\log \\pi \$\$ and the current variational approximation as \$\$q\$\$, the original algorithm requires estimating the quantity \$\$ \\mathbb{E}_q \\nabla^2 \\log \\pi \$\$. If the target `LogDensityProblem` associated with \$\$ \\log \\pi \$\$ has second-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), we use the sample average of the Hessian. If the target has only first-order capability, we use Stein's identity.
 
 # (Keyword) Arguments
-- `n_samples::Int`: Number of samples used to estimate the Wasserstein gradient. (default: `1`)
-- `stepsize::Float64`: Step size of stochastic proximal gradient descent.
+- `stepsize::Float64`: Step size.
+- `n_samples::Int`: Number of samples used to estimate the natural gradient. (default: `1`)
 - `subsampling::Union{Nothing,<:AbstractSubsampling}`: Optional subsampling strategy.
 
 !!! note
@@ -36,8 +36,8 @@ The keyword arguments are as follows:
 """
 @kwdef struct KLMinSqrtNaturalGradDescent{Sub<:Union{Nothing,<:AbstractSubsampling}} <:
               AbstractVariationalAlgorithm
-    n_samples::Int = 1
     stepsize::Float64
+    n_samples::Int = 1
     subsampling::Sub = nothing
 end
 
@@ -99,7 +99,6 @@ function step(
         prob_sub, sub_st′, sub_inf
     end
 
-    # Estimate the Wasserstein gradient
     logπ_avg, grad_buf, hess_buf = gaussian_expectation_gradient_and_hessian!(
         rng, q, n_samples, grad_buf, hess_buf, prob_sub
     )
