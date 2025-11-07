@@ -4,6 +4,8 @@ This update adds new variational inference algorithms in light of the flexibilit
 Specifically, the following measure-space optimization algorithms have been added:
 
   - `KLMinWassFwdBwd`
+  - `KLMinNaturalGradDescent`
+  - `KLMinSqrtNaturalGradDescent`
 
 # Release 0.5
 
