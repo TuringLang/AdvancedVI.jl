@@ -41,7 +41,6 @@ The keyword arguments are as follows:
     subsampling::Sub = nothing
 end
 
-
 struct KLMinWassFwdBwdState{Q,P,S,Sigma,GradBuf,HessBuf}
     q::Q
     prob::P
