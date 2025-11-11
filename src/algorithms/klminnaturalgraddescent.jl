@@ -1,7 +1,7 @@
 
 """
-    KLMinNaturalGradDescent(stepsize, ensure_posdef, n_samples, subsampling)
-    KLMinNaturalGradDescent(; stepsize, ensure_posdef, n_samples, subsampling)
+    KLMinNaturalGradDescent(stepsize, n_samples, ensure_posdef, subsampling)
+    KLMinNaturalGradDescent(; stepsize, n_samples, ensure_posdef, subsampling)
 
 KL divergence minimization by running natural gradient descent[^KL2017][^KR2023], also called variational online Newton.
 This algorithm can be viewed as an instantiation of mirror descent, where the Bregman divergence is chosen to be the KL divergence.
@@ -13,8 +13,8 @@ Denoting the target log-density as \$\$ \\log \\pi \$\$ and the current variatio
 
 # (Keyword) Arguments
 - `stepsize::Float64`: Step size.
-- `ensure_posdef::Bool`: Ensure that the updated precision preserves positive definiteness. (default: `true`)
 - `n_samples::Int`: Number of samples used to estimate the natural gradient. (default: `1`)
+- `ensure_posdef::Bool`: Ensure that the updated precision preserves positive definiteness. (default: `true`)
 - `subsampling::Union{Nothing,<:AbstractSubsampling}`: Optional subsampling strategy.
 
 !!! note
@@ -42,8 +42,8 @@ The keyword arguments are as follows:
 @kwdef struct KLMinNaturalGradDescent{Sub<:Union{Nothing,<:AbstractSubsampling}} <:
               AbstractVariationalAlgorithm
     stepsize::Float64
-    ensure_posdef::Bool = true
     n_samples::Int = 1
+    ensure_posdef::Bool = true
     subsampling::Sub = nothing
 end
 
@@ -112,9 +112,9 @@ function step(
         rng, q, n_samples, grad_buf, hess_buf, prob_sub
     )
 
-    S′ = Hermitian(((1 - η) * S + η * (-hess_buf)))
+    S′ = Hermitian(((1 - η) * S + η * Symmetric(-hess_buf)))
     if ensure_posdef
-        G_hat = S - (-hess_buf)
+        G_hat = S - Symmetric(-hess_buf)
         S′ += η^2 / 2 * Hermitian(G_hat * (S′ \ G_hat))
     end
     m′ = m - η * (S′ \ (-grad_buf))

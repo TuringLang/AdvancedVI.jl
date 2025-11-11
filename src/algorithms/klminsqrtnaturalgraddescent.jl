@@ -103,7 +103,7 @@ function step(
         rng, q, n_samples, grad_buf, hess_buf, prob_sub
     )
 
-    CtHCmI = C'*-hess_buf*C - I
+    CtHCmI = C'*Symmetric(-hess_buf)*C - I
     CtHCmI_tril = LowerTriangular(tril(CtHCmI) - Diagonal(diag(CtHCmI))/2)
 
     m′ = m - η * C * (C' * -grad_buf)
