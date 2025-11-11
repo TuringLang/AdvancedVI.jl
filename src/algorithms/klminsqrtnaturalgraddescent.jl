@@ -13,7 +13,7 @@ Denoting the target log-density as \$\$ \\log \\pi \$\$ and the current variatio
 - `subsampling::Union{Nothing,<:AbstractSubsampling}`: Optional subsampling strategy.
 
 !!! note
-    The `subsampling` strategy is only applied to the target `LogDensityProblem` but not to the variational approximation `q`. That is, `KLMinSqrtVarNewton` does not support amortization or structured variational families.
+    The `subsampling` strategy is only applied to the target `LogDensityProblem` but not to the variational approximation `q`. That is, `KLMinSqrtNaturalGradDescent` does not support amortization or structured variational families.
 
 # Output
 - `q`: The last iterate of the algorithm.
