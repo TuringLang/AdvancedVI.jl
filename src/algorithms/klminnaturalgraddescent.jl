@@ -77,7 +77,7 @@ function init(
     grad_buf = Vector{eltype(q_init.location)}(undef, n_dims)
     hess_buf = Matrix{eltype(q_init.location)}(undef, n_dims, n_dims)
     return KLMinNaturalGradDescentState(
-        q_init, prob, cov(q_init), 0, sub_st, grad_buf, hess_buf
+        q_init, prob, inv(cov(q_init)), 0, sub_st, grad_buf, hess_buf
     )
 end
 
