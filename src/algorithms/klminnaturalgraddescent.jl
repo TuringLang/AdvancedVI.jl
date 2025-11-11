@@ -117,7 +117,7 @@ function step(
     S′ = Hermitian(((1 - η) * S + η * Symmetric(-hess_buf)))
     if ensure_posdef
         G_hat = S - Symmetric(-hess_buf)
-        S′ += η^2 / 2 * Hermitian(G_hat * (S′ \ G_hat))
+        S′ += η^2 / 2 * Symmetric(G_hat * (S′ \ G_hat))
     end
     m′ = m - η * (S′ \ (-grad_buf))
 
