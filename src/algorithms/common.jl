@@ -85,6 +85,14 @@ function step(
     params = apply(operator, typeof(q), opt_st, params, re)
     avg_st = apply(averager, avg_st, params)
 
+    if !isfinite(DiffResults.value(grad))
+        throw(
+            ErrorException(
+                "The objective value is $(DiffResults.value(grad)). This indicates that the opitimization run diverged.",
+            ),
+        )
+    end
+
     state = (
         prob=prob,
         q=re(params),
