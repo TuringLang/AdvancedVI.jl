@@ -1,6 +1,4 @@
 
-using BenchmarkTools
-
 struct TestQuad{S,C}
     Σ::S
     cap::C
@@ -47,9 +45,9 @@ end
         grad_buf = zeros(d)
         hess_buf = zeros(d, d)
         prob = TestQuad(Σ, cap)
-        display(@benchmark AdvancedVI.gaussian_expectation_gradient_and_hessian!(
-            Random.default_rng(), $q, $n_samples, $grad_buf, $hess_buf, $prob
-        ))
+        AdvancedVI.gaussian_expectation_gradient_and_hessian!(
+            Random.default_rng(), q, n_samples, grad_buf, hess_buf, prob
+        )
         @test grad_buf ≈ E_∇ℓπ atol=1e-1
         @test hess_buf ≈ E_∇2ℓπ atol=1e-1
     end
