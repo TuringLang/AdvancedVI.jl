@@ -83,7 +83,7 @@ function step(
     if !isfinite(DiffResults.value(grad_buf))
         throw(
             ErrorException(
-                "The objective value is $(DiffResults.value(grad_buf)). This indicates that the opitimization run diverged.",
+                "The objective value is $(DiffResults.value(grad_buf)). This indicates that the optimization run diverged.",
             ),
         )
     end
