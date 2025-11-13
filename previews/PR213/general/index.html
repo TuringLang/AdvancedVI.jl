@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>General Usage · AdvancedVI.jl</title><meta name="title" content="General Usage · AdvancedVI.jl"/><meta property="og:title" content="General Usage · AdvancedVI.jl"/><meta property="twitter:title" content="General Usage · AdvancedVI.jl"/><meta name="description" content="Documentation for AdvancedVI.jl."/><meta property="og:description" content="Documentation for AdvancedVI.jl."/><meta property="twitter:description" content="Documentation for AdvancedVI.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body>
+<!-- NAVBAR START -->
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
+
+    /* Documenter.jl CSS Overrides */
+    html {
+        scroll-padding-top: calc(var(--navbar-height) + 1rem);
+    }
+    .docs-sidebar, #documenter {
+        margin-top: var(--navbar-height);
+    }
+    .docs-version-selector {
+        margin-bottom: 60px !important;
+    }
+    @media screen and (max-width: 1056px) {
+        .docs-version-selector {
+            margin-bottom: 60px !important;
+        }
+        .docs-sidebar {
+            margin-top: 0 !important;
+        }
+    }
+    /* End of Documenter.jl Tweaks */
+
+    /* Color and Font Variables */
+    :root {
+        --heading-color: #6c757d;
+        --item-color: rgb(165, 165, 165);
+        --primary-bg: white;
+        --hover-color: #8faad2;
+        --deprecated-bg: #ff4d4d;
+        --deprecated-text: white;
+        --icon-color: #6c757d;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --dropdown-hover-bg: #e9ecef;
+        
+        /* Typography */
+        --font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        --nav-link-font-size: 1.0625rem;
+        --turing-title-font-size: 21.25px;
+        --icon-font-size: 1.25rem;
+        --dropdown-arrow-font-size: 0.6875rem;
+        --badge-font-size: 0.75rem;
+
+        /* Sizing and Spacing */
+        --navbar-height: 3.75rem;
+        --logo-height: 31.18px;
+        --logo-width: 52.47px;
+        --logo-padding-top: 7px;
+        --logo-margin-left: 0.3rem;
+        --title-margin-left: 0.4px;
+        --title-nav-spacing: 1.7rem;
+        --nav-item-margin-left: 1.3rem;
+        --icon-margin-left: 1rem;
+        --dropdown-padding: 1.875rem;
+        --dropdown-item-width: 12.5rem;
+        --dropdown-subitem-width: 15.625rem;
+        --dropdown-subitem-padding: 0.125rem 0.625rem;
+    }
+
+    /* Dark Theme Variable Overrides */
+    html.theme--documenter-dark {
+        --heading-color: #e0e0e0;
+        --item-color: #bdbdbd;
+        --primary-bg: #1f2424;
+        --hover-color: #ffffff;
+        --icon-color: #e0e0e0;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #424242;
+    }
+
+    /* Catppuccin Theme Overrides */
+    html.theme--catppuccin-latte {
+        --heading-color: #4c4f69;
+        --primary-bg: #eff1f5;
+        --icon-color: #4c4f69;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --dropdown-hover-bg: #e6e9ef;
+    }
+    html.theme--catppuccin-frappe {
+        --heading-color: #c6d0f5;
+        --primary-bg: #303446;
+        --icon-color: #c6d0f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #51576d;
+    }
+    html.theme--catppuccin-macchiato {
+        --heading-color: #cad3f5;
+        --primary-bg: #24273a;
+        --icon-color: #cad3f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #494d64;
+    }
+    html.theme--catppuccin-mocha {
+        --heading-color: #cad3f5;
+        --primary-bg: #1e1e2e;
+        --icon-color: #cad3f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #45475a;
+    }
+
+
+    /* Main Navigation Bar */
+    .ext-navigation {
+        font-family: var(--font-family);
+        position: fixed;
+        height: var(--navbar-height);
+        top: 0;
+        width: 100%;
+        background-color: var(--primary-bg);
+        z-index: 1000;
+        box-shadow: 0 2px 4px var(--shadow-color);
+        display: flex;
+        align-items: center;
+        padding: 0 1.0625rem;
+        transition: transform 0.3s, background-color 0.3s;
+    }
+
+    nav.ext-navigation .ext-navbar-logo {
+        margin-left: var(--logo-margin-left);
+        height: var(--logo-height);
+        width: var(--logo-width);
+        padding-top: var(--logo-padding-top);
+    }
+    
+    .ext-navbar-title {
+        color: var(--heading-color) !important;
+        font-size: var(--turing-title-font-size) !important;
+        margin-left: var(--title-margin-left);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    .ext-navbar-title:hover {
+        color: var(--hover-color) !important;
+    }
+
+    .ext-nav-links {
+        display: flex;
+        align-items: center;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        flex-grow: 1;
+        margin-left: var(--title-nav-spacing);
+    }
+
+    .ext-nav-links li:first-child {
+        margin-left: 0 !important;
+    }
+
+    .ext-nav-links li {
+        margin-left: var(--nav-item-margin-left) !important;
+    }
+
+    .ext-nav-link {
+        color: var(--heading-color) !important;
+        text-decoration: none;
+        font-size: var(--nav-link-font-size) !important;
+        transition: color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .ext-nav-link:hover,
+    .ext-navbar-item-single a:hover,
+    .ext-navbar-icons a:hover {
+        color: var(--hover-color) !important;
+    }
+
+    .ext-navbar-item-single a {
+        color: var(--heading-color) !important;
+    }
+    
+    .ext-navbar-icons {
+        display: flex;
+        align-items: center;
+    }
+
+    .ext-navbar-icons a {
+        color: var(--icon-color) !important;
+        font-size: var(--icon-font-size) !important;
+        transition: color 0.2s ease;
+        margin-left: var(--icon-margin-left);
+    }
+
+    .ext-menu-toggle {
+        display: none;
+        font-size: 1.5rem;
+        color: var(--heading-color);
+        cursor: pointer;
+    }
+
+    .ext-dropdown {
+        display: none;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        padding: var(--dropdown-padding);
+        position: absolute;
+        top: var(--navbar-height);
+        width: 100%;
+        left: 0;
+        background-color: var(--primary-bg);
+        line-height: 1.875rem;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, background-color 0.3s;
+        transform: translateY(-0.625rem);
+        box-shadow: 0 4px 6px var(--shadow-color);
+    }
+
+    #library-handler::after {
+        content: "▼";
+        font-size: var(--dropdown-arrow-font-size);
+        margin-left: 0.3125rem;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    #library-handler.open::after {
+        content: "▲";
+    }
+
+    .ext-dropdown.show {
+        display: grid;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .ext-dropdown ul {
+        width: var(--dropdown-item-width);
+        margin-bottom: 1.25rem;
+    }
+
+    .ext-dropdown ul li {
+        text-align: left;
+        display: flex;
+        align-items: center;
+    }
+
+    .ext-dropdown ul a li {
+        color: var(--item-color);
+        width: var(--dropdown-subitem-width);
+        border-radius: 3px;
+        padding: var(--dropdown-subitem-padding);
+        transition: background-color 0.2s ease;
+    }
+
+    .ext-dropdown ul a li:hover {
+        background-color: var(--dropdown-hover-bg);
+    }
+
+    .ext-dropdown-item-heading {
+        color: var(--heading-color);
+        text-align: center;
+    }
+
+    .deprecated-badge {
+        background-color: var(--deprecated-bg);
+        color: var(--deprecated-text);
+        font-size: var(--badge-font-size);
+        padding: .1rem;
+        border-radius: 3px;
+        margin-left: 0.5rem;
+        line-height: 1;
+    }
+
+    @media (max-width: 966px) {
+        .ext-dropdown {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .ext-nav-links {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            background-color: var(--primary-bg);
+            position: absolute;
+            top: var(--navbar-height);
+            left: 0;
+            padding: 0.625rem 0;
+            height: auto;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            margin-left: 0;
+        }
+
+        .ext-nav-links.show {
+            display: flex;
+        }
+
+        .ext-nav-links li {
+            margin: 0.625rem 0 !important;
+            text-align: center;
+        }
+        
+        .ext-menu-toggle {
+            display: block;
+            margin-left: auto;
+        }
+
+        .ext-navigation.hide {
+            transform: translateY(calc(-1 * var(--navbar-height)));
+        }
+
+        .ext-dropdown {
+            position: static;
+            display: block;
+            opacity: 1;
+            transform: none;
+            box-shadow: none;
+            grid-template-columns: 1fr;
+            padding: 0.625rem;
+            text-align: center;
+        }
+
+        .ext-dropdown ul {
+            width: auto;
+            display: inline-block;
+            margin: 0 auto 0.3125rem;
+            text-align: left;
+        }
+    }
+</style>
+<nav class="ext-navigation">
+    <a href="https://turinglang.org/">
+        <img src="https://turinglang.org/assets/images/turing-logo.svg" alt="Turing Logo" class="ext-navbar-logo">
+    </a>
+    <a class="ext-navbar-title" href="https://turinglang.org/">Turing.jl</a>
+    
+    <ul class="ext-nav-links">
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/getting-started/">Get Started</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/tutorials/">Tutorials</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/faq/">FAQ</a></li>
+        <li>
+            <p class="ext-nav-link" id="library-handler">Libraries</p>
+            <div class="ext-dropdown" id="ext-dropdown-items">
+                <ul>
+                    <li class="ext-dropdown-item-heading">Modelling Languages</li>
+                    <a href="https://turinglang.org/DynamicPPL.jl/"><li>DynamicPPL</li></a>
+                    <a href="https://turinglang.org/JuliaBUGS.jl/"><li>JuliaBUGS</li></a>
+                    <a href="https://turinglang.org/TuringGLM.jl/"><li>TuringGLM</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">MCMC</li>
+                    <a href="https://turinglang.org/AdvancedHMC.jl/"><li>AdvancedHMC</li></a>
+                    <a href="https://turinglang.org/AbstractMCMC.jl/"><li>AbstractMCMC</li></a>
+                    <a href="https://github.com/theogf/ThermodynamicIntegration.jl"><li>ThermodynamicIntegration</li></a>
+                    <a href="https://turinglang.org/AdvancedPS.jl/"><li>AdvancedPS</li></a>
+                    <a href="https://turinglang.org/SliceSampling.jl/"><li>SliceSampling</li></a>
+                    <a href="https://turinglang.org/EllipticalSliceSampling.jl/"><li>EllipticalSliceSampling</li></a>
+                    <a href="https://turinglang.org/NestedSamplers.jl/"><li>NestedSamplers</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Diagnostics</li>
+                    <a href="https://turinglang.org/MCMCChains.jl/"><li>MCMCChains</li></a>
+                    <a href="https://turinglang.org/MCMCDiagnosticTools.jl/"><li>MCMCDiagnosticTools</li></a>
+                    <a href="https://turinglang.org/ParetoSmooth.jl/"><li>ParetoSmooth</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Gaussian Processes</li>
+                    <a href="https://juliagaussianprocesses.github.io/AbstractGPs.jl/"><li>AbstractGPs</li></a>
+                    <a href="https://juliagaussianprocesses.github.io/KernelFunctions.jl/"><li>KernelFunctions</li></a>
+                    <a href="https://juliagaussianprocesses.github.io/ApproximateGPs.jl/"><li>ApproximateGPs</li></a>
+                </ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/Bijectors.jl/">Bijectors</a></li></ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/TuringCallbacks.jl/">TuringCallbacks</a></li></ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/Deprecated/TuringBenchmarking/">TuringBenchmarking</a><span class="deprecated-badge">Deprecated</span></li></ul>
+            </div>
+        </li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/news/">News</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/team/">Team</a></li>
+    </ul>
+
+    <div class="ext-navbar-icons">
+        <a href="https://x.com/TuringLang" aria-label="Turing on X"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="https://discourse.julialang.org/c/domain/probprog/48" aria-label="Turing on Discourse"><i class="fa-brands fa-discourse"></i></a>
+        <a href="https://julialang.slack.com/archives/CCYDC34A0" aria-label="Turing on Slack"><i class="fa-brands fa-slack"></i></a>
+        <a href="https://github.com/TuringLang/" aria-label="Turing.jl on GitHub"><i class="fa-brands fa-github"></i></a>
+    </div>
+
+    <span class="ext-menu-toggle"><i class="fa-solid fa-bars"></i></span>
+</nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const menuToggle = document.querySelector(".ext-menu-toggle");
+        const navLinks = document.querySelector(".ext-nav-links");
+        const nav = document.querySelector(".ext-navigation");
+        const libraryHandler = document.getElementById("library-handler");
+        const dropdownContainer = document.getElementById("ext-dropdown-items");
+        let lastScrollY = window.scrollY;
+
+        function closeDropdown() {
+            if (dropdownContainer.classList.contains("show")) {
+                libraryHandler.classList.remove("open");
+                dropdownContainer.classList.remove("show");
+                setTimeout(() => {
+                    if (!dropdownContainer.classList.contains("show")) {
+                        dropdownContainer.style.display = "none";
+                    }
+                }, 300);
+            }
+        }
+
+        function openDropdown() {
+            dropdownContainer.style.display = "grid";
+            libraryHandler.classList.add("open");
+            setTimeout(() => {
+                dropdownContainer.classList.add("show");
+            }, 10);
+        }
+
+        function setAppropriateHeight() {
+            if (window.innerWidth <= 768) {
+                const viewportHeight = window.innerHeight;
+                const navHeight = nav.offsetHeight;
+                navLinks.style.maxHeight = `${viewportHeight - navHeight}px`;
+                navLinks.style.overflowY = "auto";
+            } else {
+                navLinks.style.maxHeight = "";
+                navLinks.style.overflowY = "";
+            }
+        }
+
+        menuToggle.addEventListener("click", (event) => {
+            event.stopPropagation();
+            navLinks.classList.toggle("show");
+            if (navLinks.classList.contains("show")) {
+                setAppropriateHeight();
+                closeDropdown();
+                dropdownContainer.style.display = "none";
+            }
+        });
+
+        libraryHandler.addEventListener("click", (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            if (dropdownContainer.classList.contains("show")) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+            setAppropriateHeight();
+        });
+
+        // Close all menus if a click is registered outside the navigation bar.
+        document.addEventListener("click", (event) => {
+            if (!nav.contains(event.target)) {
+                navLinks.classList.remove("show");
+                closeDropdown();
+            }
+        });
+
+        // Hide navigation bar on scroll down in mobile view.
+        window.addEventListener("scroll", () => {
+            if (window.innerWidth <= 768) {
+                if (window.scrollY > lastScrollY && window.scrollY > nav.offsetHeight){
+                    nav.classList.add("hide");
+                } else {
+                    nav.classList.remove("hide");
+                }
+                lastScrollY = window.scrollY;
+            }
+        });
+
+        window.addEventListener("resize", setAppropriateHeight);
+    });
+</script>
+<!-- NAVBAR END -->
+
+<div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">AdvancedVI.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">AdvancedVI</a></li><li class="is-active"><a class="tocitem" href>General Usage</a><ul class="internal"><li><a class="tocitem" href="#optimize"><span>Running Variational Inference</span></a></li><li><a class="tocitem" href="#estimate_objective"><span>Monitoring the Objective Value</span></a></li><li><a class="tocitem" href="#algorithm"><span>Algorithm Interface</span></a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../tutorials/basic/">Basic Example</a></li><li><a class="tocitem" href="../tutorials/subsampling/">Scaling to Large Datasets</a></li><li><a class="tocitem" href="../tutorials/stan/">Stan Models</a></li><li><a class="tocitem" href="../tutorials/flows/">Normalizing Flows</a></li></ul></li><li><span class="tocitem">Algorithms</span><ul><li><a class="tocitem" href="../klminrepgraddescent/"><code>KLMinRepGradDescent</code></a></li><li><a class="tocitem" href="../klminrepgradproxdescent/"><code>KLMinRepGradProxDescent</code></a></li><li><a class="tocitem" href="../klminscoregraddescent/"><code>KLMinScoreGradDescent</code></a></li><li><a class="tocitem" href="../klminwassfwdbwd/"><code>KLMinWassFwdBwd</code></a></li></ul></li><li><a class="tocitem" href="../families/">Variational Families</a></li><li><a class="tocitem" href="../optimization/">Optimization</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>General Usage</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>General Usage</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/TuringLang/AdvancedVI.jl/blob/main/docs/src/general.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="general"><a class="docs-heading-anchor" href="#general">General Usage</a><a id="general-1"></a><a class="docs-heading-anchor-permalink" href="#general" title="Permalink"></a></h1><p>AdvancedVI provides multiple variational inference (VI) algorithms. Each algorithm defines its subtype of <a href="#AdvancedVI.AbstractVariationalAlgorithm"><code>AdvancedVI.AbstractVariationalAlgorithm</code></a> with some corresponding methods (see <a href="#algorithm">this section</a>). Then the algorithm can be executed by invoking <code>optimize</code>. (See <a href="#optimize">this section</a>).</p><h2 id="optimize"><a class="docs-heading-anchor" href="#optimize">Running Variational Inference</a><a id="optimize-1"></a><a class="docs-heading-anchor-permalink" href="#optimize" title="Permalink"></a></h2><p>Given a subtype of <code>AbstractVariationalAlgorithm</code> associated with each algorithm, it suffices to call the function <code>optimize</code>:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="AdvancedVI.optimize" href="#AdvancedVI.optimize"><code>AdvancedVI.optimize</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">optimize(
+    [rng::Random.AbstractRNG = Random.default_rng(),]
+    algorithm::AbstractVariationalAlgorithm,
+    max_iter::Int,
+    prob,
+    q_init,
+    args...;
+    kwargs...
+)</code></pre><p>Run variational inference <code>algorithm</code> on the <code>problem</code> implementing the <code>LogDensityProblems</code> interface. For more details on the usage, refer to the documentation corresponding to <code>algorithm</code>.</p><p><strong>Arguments</strong></p><ul><li><code>rng</code>: Random number generator.</li><li><code>algorithm</code>: Variational inference algorithm.</li><li><code>max_iter::Int</code>: Maximum number of iterations.</li><li><code>prob</code>: Target <code>LogDensityProblem</code> </li><li><code>q_init</code>: Initial variational distribution.</li><li><code>args...</code>: Arguments to be passed to <code>algorithm</code>.</li></ul><p><strong>Keyword Arguments</strong></p><ul><li><code>show_progress::Bool</code>: Whether to show the progress bar. (Default: <code>true</code>.)</li><li><code>state::Union{&lt;:Any,Nothing}</code>: Initial value for the internal state of optimization. Used to warm-start from the state of a previous run. (See the returned values below.)</li><li><code>callback</code>: Callback function called after every iteration. See further information below. (Default: <code>nothing</code>.)</li><li><code>progress::ProgressMeter.AbstractProgress</code>: Progress bar configuration. (Default: <code>ProgressMeter.Progress(n_max_iter; desc=&quot;Optimizing&quot;, barlen=31, showspeed=true, enabled=prog)</code>.)</li><li><code>kwargs...</code>: Keyword arguments to be passed to <code>algorithm</code>.</li></ul><p><strong>Returns</strong></p><ul><li><code>output</code>: The output of the variational inference algorithm.</li><li><code>info</code>: Array of <code>NamedTuple</code>s, where each <code>NamedTuple</code> contains information generated at each iteration.</li><li><code>state</code>: Collection of the final internal states of optimization. This can used later to warm-start from the last iteration of the corresponding run.</li></ul><p><strong>Callback</strong></p><p>The signature of the callback function depends on the <code>algorithm</code> in use. Thus, see the documentation for each <code>algorithm</code>. However, a callback should return either a <code>nothing</code> or a <code>NamedTuple</code> containing information generated during the current iteration. The content of the <code>NamedTuple</code> will be concatenated into the corresponding entry in the <code>info</code> array returns in the end of the call to <code>optimize</code> and will be displayed on the progress meter.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/TuringLang/AdvancedVI.jl/blob/7c83816e921b56b6214fca8fc71edda5a46b09a5/src/optimize.jl#L2-L41">source</a></section></article><p>Each algorithm may interact differently with the arguments of <code>optimize</code>. Therefore, please refer to the documentation of each different algorithm for a detailed description on their behavior and their requirements.</p><h2 id="estimate_objective"><a class="docs-heading-anchor" href="#estimate_objective">Monitoring the Objective Value</a><a id="estimate_objective-1"></a><a class="docs-heading-anchor-permalink" href="#estimate_objective" title="Permalink"></a></h2><p>Furthermore, each algorithm has an associated variational objective. The progress made by each optimization algorithm can be diagnosed by monitoring the variational objective value. This can be done by calling the following method.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="AdvancedVI.estimate_objective-Tuple{AbstractRNG, AdvancedVI.AbstractVariationalAlgorithm, Any, Any}" href="#AdvancedVI.estimate_objective-Tuple{AbstractRNG, AdvancedVI.AbstractVariationalAlgorithm, Any, Any}"><code>AdvancedVI.estimate_objective</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">estimate_objective([rng,] alg, q, prob; kwargs...)</code></pre><p>Estimate the variational objective associated with the algorithm <code>alg</code> targeting <code>prob</code> with respect to the variational approximation <code>q</code>.</p><p><strong>Arguments</strong></p><ul><li><code>rng::Random.AbstractRNG</code>: Random number generator.</li><li><code>alg::AbstractVariationalAlgorithm</code>: Variational inference algorithm.</li><li><code>prob</code>: The target log-joint likelihood implementing the <code>LogDensityProblem</code> interface.</li><li><code>q</code>: Variational approximation.</li></ul><p><strong>Keyword Arguments</strong></p><p>Depending on the algorithm, additional keyword arguments may apply. Please refer to the respective documentation of each algorithm for more info.</p><p><strong>Returns</strong></p><ul><li><code>obj_est</code>: Estimate of the objective value.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/TuringLang/AdvancedVI.jl/blob/7c83816e921b56b6214fca8fc71edda5a46b09a5/src/AdvancedVI.jl#L258-L275">source</a></section></article><h2 id="algorithm"><a class="docs-heading-anchor" href="#algorithm">Algorithm Interface</a><a id="algorithm-1"></a><a class="docs-heading-anchor-permalink" href="#algorithm" title="Permalink"></a></h2><p>A variational inference algorithm supported by <code>AdvancedVI</code> should define its own subtype of <code>AbstractVariationalAlgorithm</code>:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="AdvancedVI.AbstractVariationalAlgorithm" href="#AdvancedVI.AbstractVariationalAlgorithm"><code>AdvancedVI.AbstractVariationalAlgorithm</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">AbstractVariationalAlgorithm</code></pre><p>Abstract type for a variational inference algorithm.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/TuringLang/AdvancedVI.jl/blob/7c83816e921b56b6214fca8fc71edda5a46b09a5/src/AdvancedVI.jl#L194-L198">source</a></section></article><p>The functionality of each algorithm is then implemented through the following methods:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="AdvancedVI.init-Tuple{AbstractRNG, AdvancedVI.AbstractVariationalAlgorithm, Any, Any}" href="#AdvancedVI.init-Tuple{AbstractRNG, AdvancedVI.AbstractVariationalAlgorithm, Any, Any}"><code>AdvancedVI.init</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">init(rng, alg, q_init, prob)</code></pre><p>Initialize <code>alg</code> given the initial variational approximation <code>q_init</code> and the target <code>prob</code>.</p><p><strong>Arguments</strong></p><ul><li><code>rng::Random.AbstractRNG</code>: Random number generator.</li><li><code>alg::AbstractVariationalAlgorithm</code>: Variational inference algorithm.</li><li><code>q_init</code>: Initial variational approximation.</li><li><code>prob</code>: Target problem.</li></ul><p><strong>Returns</strong></p><ul><li><code>state</code>: Initial state of the algorithm.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/TuringLang/AdvancedVI.jl/blob/7c83816e921b56b6214fca8fc71edda5a46b09a5/src/AdvancedVI.jl#L201-L214">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="AdvancedVI.step" href="#AdvancedVI.step"><code>AdvancedVI.step</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">step(rng, alg, state, callback, objargs...; kwargs...)</code></pre><p>Perform a single step of <code>alg</code> given the previous <code>state</code>.</p><p><strong>Arguments</strong></p><ul><li><code>rng::Random.AbstractRNG</code>: Random number generator.</li><li><code>alg::AbstractVariationalAlgorithm</code>: Variational inference algorithm.</li><li><code>state</code>: Previous state of the algorithm.</li><li><code>callback</code>: Callback function to be called during the step.</li></ul><p><strong>Returns</strong></p><ul><li><code>state</code>: New state generated by performing the step.</li><li><code>terminate</code>::Bool: Whether to terminate the algorithm after the step.</li><li><code>info</code>::NamedTuple: Information generated during the step. </li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/TuringLang/AdvancedVI.jl/blob/7c83816e921b56b6214fca8fc71edda5a46b09a5/src/AdvancedVI.jl#L217-L232">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="AdvancedVI.output" href="#AdvancedVI.output"><code>AdvancedVI.output</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">output(alg, state)</code></pre><p>Output a variational approximation from the last <code>state</code> of <code>alg</code>.</p><p><strong>Arguments</strong></p><ul><li><code>alg::AbstractVariationalAlgorithm</code>: Variational inference algorithm used to compute the state.</li><li><code>state</code>: The last state generated by the algorithm.</li></ul><p><strong>Returns</strong></p><ul><li><code>out</code>: The output of the algorithm. </li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/TuringLang/AdvancedVI.jl/blob/7c83816e921b56b6214fca8fc71edda5a46b09a5/src/AdvancedVI.jl#L244-L255">source</a></section></article><p>The role of each method should be self-explanatory and should be clear once we take a look at how <code>optimize</code> interacts with each algorithm. The operation of <code>optimize</code> can be simplified as follows:</p><pre><code class="language-julia hljs">function optimize(rng, algorithm, max_iter, q_init, objargs; kwargs...)
+    info_total = NamedTuple[]
+    state = init(rng, algorithm, q_init, prob)
+    for t in 1:max_iter
+        info = (iteration=t,)
+        state, terminate, info′ = step(
+            rng, algorithm, state, callback, objargs...; kwargs...
+        )
+        info = merge(info′, info)
+
+        if terminate
+            break
+        end
+
+        push!(info_total, info)
+    end
+    out = output(algorithm, state)
+    return out, info_total, state
+end</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« AdvancedVI</a><a class="docs-footer-nextpage" href="../tutorials/basic/">Basic Example »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.15.0 on <span class="colophon-date" title="Thursday 13 November 2025 22:56">Thursday 13 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
