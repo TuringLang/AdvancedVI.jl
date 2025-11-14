@@ -29,7 +29,6 @@ makedocs(;
             "`KLMinWassFwdBwd`" => "klminwassfwdbwd.md",
             "`KLMinNaturalGradDescent`" => "klminnaturalgraddescent.md",
             "`KLMinSqrtNaturalGradDescent`" => "klminsqrtnaturalgraddescent.md",
-            "`KLMinSqrtNaturalGradDescent`" => "klminsqrtnaturalgraddescent.md",
         ],
         "Variational Families" => "families.md",
         "Optimization" => "optimization.md",
