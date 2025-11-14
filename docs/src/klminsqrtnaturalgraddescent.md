@@ -73,6 +73,7 @@ For Gaussian variational families, if we specifically choose the *square-root* (
 \dot{C}_t &= C_t M\left( \mathrm{I}_d + C_t^{\top} \mathbb{E}\left[ \nabla^2 \log \pi \right] C_t \right) ,
 \end{align*}  
 ```
+
 where $M$ is a $\mathrm{tril}$-like function defined as
 ```math
 {[ M(A) ]}_{ij} = \begin{cases}
