@@ -58,6 +58,7 @@ This turns out to be equivalent to the update
 ```math
 \lambda_{t+1} = \lambda_{t} - \gamma_t {F(\lambda_t)}^{-1} \nabla_{\lambda} \mathcal{L}(q_{\lambda_t}) ,
 ```
+
 where $F(\lambda_t)$ is the Fisher information matrix of $q_{\lambda}$.
 That is, natural gradient descent can be viewed as gradient descent with an iterate-dependent preconditioning.
 Furthermore, ${F(\lambda_t)}^{-1} \nabla_{\lambda} \mathcal{L}(q_{\lambda_t})$ is refered to as the *natural gradient* of the KL divergence[^A1998], hence natural gradient variational inference.
