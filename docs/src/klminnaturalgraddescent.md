@@ -26,7 +26,6 @@ estimate_objective(
 
 [^KR2023]: Khan, M. E., & Rue, H. (2023). The Bayesian learning rule. *Journal of Machine Learning Research*, 24(281), 1-46.
 [^LSK2020]: Lin, W., Schmidt, M., & Khan, M. E. (2020). Handling the positive-definite constraint in the Bayesian learning rule. In *International Conference on Machine Learning*. PMLR.
-
 ## [Methodology](@id klminnaturalgraddescent_method)
 
 This algorithm aims to solve the problem
