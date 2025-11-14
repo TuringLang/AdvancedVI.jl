@@ -120,7 +120,7 @@ function step(
     info = merge((elbo=elbo,), sub_inf)
 
     if !isnothing(callback)
-        info′ = callback(; rng, iteration, q, info)
+        info′ = callback(; rng, iteration, q=q′, info)
         info = !isnothing(info′) ? merge(info′, info) : info
     end
     state, false, info
