@@ -17,4 +17,6 @@ For using the algorithms implemented in `AdvancedVI`, refer to the corresponding
   - [KLMinRepGradDescent](@ref klminrepgraddescent) (alias of `ADVI`)
   - [KLMinRepGradProxDescent](@ref klminrepgradproxdescent)
   - [KLMinScoreGradDescent](@ref klminscoregraddescent)  (alias of `BBVI`)
+  - [KLMinNaturalGradDescent](@ref klminnaturalgraddescent)
+  - [KLMinSqrtNaturalGradDescent](@ref klminsqrtnaturalgraddescent)
   - [KLMinWassFwdBwd](@ref klminwassfwdbwd)
