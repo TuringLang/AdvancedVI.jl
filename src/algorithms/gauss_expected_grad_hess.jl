@@ -19,7 +19,7 @@ Otherwise, it uses Stein's identity.
 """
 function gaussian_expectation_gradient_and_hessian!(
     rng::Random.AbstractRNG,
-    q::MvLocationScale{<:LowerTriangular,<:Normal,L},
+    q::MvLocationScale{<:LinearAlgebra.AbstractTriangular,<:Normal,L},
     n_samples::Int,
     grad_buf::AbstractVector{T},
     hess_buf::AbstractMatrix{T},

@@ -49,10 +49,11 @@ The keyword arguments are as follows:
     subsampling::Sub = nothing
 end
 
-struct KLMinNaturalGradDescentState{Q,P,S,Prec,GradBuf,HessBuf}
+struct KLMinNaturalGradDescentState{Q,P,S,Prec,QCov,GradBuf,HessBuf}
     q::Q
     prob::P
     prec::Prec
+    qcov::QCov
     iteration::Int
     sub_st::S
     grad_buf::GradBuf
@@ -78,8 +79,13 @@ function init(
     sub_st = isnothing(sub) ? nothing : init(rng, sub)
     grad_buf = Vector{eltype(q_init.location)}(undef, n_dims)
     hess_buf = Matrix{eltype(q_init.location)}(undef, n_dims, n_dims)
+    scale = q_init.scale
+    qcov = Hermitian(scale*scale')
+    scale_inv = inv(scale)
+    prec_chol = scale_inv'
+    prec = Hermitian(prec_chol*prec_chol')
     return KLMinNaturalGradDescentState(
-        q_init, prob, inv(cov(q_init)), 0, sub_st, grad_buf, hess_buf
+        q_init, prob, prec, qcov, 0, sub_st, grad_buf, hess_buf
     )
 end
 
@@ -94,7 +100,7 @@ function step(
     kwargs...,
 )
     (; ensure_posdef, n_samples, stepsize, subsampling) = alg
-    (; q, prob, prec, iteration, sub_st, grad_buf, hess_buf) = state
+    (; q, prob, prec, qcov, iteration, sub_st, grad_buf, hess_buf) = state
 
     m = mean(q)
     S = prec
@@ -114,17 +120,26 @@ function step(
         rng, q, n_samples, grad_buf, hess_buf, prob_sub
     )
 
-    S′ = Hermitian(((1 - η) * S + η * Symmetric(-hess_buf)))
-    if ensure_posdef
+    S′ = if ensure_posdef
+        # Udpate rule guaranteeing positive definiteness in the proof of Theorem 1.
+        # Lin, W., Schmidt, M., & Khan, M. E.
+        # Handling the positive-definite constraint in the Bayesian learning rule.
+        # In ICML 2020.
         G_hat = S - Symmetric(-hess_buf)
-        S′ += η^2 / 2 * Symmetric(G_hat * (S′ \ G_hat))
+        Hermitian(S - η*G_hat + η^2/2*G_hat*qcov*G_hat)
+    else
+        Hermitian(((1 - η) * S + η * Symmetric(-hess_buf)))
     end
     m′ = m - η * (S′ \ (-grad_buf))
 
-    q′ = MvLocationScale(m′, inv(cholesky(S′).L), q.dist)
+    prec_chol = cholesky(S′).L
+    prec_chol_inv = inv(prec_chol)
+    scale = prec_chol_inv'
+    qcov = Hermitian(scale*scale')
+    q′ = MvLocationScale(m′, scale, q.dist)
 
     state = KLMinNaturalGradDescentState(
-        q′, prob, S′, iteration, sub_st′, grad_buf, hess_buf
+        q′, prob, S′, qcov, iteration, sub_st′, grad_buf, hess_buf
     )
     elbo = logπ_avg + entropy(q′)
     info = merge((elbo=elbo,), sub_inf)
