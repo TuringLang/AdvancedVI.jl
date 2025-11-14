@@ -75,6 +75,7 @@ For Gaussian variational families, if we specifically choose the *square-root* (
 ```
 
 where $M$ is a $\mathrm{tril}$-like function defined as
+
 ```math
 {[ M(A) ]}_{ij} = \begin{cases}
     0 & \text{if $i > j$} \\
