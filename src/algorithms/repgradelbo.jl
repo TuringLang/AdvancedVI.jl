@@ -114,7 +114,7 @@ function estimate_objective(
 )
     samples, entropy = reparam_with_entropy(rng, q, q, n_samples, obj.entropy)
     energy = estimate_energy_with_samples(prob, samples)
-    return energy + entropy
+    return -(energy + entropy)
 end
 
 function estimate_objective(obj::RepGradELBO, q, prob; n_samples::Int=obj.n_samples)

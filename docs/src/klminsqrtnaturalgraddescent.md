@@ -13,7 +13,7 @@ Since `KLMinSqrtNaturalGradDescent` is a measure-space algorithm, its use is res
 KLMinSqrtNaturalGradDescent
 ```
 
-The associated objective value, which is the ELBO, can be estimated through the following:
+The associated objective value can be estimated through the following:
 
 ```@docs; canonical=false
 estimate_objective(

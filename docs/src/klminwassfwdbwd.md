@@ -10,7 +10,7 @@ Since `KLMinWassFwdBwd` is a measure-space algorithm, its use is restricted to f
 KLMinWassFwdBwd
 ```
 
-The associated objective value, which is the ELBO, can be estimated through the following:
+The associated objective value can be estimated through the following:
 
 ```@docs; canonical=false
 estimate_objective(
