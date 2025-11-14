@@ -25,8 +25,8 @@ estimate_objective(
 )
 ```
 
-[^KMKL2025]: Kumar, N., Möllenhoff, T., Khan, M. E., & Lucchi, A. (2025). Optimization Guarantees for Square-Root Natural-Gradient Variational Inference. *Transactions of Machine Learning Research*. 
-[^LDEBTM2024]: Lin, W., Dangel, F., Eschenhagen, R., Bae, J., Turner, R. E., & Makhzani, A. (2024). Can We Remove the Square-Root in Adaptive Gradient Methods? A Second-Order Perspective. In *International Conference on Machine Learning*. 
+[^KMKL2025]: Kumar, N., Möllenhoff, T., Khan, M. E., & Lucchi, A. (2025). Optimization Guarantees for Square-Root Natural-Gradient Variational Inference. *Transactions of Machine Learning Research*.
+[^LDEBTM2024]: Lin, W., Dangel, F., Eschenhagen, R., Bae, J., Turner, R. E., & Makhzani, A. (2024). Can We Remove the Square-Root in Adaptive Gradient Methods? A Second-Order Perspective. In *International Conference on Machine Learning*.
 [^LDLNKS2023]: Lin, W., Duruisseaux, V., Leok, M., Nielsen, F., Khan, M. E., & Schmidt, M. (2023). Simplifying momentum-based positive-definite submanifold optimization with applications to deep learning. In *International Conference on Machine Learning*.
 [^T2025]: Tan, L. S. (2025). Analytic natural gradient updates for Cholesky factor in Gaussian variational approximation. *Journal of the Royal Statistical Society: Series B.*
 
