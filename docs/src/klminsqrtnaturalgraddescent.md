@@ -1,4 +1,3 @@
-
 # [`KLMinSqrtNaturalGradDescent`](@id klminsqrtnaturalgraddescent)
 
 ## Description
