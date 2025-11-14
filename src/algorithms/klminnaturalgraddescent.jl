@@ -9,9 +9,9 @@ This algorithm can be viewed as an instantiation of mirror descent, where the Br
 If the `ensure_posdef` argument is true, the algorithm applies the technique by Lin *et al.*[^LSK2020], where the precision matrix update includes an additional term that guarantees positive definiteness.
 This, however, involves an additional set of matrix-matrix system solves that could be costly.
 
-The original algorithm requires estimating the quantity \$\$ \\mathbb{E}_q \\nabla^2 \\log \\pi \$\$, where \$\$ \\log \\pi \$\$ is the target log-density and \$\$q\$\$ is the current variational approximation.
-If the target `LogDensityProblem` associated with \$\$ \\log \\pi \$\$ has second-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), we use the sample average of the Hessian.
-If the target has only first-order capability, we use Stein's identity.
+This algorithm requires second-order information about the target.
+If the target `LogDensityProblem` has second-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), Hessians are used.
+Otherwise, if the target has only first-order capability, it will use only gradients but this will porbably result in slower convergence and less robust behavior.
 
 # (Keyword) Arguments
 - `stepsize::Float64`: Step size.
@@ -38,7 +38,7 @@ The keyword arguments are as follows:
 
 # Requirements
 - The variational family is [`FullRankGaussian`](@ref FullRankGaussian).
-- The target distribution has unconstrained support (\$\$\\mathbb{R}^d\$\$).
+- The target distribution has unconstrained support.
 - The target `LogDensityProblems.logdensity(prob, x)` has at least first-order differentiation capability.
 """
 @kwdef struct KLMinNaturalGradDescent{Sub<:Union{Nothing,<:AbstractSubsampling}} <:
