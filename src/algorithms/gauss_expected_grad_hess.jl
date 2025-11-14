@@ -35,7 +35,7 @@ function gaussian_expectation_gradient_and_hessian!(
         #
         #   E_{z ~ N(m, CC')} ∇2 log π(z)
         #   = E_{z ~ N(m, CC')} (CC')^{-1} (z - m) ∇ log π(z)T
-        #   = E_{u ~ N(0, I)} C \ (u ∇ log π(z)T) .
+        #   = E_{u ~ N(0, I)} C' \ (u ∇ log π(z)T) .
         # 
         # Algorithmically, draw u ~ N(0, I), z = C u + m, where C = q.scale.
         # Accumulate A = E[ u ∇ log π(z)T ], then map back: H = C \ A.
@@ -54,7 +54,7 @@ function gaussian_expectation_gradient_and_hessian!(
             grad_buf[:] .+= ∇logπ_div_nsamples
             hess_buf[:, :] .+= ub*∇logπ_div_nsamples'
         end
-        hess_buf[:, :] .= C \ hess_buf
+        hess_buf[:, :] .= C' \ hess_buf
         return logπ_avg, grad_buf, hess_buf
     else
         # Second-order: use naive sample average
