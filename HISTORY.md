@@ -1,5 +1,6 @@
-# Release 0.5.1
+# Release 0.6
 
+## New Algorithms
 This update adds new variational inference algorithms in light of the flexibility added in the v0.5 update.
 Specifically, the following measure-space optimization algorithms have been added:
 
@@ -7,6 +8,11 @@ Specifically, the following measure-space optimization algorithms have been adde
   - `KLMinNaturalGradDescent`
   - `KLMinSqrtNaturalGradDescent`
 
+## Interface Change
+The objective value returned by `estimate_objective` is now the value to be *minimized* by the algorithm.
+For instance, for ELBO maximization algorithms, `estimate_objective` will return the negative ELBO.
+
+## Behavior Change
 In addition, `KLMinRepGradDescent`, `KLMinRepGradProxDescent`, `KLMinScoreGradDescent` will now throw a `RuntimException` if the objective value estimated at each step turns out to be degenerate (`Inf` or `NaN`). Previously, the algorithms ran until `max_iter` even if the optimization run has failed.
 
 # Release 0.5
