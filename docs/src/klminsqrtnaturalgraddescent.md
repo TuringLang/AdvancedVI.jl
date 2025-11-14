@@ -46,6 +46,7 @@ Instead, the ELBO maximization strategy minimizes a surrogate objective, the *ne
 ```math
   \mathcal{L}\left(q\right) \triangleq \mathbb{E}_{\theta \sim q} -\log \pi\left(\theta\right) - \mathbb{H}\left(q\right),
 ```
+
 which is equivalent to the KL up to an additive constant (the evidence).
 
 While `KLMinSqrtNaturalGradDescent` is close to a natural gradient variational inference algorithm, it can be derived in a variety of different ways.
