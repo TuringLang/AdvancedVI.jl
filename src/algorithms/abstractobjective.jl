@@ -3,12 +3,7 @@
 """
     AbstractVariationalObjective
 
-Abstract type for the VI algorithms supported by `AdvancedVI`.
-
-# Implementations
-To be supported by `AdvancedVI`, a VI algorithm must implement `AbstractVariationalObjective` and `estimate_objective`.
-Also, it should provide gradients by implementing the function `estimate_gradient`.
-If the estimator is stateful, it can implement `init` to initialize the state.
+Abstract type for a variational objective to be optimized by some variational algorithm.
 """
 abstract type AbstractVariationalObjective end
 
@@ -42,7 +37,7 @@ end
 """
     estimate_objective([rng,] obj, q, prob; kwargs...)
 
-Estimate the variational objective `obj` targeting `prob` with respect to the variational approximation `q`.
+Estimate the minimization objective `obj` of the variational approximation `q` targeting `prob`.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
