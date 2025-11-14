@@ -213,7 +213,7 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
 
         # Higher fidelity estimate of the ELBO on the averaged parameters
         n_samples = 256
-        elbo_callback = estimate_objective(alg_full, q_avg, model; n_samples)
+        elbo_callback = -estimate_objective(alg_full, q_avg, model; n_samples)
 
         (elbo_callback=elbo_callback, accuracy=acc, time_elapsed=time() - time_begin)
     else
