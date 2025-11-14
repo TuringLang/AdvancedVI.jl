@@ -65,7 +65,10 @@ if GROUP == "All" || GROUP == "GENERAL"
     include("families/location_scale.jl")
     include("families/location_scale_low_rank.jl")
 
+    include("general/gauss_expected_grad_hess.jl")
     include("algorithms/klminwassfwdbwd.jl")
+    include("algorithms/klminsqrtnaturalgraddescent.jl")
+    include("algorithms/klminnaturalgraddescent.jl")
 end
 
 if GROUP == "All" || GROUP == "AD"

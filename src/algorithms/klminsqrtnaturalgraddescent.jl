@@ -1,21 +1,21 @@
 
 """
-    KLMinWassFwdBwd(n_samples, stepsize, subsampling)
-    KLMinWassFwdBwd(; n_samples, stepsize, subsampling)
+    KLMinSqrtNaturalGradDescent(stepsize, n_samples, subsampling)
+    KLMinSqrtNaturalGradDescent(; stepsize, n_samples, subsampling)
 
-KL divergence minimization by running stochastic proximal gradient descent (forward-backward splitting) in Wasserstein space[^DBCS2023].
+KL divergence minimization algorithm obtained by discretizing the natural gradient flow (the Riemannian gradient flow with the Fisher information matrix as the metric tensor) under the square-root parameterization[^KMKL2025][^LDENKTM2024][^LDLNKS2023][^T2025].
 
 The original algorithm requires estimating the quantity \$\$ \\mathbb{E}_q \\nabla^2 \\log \\pi \$\$, where \$\$ \\log \\pi \$\$ is the target log-density and \$\$q\$\$ is the current variational approximation.
 If the target `LogDensityProblem` associated with \$\$ \\log \\pi \$\$ has second-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), we use the sample average of the Hessian.
 If the target has only first-order capability, we use Stein's identity.
 
 # (Keyword) Arguments
-- `n_samples::Int`: Number of samples used to estimate the Wasserstein gradient. (default: `1`)
-- `stepsize::Float64`: Step size of stochastic proximal gradient descent.
+- `stepsize::Float64`: Step size.
+- `n_samples::Int`: Number of samples used to estimate the natural gradient. (default: `1`)
 - `subsampling::Union{Nothing,<:AbstractSubsampling}`: Optional subsampling strategy.
 
 !!! note
-    The `subsampling` strategy is only applied to the target `LogDensityProblem` but not to the variational approximation `q`. That is, `KLMinWassFwdBwd` does not support amortization or structured variational families.
+    The `subsampling` strategy is only applied to the target `LogDensityProblem` but not to the variational approximation `q`. That is, `KLMinSqrtNaturalGradDescent` does not support amortization or structured variational families.
 
 # Output
 - `q`: The last iterate of the algorithm.
@@ -36,17 +36,16 @@ The keyword arguments are as follows:
 - The target distribution has unconstrained support (\$\$\\mathbb{R}^d\$\$).
 - The target `LogDensityProblems.logdensity(prob, x)` has at least first-order differentiation capability.
 """
-@kwdef struct KLMinWassFwdBwd{Sub<:Union{Nothing,<:AbstractSubsampling}} <:
+@kwdef struct KLMinSqrtNaturalGradDescent{Sub<:Union{Nothing,<:AbstractSubsampling}} <:
               AbstractVariationalAlgorithm
-    n_samples::Int = 1
     stepsize::Float64
+    n_samples::Int = 1
     subsampling::Sub = nothing
 end
 
-struct KLMinWassFwdBwdState{Q,P,S,Sigma,GradBuf,HessBuf}
+struct KLMinSqrtNaturalGradDescentState{Q,P,S,GradBuf,HessBuf}
     q::Q
     prob::P
-    sigma::Sigma
     iteration::Int
     sub_st::S
     grad_buf::GradBuf
@@ -55,7 +54,7 @@ end
 
 function init(
     rng::Random.AbstractRNG,
-    alg::KLMinWassFwdBwd,
+    alg::KLMinSqrtNaturalGradDescent,
     q_init::MvLocationScale{<:LowerTriangular,<:Normal,L},
     prob,
 ) where {L}
@@ -65,26 +64,31 @@ function init(
     if capability < LogDensityProblems.LogDensityOrder{1}()
         throw(
             ArgumentError(
-                "`KLMinWassFwdBwd` requires at least first-order differentiation capability. The capability of the supplied `LogDensityProblem` is $(capability).",
+                "`KLMinSqrtNaturalGradDescent` requires at least first-order differentiation capability. The capability of the supplied `LogDensityProblem` is $(capability).",
             ),
         )
     end
     sub_st = isnothing(sub) ? nothing : init(rng, sub)
     grad_buf = Vector{eltype(q_init.location)}(undef, n_dims)
     hess_buf = Matrix{eltype(q_init.location)}(undef, n_dims, n_dims)
-    return KLMinWassFwdBwdState(q_init, prob, cov(q_init), 0, sub_st, grad_buf, hess_buf)
+    return KLMinSqrtNaturalGradDescentState(q_init, prob, 0, sub_st, grad_buf, hess_buf)
 end
 
-output(::KLMinWassFwdBwd, state) = state.q
+output(::KLMinSqrtNaturalGradDescent, state) = state.q
 
 function step(
-    rng::Random.AbstractRNG, alg::KLMinWassFwdBwd, state, callback, objargs...; kwargs...
+    rng::Random.AbstractRNG,
+    alg::KLMinSqrtNaturalGradDescent,
+    state,
+    callback,
+    objargs...;
+    kwargs...,
 )
     (; n_samples, stepsize, subsampling) = alg
-    (; q, prob, sigma, iteration, sub_st, grad_buf, hess_buf) = state
+    (; q, prob, iteration, sub_st, grad_buf, hess_buf) = state
 
-    m = mean(q)
-    Σ = sigma
+    m = q.location
+    C = q.scale
     η = convert(eltype(m), stepsize)
     iteration += 1
 
@@ -97,20 +101,21 @@ function step(
         prob_sub, sub_st′, sub_inf
     end
 
-    # Estimate the Wasserstein gradient
     logπ_avg, grad_buf, hess_buf = gaussian_expectation_gradient_and_hessian!(
         rng, q, n_samples, grad_buf, hess_buf, prob_sub
     )
 
-    m′ = m - η * (-grad_buf)
-    M = I - η*Symmetric(-hess_buf)
-    Σ_half = Hermitian(M*Σ*M)
+    CtHCmI = C'*Symmetric(-hess_buf)*C - I
+    CtHCmI_tril = LowerTriangular(tril(CtHCmI) - Diagonal(diag(CtHCmI))/2)
 
-    # Compute the JKO proximal operator
-    Σ′ = (Σ_half + 2*η*I + sqrt(Hermitian(Σ_half*(Σ_half + 4*η*I))))/2
-    q′ = MvLocationScale(m′, cholesky(Σ′).L, q.dist)
+    m′ = m - η * C * (C' * -grad_buf)
+    C′ = C - η * C * CtHCmI_tril
 
-    state = KLMinWassFwdBwdState(q′, prob, Σ′, iteration, sub_st′, grad_buf, hess_buf)
+    q′ = MvLocationScale(m′, C′, q.dist)
+
+    state = KLMinSqrtNaturalGradDescentState(
+        q′, prob, iteration, sub_st′, grad_buf, hess_buf
+    )
     elbo = logπ_avg + entropy(q′)
     info = merge((elbo=elbo,), sub_inf)
 
@@ -128,7 +133,7 @@ Estimate the ELBO of the variational approximation `q` against the target log-de
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
-- `alg::KLMinWassFwdBwd`: Variational inference algorithm.
+- `alg::KLMinSqrtNaturalGradDescent`: Variational inference algorithm.
 - `q::MvLocationScale{<:Any,<:Normal,<:Any}`: Gaussian variational approximation.
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 
@@ -140,7 +145,7 @@ Estimate the ELBO of the variational approximation `q` against the target log-de
 """
 function estimate_objective(
     rng::Random.AbstractRNG,
-    alg::KLMinWassFwdBwd,
+    alg::KLMinSqrtNaturalGradDescent,
     q::MvLocationScale{S,<:Normal,L},
     prob;
     n_samples::Int=alg.n_samples,
