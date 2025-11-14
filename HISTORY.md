@@ -10,6 +10,7 @@ Specifically, the following measure-space optimization algorithms have been adde
   - `KLMinSqrtNaturalGradDescent`
 
 ## Interface Change
+
 The objective value returned by `estimate_objective` is now the value to be *minimized* by the algorithm.
 For instance, for ELBO maximization algorithms, `estimate_objective` will return the negative ELBO.
 
