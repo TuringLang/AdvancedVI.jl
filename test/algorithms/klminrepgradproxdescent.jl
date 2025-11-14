@@ -1,14 +1,19 @@
 
-@testset "KLMinWassFwdBwd" begin
+@testset "KLMinRepGradProxDescent" begin
     begin
-        modelstats = normal_meanfield(Random.default_rng(), Float64; capability=2)
+        modelstats = normal_meanfield(Random.default_rng(), Float64)
         (; model, n_dims, μ_true, L_true) = modelstats
 
-        alg = KLMinWassFwdBwd(; n_samples=10, stepsize=1e-3)
-        L0 = LowerTriangular(Matrix{Float64}(I, n_dims, n_dims))
-        q0 = FullRankGaussian(zeros(Float64, n_dims), L0)
+        q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
+
+        @testset "basic n_samples=$(n_samples)" for n_samples in [1, 10]
+            alg = KLMinRepGradProxDescent(AD; n_samples)
+            T = 1
+            optimize(alg, T, model, q0; show_progress=PROGRESS)
+        end
 
         @testset "callback" begin
+            alg = KLMinRepGradProxDescent(AD)
             T = 10
             callback(; iteration, kwargs...) = (iteration_check=iteration,)
             _, info, _ = optimize(alg, T, model, q0; callback, show_progress=PROGRESS)
@@ -16,75 +21,72 @@
         end
 
         @testset "estimate_objective" begin
-            q_true = FullRankGaussian(μ_true, LowerTriangular(Matrix(L_true)))
+            alg = KLMinRepGradProxDescent(AD)
+            q_true = MeanFieldGaussian(Vector(μ_true), Diagonal(L_true))
 
             obj_est = estimate_objective(alg, q_true, model)
             @test isfinite(obj_est)
 
+            obj_est = estimate_objective(alg, q_true, model; n_samples=1)
+            @test isfinite(obj_est)
+
+            obj_est = estimate_objective(alg, q_true, model; n_samples=3)
+            @test isfinite(obj_est)
+
             obj_est = estimate_objective(alg, q_true, model; n_samples=10^5)
-            @test obj_est ≈ 0 atol=1e-2
+            @test obj_est ≈ 0 atol=1e-3
         end
 
         @testset "determinism" begin
+            alg = KLMinRepGradProxDescent(AD)
+
             seed = (0x38bef07cf9cc549d)
             rng = StableRNG(seed)
             T = 10
 
-            q_avg, _, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
-            μ = q_avg.location
-            L = q_avg.scale
+            q_out, _, _ = optimize(rng, alg, T, model, q0; show_progress=PROGRESS)
+            μ = q_out.location
+            L = q_out.scale
 
             rng_repl = StableRNG(seed)
-            q_avg, _, _ = optimize(rng_repl, alg, T, model, q0; show_progress=PROGRESS)
-            μ_repl = q_avg.location
-            L_repl = q_avg.scale
+            q_out, _, _ = optimize(rng_repl, alg, T, model, q0; show_progress=PROGRESS)
+            μ_repl = q_out.location
+            L_repl = q_out.scale
             @test μ == μ_repl
             @test L == L_repl
         end
     end
 
-    @testset "error low capability" begin
-        modelstats = normal_meanfield(Random.default_rng(), Float64; capability=0)
-        (; model, n_dims) = modelstats
+    @testset "type stability realtype=$(realtype)" for realtype in [Float32, Float64]
+        modelstats = normal_meanfield(Random.default_rng(), realtype)
+        (; model, n_dims, μ_true, L_true) = modelstats
 
-        alg = KLMinWassFwdBwd(; n_samples=10, stepsize=1.0)
+        T = 1
+        alg = KLMinRepGradProxDescent(AD; n_samples=10)
+        q0 = MeanFieldGaussian(zeros(realtype, n_dims), Diagonal(ones(realtype, n_dims)))
 
-        L0 = LowerTriangular(Matrix{Float64}(I, n_dims, n_dims))
-        q0 = FullRankGaussian(zeros(Float64, n_dims), L0)
-        @test_throws "first-order" optimize(alg, 1, model, q0)
+        q_out, info, _ = optimize(alg, T, model, q0; show_progress=PROGRESS)
+
+        @test eltype(q_out.location) == realtype
+        @test eltype(q_out.scale) == realtype
+        @test typeof(first(info).elbo) == realtype
     end
 
-    @testset "type stability type=$(realtype), capability=$(capability)" for realtype in [
-            Float64, Float32
-        ],
-        capability in [1, 2]
-
-        modelstats = normal_meanfield(Random.default_rng(), realtype; capability)
-        (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
-
-        alg = KLMinWassFwdBwd(; n_samples=10, stepsize=1e-3)
-        T = 10
-
-        L0 = LowerTriangular(Matrix{realtype}(I, n_dims, n_dims))
-        q0 = FullRankGaussian(zeros(realtype, n_dims), L0)
-
-        q, _, _ = optimize(alg, T, model, q0; show_progress=PROGRESS)
-
-        @test eltype(q.location) == eltype(μ_true)
-        @test eltype(q.scale) == eltype(L_true)
-    end
-
-    @testset "convergence capability=$(capability)" for capability in [1, 2]
-        modelstats = normal_meanfield(Random.default_rng(), Float64; capability)
-        (; model, μ_true, L_true, n_dims, strong_convexity, is_meanfield) = modelstats
+    @testset "convergence $(entropy)" for entropy_zerograd in [
+        ClosedFormEntropyZeroGradient(), StickingTheLandingEntropyZeroGradient()
+    ]
+        modelstats = normal_meanfield(Random.default_rng(), Float64)
+        (; model, μ_true, L_true, is_meanfield) = modelstats
 
         T = 1000
-        alg = KLMinWassFwdBwd(; n_samples=10, stepsize=1e-3)
+        optimizer = Descent(1e-3)
+        alg = KLMinRepGradProxDescent(AD; optimizer, entropy_zerograd)
+        q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
 
-        q_avg, _, _ = optimize(alg, T, model, q0; show_progress=PROGRESS)
+        q_out, _, _ = optimize(alg, T, model, q0; show_progress=PROGRESS)
 
         Δλ0 = sum(abs2, q0.location - μ_true) + sum(abs2, q0.scale - L_true)
-        Δλ = sum(abs2, q_avg.location - μ_true) + sum(abs2, q_avg.scale - L_true)
+        Δλ = sum(abs2, q_out.location - μ_true) + sum(abs2, q_out.scale - L_true)
 
         @test Δλ ≤ Δλ0/2
     end
@@ -100,8 +102,8 @@
             q0 = FullRankGaussian(zeros(Float64, n_dims), L0)
 
             subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
-            alg = KLMinWassFwdBwd(; n_samples=10, stepsize=1e-3)
-            alg_sub = KLMinWassFwdBwd(; n_samples=10, stepsize=1e-3, subsampling)
+            alg = KLMinRepGradProxDescent(AD; n_samples=10)
+            alg_sub = KLMinRepGradProxDescent(AD; n_samples=10, subsampling)
 
             obj_full = estimate_objective(alg, q0, model; n_samples=10^5)
             obj_sub = estimate_objective(alg_sub, q0, model; n_samples=10^5)
@@ -121,7 +123,7 @@
             T = 10
             batchsize = 3
             subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
-            alg_sub = KLMinWassFwdBwd(; n_samples=10, stepsize=1e-3, subsampling)
+            alg_sub = KLMinRepGradProxDescent(AD; n_samples=10, subsampling)
 
             q, _, _ = optimize(rng, alg_sub, T, model, q0; show_progress=PROGRESS)
             μ = q.location
@@ -135,8 +137,8 @@
             @test L == L_repl
         end
 
-        @testset "convergence capability=$(capability)" for capability in [1, 2]
-            modelstats = subsamplednormal(Random.default_rng(), n_data; capability)
+        @testset "convergence" begin
+            modelstats = subsamplednormal(Random.default_rng(), n_data)
             (; model, n_dims, μ_true, L_true) = modelstats
 
             L0 = LowerTriangular(Matrix{Float64}(I, n_dims, n_dims))
@@ -144,8 +146,9 @@
 
             T = 1000
             batchsize = 1
+            optimizer = Descent(1e-3)
             subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
-            alg_sub = KLMinWassFwdBwd(; n_samples=10, stepsize=1e-3, subsampling)
+            alg_sub = KLMinRepGradProxDescent(AD; n_samples=10, optimizer, subsampling)
 
             q, stats, _ = optimize(alg_sub, T, model, q0; show_progress=PROGRESS)
 
