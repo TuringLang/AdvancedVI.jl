@@ -75,14 +75,12 @@ if GROUP == "All" || GROUP == "AD"
     # Tests that need to check correctness of the integration with AD backends
     include("general/ad.jl")
     include("general/mixedad_logdensity.jl")
+    include("general/subsampledobj.jl")
 
-    include("algorithms/subsampledobj.jl")
-    include("algorithms/repgradelbo.jl")
-    include("algorithms/scoregradelbo.jl")
-    include("algorithms/repgradelbo_locationscale.jl")
-    include("algorithms/repgradelbo_locationscale_bijectors.jl")
-    include("algorithms/repgradelbo_proximal_locationscale.jl")
-    include("algorithms/repgradelbo_proximal_locationscale_bijectors.jl")
-    include("algorithms/scoregradelbo_locationscale.jl")
-    include("algorithms/scoregradelbo_locationscale_bijectors.jl")
+    include("algorithms/klminrepgraddescent.jl")
+    include("algorithms/klminscoregraddescent.jl")
+    include("algorithms/klminrepgradproxdescent.jl")
+    include("algorithms/klminrepgraddescent_bijectors.jl")
+    include("algorithms/klminrepgradproxdescent_bijectors.jl")
+    include("algorithms/klminscoregraddescent_bijectors.jl")
 end
