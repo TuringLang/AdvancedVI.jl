@@ -15,6 +15,7 @@ The objective value returned by `estimate_objective` is now the value to be *min
 For instance, for ELBO maximization algorithms, `estimate_objective` will return the negative ELBO.
 
 ## Behavior Change
+
 In addition, `KLMinRepGradDescent`, `KLMinRepGradProxDescent`, `KLMinScoreGradDescent` will now throw a `RuntimException` if the objective value estimated at each step turns out to be degenerate (`Inf` or `NaN`). Previously, the algorithms ran until `max_iter` even if the optimization run has failed.
 
 # Release 0.5
