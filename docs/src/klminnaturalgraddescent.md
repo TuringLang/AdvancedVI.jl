@@ -43,6 +43,7 @@ Instead, the ELBO maximization strategy minimizes a surrogate objective, the *ne
 ```math
   \mathcal{L}\left(q\right) \triangleq \mathbb{E}_{\theta \sim q} -\log \pi\left(\theta\right) - \mathbb{H}\left(q\right),
 ```
+
 which is equivalent to the KL up to an additive constant (the evidence).
 
 Suppose we had access to the exact gradients $\nabla_{\lambda} \mathcal{L}\left(q_{\lambda}\right)$.
