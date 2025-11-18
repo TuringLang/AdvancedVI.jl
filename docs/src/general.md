@@ -17,7 +17,7 @@ Therefore, please refer to the documentation of each different algorithm for a d
 
 ## [Monitoring the Objective Value](@id estimate_objective)
 
-Furthermore, each algorithm has an associated variational objective.
+Furthermore, each algorithm has an associated variational objective subject to *minimization*. (By convention, we assume all objectives are minimized rather than maximized.)
 The progress made by each optimization algorithm can be diagnosed by monitoring the variational objective value.
 This can be done by calling the following method.
 

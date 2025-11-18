@@ -124,7 +124,7 @@ end
 """
     estimate_objective([rng,] alg, q, prob; n_samples)
 
-Estimate the ELBO of the variational approximation `q` against the target log-density `prob`.
+Estimate the negative ELBO of the variational approximation `q` against the target log-density `prob`.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.

@@ -61,7 +61,7 @@ function estimate_objective(
     samples = rand(rng, q, n_samples)
     ℓπ = map(Base.Fix1(LogDensityProblems.logdensity, prob), eachsample(samples))
     ℓq = logpdf.(Ref(q), AdvancedVI.eachsample(samples))
-    return mean(ℓπ - ℓq)
+    return -mean(ℓπ - ℓq)
 end
 
 function estimate_objective(obj::ScoreGradELBO, q, prob; n_samples::Int=obj.n_samples)
