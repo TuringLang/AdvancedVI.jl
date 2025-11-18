@@ -258,7 +258,7 @@ output(::AbstractVariationalAlgorithm, ::Any) = nothing
 """
     estimate_objective([rng,] alg, q, prob; kwargs...)
 
-Estimate the variational objective subject to be minimized by the algorithm `alg` for approximating the target `prob` with the variational approximation `q`.
+Estimate the variational objective to be minimized by the algorithm `alg` for approximating the target `prob` with the variational approximation `q`.
 
 # Arguments
 - `rng::Random.AbstractRNG`: Random number generator.
