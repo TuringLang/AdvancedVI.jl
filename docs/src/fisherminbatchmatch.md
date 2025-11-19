@@ -36,6 +36,7 @@ where $\mathcal{Q}$ is some family of distributions, often called the variationa
 ```math
 \mathrm{F}_{\mathrm{cov}}(q, \pi) = \mathbb{E}_{z \sim q} {\left\lVert \nabla \log \frac{q}{\pi} (z) \right\rVert}_{\mathrm{Cov}(q)}^2 ,
 ```
+
 where ${\lVert x \rVert}_{A}^2 = x^{\top} A x $ is a weighted norm.
 $\mathrm{F}_{\mathrm{cov}}$ can be viewed as a variant of the canonical 2nd order Fisher divergence defined as
 ```math
