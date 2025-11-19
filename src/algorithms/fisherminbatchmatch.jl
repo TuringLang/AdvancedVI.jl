@@ -148,8 +148,7 @@ function estimate_covweight_fisher(
     grad_buf::Matrix=Matrix{eltype(params)}(
         undef, LogDensityProblems.dimension(prob), n_samples
     ),
-) where {S,L}
-end
+) where {S,L} end
 
 """
     estimate_objective([rng,] alg, q, prob; n_samples)
