@@ -3,11 +3,17 @@
     FisherMinBatchMatch(n_samples, subsampling)
     FisherMinBatchMatch(; n_samples, subsampling)
 
-Covariance-weighted fisher divergence minimization via the batch-and-match algorithm[^DBCS2023].
+Covariance-weighted fisher divergence minimization via the batch-and-match algorithm[^DBCS2023], which is a proximal point-type optimization scheme.
 
 # (Keyword) Arguments
 - `n_samples::Int`: Number of samples (batchsize) used to compute the moments required for the batch-and-match update. (default: `32`)
 - `subsampling::Union{Nothing,<:AbstractSubsampling}`: Optional subsampling strategy. (default: `nothing`)
+
+!!! warning
+    `FisherMinBatchMatch` with subsampling enabled results in a biased algorithm and may not properly optimize the covariance-weighted fisher divergence.
+
+!!! note
+    `FisherMinBatchMatch` requires a sufficiently large `n_samples` to converge quickly.
 
 !!! note
     The `subsampling` strategy is only applied to the target `LogDensityProblem` but not to the variational approximation `q`. That is, `FisherMinBatchMatch` does not support amortization or structured variational families.

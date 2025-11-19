@@ -20,3 +20,4 @@ For using the algorithms implemented in `AdvancedVI`, refer to the corresponding
   - [KLMinNaturalGradDescent](@ref klminnaturalgraddescent)
   - [KLMinSqrtNaturalGradDescent](@ref klminsqrtnaturalgraddescent)
   - [KLMinWassFwdBwd](@ref klminwassfwdbwd)
+  - [FisherMinBatchMatch](@ref fisherminbatchmatch)
