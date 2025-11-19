@@ -69,6 +69,7 @@ if GROUP == "All" || GROUP == "GENERAL"
     include("algorithms/klminwassfwdbwd.jl")
     include("algorithms/klminsqrtnaturalgraddescent.jl")
     include("algorithms/klminnaturalgraddescent.jl")
+    include("algorithms/fisherminbatchmatch.jl")
 end
 
 if GROUP == "All" || GROUP == "AD"
