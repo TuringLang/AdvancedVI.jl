@@ -2,7 +2,7 @@
 
 ## Description
 
-This algorithm, known as batch-and-match (BaM) aims to minimize the covariance-weighted 2nd-order fisher divergence by running a proximal point-type method[^CMPMGBS24].
+This algorithm, known as batch-and-match (BaM) aims to minimize the covariance-weighted 2nd-order Fisher divergence by running a proximal point-type method[^CMPMGBS24].
 On certain low-dimensional problems, BaM can converge very quickly without any tuning.
 Since `FisherMinBatchMatch` is a measure-space algorithm, its use is restricted to full-rank Gaussian variational families (`FullRankGaussian`) that make the measure-valued operations tractable.
 
