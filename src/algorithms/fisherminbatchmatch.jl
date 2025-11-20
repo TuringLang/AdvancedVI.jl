@@ -104,12 +104,13 @@ function step(
 
     u = randn(rng, eltype(μ), d, n_samples)
     z = C*u .+ μ
-    logπ_avg = 0
+    logπ_sum = zero(eltype(μ))
     for b in 1:n_samples
         logπb, gb = LogDensityProblems.logdensity_and_gradient(prob_sub, view(z, :, b))
         grad_buf[:, b] = gb
-        logπ_avg += logπb/n_samples
+        logπ_sum += logπb
     end
+    logπ_avg = logπ_sum/n_samples
 
     # Estimate objective values
     #
