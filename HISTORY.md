@@ -8,6 +8,7 @@ Specifically, the following measure-space optimization algorithms have been adde
   - `KLMinWassFwdBwd`
   - `KLMinNaturalGradDescent`
   - `KLMinSqrtNaturalGradDescent`
+  - `FisherMinBatchMatch`
 
 ## Interface Change
 

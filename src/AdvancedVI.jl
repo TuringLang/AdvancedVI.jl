@@ -358,7 +358,9 @@ include("algorithms/gauss_expected_grad_hess.jl")
 include("algorithms/klminwassfwdbwd.jl")
 include("algorithms/klminsqrtnaturalgraddescent.jl")
 include("algorithms/klminnaturalgraddescent.jl")
+include("algorithms/fisherminbatchmatch.jl")
 
-export KLMinWassFwdBwd, KLMinSqrtNaturalGradDescent, KLMinNaturalGradDescent
+export KLMinWassFwdBwd,
+    KLMinSqrtNaturalGradDescent, KLMinNaturalGradDescent, FisherMinBatchMatch
 
 end
