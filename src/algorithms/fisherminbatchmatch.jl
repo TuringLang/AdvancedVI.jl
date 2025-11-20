@@ -43,12 +43,13 @@ The keyword arguments are as follows:
     subsampling::Sub = nothing
 end
 
-struct BatchMatchState{Q,P,Sigma,Sub,GradBuf}
+struct BatchMatchState{Q,P,Sigma,Sub,UBuf,GradBuf}
     q::Q
     prob::P
     sigma::Sigma
     iteration::Int
     sub_st::Sub
+    u_buf::UBuf
     grad_buf::GradBuf
 end
 
@@ -70,11 +71,44 @@ function init(
     sub_st = isnothing(subsampling) ? nothing : init(rng, subsampling)
     params, _ = Optimisers.destructure(q)
     n_dims = LogDensityProblems.dimension(prob)
+    u_buf = Matrix{eltype(params)}(undef, n_dims, n_samples)
     grad_buf = Matrix{eltype(params)}(undef, n_dims, n_samples)
-    return BatchMatchState(q, prob, cov(q), 0, sub_st, grad_buf)
+    return BatchMatchState(q, prob, cov(q), 0, sub_st, u_buf, grad_buf)
 end
 
 output(::FisherMinBatchMatch, state) = state.q
+
+function rand_batch_match_samples_with_objective!(
+    rng::Random.AbstractRNG,
+    q::MvLocationScale,
+    n_samples::Int,
+    prob,
+    u_buf=Matrix{eltype(q)}(undef, LogDensityProblems.dimension(prob), n_samples),
+    grad_buf=Matrix{eltype(q)}(undef, LogDensityProblems.dimension(prob), n_samples),
+)
+    μ = q.location
+    C = q.scale
+    u = Random.randn!(rng, u_buf)
+    z = C*u .+ μ
+    logπ_sum = zero(eltype(μ))
+    for b in 1:n_samples
+        logπb, gb = LogDensityProblems.logdensity_and_gradient(prob, view(z, :, b))
+        grad_buf[:, b] = gb
+        logπ_sum += logπb
+    end
+    logπ_avg = logπ_sum/n_samples
+
+    # Estimate objective values
+    #
+    # F = E[| ∇log(q/π) (z) |_{CC'}^2] (definition)
+    #   = E[| C' (∇logq(z) - ∇logπ(z)) |^2] (Σ = CC')
+    #   = E[| C' ( -(CC')\((Cu + μ) - μ) - ∇logπ(z)) |^2] (z = Cu + μ)
+    #   = E[| C' ( -(CC')\(Cu) - ∇logπ(z)) |^2]
+    #   = E[| -u - C'∇logπ(z)) |^2]
+    fisher = sum(abs2, -u_buf - (C'*grad_buf))/n_samples
+
+    return u_buf, z, grad_buf, fisher, logπ_avg
+end
 
 function step(
     rng::Random.AbstractRNG,
@@ -85,7 +119,7 @@ function step(
     kwargs...,
 )
     (; n_samples, subsampling) = alg
-    (; q, prob, sigma, iteration, sub_st, grad_buf) = state
+    (; q, prob, sigma, iteration, sub_st, u_buf, grad_buf) = state
 
     d = LogDensityProblems.dimension(prob)
     μ = q.location
@@ -102,25 +136,9 @@ function step(
         prob_sub, sub_st′, sub_inf
     end
 
-    u = randn(rng, eltype(μ), d, n_samples)
-    z = C*u .+ μ
-    logπ_sum = zero(eltype(μ))
-    for b in 1:n_samples
-        logπb, gb = LogDensityProblems.logdensity_and_gradient(prob_sub, view(z, :, b))
-        grad_buf[:, b] = gb
-        logπ_sum += logπb
-    end
-    logπ_avg = logπ_sum/n_samples
-
-    # Estimate objective values
-    #
-    # WF = E[| ∇log(q/π) (z) |_{CC'}^2] (definition)
-    #    = E[| C' (∇logq(z) - ∇logπ(z)) |^2] (Σ = CC')
-    #    = E[| C' ( -(CC')\((Cu + μ) - μ) - ∇logπ(z)) |^2] (z = Cu + μ)
-    #    = E[| C' ( -(CC')\(Cu) - ∇logπ(z)) |^2]
-    #    = E[| -u - C'∇logπ(z)) |^2]
-    weighted_fisher = sum(abs2, -u .- (C'*grad_buf))/n_samples
-    elbo = logπ_avg + entropy(q)
+    u_buf, z, grad_buf, fisher, logπ_avg = rand_batch_match_samples_with_objective!(
+        rng, q, n_samples, prob_sub, u_buf, grad_buf
+    )
 
     # BaM updates
     zbar, C = mean_and_cov(z, 2)
@@ -136,9 +154,10 @@ function step(
     μ′ = 1/(1 + λ)*μ + λ/(1 + λ)*(Σ′*gbar + zbar)
     q′ = MvLocationScale(μ′[:, 1], cholesky(Σ′).L, q.dist)
 
-    info = (iteration=iteration, weighted_fisher=weighted_fisher, elbo=elbo)
+    elbo = logπ_avg + entropy(q)
+    info = (iteration=iteration, covweighted_fisher=fisher, elbo=elbo)
 
-    state = BatchMatchState(q′, prob, Σ′, iteration, sub_st′, grad_buf)
+    state = BatchMatchState(q′, prob, Σ′, iteration, sub_st′, u_buf, grad_buf)
 
     if !isnothing(callback)
         info′ = callback(; rng, iteration, q, state)
@@ -171,21 +190,6 @@ function estimate_objective(
     prob;
     n_samples::Int=alg.n_samples,
 ) where {S,L}
-    d = LogDensityProblems.dimension(prob)
-    grad_buf = Matrix{eltype(params)}(undef, d, n_samples)
-    d = LogDensityProblems.dimension(prob)
-    μ = q.location
-    C = q.scale
-    u = randn(rng, eltype(μ), d, n_samples)
-    z = C*u .+ μ
-    for b in 1:n_samples
-        _, gb = LogDensityProblems.logdensity_and_gradient(prob, view(z, :, b))
-        grad_buf[:, b] = gb
-    end
-    # WF = E[| ∇log(q/π) (z) |_{CC'}^2] (definition)
-    #    = E[| C' (∇logq(z) - ∇logπ(z)) |^2] (Σ = CC')
-    #    = E[| C' ( -(CC')\((Cu + μ) - μ) - ∇logπ(z)) |^2] (z = Cu + μ)
-    #    = E[| C' ( -(CC')\(Cu) - ∇logπ(z)) |^2]
-    #    = E[| -u - C'∇logπ(z)) |^2]
-    return sum(abs2, -u .- (C'*grad_buf))/n_samples
+    _, _, _, fisher, _ = rand_batch_match_samples_with_objective!(rng, q, n_samples, prob)
+    return fisher
 end
