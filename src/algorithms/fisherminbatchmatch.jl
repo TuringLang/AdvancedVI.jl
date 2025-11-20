@@ -10,7 +10,7 @@ Covariance-weighted fisher divergence minimization via the batch-and-match algor
 - `subsampling::Union{Nothing,<:AbstractSubsampling}`: Optional subsampling strategy. (default: `nothing`)
 
 !!! warning
-    `FisherMinBatchMatch` with subsampling enabled results in a biased algorithm and may not properly optimize the covariance-weighted fisher divergence.
+    `FisherMinBatchMatch` with subsampling enabled results in a biased algorithm and may not properly optimize the covariance-weighted Fisher divergence.
 
 !!! note
     `FisherMinBatchMatch` requires a sufficiently large `n_samples` to converge quickly.
