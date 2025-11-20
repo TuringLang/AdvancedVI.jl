@@ -20,7 +20,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 ADTypes = "1"
-AdvancedVI = "0.6"
+AdvancedVI = "0.6, 0.5"
 BenchmarkTools = "1"
 Bijectors = "0.13, 0.14, 0.15"
 Distributions = "0.25.111"
