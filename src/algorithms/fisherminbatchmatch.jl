@@ -3,7 +3,7 @@
     FisherMinBatchMatch(n_samples, subsampling)
     FisherMinBatchMatch(; n_samples, subsampling)
 
-Covariance-weighted fisher divergence minimization via the batch-and-match algorithm[^DBCS2023], which is a proximal point-type optimization scheme.
+Covariance-weighted fisher divergence minimization via the batch-and-match algorithm, which is a proximal point-type optimization scheme.
 
 # (Keyword) Arguments
 - `n_samples::Int`: Number of samples (batchsize) used to compute the moments required for the batch-and-match update. (default: `32`)
