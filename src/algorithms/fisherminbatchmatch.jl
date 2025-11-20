@@ -146,16 +146,6 @@ function step(
     state, false, info
 end
 
-function estimate_covweight_fisher(
-    rng::Random.AbstractRNG,
-    n_samples::Int,
-    q::MvLocationScale{S,<:Normal,L},
-    prob,
-    grad_buf::Matrix=Matrix{eltype(params)}(
-        undef, LogDensityProblems.dimension(prob), n_samples
-    ),
-) where {S,L} end
-
 """
     estimate_objective([rng,] alg, q, prob; n_samples)
 
