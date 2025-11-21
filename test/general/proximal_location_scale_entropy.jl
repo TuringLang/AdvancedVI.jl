@@ -3,8 +3,7 @@
     @testset "MvLocationScale" begin
         @testset "$(string(covtype)) $(realtype) $(bijector)" for covtype in
                                                                   [:meanfield, :fullrank],
-            realtype in [Float32, Float64],
-            bijector in [nothing, :identity]
+            realtype in [Float32, Float64]
 
             stepsize = 1e-2
             optimizer = Descent(stepsize)
@@ -21,11 +20,6 @@
                 FullRankGaussian(μ, L)
             elseif covtype == :meanfield
                 MeanFieldGaussian(μ, L)
-            end
-            q = if isnothing(bijector)
-                q
-            else
-                Bijectors.TransformedDistribution(q, identity)
             end
 
             # The proximal operator for the entropy of a location scale distribution 

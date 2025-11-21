@@ -1,7 +1,6 @@
 using ADTypes
 using AdvancedVI
 using BenchmarkTools
-using Bijectors
 using Distributions
 using DistributionsAD
 using Enzyme, ForwardDiff, ReverseDiff, Zygote, Mooncake
@@ -58,9 +57,7 @@ begin
                 ),
             ]
 
-            b = Bijectors.bijector(prob)
-            binv = inverse(b)
-            q = Bijectors.TransformedDistribution(family, binv)
+            q = family
             alg = KLMinRepGradDescent(adtype; optimizer=opt, entropy, operator=ClipScale())
 
             SUITES[probname][objname][familyname][adname] = begin
