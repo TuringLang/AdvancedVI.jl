@@ -32,9 +32,7 @@ end
 begin
     T = Float64
 
-    for (probname, prob) in [
-        ("normal", normal(; n_dims=10, realtype=T))
-    ]
+    for (probname, prob) in [("normal", normal(; n_dims=10, realtype=T))]
         max_iter = 10^4
         d = LogDensityProblems.dimension(prob)
         opt = Optimisers.Adam(T(1e-3))
