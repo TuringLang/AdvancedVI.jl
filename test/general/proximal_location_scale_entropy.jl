@@ -1,8 +1,7 @@
 
 @testset "interface ProximalLocationScaleEntropy" begin
     @testset "MvLocationScale" begin
-        @testset "$(string(covtype)) $(realtype) $(bijector)" for covtype in
-                                                                  [:meanfield, :fullrank],
+        @testset "$(string(covtype)) $(realtype)" for covtype in [:meanfield, :fullrank]
             realtype in [Float32, Float64]
 
             stepsize = 1e-2
@@ -43,7 +42,7 @@
             )
 
             q′ = re(params′)
-            scale′ = isnothing(bijector) ? q′.scale : q′.dist.scale
+            scale′ = q′.scale
 
             grad_left = ReverseDiff.gradient(
                 L_ -> first(logabsdet(LowerTriangular(reshape(L_, d, d)))), vec(scale′)
