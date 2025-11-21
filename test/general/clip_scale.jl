@@ -26,7 +26,6 @@
 
     @testset "MvLocationScaleLowRank" begin
         @testset "$(realtype) $(bijector)" for realtype in [Float32, Float64]
-
             n_rank = 2
             d = 5
             μ = zeros(realtype, d)
