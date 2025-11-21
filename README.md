@@ -3,13 +3,13 @@
 [![Tests](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Tests.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Tests.yml/badge.svg?branch=main)
 [![Coverage](https://codecov.io/gh/TuringLang/AdvancedVI.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/TuringLang/AdvancedVI.jl)
 
-| AD Backend    | Integration Status |
-| ------------- | ------------- |
-| [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl)   | [![ForwardDiff](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ForwardDiff.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ForwardDiff.yml?query=branch%3Amain) |
-| [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl)   | [![ReverseDiff](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ReverseDiff.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ReverseDiff.yml?query=branch%3Amain) |
-| [Zygote](https://github.com/FluxML/Zygote.jl)        | [![Zygote](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Zygote.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Zygote.yml?query=branch%3Amain) |
-| [Mooncake](https://github.com/chalk-lab/Mooncake.jl)      | [![Mooncake](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Mooncake.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Mooncake.yml?query=branch%3Amain) |
-| [Enzyme](https://github.com/EnzymeAD/Enzyme.jl)        | [![Enzyme](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Enzyme.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Enzyme.yml?query=branch%3Amain) |
+| AD Backend                                                 | Integration Status                                                                                                                                                                                                       |
+|:---------------------------------------------------------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) | [![ForwardDiff](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ForwardDiff.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ForwardDiff.yml?query=branch%3Amain) |
+| [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl) | [![ReverseDiff](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ReverseDiff.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ReverseDiff.yml?query=branch%3Amain) |
+| [Zygote](https://github.com/FluxML/Zygote.jl)              | [![Zygote](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Zygote.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Zygote.yml?query=branch%3Amain)                |
+| [Mooncake](https://github.com/chalk-lab/Mooncake.jl)       | [![Mooncake](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Mooncake.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Mooncake.yml?query=branch%3Amain)          |
+| [Enzyme](https://github.com/EnzymeAD/Enzyme.jl)            | [![Enzyme](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Enzyme.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Enzyme.yml?query=branch%3Amain)                |
 
 # AdvancedVI.jl
 
@@ -69,7 +69,7 @@ end;
 
 Since the support of `σ` is constrained to be positive and most VI algorithms assume an unconstrained Euclidean support, we need to use a *bijector* to transform `θ`.
 We will use [`Bijectors`](https://github.com/TuringLang/Bijectors.jl) for this purpose.
-This corresponds to the automatic differentiation variational inference (ADVI) formulation[^KTRGB2017].
+The bijector corresponding to the joint support of our model can be constructed as follows:
 
 ```julia
 using Bijectors: Bijectors
@@ -84,6 +84,36 @@ end;
 ```
 
 A simpler approach would be to use [`Turing`](https://github.com/TuringLang/Turing.jl), where a `Turing.Model` can be automatically be converted into a `LogDensityProblem` and a corresponding `bijector` is automatically generated.
+
+Since most VI algorithms assume that the posterior is unconstrained, we will apply a change-of-variable to our model to make it unconstrained.
+This amounts to wrapping it into a `LogDensityProblem` that applies the transformation and apply a Jacobian adjustment.
+
+```julia
+struct TransformedLogDensityProblem{Prob,Trans}
+    prob::Prob
+    transform::Trans
+end
+
+function TransformedLogDensityProblem(prob, transform)
+    return TransformedLogDensityProblem{typeof(prob),typeof(transform)}(prob, transform)
+end
+
+function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem, θ_trans)
+    (; prob, transform) = prob_trans
+    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(transform, θ_trans)
+    return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
+end
+
+function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
+    return LogDensityProblems.dimension(prob_trans.prob)
+end
+
+function LogDensityProblems.capabilities(
+    ::Type{TransformedLogDensityProblem{Prob,Trans}}
+) where {Prob,Trans}
+    return LogDensityProblems.capabilities(Prob)
+end;
+```
 
 For the dataset, we will use the popular [sonar classification dataset](https://archive.ics.uci.edu/dataset/151/connectionist+bench+sonar+mines+vs+rocks) from the UCI repository.
 This can be automatically downloaded using [`OpenML`](https://github.com/JuliaAI/OpenML.jl).
@@ -109,7 +139,10 @@ X = hcat(X, ones(size(X, 1)));
 The model can now be instantiated as follows:
 
 ```julia
-model = LogReg(X, y);
+prob = LogReg(X, y);
+b = Bijectors.bijector(prob)
+binv = Bijectors.inverse(b)
+prob_trans = TransformedLogDensityProblem(prob, binv)
 ```
 
 For the VI algorithm, we will use `KLMinRepGradDescent`:
@@ -136,7 +169,7 @@ For this, it is straightforward to use `LogDensityProblemsAD`:
 using DifferentiationInterface: DifferentiationInterface
 using LogDensityProblemsAD: LogDensityProblemsAD
 
-model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model);
+prob_trans_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), prob_trans);
 ```
 
 For the variational family, we will consider a `FullRankGaussian` approximation:
@@ -144,7 +177,7 @@ For the variational family, we will consider a `FullRankGaussian` approximation:
 ```julia
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(model_ad)
+d = LogDensityProblems.dimension(prob_trans_ad)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37*I, d, d)))
 q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)));
 ```
@@ -161,7 +194,15 @@ We can now run VI:
 
 ```julia
 max_iter = 10^3
-q, info, _ = AdvancedVI.optimize(alg, max_iter, model_ad, q_transformed;);
+q_opt, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q);
+```
+
+Recall that we applied a change-of-variable to the posterior to make it unconstrained.
+This, however, is not the original constrained posterior that we wanted to approximate.
+Therefore, we finally need to apply a change-of-variable to `q_opt` to make it approximate our original problem.
+
+```julia
+q_trans = Bijectors.TransformedDistribution(q, binv)
 ```
 
 For more examples and details, please refer to the documentation.
@@ -169,4 +210,3 @@ For more examples and details, please refer to the documentation.
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-[^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of machine learning research*.
