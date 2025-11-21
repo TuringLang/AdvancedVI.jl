@@ -1,7 +1,7 @@
 
 @testset "interface ProximalLocationScaleEntropy" begin
     @testset "MvLocationScale" begin
-        @testset "$(string(covtype)) $(realtype)" for covtype in [:meanfield, :fullrank]
+        @testset "$(string(covtype)) $(realtype)" for covtype in [:meanfield, :fullrank],
             realtype in [Float32, Float64]
 
             stepsize = 1e-2
