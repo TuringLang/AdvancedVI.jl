@@ -16,7 +16,6 @@ BLAS.set_num_threads(min(4, Threads.nthreads()))
 @info sprint(versioninfo)
 @info "BLAS threads: $(BLAS.get_num_threads())"
 
-include("normallognormal.jl")
 include("unconstrdist.jl")
 
 const SUITES = BenchmarkGroup()
