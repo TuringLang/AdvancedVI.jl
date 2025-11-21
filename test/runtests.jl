@@ -51,7 +51,6 @@ struct TestModel{M,L,S,SC}
     is_meanfield::Bool
 end
 include("models/normal.jl")
-include("models/normallognormal.jl")
 include("models/subsamplednormals.jl")
 
 if GROUP == "All" || GROUP == "GENERAL"
