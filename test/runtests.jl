@@ -81,7 +81,4 @@ if GROUP == "All" || GROUP == "AD"
     include("algorithms/klminrepgraddescent.jl")
     include("algorithms/klminscoregraddescent.jl")
     include("algorithms/klminrepgradproxdescent.jl")
-    include("algorithms/klminrepgraddescent_bijectors.jl")
-    include("algorithms/klminrepgradproxdescent_bijectors.jl")
-    include("algorithms/klminscoregraddescent_bijectors.jl")
 end

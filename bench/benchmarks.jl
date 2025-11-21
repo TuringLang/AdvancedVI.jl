@@ -34,7 +34,6 @@ begin
     T = Float64
 
     for (probname, prob) in [
-        ("normal + bijector", normallognormal(; n_dims=10, realtype=T))
         ("normal", normal(; n_dims=10, realtype=T))
     ]
         max_iter = 10^4
