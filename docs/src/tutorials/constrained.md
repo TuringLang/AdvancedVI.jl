@@ -2,12 +2,15 @@
 
 In this tutorial, we will demonstrate how to deal with constrained posteriors in more detail.
 Formally, by constrained posteriors, we mean that the target posterior has a density defined over a space that does not span the "full" Euclidean space $\mathbb{R}^d$:
+
 ```math
 \pi : \mathcal{X} \to \mathbb{R}_{> 0} ,
 ```
+
 where $\mathcal{X} \subset \mathbb{R}^d$ but not $\mathcal{X} = \mathbb{R}^d$.
 
 For instance, consider the basic hierarchical model for estimating the mean of the data $y_1, \ldots, y_n$:
+
 ```math
 \begin{aligned}
     \sigma &\sim \operatorname{LogNormal}(\alpha, \beta) \\
@@ -15,7 +18,9 @@ For instance, consider the basic hierarchical model for estimating the mean of t
     y_i &\sim \operatorname{Normal}(\mu, \sigma) .
 \end{aligned}
 ```
-The corresponding posterior 
+
+The corresponding posterior
+
 ```math
 \pi(\mu, \sigma \mid y_1, \ldots, y_n)
 =
@@ -23,31 +28,37 @@ The corresponding posterior
 \operatorname{Normal}(\mu; 0, \sigma)
 \prod_{i=1}^n \operatorname{Normal}(y_i; \mu, \sigma)
 ```
-has a density with respect to the space 
+
+has a density with respect to the space
+
 ```math
     \mathcal{X} = \mathbb{R}_{> 0} \times \mathbb{R} .
 ```
+
 There are also more complicated examples of constrained spaces.
 For example, a $k$-dimensional variable with a Dirichlet prior will be constrained to live on a $k$-dimensional simplex.
 
 Now, most algorithms provided by `AdvancedVI`, such as:
 
-- `KLMinRepGradDescent`
-- `KLMinRepGradProxDescent`
-- `KLMinNaturalGradDescent`
-- `FisherMinBatchMatch`
+  - `KLMinRepGradDescent`
+  - `KLMinRepGradProxDescent`
+  - `KLMinNaturalGradDescent`
+  - `FisherMinBatchMatch`
 
 tend to assume the target posterior is defined over the whole Euclidean space $\mathbb{R}^d$.
 Therefore, to apply these algorithms, we need to do something about the constraints.
 We will describe some recommended ways of doing this.
 
 ## Transforming the Posterior
+
 The most widely applicable way is to transform the posterior $\pi : \mathcal{X} \to \mathbb{R}_{>0}$ to be unconstrained.
 That is, consider some bijective map $b : \mathcal{X} \to \mathbb{R}^{d}$ between the $\mathcal{X}$ and the associated Euclidean space $\mathbb{R}^{d}$.
 Using the inverse of the map $b^{-1}$ and its Jacobian $\mathrm{J}_{b^{-1}}$, we can apply a change of variable to the posterior and obtain its unconstrained counterpart
+
 ```math
 \pi_{b^{-1}}(\eta) : \mathbb{R}^d \to \mathbb{R}_{>0} = \pi(b^{-1}(\eta)) {\lvert  \mathrm{J}_{b^{-1}}(\eta)  \rvert} .
 ```
+
 This idea popularized by Stan[^CGHetal2017] and Tensorflow probability[^DLTetal2017] is, in fact, how most probabilistic programming frameworks enable the use of off-the-shelf Markov chain Monte Carlo algorithms.
 In the context of variational inference, we will first approximate the unconstrained posterior as
 
@@ -70,7 +81,6 @@ z \sim q_{b}^* \quad\Leftrightarrow\quad z \stackrel{\mathrm{d}}{=} b^{-1}(\eta)
 The idea of applying a change-of-variable to the variational approximation to match a constrained posterior was popularized by the automatic differentiation VI[^KTRGB2017].
 
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research, 18(14), 1-45.
-
 Now, there are two ways how to do this in Julia.
 First, let's define the constrained posterior example above using the `LogDensityProblems` interface for illustration:
 
@@ -83,7 +93,7 @@ end
 
 function LogDensityProblems.logdensity(prob::Mean, θ)
     μ, σ = θ[1], θ[2]
-    ℓp_μ = logpdf(Normal(0, σ), μ) 
+    ℓp_μ = logpdf(Normal(0, σ), μ)
     ℓp_σ = logpdf(LogNormal(0, 3), σ)
     ℓl_y = mapreduce(yi -> logpdf(Normal(μ, σ), yi), +, prob.y)
     return ℓp_μ + ℓp_σ + ℓl_y
@@ -120,7 +130,7 @@ For example:
 ```@example constraints
 function Bijectors.bijector(::Mean)
     return Bijectors.Stacked(
-        Bijectors.bijector.([Normal(0, 1), LogNormal(1, 1)]), [1:1, 2:2],
+        Bijectors.bijector.([Normal(0, 1), LogNormal(1, 1)]), [1:1, 2:2]
     )
 end
 
@@ -130,11 +140,10 @@ binv = Bijectors.inverse(b)
 
 Refer to the documentation of `Bijectors.jl` for more details.
 
-
 ## Wrap the `LogDensityProblem`
 
 The most general and easy way to obtain an unconstrained posterior using a `Bijector` is to wrap our original `LogDensityProblem` to form a new `LogDensityProblem`.
-This approach only requires the user to implement the model-specific `Bijectors.bijector` function as above. 
+This approach only requires the user to implement the model-specific `Bijectors.bijector` function as above.
 The rest can be done by simply copy-pasting the code below:
 
 ```@example constraints
@@ -179,13 +188,14 @@ x = randn(LogDensityProblems.dimension(prob_trans)) # sample on an unconstrained
 LogDensityProblems.logdensity(prob_trans, x)
 ```
 
-We can also wrap `prob_trans` with `LogDensityProblemsAD.ADGradient` to make it differentiable. 
+We can also wrap `prob_trans` with `LogDensityProblemsAD.ADGradient` to make it differentiable.
+
 ```@example constraints
 using LogDensityProblemsAD
 using ADTypes, ReverseDiff
 
 prob_trans_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoReverseDiff(; compile=true), prob_trans; x = randn(2)
+    ADTypes.AutoReverseDiff(; compile=true), prob_trans; x=randn(2)
 )
 ```
 
@@ -218,15 +228,14 @@ using Plots
 
 x = rand(q_opt_trans, 1000)
 
-Plots.stephist(x[2,:], normed=true, xlabel="Posterior of σ", label=nothing, xlims=(0, 2))
-Plots.vline!([1.0], label="True Value")
+Plots.stephist(x[2, :]; normed=true, xlabel="Posterior of σ", label=nothing, xlims=(0, 2))
+Plots.vline!([1.0]; label="True Value")
 savefig("constrained_histogram.svg")
 ```
 
 ![](constrained_histogram.svg)
 
 We can see that the transformed posterior is indeed a meaningful approximation of the original posterior $\pi(\sigma \mid y_1, \ldots, y_n)$ we were interested in.
-
 
 ## Bake a Bijector into the `LogDensityProblem`
 
@@ -241,18 +250,18 @@ struct MeanTransformed{BInvS}
 end
 
 function MeanTransformed(y::Vector{Float64})
-    binv_σ = Bijectors.bijector(LogNormal(0, 3)) |> Bijectors.inverse
+    binv_σ = Bijectors.inverse(Bijectors.bijector(LogNormal(0, 3)))
     return MeanTransformed(y, binv_σ)
 end
 
 function LogDensityProblems.logdensity(prob::MeanTransformed, θ)
     (; y, binv_σ) = prob
     μ = θ[1]
-    
-    # Apply bijector and compute Jacobian
-    σ, ℓabsdetjac_σ = with_logabsdet_jacobian(binv_σ, θ[2])	
 
-    ℓp_μ = logpdf(Normal(0, σ), μ) 
+    # Apply bijector and compute Jacobian
+    σ, ℓabsdetjac_σ = with_logabsdet_jacobian(binv_σ, θ[2])
+
+    ℓp_μ = logpdf(Normal(0, σ), μ)
     ℓp_σ = logpdf(LogNormal(0, 3), σ)
     ℓl_y = mapreduce(yi -> logpdf(Normal(μ, σ), yi), +, prob.y)
     return ℓp_μ + ℓp_σ + ℓl_y + ℓabsdetjac_σ
@@ -260,7 +269,9 @@ end
 
 LogDensityProblems.dimension(::MeanTransformed) = 2
 
-LogDensityProblems.capabilities(::Type{MeanTransformed}) = LogDensityProblems.LogDensityOrder{0}()
+function LogDensityProblems.capabilities(::Type{MeanTransformed})
+    LogDensityProblems.LogDensityOrder{0}()
+end
 
 n_data = 30
 prob_bakedtrans = MeanTransformed(randn(n_data))
