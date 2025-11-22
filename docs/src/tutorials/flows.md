@@ -22,6 +22,7 @@ Multiplicative degeneracy is not entirely made up and do come up in some models 
 For example, in the 3-parameter (3-PL) item-response theory model and the N-mixture model used for estimating animal population.
 
 ```@example flow
+using Bijectors: Bijectors
 using Distributions
 using LogDensityProblems: LogDensityProblems
 
@@ -55,7 +56,7 @@ Degenerate posteriors often indicate that there is not enough data to pin-point 
 Therefore, for the purpose of illustration, we will use a single data point:
 
 ```@example flow
-prob = MultDegen([3.0])
+model = MultDegen([3.0])
 nothing
 ```
 
@@ -67,7 +68,7 @@ using Plots
 contour(
     range(0, 4; length=64),
     range(-3, 25; length=64),
-    (x, y) -> LogDensityProblems.logdensity(prob, [x, y]);
+    (x, y) -> LogDensityProblems.logdensity(model, [x, y]);
     xlabel="α",
     ylabel="β",
     clims=(-8, Inf),
@@ -85,6 +86,19 @@ This sort of nonlinear correlation structure is difficult to model using only lo
 ## Gaussian Variational Family
 
 As usual, let's try to fit a multivariate Gaussian to this posterior.
+
+```@example flow
+using ADTypes: ADTypes
+using ReverseDiff: ReverseDiff
+using DifferentiationInterface: DifferentiationInterface
+using LogDensityProblemsAD: LogDensityProblemsAD
+
+model_ad = LogDensityProblemsAD.ADgradient(
+    ADTypes.AutoReverseDiff(; compile=true), model; x=[1.0, 1.0]
+)
+nothing
+```
+
 Since $\alpha$ is constrained to the positive real half-space, we have to employ bijectors.
 For this, we use [Bijectors](https://github.com/TuringLang/Bijectors.jl):
 
@@ -99,77 +113,33 @@ end
 nothing
 ```
 
-to transform the posterior to be unconstrained:
-
-```@example flow
-struct TransformedLogDensityProblem{Prob,Trans}
-    prob::Prob
-    transform::Trans
-end
-
-function TransformedLogDensityProblem(prob, transform)
-    return TransformedLogDensityProblem{typeof(prob),typeof(transform)}(prob, transform)
-end
-
-function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem, θ_trans)
-    (; prob, transform) = prob_trans
-    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(transform, θ_trans)
-    return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
-end
-
-function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
-    return LogDensityProblems.dimension(prob_trans.prob)
-end
-
-function LogDensityProblems.capabilities(
-    ::Type{TransformedLogDensityProblem{Prob,Trans}}
-) where {Prob,Trans}
-    return LogDensityProblems.capabilities(Prob)
-end
-nothing
-```
-
-Let's instantiate the model:
-
-```@example flow
-using ADTypes: ADTypes
-using ReverseDiff: ReverseDiff
-using DifferentiationInterface: DifferentiationInterface
-using LogDensityProblemsAD: LogDensityProblemsAD
-
-binv = Bijectors.inverse(Bijectors.bijector(prob))
-prob_trans = TransformedLogDensityProblem(prob, binv)
-prob_trans_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoForwardDiff(), prob_trans; x=[1.0, 1.0]
-)
-nothing
-```
-
 For the algorithm, we will use the `KLMinRepGradProxDescent` objective.
 
 ```@example flow
 using AdvancedVI
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(prob_trans_ad)
+d = LogDensityProblems.dimension(model_ad)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
+
+binv = Bijectors.inverse(Bijectors.bijector(model))
+q_trans = Bijectors.TransformedDistribution(q, binv)
 
 max_iter = 3*10^3
 alg = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
-q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
-q_out_trans = Bijectors.TransformedDistribution(q_out, binv)
+q_out, info, _ = AdvancedVI.optimize(alg, max_iter, model_ad, q_trans; show_progress=false)
 nothing
 ```
 
 The resulting variational posterior can be visualized as follows:
 
 ```@example flow
-samples = rand(q_out_trans, 10000)
+samples = rand(q_out, 10000)
 histogram2d(
     samples[1, :],
     samples[2, :];
     normalize=:pdf,
-    nbins=(16, 16),
+    nbins=32,
     xlabel="α",
     ylabel="β",
     xlims=(0, 4),
@@ -207,7 +177,16 @@ q_flow = realnvp(MvNormal(zeros(d), I), hidden_dims, n_layers; paramtype=Float64
 nothing
 ```
 
-For the variational inference algorithm, we will similarly minimize the KL divergence with stochastic gradient descent as originally proposed by Rezende and Mohamed[^RM2015].
+Recall that out posterior is constrained.
+In most cases, flows assume an unconstrained support.
+Therefore, just as with the Gaussian variational family, we can incorporate `Bijectors` to match the supports:
+
+```@example flow
+q_flow_trans = Bijectors.TransformedDistribution(q_flow, binv)
+nothing
+```
+
+For the variational inference algorithms, we will similarly minimize the KL divergence with stochastic gradient descent as originally proposed by Rezende and Mohamed[^RM2015].
 For this, however, we need to be mindful of the requirements of the variational algorithm.
 The default `entropy` gradient estimator of `KLMinRepGradDescent` is `ClosedFormEntropy()`, which assumes that the entropy of the variational family `entropy(q)` is available. For flows, the entropy is (usually) not available.
 Instead, we can use any gradient estimator that only relies on the log-density of the variational family `logpdf(q)`, `StickingTheLandingEntropy()` or `MonteCarloEntropy()`.
@@ -220,12 +199,9 @@ Furthermore, Agrawal *et al.*[^AD2025] claim that using a larger number of Monte
 [^ASD2020]: Agrawal, A., Sheldon, D. R., & Domke, J. (2020). Advances in black-box VI: Normalizing flows, importance weighting, and optimization. In *Advances in Neural Information Processing Systems*, 33, 17358-17369.
 [^AD2025]: Agrawal, A., & Domke, J. (2024). Disentangling impact of capacity, objective, batchsize, estimators, and step-size on flow VI. In *Proceedings of the International Conference on Artificial Intelligence and Statistics*.
 ```@example flow
-using Optimisers: Optimisers
-
 alg_flow = KLMinRepGradDescent(
     ADTypes.AutoReverseDiff(; compile=true);
     n_samples=8,
-    optimizer=Optimisers.Adam(1e-2),
     operator=IdentityOperator(),
     entropy=StickingTheLandingEntropy(),
 )
@@ -235,11 +211,9 @@ nothing
 Without further due, let's now run VI:
 
 ```@example flow
-max_iter = 300
 q_flow_out, info_flow, _ = AdvancedVI.optimize(
-    alg_flow, max_iter, prob_trans_ad, q_flow; show_progress=false
+    alg_flow, max_iter, model_ad, q_flow_trans; show_progress=false
 )
-q_flow_out_trans = Bijectors.TransformedDistribution(q_flow_out, binv)
 nothing
 ```
 
@@ -256,12 +230,12 @@ nothing
 Finally, let's visualize the variational posterior:
 
 ```@example flow
-samples = rand(q_flow_out_trans, 10000)
+samples = rand(q_flow_out, 10000)
 histogram2d(
     samples[1, :],
     samples[2, :];
     normalize=:pdf,
-    nbins=(16, 16),
+    nbins=64,
     xlabel="α",
     ylabel="β",
     xlims=(0, 4),
