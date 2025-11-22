@@ -50,7 +50,7 @@ end
 nothing
 ```
 
-Notice that the support of `σ` is constrained to be positive. 
+Notice that the support of `σ` is constrained to be positive.
 Since most VI algorithms assume an unconstrained Euclidean support, we will apply a change-of-variable by a bijective map (a *bijector*) to the posterior to make it unconstrained.
 For this, we will use the [`Bijectors`](https://github.com/TuringLang/Bijectors.jl) package.
 
@@ -220,7 +220,6 @@ Therefore, we finally need to apply a change-of-variable to `q_out` to make it a
 ```julia
 q_trans = Bijectors.TransformedDistribution(q_out, binv)
 ```
-
 
 ## Custom Callback
 
