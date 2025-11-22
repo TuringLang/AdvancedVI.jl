@@ -148,7 +148,7 @@ nothing
 If we don't supply a subsampling strategy to `KLMinRepGradProxDescent`, subsampling will not be used.
 
 ```@example subsampling
-alg_full = KLMinRepGradProxDescent(ADTypesAutoReverseDiff(; compile=true))
+alg_full = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
 nothing
 ```
 
