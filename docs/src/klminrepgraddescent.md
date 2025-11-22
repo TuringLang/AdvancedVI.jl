@@ -63,7 +63,6 @@ where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples.
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*.
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-
 ## [Entropy Gradient Estimators](@id entropygrad)
 
 For the gradient of the entropy term, we provide three choices with varying requirements.
@@ -96,6 +95,7 @@ Depending on the variational family, this might be computationally inefficient o
 For example, if ``q_{\lambda}`` is a Gaussian with a full-rank covariance, a back-substitution must be performed at every step, making the per-iteration complexity ``\mathcal{O}(d^3)`` and reducing numerical stability.
 
 ```@setup repgradelbo
+using Distributions
 using FillArrays
 using LinearAlgebra
 using LogDensityProblems
