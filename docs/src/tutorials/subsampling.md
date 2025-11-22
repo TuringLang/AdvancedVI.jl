@@ -88,9 +88,7 @@ using LogDensityProblemsAD
 
 prob = LogReg(X, y, size(X, 1))
 prob_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoReverseDiff(), 
-    prob, 
-    x=randn(LogDensityProblems.dimension(prob))
+    ADTypes.AutoReverseDiff(), prob; x=randn(LogDensityProblems.dimension(prob))
 )
 nothing
 ```
