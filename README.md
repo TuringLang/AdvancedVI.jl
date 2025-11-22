@@ -86,7 +86,7 @@ end;
 A simpler approach would be to use [`Turing`](https://github.com/TuringLang/Turing.jl), where a `Turing.Model` can be automatically be converted into a `LogDensityProblem` and a corresponding `bijector` is automatically generated.
 
 Since most VI algorithms assume that the posterior is unconstrained, we will apply a change-of-variable to our model to make it unconstrained.
-This amounts to wrapping it into a `LogDensityProblem` that applies the transformation and apply a Jacobian adjustment.
+This amounts to wrapping it into a `LogDensityProblem` that applies the transformation and the corresponding Jacobian adjustment.
 
 ```julia
 struct TransformedLogDensityProblem{Prob,Trans}
@@ -178,7 +178,7 @@ For the variational family, we will consider a `FullRankGaussian` approximation:
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(prob_trans_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37*I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
 q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)));
 ```
 
@@ -202,7 +202,7 @@ This, however, is not the original constrained posterior that we wanted to appro
 Therefore, we finally need to apply a change-of-variable to `q_opt` to make it approximate our original problem.
 
 ```julia
-q_trans = Bijectors.TransformedDistribution(q, binv)
+q_trans = Bijectors.TransformedDistribution(q_opt, binv)
 ```
 
 For more examples and details, please refer to the documentation.

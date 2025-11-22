@@ -10,7 +10,7 @@ In this tutorial, we will see how to perform subsampling with `KLMinRepGradProxD
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of Machine Learning Research*, 18(14), 1-45.
 ## Setting Up Subsampling
 
-We will consider the same hierarchical logistic regression example used in the [Basic Example](@ref basic).
+We will consider a typical hierarchical logistic regression example.
 
 ```@example subsampling
 using LogDensityProblems: LogDensityProblems
@@ -26,10 +26,11 @@ end
 function LogDensityProblems.logdensity(model::LogReg, θ)
     (; X, y, n_data) = model
     n, d = size(X)
-    β, σ = θ[1:size(X, 2)], θ[end]
+    β, logσ = θ[1:size(X, 2)], θ[end]
+    σ = exp(logσ)
 
     logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
-    logprior_σ = logpdf(LogNormal(0, 3), σ)
+    logprior_σ = logpdf(Normal(0, 3), σ)
 
     logit = X*β
     loglike_y = mapreduce((li, yi) -> logpdf(BernoulliLogit(li), yi), +, logit, y)
@@ -37,7 +38,7 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
 end
 
 function LogDensityProblems.dimension(model::LogReg)
-    return size(model.X, 2) + 1
+    return size(prob.X, 2) + 1
 end
 
 function LogDensityProblems.capabilities(::Type{<:LogReg})
@@ -49,21 +50,6 @@ nothing
 Notice that, to use subsampling, we need be able to rescale the likelihood strength.
 That is, for the gradient of the log-density with a batch of data points of size `n` to be an unbiased estimate of the gradient using the full dataset of size `n_data`, we need to scale the likelihood by `n_data/n`.
 This part is critical to ensure that the algorithm correctly approximates the posterior with the full dataset.
-
-As usual, we will set up a bijector:
-
-```@example subsampling
-using Bijectors: Bijectors
-
-function Bijectors.bijector(model::LogReg)
-    d = size(model.X, 2)
-    return Bijectors.Stacked(
-        Bijectors.bijector.([MvNormal(Zeros(d), 1.0), LogNormal(0, 3)]),
-        [1:d, (d + 1):(d + 1)],
-    )
-end
-nothing
-```
 
 For the dataset, we will use one that is larger than that used in the [Basic Example](@ref basic).
 This is to properly assess the advantage of subsampling.
@@ -100,26 +86,30 @@ Let's now istantiate the model and set up automatic differentiation using [`LogD
 using ADTypes, ReverseDiff
 using LogDensityProblemsAD
 
-model = LogReg(X, y, size(X, 1))
-model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model)
+prob = LogReg(X, y, size(X, 1))
+prob_ad = LogDensityProblemsAD.ADgradient(
+    ADTypes.AutoReverseDiff(), 
+    prob, 
+    x=randn(LogDensityProblems.dimension(prob))
+)
 nothing
 ```
 
 To enable subsampling, `LogReg` has to implement the method `AdvancedVI.subsample`.
 For our model, this is fairly simple: We only need to select the rows of `X` and the elements of `y` corresponding to the batch of data points.
-As subtle point here is that we wrapped `model` with `LogDensityProblemsAD.ADgradient` into `model_ad`.
-Therefore, `AdvancedVI` sees `model_ad` and not `model`.
-This means we have to specialize `AdvancedVI.subsample` to `typeof(model_ad)` and not `LogReg`.
+As subtle point here is that we wrapped `prob` with `LogDensityProblemsAD.ADgradient` into `prob_ad`.
+Therefore, `AdvancedVI` sees `prob_ad` and not `prob`.
+This means we have to specialize `AdvancedVI.subsample` to `typeof(prob_ad)` and not `LogReg`.
 
 ```@example subsampling
 using Accessors
 using AdvancedVI
 
-function AdvancedVI.subsample(model::typeof(model_ad), idx)
-    (; X, y, n_data) = parent(model)
-    model′ = @set model.ℓ.X = X[idx, :]
-    model′′ = @set model′.ℓ.y = y[idx]
-    return model′′
+function AdvancedVI.subsample(prob::typeof(prob_ad), idx)
+    (; X, y, n_data) = parent(prob_ad)
+    prob′ = @set prob.ℓ.X = X[idx, :]
+    prob′′ = @set prob′.ℓ.y = y[idx]
+    return prob′′
 end
 nothing
 ```
@@ -138,7 +128,7 @@ Here, we will use `ReshufflingBatchSubsampling`, which implements random reshuff
 We will us a batch size of 32, which results in `313 = length(subsampling) = ceil(Int, size(X,2)/32)` steps per epoch.
 
 ```@example subsampling
-dataset = 1:size(model.X, 1)
+dataset = 1:size(prob.X, 1)
 batchsize = 32
 subsampling = ReshufflingBatchSubsampling(dataset, batchsize)
 alg_sub = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true); subsampling)
@@ -160,7 +150,7 @@ nothing
 If we don't supply a subsampling strategy to `KLMinRepGradProxDescent`, subsampling will not be used.
 
 ```@example subsampling
-alg_full = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
+alg_full = KLMinRepGradProxDescent(ADTypesAutoReverseDiff(; compile=true))
 nothing
 ```
 
@@ -169,11 +159,8 @@ The variational family will be set up as follows:
 ```@example subsampling
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(model_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37*I, d, d)))
-b = Bijectors.bijector(model)
-binv = Bijectors.inverse(b)
-q_transformed = Bijectors.TransformedDistribution(q, binv)
+d = LogDensityProblems.dimension(prob_ad)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
 nothing
 ```
 
@@ -192,7 +179,7 @@ time_begin = nothing
 Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
 """
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((model.X*Σ_β) .* model.X; dims=2)[:, 1]
+    xtΣx = sum((prob.X*Σ_β) .* prob.X; dims=2)[:, 1]
     κ = @. 1/sqrt(1 + π/8*xtΣx)
     return StatsFuns.logistic.(κ .* X*μ_β)
 end
@@ -204,16 +191,16 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
         q_avg = restructure(averaged_params)
 
         # Compute predictions using 
-        μ_β = mean(q_avg.dist)[1:(end - 1)] # posterior mean of β
-        Σ_β = cov(q_avg.dist)[1:(end - 1), end - 1] # marginal posterior covariance of β
+        μ_β = mean(q_avg)[1:(end - 1)] # posterior mean of β
+        Σ_β = cov(q_avg)[1:(end - 1), end - 1] # marginal posterior covariance of β
         y_pred = logistic_prediction(X, μ_β, Σ_β) .> 0.5
 
         # Prediction accuracy
-        acc = mean(y_pred .== model.y)
+        acc = mean(y_pred .== prob.y)
 
         # Higher fidelity estimate of the ELBO on the averaged parameters
         n_samples = 256
-        elbo_callback = -estimate_objective(alg_full, q_avg, model; n_samples)
+        elbo_callback = -estimate_objective(alg_full, q_avg, prob; n_samples)
 
         (elbo_callback=elbo_callback, accuracy=acc, time_elapsed=time() - time_begin)
     else
@@ -223,12 +210,12 @@ end
 
 time_begin = time()
 _, info_full, _ = AdvancedVI.optimize(
-    alg_full, max_iter, model_ad, q_transformed; show_progress=false, callback
+    alg_full, max_iter, prob_ad, q; show_progress=true, callback
 );
 
 time_begin = time()
 _, info_sub, _ = AdvancedVI.optimize(
-    alg_sub, max_iter, model_ad, q_transformed; show_progress=false, callback
+    alg_sub, max_iter, prob_ad, q; show_progress=true, callback
 );
 nothing
 ```
