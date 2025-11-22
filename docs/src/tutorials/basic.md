@@ -221,7 +221,6 @@ Therefore, we finally need to apply a change-of-variable to `q_out` to make it a
 q_trans = Bijectors.TransformedDistribution(q_out, binv)
 ```
 
-
 ## Custom Callback
 
 The ELBO estimates above however, use only a handful of Monte Carlo samples.
