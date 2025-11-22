@@ -21,7 +21,7 @@ makedocs(;
             "Scaling to Large Datasets" => "tutorials/subsampling.md",
             "Stan Models" => "tutorials/stan.md",
             "Normalizing Flows" => "tutorials/flows.md",
-            "Dealing with Constrained Posteriors" => "tutorials/constrained.md"
+            "Dealing with Constrained Posteriors" => "tutorials/constrained.md",
         ],
         "Algorithms" => [
             "`KLMinRepGradDescent`" => "klminrepgraddescent.md",
