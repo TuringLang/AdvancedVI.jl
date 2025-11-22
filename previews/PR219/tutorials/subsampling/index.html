@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Scaling to Large Datasets · AdvancedVI.jl</title><meta name="title" content="Scaling to Large Datasets · AdvancedVI.jl"/><meta property="og:title" content="Scaling to Large Datasets · AdvancedVI.jl"/><meta property="twitter:title" content="Scaling to Large Datasets · AdvancedVI.jl"/><meta name="description" content="Documentation for AdvancedVI.jl."/><meta property="og:description" content="Documentation for AdvancedVI.jl."/><meta property="twitter:description" content="Documentation for AdvancedVI.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body>
+<!-- NAVBAR START -->
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
+
+    /* Documenter.jl CSS Overrides */
+    html {
+        scroll-padding-top: calc(var(--navbar-height) + 1rem);
+    }
+    .docs-sidebar, #documenter {
+        margin-top: var(--navbar-height);
+    }
+    .docs-version-selector {
+        margin-bottom: 60px !important;
+    }
+    @media screen and (max-width: 1056px) {
+        .docs-version-selector {
+            margin-bottom: 60px !important;
+        }
+        .docs-sidebar {
+            margin-top: 0 !important;
+        }
+    }
+    /* End of Documenter.jl Tweaks */
+
+    /* Color and Font Variables */
+    :root {
+        --heading-color: #6c757d;
+        --item-color: rgb(165, 165, 165);
+        --primary-bg: white;
+        --hover-color: #8faad2;
+        --deprecated-bg: #ff4d4d;
+        --deprecated-text: white;
+        --icon-color: #6c757d;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --dropdown-hover-bg: #e9ecef;
+        
+        /* Typography */
+        --font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        --nav-link-font-size: 1.0625rem;
+        --turing-title-font-size: 21.25px;
+        --icon-font-size: 1.25rem;
+        --dropdown-arrow-font-size: 0.6875rem;
+        --badge-font-size: 0.75rem;
+
+        /* Sizing and Spacing */
+        --navbar-height: 3.75rem;
+        --logo-height: 31px;
+        --logo-width: auto;
+        --logo-padding-top: 7px;
+        --logo-margin-left: 0.8rem;
+        --title-margin-left: 0.4px;
+        --title-nav-spacing: 1.1rem;
+        --nav-item-margin-left: 1.3rem;
+        --icon-margin-left: 1rem;
+        --dropdown-padding: 1.875rem;
+        --dropdown-item-width: 12.5rem;
+        --dropdown-subitem-width: 15.625rem;
+        --dropdown-subitem-padding: 0.125rem 0.625rem;
+    }
+
+    /* Dark Theme Variable Overrides */
+    html.theme--documenter-dark {
+        --heading-color: #e0e0e0;
+        --item-color: #bdbdbd;
+        --primary-bg: #1f2424;
+        --hover-color: #ffffff;
+        --icon-color: #e0e0e0;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #424242;
+    }
+
+    /* Catppuccin Theme Overrides */
+    html.theme--catppuccin-latte {
+        --heading-color: #4c4f69;
+        --primary-bg: #eff1f5;
+        --icon-color: #4c4f69;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --dropdown-hover-bg: #e6e9ef;
+    }
+    html.theme--catppuccin-frappe {
+        --heading-color: #c6d0f5;
+        --primary-bg: #303446;
+        --icon-color: #c6d0f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #51576d;
+    }
+    html.theme--catppuccin-macchiato {
+        --heading-color: #cad3f5;
+        --primary-bg: #24273a;
+        --icon-color: #cad3f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #494d64;
+    }
+    html.theme--catppuccin-mocha {
+        --heading-color: #cad3f5;
+        --primary-bg: #1e1e2e;
+        --icon-color: #cad3f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #45475a;
+    }
+
+
+    /* Main Navigation Bar */
+    .ext-navigation {
+        font-family: var(--font-family);
+        position: fixed;
+        height: var(--navbar-height);
+        top: 0;
+        width: 100%;
+        background-color: var(--primary-bg);
+        z-index: 1000;
+        box-shadow: 0 2px 4px var(--shadow-color);
+        display: flex;
+        align-items: center;
+        padding: 0 1.0625rem;
+        transition: transform 0.3s, background-color 0.3s;
+    }
+
+    nav.ext-navigation .ext-navbar-logo {
+        margin-left: var(--logo-margin-left);
+        height: auto;
+        max-height: var(--logo-height);
+        width: auto;
+        padding-top: var(--logo-padding-top);
+    }
+    
+    /* Theme-aware logo text color */
+    .ext-navbar-logo .logo-text {
+        fill: var(--heading-color);
+    }
+    
+    .ext-navbar-title {
+        color: var(--heading-color) !important;
+        font-size: var(--turing-title-font-size) !important;
+        margin-left: var(--title-margin-left);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    .ext-navbar-title:hover {
+        color: var(--hover-color) !important;
+    }
+
+    .ext-nav-links {
+        display: flex;
+        align-items: center;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        flex-grow: 1;
+        margin-left: var(--title-nav-spacing);
+    }
+
+    .ext-nav-links li:first-child {
+        margin-left: 0 !important;
+    }
+
+    .ext-nav-links li {
+        margin-left: var(--nav-item-margin-left) !important;
+    }
+
+    .ext-nav-link {
+        color: var(--heading-color) !important;
+        text-decoration: none;
+        font-size: var(--nav-link-font-size) !important;
+        transition: color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .ext-nav-link:hover,
+    .ext-navbar-item-single a:hover,
+    .ext-navbar-icons a:hover {
+        color: var(--hover-color) !important;
+    }
+
+    .ext-navbar-item-single a {
+        color: var(--heading-color) !important;
+    }
+    
+    .ext-navbar-icons {
+        display: flex;
+        align-items: center;
+    }
+
+    .ext-navbar-icons a {
+        color: var(--icon-color) !important;
+        font-size: var(--icon-font-size) !important;
+        transition: color 0.2s ease;
+        margin-left: var(--icon-margin-left);
+    }
+
+    .ext-menu-toggle {
+        display: none;
+        font-size: 1.5rem;
+        color: var(--heading-color);
+        cursor: pointer;
+    }
+
+    .ext-dropdown {
+        display: none;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        padding: var(--dropdown-padding);
+        position: absolute;
+        top: var(--navbar-height);
+        width: 100%;
+        left: 0;
+        background-color: var(--primary-bg);
+        line-height: 1.875rem;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, background-color 0.3s;
+        transform: translateY(-0.625rem);
+        box-shadow: 0 4px 6px var(--shadow-color);
+    }
+
+    #library-handler::after {
+        content: "▼";
+        font-size: var(--dropdown-arrow-font-size);
+        margin-left: 0.3125rem;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    #library-handler.open::after {
+        content: "▲";
+    }
+
+    .ext-dropdown.show {
+        display: grid;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .ext-dropdown ul {
+        width: var(--dropdown-item-width);
+        margin-bottom: 1.25rem;
+    }
+
+    .ext-dropdown ul li {
+        text-align: left;
+        display: flex;
+        align-items: center;
+    }
+
+    .ext-dropdown ul a li {
+        color: var(--item-color);
+        width: var(--dropdown-subitem-width);
+        border-radius: 3px;
+        padding: var(--dropdown-subitem-padding);
+        transition: background-color 0.2s ease;
+    }
+
+    .ext-dropdown ul a li:hover {
+        background-color: var(--dropdown-hover-bg);
+    }
+
+    .ext-dropdown-item-heading {
+        color: var(--heading-color);
+        text-align: center;
+    }
+
+    .deprecated-badge {
+        background-color: var(--deprecated-bg);
+        color: var(--deprecated-text);
+        font-size: var(--badge-font-size);
+        padding: .1rem;
+        border-radius: 3px;
+        margin-left: 0.5rem;
+        line-height: 1;
+    }
+
+    @media (max-width: 966px) {
+        .ext-dropdown {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .ext-nav-links {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            background-color: var(--primary-bg);
+            position: absolute;
+            top: var(--navbar-height);
+            left: 0;
+            padding: 0.625rem 0;
+            height: auto;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            margin-left: 0;
+        }
+
+        .ext-nav-links.show {
+            display: flex;
+        }
+
+        .ext-nav-links li {
+            margin: 0.625rem 0 !important;
+            text-align: center;
+        }
+        
+        .ext-menu-toggle {
+            display: block;
+            margin-left: auto;
+        }
+
+        .ext-navigation.hide {
+            transform: translateY(calc(-1 * var(--navbar-height)));
+        }
+
+        .ext-dropdown {
+            position: static;
+            display: block;
+            opacity: 1;
+            transform: none;
+            box-shadow: none;
+            grid-template-columns: 1fr;
+            padding: 0.625rem;
+            text-align: center;
+        }
+
+        .ext-dropdown ul {
+            width: auto;
+            display: inline-block;
+            margin: 0 auto 0.3125rem;
+            text-align: left;
+        }
+    }
+</style>
+<nav class="ext-navigation">
+    <a href="https://turinglang.org/">
+        <svg width="4333" height="1145" viewBox="0 0 4333 1145" fill="none" xmlns="http://www.w3.org/2000/svg" class="ext-navbar-logo">
+            <path class="logo-text" d="M0.44603 193.181V66.9868H663.471V193.181H406.62V898H257.297V193.181H0.44603ZM1097.24 635.874V274.74H1244.13V898H1101.7V787.225H1095.21C1081.14 822.121 1058.01 850.66 1025.82 872.842C993.902 895.024 954.542 906.115 907.744 906.115C866.896 906.115 830.783 897.053 799.403 878.929C768.295 860.534 743.948 833.889 726.365 798.993C708.782 763.826 699.99 721.356 699.99 671.581V274.74H846.878V648.858C846.878 688.353 857.699 719.733 879.34 742.997C900.981 766.261 929.385 777.893 964.551 777.893C986.192 777.893 1007.16 772.618 1027.45 762.068C1047.73 751.518 1064.37 735.828 1077.35 714.999C1090.61 693.899 1097.24 667.524 1097.24 635.874ZM1395.17 898V274.74H1537.6V378.617H1544.09C1555.45 342.639 1574.93 314.911 1602.52 295.434C1630.38 275.687 1662.17 265.813 1697.88 265.813C1705.99 265.813 1715.05 266.219 1725.06 267.031C1735.34 267.572 1743.86 268.518 1750.63 269.871V404.992C1744.4 402.828 1734.53 400.934 1721 399.311C1707.75 397.417 1694.9 396.471 1682.46 396.471C1655.68 396.471 1631.6 402.287 1610.23 413.919C1589.13 425.28 1572.49 441.105 1560.32 461.393C1548.15 481.682 1542.06 505.081 1542.06 531.591V898H1395.17ZM1848.21 898V274.74H1995.1V898H1848.21ZM1922.06 186.283C1898.8 186.283 1878.78 178.573 1862.01 163.154C1845.24 147.464 1836.85 128.664 1836.85 106.752C1836.85 84.5701 1845.24 65.7695 1862.01 50.3503C1878.78 34.6606 1898.8 26.8158 1922.06 26.8158C1945.6 26.8158 1965.61 34.6606 1982.12 50.3503C1998.89 65.7695 2007.27 84.5701 2007.27 106.752C2007.27 128.664 1998.89 147.464 1982.12 163.154C1965.61 178.573 1945.6 186.283 1922.06 186.283ZM2293.04 532.809V898H2146.15V274.74H2286.54V380.646H2293.85C2308.18 345.75 2331.04 318.022 2362.42 297.463C2394.07 276.904 2433.16 266.625 2479.69 266.625C2522.7 266.625 2560.17 275.822 2592.09 294.217C2624.28 312.612 2649.17 339.257 2666.75 374.153C2684.6 409.049 2693.39 451.385 2693.12 501.159V898H2546.24V523.882C2546.24 482.223 2535.41 449.626 2513.77 426.092C2492.4 402.557 2462.78 390.79 2424.91 390.79C2399.21 390.79 2376.35 396.471 2356.34 407.832C2336.59 418.923 2321.03 435.019 2309.67 456.119C2298.58 477.218 2293.04 502.782 2293.04 532.809ZM3113.5 1144.71C3060.75 1144.71 3015.44 1137.54 2977.57 1123.2C2939.7 1109.13 2909.26 1090.2 2886.27 1066.39C2863.28 1042.59 2847.32 1016.21 2838.39 987.269L2970.67 955.213C2976.62 967.386 2985.28 979.424 2996.64 991.327C3008 1003.5 3023.28 1013.51 3042.49 1021.35C3061.97 1029.47 3086.45 1033.53 3115.93 1033.53C3157.59 1033.53 3192.08 1023.38 3219.4 1003.09C3246.73 983.076 3260.39 950.074 3260.39 904.087V786.008H3253.08C3245.51 801.157 3234.42 816.711 3219.81 832.671C3205.47 848.632 3186.4 862.022 3162.6 872.842C3139.06 883.663 3109.44 889.073 3073.73 889.073C3025.85 889.073 2982.44 877.847 2943.48 855.394C2904.8 832.671 2873.96 798.857 2850.97 753.952C2828.24 708.777 2816.88 652.24 2816.88 584.341C2816.88 515.902 2828.24 458.147 2850.97 411.078C2873.96 363.739 2904.93 327.896 2943.89 303.55C2982.84 278.933 3026.26 266.625 3074.14 266.625C3110.66 266.625 3140.69 272.847 3164.22 285.29C3188.03 297.463 3206.96 312.206 3221.03 329.519C3235.09 346.561 3245.78 362.657 3253.08 377.805H3261.2V274.74H3406.06V908.144C3406.06 961.435 3393.34 1005.53 3367.92 1040.42C3342.49 1075.32 3307.73 1101.43 3263.63 1118.74C3219.54 1136.05 3169.5 1144.71 3113.5 1144.71ZM3114.72 773.835C3145.83 773.835 3172.34 766.261 3194.25 751.112C3216.16 735.963 3232.79 714.187 3244.16 685.783C3255.52 657.379 3261.2 623.295 3261.2 583.53C3261.2 544.305 3255.52 509.95 3244.16 480.465C3233.07 450.979 3216.56 428.12 3194.65 411.89C3173.01 395.389 3146.37 387.138 3114.72 387.138C3081.98 387.138 3054.66 395.659 3032.75 412.701C3010.84 429.744 2994.34 453.143 2983.25 482.899C2972.16 512.385 2966.61 545.929 2966.61 583.53C2966.61 621.672 2972.16 655.08 2983.25 683.754C2994.61 712.158 3011.25 734.34 3033.16 750.3C3055.34 765.99 3082.53 773.835 3114.72 773.835ZM3647.08 906.927C3622.47 906.927 3601.37 898.271 3583.78 880.958C3566.2 863.645 3557.54 842.545 3557.82 817.658C3557.54 793.312 3566.2 772.482 3583.78 755.17C3601.37 737.857 3622.47 729.2 3647.08 729.2C3670.89 729.2 3691.58 737.857 3709.17 755.17C3727.02 772.482 3736.08 793.312 3736.35 817.658C3736.08 834.159 3731.75 849.173 3723.37 862.698C3715.25 876.224 3704.43 887.044 3690.91 895.16C3677.65 903.004 3663.04 906.927 3647.08 906.927ZM3888.01 274.74H4034.9V933.708C4034.9 978.613 4026.38 1015.67 4009.33 1044.89C3992.29 1074.1 3967.67 1095.88 3935.48 1110.22C3903.29 1124.55 3864.2 1131.72 3818.22 1131.72C3812.81 1131.72 3807.8 1131.59 3803.2 1131.32C3798.6 1131.32 3793.6 1131.18 3788.19 1130.91V1011.21C3792.25 1011.48 3795.9 1011.62 3799.15 1011.62C3802.39 1011.89 3805.77 1012.02 3809.29 1012.02C3837.42 1012.02 3857.58 1005.12 3869.75 991.327C3881.92 977.801 3888.01 957.918 3888.01 931.679V274.74ZM3961.05 186.283C3937.51 186.283 3917.36 178.573 3900.59 163.154C3884.09 147.464 3875.84 128.664 3875.84 106.752C3875.84 84.5701 3884.09 65.7695 3900.59 50.3503C3917.36 34.6606 3937.51 26.8158 3961.05 26.8158C3984.31 26.8158 4004.19 34.6606 4020.7 50.3503C4037.47 65.7695 4045.85 84.5701 4045.85 106.752C4045.85 128.664 4037.47 147.464 4020.7 163.154C4004.19 178.573 3984.31 186.283 3961.05 186.283ZM4332.83 66.9868V898H4185.94V66.9868H4332.83Z" fill="currentColor"/>
+            <path d="M4076 108.5C4076 168.424 4027.42 217 3967.5 217C3907.58 217 3859 168.424 3859 108.5C3859 48.5762 3907.58 0 3967.5 0C4027.42 0 4076 48.5762 4076 108.5Z" fill="#389725"/>
+            <path d="M3755 814.5C3755 874.424 3706.42 923 3646.5 923C3586.58 923 3538 874.424 3538 814.5C3538 754.576 3586.58 706 3646.5 706C3706.42 706 3755 754.576 3755 814.5Z" fill="#9457B1"/>
+            <path d="M2030 108.5C2030 168.424 1981.42 217 1921.5 217C1861.58 217 1813 168.424 1813 108.5C1813 48.5762 1861.58 0 1921.5 0C1981.42 0 2030 48.5762 2030 108.5Z" fill="#CA3B33"/>
+        </svg>
+    </a>
+    <!-- <a class="ext-navbar-title" href="https://turinglang.org/">Turing.jl</a> -->
+    
+    <ul class="ext-nav-links">
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/getting-started/">Get Started</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/tutorials/">Tutorials</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/faq/">FAQ</a></li>
+        <li>
+            <p class="ext-nav-link" id="library-handler">Libraries</p>
+            <div class="ext-dropdown" id="ext-dropdown-items">
+                <ul>
+                    <li class="ext-dropdown-item-heading">Modelling Languages</li>
+                    <a href="https://turinglang.org/DynamicPPL.jl/"><li>DynamicPPL</li></a>
+                    <a href="https://turinglang.org/JuliaBUGS.jl/"><li>JuliaBUGS</li></a>
+                    <a href="https://turinglang.org/TuringGLM.jl/"><li>TuringGLM</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">MCMC</li>
+                    <a href="https://turinglang.org/AdvancedHMC.jl/"><li>AdvancedHMC</li></a>
+                    <a href="https://turinglang.org/AbstractMCMC.jl/"><li>AbstractMCMC</li></a>
+                    <a href="https://github.com/theogf/ThermodynamicIntegration.jl"><li>ThermodynamicIntegration</li></a>
+                    <a href="https://turinglang.org/AdvancedPS.jl/"><li>AdvancedPS</li></a>
+                    <a href="https://turinglang.org/SliceSampling.jl/"><li>SliceSampling</li></a>
+                    <a href="https://turinglang.org/EllipticalSliceSampling.jl/"><li>EllipticalSliceSampling</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Diagnostics</li>
+                    <a href="https://turinglang.org/MCMCChains.jl/"><li>MCMCChains</li></a>
+                    <a href="https://turinglang.org/MCMCDiagnosticTools.jl/"><li>MCMCDiagnosticTools</li></a>
+                    <a href="https://turinglang.org/ParetoSmooth.jl/"><li>ParetoSmooth</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Gaussian Processes</li>
+                    <a href="https://juliagaussianprocesses.github.io/AbstractGPs.jl/"><li>AbstractGPs</li></a>
+                    <a href="https://juliagaussianprocesses.github.io/KernelFunctions.jl/"><li>KernelFunctions</li></a>
+                    <a href="https://juliagaussianprocesses.github.io/ApproximateGPs.jl/"><li>ApproximateGPs</li></a>
+                </ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/Bijectors.jl/">Bijectors</a></li></ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/TuringCallbacks.jl/">TuringCallbacks</a></li></ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/Deprecated/TuringBenchmarking/">TuringBenchmarking</a><span class="deprecated-badge">Deprecated</span></li></ul>
+            </div>
+        </li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/news/">News</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/team/">Team</a></li>
+    </ul>
+
+    <div class="ext-navbar-icons">
+        <a href="https://x.com/TuringLang" aria-label="Turing on X"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="https://discourse.julialang.org/c/domain/probprog/48" aria-label="Turing on Discourse"><i class="fa-brands fa-discourse"></i></a>
+        <a href="https://julialang.slack.com/archives/CCYDC34A0" aria-label="Turing on Slack"><i class="fa-brands fa-slack"></i></a>
+        <a href="https://github.com/TuringLang/" aria-label="Turing.jl on GitHub"><i class="fa-brands fa-github"></i></a>
+    </div>
+
+    <span class="ext-menu-toggle"><i class="fa-solid fa-bars"></i></span>
+</nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const menuToggle = document.querySelector(".ext-menu-toggle");
+        const navLinks = document.querySelector(".ext-nav-links");
+        const nav = document.querySelector(".ext-navigation");
+        const libraryHandler = document.getElementById("library-handler");
+        const dropdownContainer = document.getElementById("ext-dropdown-items");
+        let lastScrollY = window.scrollY;
+
+        function closeDropdown() {
+            if (dropdownContainer.classList.contains("show")) {
+                libraryHandler.classList.remove("open");
+                dropdownContainer.classList.remove("show");
+                setTimeout(() => {
+                    if (!dropdownContainer.classList.contains("show")) {
+                        dropdownContainer.style.display = "none";
+                    }
+                }, 300);
+            }
+        }
+
+        function openDropdown() {
+            dropdownContainer.style.display = "grid";
+            libraryHandler.classList.add("open");
+            setTimeout(() => {
+                dropdownContainer.classList.add("show");
+            }, 10);
+        }
+
+        function setAppropriateHeight() {
+            if (window.innerWidth <= 768) {
+                const viewportHeight = window.innerHeight;
+                const navHeight = nav.offsetHeight;
+                navLinks.style.maxHeight = `${viewportHeight - navHeight}px`;
+                navLinks.style.overflowY = "auto";
+            } else {
+                navLinks.style.maxHeight = "";
+                navLinks.style.overflowY = "";
+            }
+        }
+
+        menuToggle.addEventListener("click", (event) => {
+            event.stopPropagation();
+            navLinks.classList.toggle("show");
+            if (navLinks.classList.contains("show")) {
+                setAppropriateHeight();
+                closeDropdown();
+                dropdownContainer.style.display = "none";
+            }
+        });
+
+        libraryHandler.addEventListener("click", (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            if (dropdownContainer.classList.contains("show")) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+            setAppropriateHeight();
+        });
+
+        // Close all menus if a click is registered outside the navigation bar.
+        document.addEventListener("click", (event) => {
+            if (!nav.contains(event.target)) {
+                navLinks.classList.remove("show");
+                closeDropdown();
+            }
+        });
+
+        // Hide navigation bar on scroll down in mobile view.
+        window.addEventListener("scroll", () => {
+            if (window.innerWidth <= 768) {
+                if (window.scrollY > lastScrollY && window.scrollY > nav.offsetHeight){
+                    nav.classList.add("hide");
+                } else {
+                    nav.classList.remove("hide");
+                }
+                lastScrollY = window.scrollY;
+            }
+        });
+
+        window.addEventListener("resize", setAppropriateHeight);
+    });
+</script>
+<!-- NAVBAR END -->
+
+
+<div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AdvancedVI.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">AdvancedVI</a></li><li><a class="tocitem" href="../../general/">General Usage</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../basic/">Basic Example</a></li><li class="is-active"><a class="tocitem" href>Scaling to Large Datasets</a><ul class="internal"><li><a class="tocitem" href="#Setting-Up-Subsampling"><span>Setting Up Subsampling</span></a></li><li><a class="tocitem" href="#Scalable-Inference-via-AdvancedVI"><span>Scalable Inference via AdvancedVI</span></a></li></ul></li><li><a class="tocitem" href="../stan/">Stan Models</a></li><li><a class="tocitem" href="../flows/">Normalizing Flows</a></li><li><a class="tocitem" href="../constrained/">Dealing with Constrained Posteriors</a></li></ul></li><li><span class="tocitem">Algorithms</span><ul><li><a class="tocitem" href="../../klminrepgraddescent/"><code>KLMinRepGradDescent</code></a></li><li><a class="tocitem" href="../../klminrepgradproxdescent/"><code>KLMinRepGradProxDescent</code></a></li><li><a class="tocitem" href="../../klminscoregraddescent/"><code>KLMinScoreGradDescent</code></a></li><li><a class="tocitem" href="../../klminwassfwdbwd/"><code>KLMinWassFwdBwd</code></a></li><li><a class="tocitem" href="../../klminnaturalgraddescent/"><code>KLMinNaturalGradDescent</code></a></li><li><a class="tocitem" href="../../klminsqrtnaturalgraddescent/"><code>KLMinSqrtNaturalGradDescent</code></a></li><li><a class="tocitem" href="../../fisherminbatchmatch/"><code>FisherMinBatchMatch</code></a></li></ul></li><li><a class="tocitem" href="../../families/">Variational Families</a></li><li><a class="tocitem" href="../../optimization/">Optimization</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Scaling to Large Datasets</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Scaling to Large Datasets</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/TuringLang/AdvancedVI.jl/blob/main/docs/src/tutorials/subsampling.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Scaling-to-Large-Datasets-with-Subsampling"><a class="docs-heading-anchor" href="#Scaling-to-Large-Datasets-with-Subsampling">Scaling to Large Datasets with Subsampling</a><a id="Scaling-to-Large-Datasets-with-Subsampling-1"></a><a class="docs-heading-anchor-permalink" href="#Scaling-to-Large-Datasets-with-Subsampling" title="Permalink"></a></h1><p>In this tutorial, we will show how to use <code>AdvancedVI</code> on problems with large datasets. Variational inference (VI) has a long and successful history<sup class="footnote-reference"><a id="citeref-HBWP2013" href="#footnote-HBWP2013" class="footnote-ref">[HBWP2013]</a><span class="footnote-preview" id="fn-HBWP2013"></span></sup><sup class="footnote-reference"><a id="citeref-TL2014" href="#footnote-TL2014" class="footnote-ref">[TL2014]</a><span class="footnote-preview" id="fn-TL2014"></span></sup><sup class="footnote-reference"><a id="citeref-HBB2010" href="#footnote-HBB2010" class="footnote-ref">[HBB2010]</a><span class="footnote-preview" id="fn-HBB2010"></span></sup> in large scale inference using (minibatch) subsampling. In this tutorial, we will see how to perform subsampling with <code>KLMinRepGradProxDescent</code>, which was originally described in the paper by Titsias and Lázaro-Gredilla<sup class="footnote-reference"><a id="citeref-TL2014" href="#footnote-TL2014" class="footnote-ref">[TL2014]</a><span class="footnote-preview" id="fn-TL2014"></span></sup>; Kucukelbir <em>et al</em><sup class="footnote-reference"><a id="citeref-KTRGB2017" href="#footnote-KTRGB2017" class="footnote-ref">[KTRGB2017]</a><span class="footnote-preview" id="fn-KTRGB2017"></span></sup>.</p><h2 id="Setting-Up-Subsampling"><a class="docs-heading-anchor" href="#Setting-Up-Subsampling">Setting Up Subsampling</a><a id="Setting-Up-Subsampling-1"></a><a class="docs-heading-anchor-permalink" href="#Setting-Up-Subsampling" title="Permalink"></a></h2><p>We will consider a typical hierarchical logistic regression example.</p><pre><code class="language-julia hljs">using LogDensityProblems: LogDensityProblems
+using Distributions
+using FillArrays
+
+struct LogReg{XType,YType}
+    X::XType
+    y::YType
+    n_data::Int
+end
+
+function LogDensityProblems.logdensity(model::LogReg, θ)
+    (; X, y, n_data) = model
+    n, d = size(X)
+    β, logσ = θ[1:size(X, 2)], θ[end]
+    σ = exp(logσ)
+
+    logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
+    logprior_σ = logpdf(Normal(0, 3), σ)
+
+    logit = X*β
+    loglike_y = mapreduce((li, yi) -&gt; logpdf(BernoulliLogit(li), yi), +, logit, y)
+    return n_data/n*loglike_y + logprior_β + logprior_σ
+end
+
+function LogDensityProblems.dimension(model::LogReg)
+    return size(prob.X, 2) + 1
+end
+
+function LogDensityProblems.capabilities(::Type{&lt;:LogReg})
+    return LogDensityProblems.LogDensityOrder{0}()
+end
+nothing</code></pre><p>Notice that, to use subsampling, we need be able to rescale the likelihood strength. That is, for the gradient of the log-density with a batch of data points of size <code>n</code> to be an unbiased estimate of the gradient using the full dataset of size <code>n_data</code>, we need to scale the likelihood by <code>n_data/n</code>. This part is critical to ensure that the algorithm correctly approximates the posterior with the full dataset.</p><p>For the dataset, we will use one that is larger than that used in the <a href="../basic/#basic">Basic Example</a>. This is to properly assess the advantage of subsampling. In particular, we will utilize the &quot;Phishing&quot; dataset<sup class="footnote-reference"><a id="citeref-Tan2018" href="#footnote-Tan2018" class="footnote-ref">[Tan2018]</a><span class="footnote-preview" id="fn-Tan2018"></span></sup>, which consists of 10000 data points, each with 48 features. The goal is to predict whether the features of a specific website indicate whether it is a phishing website or a legitimate one. The <a href="https://www.openml.org/search?type=data&amp;status=active&amp;id=46722">dataset</a> id on the <a href="https://github.com/JuliaAI/OpenML.jl"><code>OpenML</code></a> repository is 46722.</p><pre><code class="language-julia hljs">using OpenML: OpenML
+using DataFrames: DataFrames
+
+data = Array(DataFrames.DataFrame(OpenML.load(46722)))
+X = Matrix{Float64}(data[:, 2:end])
+y = Vector{Bool}(data[:, end])
+nothing</code></pre><p>The features start from the seoncd column, while the last column are the class labels.</p><p>Let&#39;s also apply some basic pre-processing.</p><pre><code class="language-julia hljs">using Statistics
+
+X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
+X = hcat(X, ones(size(X, 1)))
+nothing</code></pre><p>Let&#39;s now istantiate the model and set up automatic differentiation using <a href="https://github.com/tpapp/LogDensityProblemsAD.jl?tab=readme-ov-file"><code>LogDensityProblemsAD</code></a>.</p><pre><code class="language-julia hljs">using ADTypes, ReverseDiff
+using LogDensityProblemsAD
+
+prob = LogReg(X, y, size(X, 1))
+prob_ad = LogDensityProblemsAD.ADgradient(
+    ADTypes.AutoReverseDiff(), prob; x=randn(LogDensityProblems.dimension(prob))
+)
+nothing</code></pre><p>To enable subsampling, <code>LogReg</code> has to implement the method <code>AdvancedVI.subsample</code>. For our model, this is fairly simple: We only need to select the rows of <code>X</code> and the elements of <code>y</code> corresponding to the batch of data points. As subtle point here is that we wrapped <code>prob</code> with <code>LogDensityProblemsAD.ADgradient</code> into <code>prob_ad</code>. Therefore, <code>AdvancedVI</code> sees <code>prob_ad</code> and not <code>prob</code>. This means we have to specialize <code>AdvancedVI.subsample</code> to <code>typeof(prob_ad)</code> and not <code>LogReg</code>.</p><pre><code class="language-julia hljs">using Accessors
+using AdvancedVI
+
+function AdvancedVI.subsample(prob::typeof(prob_ad), idx)
+    (; X, y, n_data) = parent(prob_ad)
+    prob′ = @set prob.ℓ.X = X[idx, :]
+    prob′′ = @set prob′.ℓ.y = y[idx]
+    return prob′′
+end
+nothing</code></pre><div class="admonition is-info" id="Info-2ff349d416b1f545"><header class="admonition-header">Info<a class="admonition-anchor" href="#Info-2ff349d416b1f545" title="Permalink"></a></header><div class="admonition-body"><p>The default implementation of <code>AdvancedVI.subsample</code> is <code>AdvancedVI.subsample(model, idx) = model</code>. Therefore, if the specialization of <code>AdvancedVI.subsample</code> is not set up properly, <code>AdvancedVI</code> will silently use full-batch gradients instead of subsampling. It is thus useful to check whether the right specialization of <code>AdvancedVI.subsample</code> is being called.</p></div></div><h2 id="Scalable-Inference-via-AdvancedVI"><a class="docs-heading-anchor" href="#Scalable-Inference-via-AdvancedVI">Scalable Inference via AdvancedVI</a><a id="Scalable-Inference-via-AdvancedVI-1"></a><a class="docs-heading-anchor-permalink" href="#Scalable-Inference-via-AdvancedVI" title="Permalink"></a></h2><p>In this example, we will compare the convergence speed of <code>KLMinRepGradProxDescent</code> with and without subsampling. Subsampling can be turned on by supplying a subsampling strategy. Here, we will use <code>ReshufflingBatchSubsampling</code>, which implements random reshuffling. We will us a batch size of 32, which results in <code>313 = length(subsampling) = ceil(Int, size(X,2)/32)</code> steps per epoch.</p><pre><code class="language-julia hljs">dataset = 1:size(prob.X, 1)
+batchsize = 32
+subsampling = ReshufflingBatchSubsampling(dataset, batchsize)
+alg_sub = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true); subsampling)
+nothing</code></pre><p>Recall that each epoch is 313 steps. When using <code>ReshufflingBatchSubsampling</code>, it is best to choose the number of iterations to be a multiple of the number of steps <code>length(subsampling)</code> in an epoch. This is due to a peculiar property of <code>ReshufflingBatchSubsampling</code>: the objective value tends to <em>increase</em> during an epoch, and come down nearing the end. (Theoretically, this is due to conditionally <em>biased</em> nature of random reshuffling<sup class="footnote-reference"><a id="citeref-MKR2020" href="#footnote-MKR2020" class="footnote-ref">[MKR2020]</a><span class="footnote-preview" id="fn-MKR2020"></span></sup>.) Therefore, the objective value is minimized exactly after the last step of each epoch.</p><pre><code class="language-julia hljs">num_epochs = 10
+max_iter = num_epochs * length(subsampling)
+nothing</code></pre><p>If we don&#39;t supply a subsampling strategy to <code>KLMinRepGradProxDescent</code>, subsampling will not be used.</p><pre><code class="language-julia hljs">alg_full = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
+nothing</code></pre><p>The variational family will be set up as follows:</p><pre><code class="language-julia hljs">using LinearAlgebra
+
+d = LogDensityProblems.dimension(prob_ad)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+nothing</code></pre><p>It now remains to run VI. For comparison, we will record both the ELBO (with a large number of Monte Carlo samples) and the prediction accuracy.</p><pre><code class="language-julia hljs">using StatsFuns: StatsFuns
+
+logging_interval = 100
+time_begin = nothing
+
+&quot;&quot;&quot;
+    logistic_prediction(X, μ_β, Σ_β)
+
+Approximate the posterior predictive probability for a logistic link function using Mackay&#39;s approximation (Bishop p. 220).
+&quot;&quot;&quot;
+function logistic_prediction(X, μ_β, Σ_β)
+    xtΣx = sum((prob.X*Σ_β) .* prob.X; dims=2)[:, 1]
+    κ = @. 1/sqrt(1 + π/8*xtΣx)
+    return StatsFuns.logistic.(κ .* X*μ_β)
+end
+
+function callback(; iteration, averaged_params, restructure, kwargs...)
+    if mod(iteration, logging_interval) == 1
+
+        # Use the averaged parameters (the eventual output of the algorithm)
+        q_avg = restructure(averaged_params)
+
+        # Compute predictions using
+        μ_β = mean(q_avg)[1:(end - 1)] # posterior mean of β
+        Σ_β = cov(q_avg)[1:(end - 1), end - 1] # marginal posterior covariance of β
+        y_pred = logistic_prediction(X, μ_β, Σ_β) .&gt; 0.5
+
+        # Prediction accuracy
+        acc = mean(y_pred .== prob.y)
+
+        # Higher fidelity estimate of the ELBO on the averaged parameters
+        n_samples = 256
+        elbo_callback = -estimate_objective(alg_full, q_avg, prob; n_samples)
+
+        (elbo_callback=elbo_callback, accuracy=acc, time_elapsed=time() - time_begin)
+    else
+        nothing
+    end
+end
+
+time_begin = time()
+_, info_full, _ = AdvancedVI.optimize(
+    alg_full, max_iter, prob_ad, q; show_progress=true, callback
+);
+
+time_begin = time()
+_, info_sub, _ = AdvancedVI.optimize(
+    alg_sub, max_iter, prob_ad, q; show_progress=true, callback
+);
+nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Optimizing   0%|                               |  ETA: 0:35:25 ( 0.68  s/it)
+        elbo: -11170.461241081224
+   iteration: 2
+
+Optimizing   3%|█                              |  ETA: 0:01:22 (27.11 ms/it)
+        elbo: -9485.933632522996
+   iteration: 102
+
+Optimizing   4%|█▎                             |  ETA: 0:01:10 (23.30 ms/it)
+        elbo: -21977.508831941715
+   iteration: 127
+
+Optimizing   4%|█▍                             |  ETA: 0:01:05 (21.87 ms/it)
+        elbo: -30036.555260857378
+   iteration: 140
+
+Optimizing   5%|█▌                             |  ETA: 0:01:02 (20.67 ms/it)
+        elbo: -24978.0200207328
+   iteration: 153
+
+Optimizing   5%|█▋                             |  ETA: 0:00:58 (19.67 ms/it)
+        elbo: -16344.440413470833
+   iteration: 166
+
+Optimizing   6%|█▊                             |  ETA: 0:00:56 (18.81 ms/it)
+        elbo: -8671.80001271692
+   iteration: 179
+
+Optimizing   6%|█▉                             |  ETA: 0:00:53 (18.07 ms/it)
+        elbo: -8699.738740461538
+   iteration: 192
+
+Optimizing   7%|██                             |  ETA: 0:00:52 (17.82 ms/it)
+        elbo: -10515.333347774907
+   iteration: 205
+
+Optimizing   7%|██▏                            |  ETA: 0:00:50 (17.23 ms/it)
+        elbo: -8636.742180543493
+   iteration: 218
+
+Optimizing   7%|██▎                            |  ETA: 0:00:48 (16.65 ms/it)
+        elbo: -7940.759723830115
+   iteration: 232
+
+Optimizing   8%|██▍                            |  ETA: 0:00:47 (16.15 ms/it)
+        elbo: -16639.20376512652
+   iteration: 246
+
+Optimizing   8%|██▋                            |  ETA: 0:00:45 (15.69 ms/it)
+        elbo: -7122.467114553451
+   iteration: 260
+
+Optimizing   9%|██▊                            |  ETA: 0:00:44 (15.29 ms/it)
+        elbo: -11738.93575221263
+   iteration: 274
+
+Optimizing   9%|██▉                            |  ETA: 0:00:42 (14.92 ms/it)
+        elbo: -8686.654766657997
+   iteration: 288
+
+Optimizing  10%|███                            |  ETA: 0:00:42 (14.89 ms/it)
+   elbo_callback: -8180.903971298032
+        accuracy: 0.592
+    time_elapsed: 4.59955096244812
+            elbo: -7735.6623773005
+       iteration: 301
+
+
+
+
+Optimizing  10%|███▏                           |  ETA: 0:00:41 (14.56 ms/it)
+        elbo: -7058.377669336767
+   iteration: 315
+
+Optimizing  10%|███▎                           |  ETA: 0:00:40 (14.30 ms/it)
+        elbo: -8827.100783910555
+   iteration: 328
+
+Optimizing  11%|███▍                           |  ETA: 0:00:39 (14.02 ms/it)
+        elbo: -11532.959743417121
+   iteration: 342
+
+Optimizing  11%|███▌                           |  ETA: 0:00:38 (13.78 ms/it)
+        elbo: -8346.320387413514
+   iteration: 356
+
+Optimizing  12%|███▋                           |  ETA: 0:00:37 (13.54 ms/it)
+        elbo: -7629.081146083682
+   iteration: 370
+
+Optimizing  12%|███▊                           |  ETA: 0:00:37 (13.33 ms/it)
+        elbo: -6355.826812544227
+   iteration: 384
+
+Optimizing  13%|████                           |  ETA: 0:00:36 (13.13 ms/it)
+        elbo: -6973.697638999069
+   iteration: 398
+
+Optimizing  13%|████                           |  ETA: 0:00:36 (13.19 ms/it)
+        elbo: -6966.369850125774
+   iteration: 410
+
+Optimizing  14%|████▎                          |  ETA: 0:00:35 (13.01 ms/it)
+        elbo: -6511.850583877611
+   iteration: 424
+
+Optimizing  14%|████▍                          |  ETA: 0:00:35 (12.85 ms/it)
+        elbo: -7417.010126643034
+   iteration: 438
+
+Optimizing  14%|████▌                          |  ETA: 0:00:34 (12.68 ms/it)
+        elbo: -6629.546953835553
+   iteration: 452
+
+Optimizing  15%|████▋                          |  ETA: 0:00:33 (12.53 ms/it)
+        elbo: -6107.7710604813565
+   iteration: 466
+
+Optimizing  15%|████▊                          |  ETA: 0:00:33 (12.41 ms/it)
+        elbo: -6857.932361889219
+   iteration: 479
+
+Optimizing  16%|████▉                          |  ETA: 0:00:32 (12.29 ms/it)
+        elbo: -7754.5573505586035
+   iteration: 492
+
+Optimizing  16%|█████                          |  ETA: 0:00:32 (12.33 ms/it)
+        elbo: -6989.662484543274
+   iteration: 505
+
+Optimizing  17%|█████▏                         |  ETA: 0:00:32 (12.21 ms/it)
+        elbo: -7737.424545872081
+   iteration: 519
+
+Optimizing  17%|█████▎                         |  ETA: 0:00:31 (12.09 ms/it)
+        elbo: -6232.413829878976
+   iteration: 533
+
+Optimizing  17%|█████▍                         |  ETA: 0:00:31 (11.99 ms/it)
+        elbo: -7313.498501249998
+   iteration: 546
+
+Optimizing  18%|█████▌                         |  ETA: 0:00:31 (11.89 ms/it)
+        elbo: -6817.452887609255
+   iteration: 559
+
+Optimizing  18%|█████▋                         |  ETA: 0:00:30 (11.80 ms/it)
+        elbo: -6506.98206854214
+   iteration: 572
+
+Optimizing  19%|█████▊                         |  ETA: 0:00:30 (11.72 ms/it)
+        elbo: -6337.0330118626935
+   iteration: 585
+
+Optimizing  19%|█████▉                         |  ETA: 0:00:30 (11.65 ms/it)
+        elbo: -7292.469803195732
+   iteration: 598
+
+Optimizing  19%|██████                         |  ETA: 0:00:30 (11.72 ms/it)
+        elbo: -6259.827357421001
+   iteration: 609
+
+Optimizing  20%|██████▏                        |  ETA: 0:00:29 (11.63 ms/it)
+        elbo: -7607.23285750808
+   iteration: 623
+
+Optimizing  20%|██████▎                        |  ETA: 0:00:29 (11.55 ms/it)
+        elbo: -6697.104862612462
+   iteration: 636
+
+Optimizing  21%|██████▍                        |  ETA: 0:00:28 (11.49 ms/it)
+        elbo: -6154.073119266748
+   iteration: 649
+
+Optimizing  21%|██████▌                        |  ETA: 0:00:28 (11.42 ms/it)
+        elbo: -7122.573524367651
+   iteration: 662
+
+Optimizing  22%|██████▋                        |  ETA: 0:00:28 (11.36 ms/it)
+        elbo: -6277.299045712067
+   iteration: 675
+
+Optimizing  22%|██████▊                        |  ETA: 0:00:29 (11.75 ms/it)
+        elbo: -7251.736979924393
+   iteration: 687
+
+Optimizing  22%|██████▉                        |  ETA: 0:00:29 (12.09 ms/it)
+        elbo: -6263.851330834962
+   iteration: 690
+
+Optimizing  22%|███████                        |  ETA: 0:00:29 (12.14 ms/it)
+        elbo: -6483.564729249807
+   iteration: 703
+
+Optimizing  23%|███████▏                       |  ETA: 0:00:29 (12.07 ms/it)
+        elbo: -6780.56052467123
+   iteration: 716
+
+Optimizing  23%|███████▎                       |  ETA: 0:00:29 (11.99 ms/it)
+        elbo: -6494.347628183241
+   iteration: 729
+
+Optimizing  24%|███████▍                       |  ETA: 0:00:28 (11.92 ms/it)
+        elbo: -6272.248908633351
+   iteration: 742
+
+Optimizing  24%|███████▌                       |  ETA: 0:00:28 (11.85 ms/it)
+        elbo: -6062.333090331219
+   iteration: 755
+
+Optimizing  25%|███████▋                       |  ETA: 0:00:28 (11.78 ms/it)
+        elbo: -6779.667056172892
+   iteration: 768
+
+Optimizing  25%|███████▊                       |  ETA: 0:00:28 (11.72 ms/it)
+        elbo: -6011.569305389884
+   iteration: 781
+
+Optimizing  25%|███████▉                       |  ETA: 0:00:27 (11.66 ms/it)
+        elbo: -6392.166406833222
+   iteration: 794
+
+Optimizing  26%|████████                       |  ETA: 0:00:27 (11.72 ms/it)
+        elbo: -7091.813516737515
+   iteration: 806
+
+Optimizing  26%|████████▏                      |  ETA: 0:00:27 (11.66 ms/it)
+        elbo: -7734.045337574723
+   iteration: 819
+
+Optimizing  27%|████████▎                      |  ETA: 0:00:27 (11.61 ms/it)
+        elbo: -6602.797621555598
+   iteration: 832
+
+Optimizing  27%|████████▍                      |  ETA: 0:00:26 (11.55 ms/it)
+        elbo: -6500.556147614543
+   iteration: 845
+
+Optimizing  27%|████████▌                      |  ETA: 0:00:26 (11.49 ms/it)
+        elbo: -6079.074596511821
+   iteration: 858
+
+Optimizing  28%|████████▋                      |  ETA: 0:00:26 (11.44 ms/it)
+        elbo: -6297.143631273616
+   iteration: 871
+
+Optimizing  28%|████████▊                      |  ETA: 0:00:26 (11.39 ms/it)
+        elbo: -6407.656008207065
+   iteration: 884
+
+Optimizing  29%|████████▉                      |  ETA: 0:00:25 (11.34 ms/it)
+        elbo: -6510.011243883895
+   iteration: 897
+
+Optimizing  29%|█████████                      |  ETA: 0:00:25 (11.39 ms/it)
+        elbo: -6325.471361635454
+   iteration: 910
+
+Optimizing  29%|█████████▏                     |  ETA: 0:00:25 (11.34 ms/it)
+        elbo: -6475.575482164182
+   iteration: 923
+
+Optimizing  30%|█████████▎                     |  ETA: 0:00:25 (11.30 ms/it)
+        elbo: -6564.932741280712
+   iteration: 936
+
+Optimizing  30%|█████████▍                     |  ETA: 0:00:25 (11.26 ms/it)
+        elbo: -6236.872871432024
+   iteration: 949
+
+Optimizing  31%|█████████▌                     |  ETA: 0:00:24 (11.21 ms/it)
+        elbo: -6136.823313199616
+   iteration: 962
+
+Optimizing  31%|█████████▋                     |  ETA: 0:00:24 (11.17 ms/it)
+        elbo: -6309.740854105846
+   iteration: 975
+
+Optimizing  32%|█████████▊                     |  ETA: 0:00:24 (11.13 ms/it)
+        elbo: -6152.413401050229
+   iteration: 988
+
+Optimizing  32%|█████████▉                     |  ETA: 0:00:24 (11.17 ms/it)
+   elbo_callback: -6397.850422861127
+        accuracy: 0.7328
+    time_elapsed: 11.302578926086426
+            elbo: -6010.673770133192
+       iteration: 1001
+
+
+
+
+Optimizing  32%|██████████                     |  ETA: 0:00:24 (11.12 ms/it)
+        elbo: -6620.455720248756
+   iteration: 1015
+
+Optimizing  33%|██████████▏                    |  ETA: 0:00:23 (11.08 ms/it)
+        elbo: -5904.028702975806
+   iteration: 1028
+
+Optimizing  33%|██████████▍                    |  ETA: 0:00:23 (11.04 ms/it)
+        elbo: -6311.392496242056
+   iteration: 1042
+
+Optimizing  34%|██████████▌                    |  ETA: 0:00:23 (11.00 ms/it)
+        elbo: -6144.437195440598
+   iteration: 1055
+
+Optimizing  34%|██████████▋                    |  ETA: 0:00:23 (10.96 ms/it)
+        elbo: -6310.998055843756
+   iteration: 1068
+
+Optimizing  35%|██████████▊                    |  ETA: 0:00:22 (10.92 ms/it)
+        elbo: -6361.698509201413
+   iteration: 1081
+
+Optimizing  35%|██████████▉                    |  ETA: 0:00:22 (10.89 ms/it)
+        elbo: -6017.821920309849
+   iteration: 1094
+
+Optimizing  35%|███████████                    |  ETA: 0:00:22 (10.93 ms/it)
+        elbo: -6058.229027551466
+   iteration: 1107
+
+Optimizing  36%|███████████▏                   |  ETA: 0:00:22 (10.89 ms/it)
+        elbo: -6101.164111268095
+   iteration: 1121
+
+Optimizing  36%|███████████▎                   |  ETA: 0:00:22 (10.86 ms/it)
+        elbo: -6303.5698593369725
+   iteration: 1134
+
+Optimizing  37%|███████████▍                   |  ETA: 0:00:21 (10.83 ms/it)
+        elbo: -6215.761829923735
+   iteration: 1147
+
+Optimizing  37%|███████████▌                   |  ETA: 0:00:21 (10.82 ms/it)
+        elbo: -5790.390575448957
+   iteration: 1159
+
+Optimizing  37%|███████████▋                   |  ETA: 0:00:21 (10.78 ms/it)
+        elbo: -6183.7437335497425
+   iteration: 1172
+
+Optimizing  38%|███████████▊                   |  ETA: 0:00:21 (10.75 ms/it)
+        elbo: -5963.464970468719
+   iteration: 1186
+
+Optimizing  38%|███████████▉                   |  ETA: 0:00:21 (10.71 ms/it)
+        elbo: -6657.224461656535
+   iteration: 1200
+
+Optimizing  39%|████████████                   |  ETA: 0:00:21 (10.76 ms/it)
+        elbo: -6068.919829434318
+   iteration: 1212
+
+Optimizing  39%|████████████▏                  |  ETA: 0:00:20 (10.72 ms/it)
+        elbo: -6251.8414839510615
+   iteration: 1226
+
+Optimizing  40%|████████████▎                  |  ETA: 0:00:20 (10.69 ms/it)
+        elbo: -6080.674920420195
+   iteration: 1239
+
+Optimizing  40%|████████████▍                  |  ETA: 0:00:20 (10.66 ms/it)
+        elbo: -6162.86699473287
+   iteration: 1253
+
+Optimizing  40%|████████████▌                  |  ETA: 0:00:20 (10.63 ms/it)
+        elbo: -5871.928360397388
+   iteration: 1266
+
+Optimizing  41%|████████████▋                  |  ETA: 0:00:20 (10.60 ms/it)
+        elbo: -5901.625502919669
+   iteration: 1280
+
+Optimizing  41%|████████████▊                  |  ETA: 0:00:19 (10.57 ms/it)
+        elbo: -6578.470765032839
+   iteration: 1293
+
+Optimizing  42%|████████████▉                  |  ETA: 0:00:19 (10.61 ms/it)
+        elbo: -6105.19501239166
+   iteration: 1306
+
+Optimizing  42%|█████████████▏                 |  ETA: 0:00:19 (10.58 ms/it)
+        elbo: -6006.146752641336
+   iteration: 1320
+
+Optimizing  43%|█████████████▎                 |  ETA: 0:00:19 (10.55 ms/it)
+        elbo: -6061.468517098789
+   iteration: 1333
+
+Optimizing  43%|█████████████▍                 |  ETA: 0:00:19 (10.52 ms/it)
+        elbo: -6184.8771281316685
+   iteration: 1347
+
+Optimizing  43%|█████████████▌                 |  ETA: 0:00:19 (10.50 ms/it)
+        elbo: -6098.127565255047
+   iteration: 1360
+
+Optimizing  44%|█████████████▋                 |  ETA: 0:00:18 (10.48 ms/it)
+        elbo: -6185.994472346865
+   iteration: 1373
+
+Optimizing  44%|█████████████▊                 |  ETA: 0:00:18 (10.45 ms/it)
+        elbo: -6158.555503303447
+   iteration: 1386
+
+Optimizing  45%|█████████████▉                 |  ETA: 0:00:18 (10.43 ms/it)
+        elbo: -6063.756735993648
+   iteration: 1400
+
+Optimizing  45%|██████████████                 |  ETA: 0:00:18 (10.46 ms/it)
+        elbo: -6369.939132110604
+   iteration: 1412
+
+Optimizing  45%|██████████████▏                |  ETA: 0:00:18 (10.45 ms/it)
+        elbo: -6208.297088812046
+   iteration: 1424
+
+Optimizing  46%|██████████████▎                |  ETA: 0:00:18 (10.42 ms/it)
+        elbo: -6834.828827281394
+   iteration: 1437
+
+Optimizing  46%|██████████████▍                |  ETA: 0:00:17 (10.40 ms/it)
+        elbo: -6471.232257178362
+   iteration: 1450
+
+Optimizing  47%|██████████████▌                |  ETA: 0:00:17 (10.38 ms/it)
+        elbo: -5787.123190509477
+   iteration: 1463
+
+Optimizing  47%|██████████████▋                |  ETA: 0:00:17 (10.35 ms/it)
+        elbo: -6038.6441123004915
+   iteration: 1477
+
+Optimizing  48%|██████████████▊                |  ETA: 0:00:17 (10.33 ms/it)
+        elbo: -5948.199134895353
+   iteration: 1490
+
+Optimizing  48%|██████████████▉                |  ETA: 0:00:17 (10.37 ms/it)
+        elbo: -6004.949875730703
+   iteration: 1503
+
+Optimizing  48%|███████████████                |  ETA: 0:00:17 (10.34 ms/it)
+        elbo: -6254.582493682344
+   iteration: 1517
+
+Optimizing  49%|███████████████▏               |  ETA: 0:00:16 (10.32 ms/it)
+        elbo: -5964.211628091707
+   iteration: 1531
+
+Optimizing  49%|███████████████▎               |  ETA: 0:00:16 (10.29 ms/it)
+        elbo: -5942.076563989653
+   iteration: 1544
+
+Optimizing  50%|███████████████▍               |  ETA: 0:00:16 (10.27 ms/it)
+        elbo: -6017.2032404411575
+   iteration: 1558
+
+Optimizing  50%|███████████████▋               |  ETA: 0:00:16 (10.25 ms/it)
+        elbo: -5995.162770687899
+   iteration: 1572
+
+Optimizing  51%|███████████████▊               |  ETA: 0:00:16 (10.23 ms/it)
+        elbo: -5907.712149530931
+   iteration: 1586
+
+Optimizing  51%|███████████████▉               |  ETA: 0:00:16 (10.20 ms/it)
+        elbo: -6206.338987569729
+   iteration: 1600
+
+Optimizing  52%|████████████████               |  ETA: 0:00:16 (10.23 ms/it)
+        elbo: -6432.484566937064
+   iteration: 1613
+
+Optimizing  52%|████████████████▏              |  ETA: 0:00:15 (10.21 ms/it)
+        elbo: -5904.514640951124
+   iteration: 1627
+
+Optimizing  52%|████████████████▎              |  ETA: 0:00:15 (10.19 ms/it)
+        elbo: -7384.600851462735
+   iteration: 1641
+
+Optimizing  53%|████████████████▍              |  ETA: 0:00:15 (10.17 ms/it)
+        elbo: -5846.125895696464
+   iteration: 1655
+
+Optimizing  53%|████████████████▌              |  ETA: 0:00:15 (10.15 ms/it)
+        elbo: -6684.274863331473
+   iteration: 1669
+
+Optimizing  54%|████████████████▋              |  ETA: 0:00:15 (10.13 ms/it)
+        elbo: -6301.788412293889
+   iteration: 1683
+
+Optimizing  54%|████████████████▊              |  ETA: 0:00:14 (10.11 ms/it)
+        elbo: -6198.059701841884
+   iteration: 1696
+
+Optimizing  55%|████████████████▉              |  ETA: 0:00:14 (10.14 ms/it)
+        elbo: -5571.810782983882
+   iteration: 1709
+
+Optimizing  55%|█████████████████▏             |  ETA: 0:00:14 (10.12 ms/it)
+        elbo: -5727.453389925206
+   iteration: 1723
+
+Optimizing  55%|█████████████████▎             |  ETA: 0:00:14 (10.10 ms/it)
+        elbo: -7427.333474657127
+   iteration: 1737
+
+Optimizing  56%|█████████████████▍             |  ETA: 0:00:14 (10.08 ms/it)
+        elbo: -5721.396134719518
+   iteration: 1751
+
+Optimizing  56%|█████████████████▌             |  ETA: 0:00:14 (10.06 ms/it)
+        elbo: -5942.05195349236
+   iteration: 1764
+
+Optimizing  57%|█████████████████▋             |  ETA: 0:00:14 (10.05 ms/it)
+        elbo: -6618.648330158823
+   iteration: 1778
+
+Optimizing  57%|█████████████████▊             |  ETA: 0:00:13 (10.03 ms/it)
+        elbo: -6074.263027546766
+   iteration: 1791
+
+Optimizing  58%|█████████████████▉             |  ETA: 0:00:13 (10.06 ms/it)
+        elbo: -7925.84266739649
+   iteration: 1804
+
+Optimizing  58%|██████████████████             |  ETA: 0:00:13 (10.05 ms/it)
+        elbo: -9870.060346867538
+   iteration: 1817
+
+Optimizing  58%|██████████████████▏            |  ETA: 0:00:13 (10.03 ms/it)
+        elbo: -6017.468243901152
+   iteration: 1830
+
+Optimizing  59%|██████████████████▎            |  ETA: 0:00:13 (10.02 ms/it)
+        elbo: -5684.229645708686
+   iteration: 1844
+
+Optimizing  59%|██████████████████▍            |  ETA: 0:00:13 (10.00 ms/it)
+        elbo: -6292.476756615835
+   iteration: 1858
+
+Optimizing  60%|██████████████████▌            |  ETA: 0:00:13 ( 9.98 ms/it)
+        elbo: -9121.305823297569
+   iteration: 1872
+
+Optimizing  60%|██████████████████▋            |  ETA: 0:00:12 ( 9.96 ms/it)
+        elbo: -6463.713693408979
+   iteration: 1885
+
+Optimizing  61%|██████████████████▊            |  ETA: 0:00:12 ( 9.95 ms/it)
+        elbo: -6631.612685230416
+   iteration: 1899
+
+Optimizing  61%|██████████████████▉            |  ETA: 0:00:12 ( 9.98 ms/it)
+        elbo: -6450.050475470247
+   iteration: 1911
+
+Optimizing  62%|███████████████████▏           |  ETA: 0:00:12 ( 9.96 ms/it)
+        elbo: -6011.619524175943
+   iteration: 1925
+
+Optimizing  62%|███████████████████▎           |  ETA: 0:00:12 ( 9.95 ms/it)
+        elbo: -7582.793876757918
+   iteration: 1939
+
+Optimizing  62%|███████████████████▍           |  ETA: 0:00:12 ( 9.93 ms/it)
+        elbo: -7112.7040448534935
+   iteration: 1953
+
+Optimizing  63%|███████████████████▌           |  ETA: 0:00:12 ( 9.92 ms/it)
+        elbo: -8373.603182740042
+   iteration: 1966
+
+Optimizing  63%|███████████████████▋           |  ETA: 0:00:11 ( 9.90 ms/it)
+        elbo: -5890.8494889252615
+   iteration: 1979
+
+Optimizing  64%|███████████████████▊           |  ETA: 0:00:11 ( 9.89 ms/it)
+        elbo: -5915.983738489841
+   iteration: 1992
+
+Optimizing  64%|███████████████████▉           |  ETA: 0:00:11 ( 9.92 ms/it)
+        elbo: -6122.571411608392
+   iteration: 2005
+
+Optimizing  65%|████████████████████           |  ETA: 0:00:11 ( 9.90 ms/it)
+        elbo: -6100.0748110676195
+   iteration: 2019
+
+Optimizing  65%|████████████████████▏          |  ETA: 0:00:11 ( 9.89 ms/it)
+        elbo: -6552.310154450235
+   iteration: 2033
+
+Optimizing  65%|████████████████████▎          |  ETA: 0:00:11 ( 9.88 ms/it)
+        elbo: -6436.836052375972
+   iteration: 2046
+
+Optimizing  66%|████████████████████▍          |  ETA: 0:00:11 ( 9.87 ms/it)
+        elbo: -5802.169420579764
+   iteration: 2059
+
+Optimizing  66%|████████████████████▌          |  ETA: 0:00:10 ( 9.85 ms/it)
+        elbo: -6464.028571089873
+   iteration: 2073
+
+Optimizing  67%|████████████████████▋          |  ETA: 0:00:10 ( 9.83 ms/it)
+        elbo: -7210.815491496058
+   iteration: 2087
+
+Optimizing  67%|████████████████████▊          |  ETA: 0:00:10 ( 9.86 ms/it)
+   elbo_callback: -6014.912368520135
+        accuracy: 0.7825
+    time_elapsed: 20.837487936019897
+            elbo: -5715.884939119676
+       iteration: 2101
+
+
+
+
+Optimizing  68%|█████████████████████          |  ETA: 0:00:10 ( 9.85 ms/it)
+        elbo: -6466.607603935017
+   iteration: 2115
+
+Optimizing  68%|█████████████████████▏         |  ETA: 0:00:10 ( 9.83 ms/it)
+        elbo: -5910.573996148426
+   iteration: 2129
+
+Optimizing  68%|█████████████████████▎         |  ETA: 0:00:10 ( 9.82 ms/it)
+        elbo: -7396.615630845652
+   iteration: 2143
+
+Optimizing  69%|█████████████████████▍         |  ETA: 0:00:10 ( 9.80 ms/it)
+        elbo: -5918.172152760284
+   iteration: 2157
+
+Optimizing  69%|█████████████████████▌         |  ETA: 0:00:09 ( 9.79 ms/it)
+        elbo: -6599.111090922589
+   iteration: 2171
+
+Optimizing  70%|█████████████████████▋         |  ETA: 0:00:09 ( 9.77 ms/it)
+        elbo: -5912.61925500936
+   iteration: 2185
+
+Optimizing  70%|█████████████████████▊         |  ETA: 0:00:09 ( 9.76 ms/it)
+        elbo: -7669.903832896054
+   iteration: 2199
+
+Optimizing  71%|█████████████████████▉         |  ETA: 0:00:09 ( 9.78 ms/it)
+        elbo: -6923.278362139234
+   iteration: 2212
+
+Optimizing  71%|██████████████████████         |  ETA: 0:00:09 ( 9.77 ms/it)
+        elbo: -6242.553525395383
+   iteration: 2226
+
+Optimizing  72%|██████████████████████▏        |  ETA: 0:00:09 ( 9.76 ms/it)
+        elbo: -5908.271931674267
+   iteration: 2240
+
+Optimizing  72%|██████████████████████▍        |  ETA: 0:00:09 ( 9.74 ms/it)
+        elbo: -7348.330411667362
+   iteration: 2254
+
+Optimizing  72%|██████████████████████▌        |  ETA: 0:00:08 ( 9.73 ms/it)
+        elbo: -5985.021916453393
+   iteration: 2268
+
+Optimizing  73%|██████████████████████▋        |  ETA: 0:00:08 ( 9.72 ms/it)
+        elbo: -13631.072431272987
+   iteration: 2282
+
+Optimizing  73%|██████████████████████▊        |  ETA: 0:00:08 ( 9.70 ms/it)
+        elbo: -6616.472559898148
+   iteration: 2296
+
+Optimizing  74%|██████████████████████▉        |  ETA: 0:00:08 ( 9.73 ms/it)
+        elbo: -6974.177811585377
+   iteration: 2309
+
+Optimizing  74%|███████████████████████        |  ETA: 0:00:08 ( 9.72 ms/it)
+        elbo: -5521.666091702099
+   iteration: 2322
+
+Optimizing  75%|███████████████████████▏       |  ETA: 0:00:08 ( 9.71 ms/it)
+        elbo: -5579.229002798139
+   iteration: 2335
+
+Optimizing  75%|███████████████████████▎       |  ETA: 0:00:08 ( 9.70 ms/it)
+        elbo: -6413.994309350609
+   iteration: 2349
+
+Optimizing  75%|███████████████████████▍       |  ETA: 0:00:07 ( 9.68 ms/it)
+        elbo: -5765.8713430892185
+   iteration: 2363
+
+Optimizing  76%|███████████████████████▌       |  ETA: 0:00:07 ( 9.67 ms/it)
+        elbo: -5445.218508740191
+   iteration: 2377
+
+Optimizing  76%|███████████████████████▋       |  ETA: 0:00:07 ( 9.66 ms/it)
+        elbo: -7510.17621071179
+   iteration: 2391
+
+Optimizing  77%|███████████████████████▊       |  ETA: 0:00:07 ( 9.68 ms/it)
+        elbo: -5809.163261810691
+   iteration: 2403
+
+Optimizing  77%|████████████████████████       |  ETA: 0:00:07 ( 9.67 ms/it)
+        elbo: -9001.676311652878
+   iteration: 2417
+
+Optimizing  78%|████████████████████████▏      |  ETA: 0:00:07 ( 9.66 ms/it)
+        elbo: -7338.293630475541
+   iteration: 2431
+
+Optimizing  78%|████████████████████████▎      |  ETA: 0:00:07 ( 9.65 ms/it)
+        elbo: -6129.408918996769
+   iteration: 2445
+
+Optimizing  79%|████████████████████████▍      |  ETA: 0:00:06 ( 9.64 ms/it)
+        elbo: -5900.5813942531695
+   iteration: 2459
+
+Optimizing  79%|████████████████████████▌      |  ETA: 0:00:06 ( 9.62 ms/it)
+        elbo: -6510.649577951069
+   iteration: 2473
+
+Optimizing  79%|████████████████████████▋      |  ETA: 0:00:06 ( 9.61 ms/it)
+        elbo: -7042.915267724601
+   iteration: 2487
+
+Optimizing  80%|████████████████████████▊      |  ETA: 0:00:06 ( 9.63 ms/it)
+   elbo_callback: -5847.142405482628
+        accuracy: 0.7885
+    time_elapsed: 24.215211868286133
+            elbo: -5609.357714102865
+       iteration: 2501
+
+
+
+
+Optimizing  80%|████████████████████████▉      |  ETA: 0:00:06 ( 9.62 ms/it)
+        elbo: -5569.68439812542
+   iteration: 2515
+
+Optimizing  81%|█████████████████████████      |  ETA: 0:00:06 ( 9.61 ms/it)
+        elbo: -7053.002934139892
+   iteration: 2529
+
+Optimizing  81%|█████████████████████████▏     |  ETA: 0:00:06 ( 9.60 ms/it)
+        elbo: -7464.730255352024
+   iteration: 2543
+
+Optimizing  82%|█████████████████████████▍     |  ETA: 0:00:05 ( 9.59 ms/it)
+        elbo: -7136.206178266455
+   iteration: 2557
+
+Optimizing  82%|█████████████████████████▌     |  ETA: 0:00:05 ( 9.58 ms/it)
+        elbo: -6070.514832732714
+   iteration: 2571
+
+Optimizing  83%|█████████████████████████▋     |  ETA: 0:00:05 ( 9.57 ms/it)
+        elbo: -5884.418650501582
+   iteration: 2584
+
+Optimizing  83%|█████████████████████████▊     |  ETA: 0:00:05 ( 9.56 ms/it)
+        elbo: -5228.400332316867
+   iteration: 2598
+
+Optimizing  83%|█████████████████████████▉     |  ETA: 0:00:05 ( 9.58 ms/it)
+        elbo: -5456.811192643682
+   iteration: 2610
+
+Optimizing  84%|██████████████████████████     |  ETA: 0:00:05 ( 9.57 ms/it)
+        elbo: -6689.080400116264
+   iteration: 2624
+
+Optimizing  84%|██████████████████████████▏    |  ETA: 0:00:05 ( 9.56 ms/it)
+        elbo: -7353.553150351433
+   iteration: 2637
+
+Optimizing  85%|██████████████████████████▎    |  ETA: 0:00:05 ( 9.55 ms/it)
+        elbo: -6547.765517343307
+   iteration: 2651
+
+Optimizing  85%|██████████████████████████▍    |  ETA: 0:00:04 ( 9.55 ms/it)
+        elbo: -8566.350484723633
+   iteration: 2664
+
+Optimizing  86%|██████████████████████████▌    |  ETA: 0:00:04 ( 9.54 ms/it)
+        elbo: -6251.7774052262475
+   iteration: 2678
+
+Optimizing  86%|██████████████████████████▋    |  ETA: 0:00:04 ( 9.53 ms/it)
+        elbo: -7388.498739130181
+   iteration: 2692
+
+Optimizing  86%|██████████████████████████▊    |  ETA: 0:00:04 ( 9.55 ms/it)
+        elbo: -6628.060150354553
+   iteration: 2704
+
+Optimizing  87%|██████████████████████████▉    |  ETA: 0:00:04 ( 9.54 ms/it)
+        elbo: -5871.6829150185
+   iteration: 2718
+
+Optimizing  87%|███████████████████████████    |  ETA: 0:00:04 ( 9.53 ms/it)
+        elbo: -6593.792811934032
+   iteration: 2732
+
+Optimizing  88%|███████████████████████████▎   |  ETA: 0:00:04 ( 9.52 ms/it)
+        elbo: -5458.063485320589
+   iteration: 2746
+
+Optimizing  88%|███████████████████████████▍   |  ETA: 0:00:04 ( 9.51 ms/it)
+        elbo: -6558.616414137684
+   iteration: 2759
+
+Optimizing  89%|███████████████████████████▌   |  ETA: 0:00:03 ( 9.50 ms/it)
+        elbo: -7330.849722579509
+   iteration: 2773
+
+Optimizing  89%|███████████████████████████▋   |  ETA: 0:00:03 ( 9.49 ms/it)
+        elbo: -6835.25857040139
+   iteration: 2787
+
+Optimizing  89%|███████████████████████████▊   |  ETA: 0:00:03 ( 9.52 ms/it)
+   elbo_callback: -5820.5897694857185
+        accuracy: 0.7812
+    time_elapsed: 26.773689031600952
+            elbo: -8337.867017159053
+       iteration: 2801
+
+
+
+
+Optimizing  90%|███████████████████████████▉   |  ETA: 0:00:03 ( 9.51 ms/it)
+        elbo: -5623.074375482579
+   iteration: 2815
+
+Optimizing  90%|████████████████████████████   |  ETA: 0:00:03 ( 9.50 ms/it)
+        elbo: -6032.463951550907
+   iteration: 2829
+
+Optimizing  91%|████████████████████████████▏  |  ETA: 0:00:03 ( 9.49 ms/it)
+        elbo: -5741.103311245993
+   iteration: 2843
+
+Optimizing  91%|████████████████████████████▎  |  ETA: 0:00:03 ( 9.48 ms/it)
+        elbo: -5593.564326913428
+   iteration: 2857
+
+Optimizing  92%|████████████████████████████▍  |  ETA: 0:00:02 ( 9.47 ms/it)
+        elbo: -6187.494355370158
+   iteration: 2871
+
+Optimizing  92%|████████████████████████████▋  |  ETA: 0:00:02 ( 9.46 ms/it)
+        elbo: -6054.89849007716
+   iteration: 2884
+
+Optimizing  93%|████████████████████████████▊  |  ETA: 0:00:02 ( 9.45 ms/it)
+        elbo: -5717.483718877341
+   iteration: 2898
+
+Optimizing  93%|████████████████████████████▉  |  ETA: 0:00:02 ( 9.47 ms/it)
+        elbo: -5930.877956581261
+   iteration: 2911
+
+Optimizing  93%|█████████████████████████████  |  ETA: 0:00:02 ( 9.46 ms/it)
+        elbo: -6909.840994695309
+   iteration: 2925
+
+Optimizing  94%|█████████████████████████████▏ |  ETA: 0:00:02 ( 9.45 ms/it)
+        elbo: -5232.7370616335975
+   iteration: 2939
+
+Optimizing  94%|█████████████████████████████▎ |  ETA: 0:00:02 ( 9.45 ms/it)
+        elbo: -5974.748068669575
+   iteration: 2953
+
+Optimizing  95%|█████████████████████████████▍ |  ETA: 0:00:02 ( 9.44 ms/it)
+        elbo: -5691.601893070918
+   iteration: 2967
+
+Optimizing  95%|█████████████████████████████▌ |  ETA: 0:00:01 ( 9.43 ms/it)
+        elbo: -7350.199429517089
+   iteration: 2981
+
+Optimizing  96%|█████████████████████████████▋ |  ETA: 0:00:01 ( 9.42 ms/it)
+        elbo: -7098.974072420417
+   iteration: 2994
+
+Optimizing  96%|█████████████████████████████▊ |  ETA: 0:00:01 ( 9.44 ms/it)
+        elbo: -5589.6538982750935
+   iteration: 3007
+
+Optimizing  97%|█████████████████████████████▉ |  ETA: 0:00:01 ( 9.43 ms/it)
+        elbo: -10629.153646387567
+   iteration: 3021
+
+Optimizing  97%|██████████████████████████████ |  ETA: 0:00:01 ( 9.42 ms/it)
+        elbo: -5550.910626252947
+   iteration: 3035
+
+Optimizing  97%|██████████████████████████████▎|  ETA: 0:00:01 ( 9.42 ms/it)
+        elbo: -6205.846508611161
+   iteration: 3048
+
+Optimizing  98%|██████████████████████████████▍|  ETA: 0:00:01 ( 9.41 ms/it)
+        elbo: -5790.648958160757
+   iteration: 3062
+
+Optimizing  98%|██████████████████████████████▌|  ETA: 0:00:01 ( 9.40 ms/it)
+        elbo: -6982.425769368904
+   iteration: 3075
+
+Optimizing  99%|██████████████████████████████▋|  ETA: 0:00:00 ( 9.39 ms/it)
+        elbo: -5493.427743253027
+   iteration: 3088
+
+Optimizing  99%|██████████████████████████████▊|  ETA: 0:00:00 ( 9.41 ms/it)
+   elbo_callback: -5685.048138230748
+        accuracy: 0.795
+    time_elapsed: 29.312016010284424
+            elbo: -11214.633656345497
+       iteration: 3101
+
+
+
+
+Optimizing  99%|██████████████████████████████▉|  ETA: 0:00:00 ( 9.41 ms/it)
+        elbo: -7474.307688934453
+   iteration: 3115
+
+Optimizing  99%|███████████████████████████████|  ETA: 0:00:00 ( 9.40 ms/it)
+        elbo: -6029.774767862002
+   iteration: 3129
+
+Optimizing 100%|███████████████████████████████| Time: 0:00:29 ( 9.40 ms/it)
+        elbo: -5879.642412883411
+   iteration: 3130
+Optimizing   0%|                               |  ETA: 0:16:36 ( 0.32  s/it)
+       epoch: 1
+        step: 2
+        elbo: -9764.447076621678
+   iteration: 2
+
+
+
+Optimizing   5%|█▍                             |  ETA: 0:00:17 ( 5.76 ms/it)
+       epoch: 1
+        step: 143
+        elbo: -30982.91508137916
+   iteration: 143
+
+
+
+Optimizing   7%|██▏                            |  ETA: 0:00:13 ( 4.34 ms/it)
+       epoch: 1
+        step: 218
+        elbo: -8117.553905141742
+   iteration: 218
+
+
+
+Optimizing  14%|████▎                          |  ETA: 0:00:08 ( 2.99 ms/it)
+       epoch: 2
+        step: 112
+        elbo: -6612.378825755601
+   iteration: 425
+
+
+
+Optimizing  19%|█████▊                         |  ETA: 0:00:06 ( 2.48 ms/it)
+       epoch: 2
+        step: 268
+        elbo: -7872.013518410587
+   iteration: 581
+
+
+
+Optimizing  21%|██████▋                        |  ETA: 0:00:06 ( 2.34 ms/it)
+       epoch: 3
+        step: 46
+        elbo: -5897.784593844453
+   iteration: 672
+
+
+
+Optimizing  24%|███████▍                       |  ETA: 0:00:05 ( 2.28 ms/it)
+       epoch: 3
+        step: 117
+        elbo: -5821.065399824852
+   iteration: 743
+
+
+
+Optimizing  26%|████████                       |  ETA: 0:00:05 ( 2.25 ms/it)
+       epoch: 3
+        step: 176
+        elbo: -7397.712755022419
+   iteration: 802
+
+
+
+Optimizing  31%|█████████▊                     |  ETA: 0:00:04 ( 2.02 ms/it)
+       epoch: 4
+        step: 41
+        elbo: -8102.2923581877285
+   iteration: 980
+
+
+
+Optimizing  35%|██████████▊                    |  ETA: 0:00:04 ( 1.96 ms/it)
+       epoch: 4
+        step: 142
+        elbo: -9253.947927983903
+   iteration: 1081
+
+
+
+Optimizing  37%|███████████▌                   |  ETA: 0:00:04 ( 1.93 ms/it)
+       epoch: 4
+        step: 218
+        elbo: -7006.094592192794
+   iteration: 1157
+
+
+
+Optimizing  39%|████████████▏                  |  ETA: 0:00:04 ( 1.93 ms/it)
+       epoch: 4
+        step: 281
+        elbo: -12463.764915900045
+   iteration: 1220
+
+
+
+Optimizing  45%|█████████████▉                 |  ETA: 0:00:03 ( 1.86 ms/it)
+   elbo_callback: -6414.822017660563
+        accuracy: 0.749
+    time_elapsed: 2.7098798751831055
+           epoch: 5
+            step: 149
+            elbo: -8119.747208364617
+       iteration: 1401
+
+
+
+
+
+
+Optimizing  51%|███████████████▉               |  ETA: 0:00:03 ( 1.79 ms/it)
+       epoch: 6
+        step: 42
+        elbo: -6596.283714043543
+   iteration: 1607
+
+
+
+Optimizing  57%|█████████████████▊             |  ETA: 0:00:02 ( 1.71 ms/it)
+       epoch: 6
+        step: 227
+        elbo: -6065.200620068984
+   iteration: 1792
+
+
+
+Optimizing  61%|██████████████████▊            |  ETA: 0:00:02 ( 1.68 ms/it)
+       epoch: 7
+        step: 19
+        elbo: -5593.088089185197
+   iteration: 1897
+
+
+
+Optimizing  63%|███████████████████▌           |  ETA: 0:00:02 ( 1.68 ms/it)
+       epoch: 7
+        step: 97
+        elbo: -5736.5578339994
+   iteration: 1975
+
+
+
+Optimizing  65%|████████████████████▎          |  ETA: 0:00:02 ( 1.68 ms/it)
+       epoch: 7
+        step: 161
+        elbo: -5575.094833645668
+   iteration: 2039
+
+
+
+Optimizing  71%|██████████████████████         |  ETA: 0:00:02 ( 1.66 ms/it)
+       epoch: 8
+        step: 28
+        elbo: -6855.970561999974
+   iteration: 2219
+
+
+
+Optimizing  77%|████████████████████████       |  ETA: 0:00:01 ( 1.63 ms/it)
+       epoch: 8
+        step: 233
+        elbo: -5947.14036443376
+   iteration: 2424
+
+
+
+Optimizing  80%|████████████████████████▊      |  ETA: 0:00:01 ( 1.63 ms/it)
+   elbo_callback: -5974.822028255809
+        accuracy: 0.7728
+    time_elapsed: 4.170979976654053
+           epoch: 8
+            step: 310
+            elbo: -6874.953841348773
+       iteration: 2501
+
+
+
+
+
+
+Optimizing  86%|██████████████████████████▋    |  ETA: 0:00:01 ( 1.58 ms/it)
+       epoch: 9
+        step: 180
+        elbo: -6046.192229102724
+   iteration: 2684
+
+
+
+Optimizing  89%|███████████████████████████▋   |  ETA: 0:00:01 ( 1.57 ms/it)
+       epoch: 9
+        step: 284
+        elbo: -9969.246893411877
+   iteration: 2788
+
+
+
+Optimizing  92%|████████████████████████████▍  |  ETA: 0:00:00 ( 1.57 ms/it)
+       epoch: 10
+        step: 49
+        elbo: -5448.491055474992
+   iteration: 2866
+
+
+
+Optimizing  94%|█████████████████████████████  |  ETA: 0:00:00 ( 1.58 ms/it)
+       epoch: 10
+        step: 114
+        elbo: -5941.826168832256
+   iteration: 2931
+
+
+
+Optimizing  99%|██████████████████████████████▊|  ETA: 0:00:00 ( 1.57 ms/it)
+       epoch: 10
+        step: 291
+        elbo: -7268.298489401603
+   iteration: 3108
+
+
+
+Optimizing 100%|███████████████████████████████| Time: 0:00:04 ( 1.56 ms/it)
+       epoch: 10
+        step: 313
+        elbo: -5481.599341961243
+   iteration: 3130</code></pre><p>Let&#39;s visualize the evolution of the ELBO.</p><pre><code class="language-julia hljs">using Plots
+
+t = 1:logging_interval:max_iter
+plot(
+    [i.iteration for i in info_full[t]],
+    [i.elbo_callback for i in info_full[t]];
+    xlabel=&quot;Iteration&quot;,
+    ylabel=&quot;ELBO&quot;,
+    label=&quot;Full Batch&quot;,
+)
+plot!(
+    [i.iteration for i in info_sub[t]],
+    [i.elbo_callback for i in info_sub[t]];
+    label=&quot;Subsampling&quot;,
+)
+savefig(&quot;subsampling_example_iteration_elbo.svg&quot;)
+nothing</code></pre><p><img src="../subsampling_example_iteration_elbo.svg" alt/></p><p>According to this plot, it might seem like subsampling has no benefit (if not detrimental). This is, however, because we are plotting against the number of iterations. Subsampling generally converges slower (asymptotically) in terms of iterations. But in return, it reduces the time spent at each iteration. Therefore, we need to plot against the elapsed time:</p><pre><code class="language-julia hljs">plot(
+    [i.time_elapsed for i in info_full[t]],
+    [i.elbo_callback for i in info_full[t]];
+    xlabel=&quot;Wallclock Time (sec)&quot;,
+    ylabel=&quot;ELBO&quot;,
+    label=&quot;Full Batch&quot;,
+)
+plot!(
+    [i.time_elapsed for i in info_sub[t]],
+    [i.elbo_callback for i in info_sub[t]];
+    label=&quot;Subsampling&quot;,
+)
+savefig(&quot;subsampling_example_time_elbo.svg&quot;)
+nothing</code></pre><p><img src="../subsampling_example_time_elbo.svg" alt/></p><p>We can now see the dramatic effect of subsampling. The picture is similar if we visualize the prediction accuracy over time.</p><pre><code class="language-julia hljs">plot(
+    [i.time_elapsed for i in info_full[t]],
+    [i.accuracy for i in info_full[t]];
+    xlabel=&quot;Wallclock Time (sec)&quot;,
+    ylabel=&quot;Prediction Accuracy&quot;,
+    label=&quot;Full Batch&quot;,
+)
+plot!(
+    [i.time_elapsed for i in info_sub[t]],
+    [i.accuracy for i in info_sub[t]];
+    label=&quot;Subsampling&quot;,
+)
+savefig(&quot;subsampling_example_time_accuracy.svg&quot;)
+nothing</code></pre><p><img src="../subsampling_example_time_accuracy.svg" alt/></p><p>But remember that subsampling will always be <em>asymptotically</em> slower than no subsampling. That is, as the number of iterations increase, there will be a point where no subsampling will overtake subsampling even in terms of wallclock time. Therefore, subsampling is most beneficial when a crude solution to the VI problem suffices.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-HBB2010"><a class="tag is-link" href="#citeref-HBB2010">HBB2010</a>Hoffman, M., Bach, F., &amp; Blei, D. (2010). Online learning for latent Dirichlet allocation. In <em>Advances in Neural Information Processing Systems</em>, 23.</li><li class="footnote" id="footnote-HBWP2013"><a class="tag is-link" href="#citeref-HBWP2013">HBWP2013</a>Hoffman, M. D., Blei, D. M., Wang, C., &amp; Paisley, J. (2013). Stochastic variational inference. <em>Journal of Machine Learning Research</em>, 14(1), 1303-1347.</li><li class="footnote" id="footnote-TL2014"><a class="tag is-link" href="#citeref-TL2014">TL2014</a>Titsias, M., &amp; Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In <em>Proceedings of the International Conference on Machine Learning</em> (pp. 1971-1979). PMLR.</li><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. <em>Journal of Machine Learning Research</em>, 18(14), 1-45.</li><li class="footnote" id="footnote-Tan2018"><a class="tag is-link" href="#citeref-Tan2018">Tan2018</a>Tan, Choon Lin (2018), &quot;Phishing Dataset for Machine Learning: Feature Evaluation&quot;, Mendeley Data, V1, doi: 10.17632/h3cgnj8hft.1]</li><li class="footnote" id="footnote-MKR2020"><a class="tag is-link" href="#citeref-MKR2020">MKR2020</a>Mishchenko, K., Khaled, A., &amp; Richtárik, P. (2020). Random reshuffling: Simple analysis with vast improvements. Advances in Neural Information Processing Systems, 33, 17309-17320.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../basic/">« Basic Example</a><a class="docs-footer-nextpage" href="../stan/">Stan Models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.0 on <span class="colophon-date" title="Saturday 22 November 2025 19:39">Saturday 22 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
