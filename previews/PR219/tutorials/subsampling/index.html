@@ -481,7 +481,6 @@
 <!-- NAVBAR END -->
 
 
-
 <div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AdvancedVI.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">AdvancedVI</a></li><li><a class="tocitem" href="../../general/">General Usage</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../basic/">Basic Example</a></li><li class="is-active"><a class="tocitem" href>Scaling to Large Datasets</a><ul class="internal"><li><a class="tocitem" href="#Setting-Up-Subsampling"><span>Setting Up Subsampling</span></a></li><li><a class="tocitem" href="#Scalable-Inference-via-AdvancedVI"><span>Scalable Inference via AdvancedVI</span></a></li></ul></li><li><a class="tocitem" href="../stan/">Stan Models</a></li><li><a class="tocitem" href="../flows/">Normalizing Flows</a></li><li><a class="tocitem" href="../constrained/">Dealing with Constrained Posteriors</a></li></ul></li><li><span class="tocitem">Algorithms</span><ul><li><a class="tocitem" href="../../klminrepgraddescent/"><code>KLMinRepGradDescent</code></a></li><li><a class="tocitem" href="../../klminrepgradproxdescent/"><code>KLMinRepGradProxDescent</code></a></li><li><a class="tocitem" href="../../klminscoregraddescent/"><code>KLMinScoreGradDescent</code></a></li><li><a class="tocitem" href="../../klminwassfwdbwd/"><code>KLMinWassFwdBwd</code></a></li><li><a class="tocitem" href="../../klminnaturalgraddescent/"><code>KLMinNaturalGradDescent</code></a></li><li><a class="tocitem" href="../../klminsqrtnaturalgraddescent/"><code>KLMinSqrtNaturalGradDescent</code></a></li><li><a class="tocitem" href="../../fisherminbatchmatch/"><code>FisherMinBatchMatch</code></a></li></ul></li><li><a class="tocitem" href="../../families/">Variational Families</a></li><li><a class="tocitem" href="../../optimization/">Optimization</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Scaling to Large Datasets</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Scaling to Large Datasets</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/TuringLang/AdvancedVI.jl/blob/main/docs/src/tutorials/subsampling.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Scaling-to-Large-Datasets-with-Subsampling"><a class="docs-heading-anchor" href="#Scaling-to-Large-Datasets-with-Subsampling">Scaling to Large Datasets with Subsampling</a><a id="Scaling-to-Large-Datasets-with-Subsampling-1"></a><a class="docs-heading-anchor-permalink" href="#Scaling-to-Large-Datasets-with-Subsampling" title="Permalink"></a></h1><p>In this tutorial, we will show how to use <code>AdvancedVI</code> on problems with large datasets. Variational inference (VI) has a long and successful history<sup class="footnote-reference"><a id="citeref-HBWP2013" href="#footnote-HBWP2013" class="footnote-ref">[HBWP2013]</a><span class="footnote-preview" id="fn-HBWP2013"></span></sup><sup class="footnote-reference"><a id="citeref-TL2014" href="#footnote-TL2014" class="footnote-ref">[TL2014]</a><span class="footnote-preview" id="fn-TL2014"></span></sup><sup class="footnote-reference"><a id="citeref-HBB2010" href="#footnote-HBB2010" class="footnote-ref">[HBB2010]</a><span class="footnote-preview" id="fn-HBB2010"></span></sup> in large scale inference using (minibatch) subsampling. In this tutorial, we will see how to perform subsampling with <code>KLMinRepGradProxDescent</code>, which was originally described in the paper by Titsias and Lázaro-Gredilla<sup class="footnote-reference"><a id="citeref-TL2014" href="#footnote-TL2014" class="footnote-ref">[TL2014]</a><span class="footnote-preview" id="fn-TL2014"></span></sup>; Kucukelbir <em>et al</em><sup class="footnote-reference"><a id="citeref-KTRGB2017" href="#footnote-KTRGB2017" class="footnote-ref">[KTRGB2017]</a><span class="footnote-preview" id="fn-KTRGB2017"></span></sup>.</p><h2 id="Setting-Up-Subsampling"><a class="docs-heading-anchor" href="#Setting-Up-Subsampling">Setting Up Subsampling</a><a id="Setting-Up-Subsampling-1"></a><a class="docs-heading-anchor-permalink" href="#Setting-Up-Subsampling" title="Permalink"></a></h2><p>We will consider a typical hierarchical logistic regression example.</p><pre><code class="language-julia hljs">using LogDensityProblems: LogDensityProblems
 using Distributions
 using FillArrays
@@ -599,1177 +598,1167 @@ time_begin = time()
 _, info_sub, _ = AdvancedVI.optimize(
     alg_sub, max_iter, prob_ad, q; show_progress=true, callback
 );
-nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Optimizing   0%|                               |  ETA: 0:36:49 ( 0.71  s/it)
-        elbo: -9356.59356654921
+nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Optimizing   0%|                               |  ETA: 0:36:54 ( 0.71  s/it)
+        elbo: -14577.672783106085
    iteration: 2
 
-Optimizing   3%|▉                              |  ETA: 0:01:34 (30.75 ms/it)
-        elbo: -15111.828515326959
-   iteration: 85
+Optimizing   3%|▉                              |  ETA: 0:01:27 (28.72 ms/it)
+        elbo: -48071.442337631786
+   iteration: 94
 
-Optimizing   4%|█▎                             |  ETA: 0:01:10 (23.23 ms/it)
-        elbo: -14440.713993879863
-   iteration: 132
+Optimizing   4%|█▎                             |  ETA: 0:01:12 (23.93 ms/it)
+        elbo: -19549.70802112864
+   iteration: 128
 
-Optimizing   5%|█▍                             |  ETA: 0:01:05 (21.87 ms/it)
-        elbo: -6500.325487583584
-   iteration: 145
+Optimizing   5%|█▍                             |  ETA: 0:01:07 (22.44 ms/it)
+        elbo: -9937.983227524235
+   iteration: 141
 
-Optimizing   5%|█▋                             |  ETA: 0:01:02 (20.72 ms/it)
-        elbo: -8751.925767067098
-   iteration: 158
+Optimizing   5%|█▌                             |  ETA: 0:01:03 (21.21 ms/it)
+        elbo: -19192.92609281963
+   iteration: 154
 
-Optimizing   5%|█▊                             |  ETA: 0:00:59 (19.79 ms/it)
-        elbo: -7205.124447961784
-   iteration: 171
+Optimizing   5%|█▋                             |  ETA: 0:01:00 (20.20 ms/it)
+        elbo: -12408.352236750019
+   iteration: 167
 
-Optimizing   6%|█▉                             |  ETA: 0:00:56 (18.97 ms/it)
-        elbo: -6880.822802482295
-   iteration: 184
+Optimizing   6%|█▊                             |  ETA: 0:00:57 (19.31 ms/it)
+        elbo: -34850.86649646458
+   iteration: 180
 
-Optimizing   6%|██                             |  ETA: 0:00:54 (18.25 ms/it)
-        elbo: -12575.17385040841
-   iteration: 197
+Optimizing   6%|█▉                             |  ETA: 0:00:55 (18.65 ms/it)
+        elbo: -8503.87076478482
+   iteration: 192
 
-Optimizing   7%|██▏                            |  ETA: 0:00:53 (18.06 ms/it)
-        elbo: -8935.372690458493
-   iteration: 209
+Optimizing   7%|██                             |  ETA: 0:00:54 (18.47 ms/it)
+        elbo: -9316.405148524227
+   iteration: 204
 
-Optimizing   7%|██▎                            |  ETA: 0:00:51 (17.46 ms/it)
-        elbo: -8535.23178626352
-   iteration: 222
+Optimizing   7%|██▏                            |  ETA: 0:00:52 (17.77 ms/it)
+        elbo: -9477.925233004811
+   iteration: 218
 
-Optimizing   8%|██▍                            |  ETA: 0:00:49 (16.90 ms/it)
-        elbo: -14758.81703073961
-   iteration: 236
+Optimizing   7%|██▎                            |  ETA: 0:00:50 (17.30 ms/it)
+        elbo: -17691.16579115352
+   iteration: 230
 
-Optimizing   8%|██▌                            |  ETA: 0:00:48 (16.49 ms/it)
-        elbo: -6193.705736488172
-   iteration: 248
+Optimizing   8%|██▍                            |  ETA: 0:00:49 (16.81 ms/it)
+        elbo: -7218.102479049774
+   iteration: 243
 
-Optimizing   8%|██▋                            |  ETA: 0:00:46 (16.13 ms/it)
-        elbo: -7244.402874987596
-   iteration: 260
+Optimizing   8%|██▌                            |  ETA: 0:00:47 (16.36 ms/it)
+        elbo: -6731.284456225923
+   iteration: 256
 
-Optimizing   9%|██▊                            |  ETA: 0:00:45 (15.73 ms/it)
-        elbo: -7235.702610508282
-   iteration: 273
+Optimizing   9%|██▋                            |  ETA: 0:00:46 (15.92 ms/it)
+        elbo: -6630.572784395944
+   iteration: 270
 
-Optimizing   9%|██▉                            |  ETA: 0:00:44 (15.40 ms/it)
-        elbo: -13161.270645614833
-   iteration: 286
+Optimizing   9%|██▉                            |  ETA: 0:00:44 (15.50 ms/it)
+        elbo: -8406.592164498663
+   iteration: 284
 
-Optimizing  10%|███                            |  ETA: 0:00:43 (15.08 ms/it)
-        elbo: -6551.287656584947
-   iteration: 299
+Optimizing  10%|███                            |  ETA: 0:00:43 (15.15 ms/it)
+        elbo: -6377.865842903381
+   iteration: 298
 
-Optimizing  10%|███▏                           |  ETA: 0:00:43 (15.10 ms/it)
-        elbo: -8611.822741001135
+Optimizing  10%|███▏                           |  ETA: 0:00:43 (15.13 ms/it)
+        elbo: -6645.0419388536875
    iteration: 310
 
-Optimizing  10%|███▎                           |  ETA: 0:00:42 (14.82 ms/it)
-        elbo: -8311.804449427198
-   iteration: 323
+Optimizing  10%|███▎                           |  ETA: 0:00:42 (14.81 ms/it)
+        elbo: -6597.645253630107
+   iteration: 324
 
-Optimizing  11%|███▍                           |  ETA: 0:00:41 (14.55 ms/it)
-        elbo: -7558.2826030722335
-   iteration: 336
+Optimizing  11%|███▍                           |  ETA: 0:00:41 (14.51 ms/it)
+        elbo: -7987.000723688483
+   iteration: 338
 
-Optimizing  11%|███▌                           |  ETA: 0:00:40 (14.30 ms/it)
-        elbo: -9125.573776351483
-   iteration: 349
+Optimizing  11%|███▌                           |  ETA: 0:00:40 (14.24 ms/it)
+        elbo: -6540.523304297988
+   iteration: 352
 
-Optimizing  12%|███▋                           |  ETA: 0:00:39 (14.07 ms/it)
-        elbo: -6670.662722668018
-   iteration: 362
+Optimizing  12%|███▋                           |  ETA: 0:00:39 (13.99 ms/it)
+        elbo: -7089.89360312347
+   iteration: 366
 
-Optimizing  12%|███▊                           |  ETA: 0:00:38 (13.86 ms/it)
-        elbo: -6911.6624863921825
-   iteration: 375
+Optimizing  12%|███▊                           |  ETA: 0:00:38 (13.77 ms/it)
+        elbo: -7903.093727408919
+   iteration: 380
 
-Optimizing  12%|███▉                           |  ETA: 0:00:37 (13.64 ms/it)
-        elbo: -6532.980686143746
-   iteration: 389
+Optimizing  13%|███▉                           |  ETA: 0:00:37 (13.55 ms/it)
+        elbo: -8628.132003051156
+   iteration: 394
 
-Optimizing  13%|████                           |  ETA: 0:00:37 (13.68 ms/it)
-   elbo_callback: -7225.459278347138
-        accuracy: 0.6949
-    time_elapsed: 5.610763072967529
-            elbo: -7383.630514530558
-       iteration: 401
+Optimizing  13%|████                           |  ETA: 0:00:37 (13.65 ms/it)
+        elbo: -6980.837811209854
+   iteration: 406
 
+Optimizing  13%|████▏                          |  ETA: 0:00:36 (13.45 ms/it)
+        elbo: -7801.908417601049
+   iteration: 420
 
-
-
-Optimizing  13%|████▏                          |  ETA: 0:00:37 (13.48 ms/it)
-        elbo: -8942.392920170476
-   iteration: 415
-
-Optimizing  14%|████▎                          |  ETA: 0:00:36 (13.31 ms/it)
-        elbo: -7104.102120573888
-   iteration: 428
+Optimizing  14%|████▎                          |  ETA: 0:00:36 (13.27 ms/it)
+        elbo: -7308.200217564628
+   iteration: 434
 
 Optimizing  14%|████▍                          |  ETA: 0:00:35 (13.12 ms/it)
-        elbo: -6687.231156769003
-   iteration: 442
-
-Optimizing  15%|████▌                          |  ETA: 0:00:35 (12.98 ms/it)
-        elbo: -6643.161073052768
-   iteration: 455
-
-Optimizing  15%|████▋                          |  ETA: 0:00:34 (12.84 ms/it)
-        elbo: -6957.7621171680485
-   iteration: 468
-
-Optimizing  15%|████▊                          |  ETA: 0:00:34 (12.71 ms/it)
-        elbo: -6546.755746141101
-   iteration: 481
-
-Optimizing  16%|████▉                          |  ETA: 0:00:33 (12.59 ms/it)
-        elbo: -6837.238738633172
-   iteration: 494
-
-Optimizing  16%|█████                          |  ETA: 0:00:33 (12.65 ms/it)
-        elbo: -6871.530115497113
-   iteration: 507
-
-Optimizing  17%|█████▏                         |  ETA: 0:00:33 (12.53 ms/it)
-        elbo: -6649.1789318063675
-   iteration: 520
-
-Optimizing  17%|█████▎                         |  ETA: 0:00:32 (12.42 ms/it)
-        elbo: -7254.392818447984
-   iteration: 533
-
-Optimizing  17%|█████▍                         |  ETA: 0:00:32 (12.31 ms/it)
-        elbo: -6604.106049126829
-   iteration: 546
-
-Optimizing  18%|█████▌                         |  ETA: 0:00:31 (12.21 ms/it)
-        elbo: -6609.557276484481
-   iteration: 559
-
-Optimizing  18%|█████▋                         |  ETA: 0:00:31 (12.11 ms/it)
-        elbo: -6856.289623875787
-   iteration: 572
-
-Optimizing  19%|█████▊                         |  ETA: 0:00:31 (12.02 ms/it)
-        elbo: -6867.548611878438
-   iteration: 585
-
-Optimizing  19%|█████▉                         |  ETA: 0:00:30 (11.93 ms/it)
-        elbo: -7001.973047677638
-   iteration: 598
-
-Optimizing  20%|██████                         |  ETA: 0:00:30 (12.00 ms/it)
-        elbo: -6041.423683858364
-   iteration: 611
-
-Optimizing  20%|██████▎                        |  ETA: 0:00:30 (11.90 ms/it)
-        elbo: -6765.332726911221
-   iteration: 625
-
-Optimizing  20%|██████▍                        |  ETA: 0:00:29 (11.82 ms/it)
-        elbo: -6634.650266715887
-   iteration: 638
-
-Optimizing  21%|██████▌                        |  ETA: 0:00:29 (11.76 ms/it)
-        elbo: -6847.240840701144
-   iteration: 651
-
-Optimizing  21%|██████▋                        |  ETA: 0:00:29 (11.70 ms/it)
-        elbo: -6580.030296427062
-   iteration: 663
-
-Optimizing  22%|██████▋                        |  ETA: 0:00:29 (11.65 ms/it)
-        elbo: -5992.806589798616
-   iteration: 675
-
-Optimizing  22%|██████▊                        |  ETA: 0:00:28 (11.60 ms/it)
-        elbo: -7107.190471701919
-   iteration: 687
-
-Optimizing  22%|██████▉                        |  ETA: 0:00:28 (11.55 ms/it)
-        elbo: -6485.76791867536
-   iteration: 699
-
-Optimizing  23%|███████                        |  ETA: 0:00:28 (11.62 ms/it)
-        elbo: -6857.268420498762
-   iteration: 710
-
-Optimizing  23%|███████▏                       |  ETA: 0:00:28 (11.55 ms/it)
-        elbo: -7257.16699468676
-   iteration: 724
-
-Optimizing  24%|███████▎                       |  ETA: 0:00:27 (11.48 ms/it)
-        elbo: -6743.376198609273
-   iteration: 737
-
-Optimizing  24%|███████▍                       |  ETA: 0:00:27 (11.42 ms/it)
-        elbo: -6148.678334765753
-   iteration: 750
-
-Optimizing  24%|███████▌                       |  ETA: 0:00:27 (11.36 ms/it)
-        elbo: -6675.071619312537
-   iteration: 763
-
-Optimizing  25%|███████▋                       |  ETA: 0:00:27 (11.30 ms/it)
-        elbo: -6552.057125508866
-   iteration: 776
-
-Optimizing  25%|███████▉                       |  ETA: 0:00:26 (11.24 ms/it)
-        elbo: -6666.657475321374
-   iteration: 789
-
-Optimizing  26%|████████                       |  ETA: 0:00:26 (11.29 ms/it)
-        elbo: -7500.041346922498
-   iteration: 802
-
-Optimizing  26%|████████▏                      |  ETA: 0:00:26 (11.24 ms/it)
-        elbo: -6716.87799244348
-   iteration: 815
-
-Optimizing  26%|████████▎                      |  ETA: 0:00:26 (11.20 ms/it)
-        elbo: -7165.070168065636
-   iteration: 828
-
-Optimizing  27%|████████▍                      |  ETA: 0:00:26 (11.16 ms/it)
-        elbo: -7577.147039016881
-   iteration: 840
-
-Optimizing  27%|████████▌                      |  ETA: 0:00:25 (11.11 ms/it)
-        elbo: -6641.94081000446
-   iteration: 853
-
-Optimizing  28%|████████▋                      |  ETA: 0:00:25 (11.07 ms/it)
-        elbo: -7736.46330535431
-   iteration: 866
-
-Optimizing  28%|████████▊                      |  ETA: 0:00:25 (11.02 ms/it)
-        elbo: -6100.468966099989
-   iteration: 879
-
-Optimizing  28%|████████▉                      |  ETA: 0:00:25 (10.98 ms/it)
-        elbo: -7184.243360520983
-   iteration: 892
-
-Optimizing  29%|█████████                      |  ETA: 0:00:25 (11.03 ms/it)
-        elbo: -6174.018090967365
-   iteration: 905
-
-Optimizing  29%|█████████▏                     |  ETA: 0:00:24 (10.99 ms/it)
-        elbo: -6551.530264430922
-   iteration: 918
-
-Optimizing  30%|█████████▎                     |  ETA: 0:00:24 (10.95 ms/it)
-        elbo: -6973.556589038524
-   iteration: 931
-
-Optimizing  30%|█████████▍                     |  ETA: 0:00:24 (10.91 ms/it)
-        elbo: -6733.093564719938
-   iteration: 944
-
-Optimizing  31%|█████████▌                     |  ETA: 0:00:24 (10.87 ms/it)
-        elbo: -6220.997223984965
-   iteration: 957
-
-Optimizing  31%|█████████▋                     |  ETA: 0:00:23 (10.83 ms/it)
-        elbo: -6478.6109683829045
-   iteration: 970
-
-Optimizing  31%|█████████▊                     |  ETA: 0:00:23 (10.80 ms/it)
-        elbo: -6547.4896913472685
-   iteration: 983
-
-Optimizing  32%|█████████▉                     |  ETA: 0:00:23 (10.76 ms/it)
-        elbo: -6145.776793927521
-   iteration: 996
-
-Optimizing  32%|██████████                     |  ETA: 0:00:23 (10.81 ms/it)
-        elbo: -6625.660326410236
-   iteration: 1009
-
-Optimizing  33%|██████████▏                    |  ETA: 0:00:23 (10.78 ms/it)
-        elbo: -6107.729533458727
-   iteration: 1022
-
-Optimizing  33%|██████████▎                    |  ETA: 0:00:22 (10.74 ms/it)
-        elbo: -6270.025726606791
-   iteration: 1035
-
-Optimizing  33%|██████████▍                    |  ETA: 0:00:22 (10.70 ms/it)
-        elbo: -6361.458945206097
-   iteration: 1048
-
-Optimizing  34%|██████████▌                    |  ETA: 0:00:22 (10.67 ms/it)
-        elbo: -7877.1562125809005
-   iteration: 1061
-
-Optimizing  34%|██████████▋                    |  ETA: 0:00:22 (10.64 ms/it)
-        elbo: -8416.329994216907
-   iteration: 1074
-
-Optimizing  35%|██████████▊                    |  ETA: 0:00:22 (10.61 ms/it)
-        elbo: -8414.723998478721
-   iteration: 1087
-
-Optimizing  35%|██████████▉                    |  ETA: 0:00:21 (10.58 ms/it)
-        elbo: -6146.429762179672
-   iteration: 1100
-
-Optimizing  35%|███████████                    |  ETA: 0:00:21 (10.63 ms/it)
-        elbo: -6215.993419277778
-   iteration: 1111
-
-Optimizing  36%|███████████▏                   |  ETA: 0:00:21 (10.60 ms/it)
-        elbo: -6336.56791010024
-   iteration: 1125
-
-Optimizing  36%|███████████▎                   |  ETA: 0:00:21 (10.56 ms/it)
-        elbo: -6668.390007722402
-   iteration: 1139
-
-Optimizing  37%|███████████▍                   |  ETA: 0:00:21 (10.52 ms/it)
-        elbo: -5894.763089617304
-   iteration: 1153
-
-Optimizing  37%|███████████▌                   |  ETA: 0:00:21 (10.49 ms/it)
-        elbo: -6320.449948686333
-   iteration: 1166
-
-Optimizing  38%|███████████▋                   |  ETA: 0:00:20 (10.46 ms/it)
-        elbo: -5975.489949494461
-   iteration: 1180
-
-Optimizing  38%|███████████▉                   |  ETA: 0:00:20 (10.43 ms/it)
-        elbo: -9218.021362766302
-   iteration: 1194
-
-Optimizing  39%|████████████                   |  ETA: 0:00:20 (10.47 ms/it)
-        elbo: -6474.263967724834
-   iteration: 1206
-
-Optimizing  39%|████████████▏                  |  ETA: 0:00:20 (10.44 ms/it)
-        elbo: -6640.765049045935
-   iteration: 1220
-
-Optimizing  39%|████████████▎                  |  ETA: 0:00:20 (10.41 ms/it)
-        elbo: -6874.256355792439
-   iteration: 1234
-
-Optimizing  40%|████████████▍                  |  ETA: 0:00:20 (10.38 ms/it)
-        elbo: -6281.767645827445
-   iteration: 1248
-
-Optimizing  40%|████████████▌                  |  ETA: 0:00:19 (10.35 ms/it)
-        elbo: -6802.006491102048
-   iteration: 1262
-
-Optimizing  41%|████████████▋                  |  ETA: 0:00:19 (10.32 ms/it)
-        elbo: -6554.888018989937
-   iteration: 1276
-
-Optimizing  41%|████████████▊                  |  ETA: 0:00:19 (10.29 ms/it)
-        elbo: -6310.431410449108
-   iteration: 1290
-
-Optimizing  42%|████████████▉                  |  ETA: 0:00:19 (10.33 ms/it)
-        elbo: -6688.333134427928
-   iteration: 1302
-
-Optimizing  42%|█████████████                  |  ETA: 0:00:19 (10.30 ms/it)
-        elbo: -6406.0417583223225
-   iteration: 1316
-
-Optimizing  42%|█████████████▏                 |  ETA: 0:00:18 (10.27 ms/it)
-        elbo: -5616.755835919212
-   iteration: 1330
-
-Optimizing  43%|█████████████▎                 |  ETA: 0:00:18 (10.24 ms/it)
-        elbo: -12527.221000442727
-   iteration: 1344
-
-Optimizing  43%|█████████████▌                 |  ETA: 0:00:18 (10.22 ms/it)
-        elbo: -8550.465200681467
-   iteration: 1358
-
-Optimizing  44%|█████████████▋                 |  ETA: 0:00:18 (10.19 ms/it)
-        elbo: -7329.218605604353
-   iteration: 1372
-
-Optimizing  44%|█████████████▊                 |  ETA: 0:00:18 (10.17 ms/it)
-        elbo: -6387.761898515885
-   iteration: 1386
-
-Optimizing  45%|█████████████▉                 |  ETA: 0:00:18 (10.14 ms/it)
-        elbo: -9384.330771405002
-   iteration: 1400
-
-Optimizing  45%|██████████████                 |  ETA: 0:00:17 (10.18 ms/it)
-        elbo: -6221.593802139213
-   iteration: 1413
-
-Optimizing  46%|██████████████▏                |  ETA: 0:00:17 (10.16 ms/it)
-        elbo: -6194.384760159521
-   iteration: 1426
-
-Optimizing  46%|██████████████▎                |  ETA: 0:00:17 (10.14 ms/it)
-        elbo: -9181.982240900661
-   iteration: 1440
-
-Optimizing  46%|██████████████▍                |  ETA: 0:00:17 (10.11 ms/it)
-        elbo: -7223.329094610667
-   iteration: 1454
-
-Optimizing  47%|██████████████▌                |  ETA: 0:00:17 (10.09 ms/it)
-        elbo: -7081.416719056602
-   iteration: 1468
-
-Optimizing  47%|██████████████▋                |  ETA: 0:00:17 (10.06 ms/it)
-        elbo: -6955.609385968383
-   iteration: 1482
-
-Optimizing  48%|██████████████▉                |  ETA: 0:00:16 (10.04 ms/it)
-        elbo: -6058.680584977976
-   iteration: 1496
-
-Optimizing  48%|██████████████▉                |  ETA: 0:00:16 (10.08 ms/it)
-        elbo: -6932.993502889098
-   iteration: 1508
-
-Optimizing  49%|███████████████▏               |  ETA: 0:00:16 (10.06 ms/it)
-        elbo: -7153.868290436965
-   iteration: 1522
-
-Optimizing  49%|███████████████▎               |  ETA: 0:00:16 (10.04 ms/it)
-        elbo: -6578.772820528871
-   iteration: 1536
-
-Optimizing  50%|███████████████▍               |  ETA: 0:00:16 (10.01 ms/it)
-        elbo: -6158.706931013623
-   iteration: 1550
-
-Optimizing  50%|███████████████▌               |  ETA: 0:00:16 ( 9.99 ms/it)
-        elbo: -6570.916911267965
+        elbo: -8510.442813949381
+   iteration: 447
+
+Optimizing  15%|████▌                          |  ETA: 0:00:35 (13.01 ms/it)
+        elbo: -7345.610983419632
+   iteration: 459
+
+Optimizing  15%|████▋                          |  ETA: 0:00:34 (12.85 ms/it)
+        elbo: -6995.159646151374
+   iteration: 473
+
+Optimizing  16%|████▉                          |  ETA: 0:00:34 (12.70 ms/it)
+        elbo: -7094.867094557181
+   iteration: 487
+
+Optimizing  16%|█████                          |  ETA: 0:00:33 (12.74 ms/it)
+   elbo_callback: -7027.116518022576
+        accuracy: 0.7067
+    time_elapsed: 6.521505117416382
+            elbo: -7750.443590260653
+       iteration: 501
+
+
+
+
+Optimizing  16%|█████▏                         |  ETA: 0:00:33 (12.63 ms/it)
+        elbo: -7032.647533704053
+   iteration: 515
+
+Optimizing  17%|█████▎                         |  ETA: 0:00:33 (12.58 ms/it)
+        elbo: -6943.878368986556
+   iteration: 526
+
+Optimizing  17%|█████▍                         |  ETA: 0:00:32 (12.45 ms/it)
+        elbo: -7023.008553565465
+   iteration: 540
+
+Optimizing  18%|█████▌                         |  ETA: 0:00:32 (12.34 ms/it)
+        elbo: -6827.086810966927
+   iteration: 553
+
+Optimizing  18%|█████▋                         |  ETA: 0:00:31 (12.24 ms/it)
+        elbo: -6946.684554482465
+   iteration: 566
+
+Optimizing  18%|█████▊                         |  ETA: 0:00:31 (12.15 ms/it)
+        elbo: -6790.478827994675
+   iteration: 579
+
+Optimizing  19%|█████▉                         |  ETA: 0:00:31 (12.05 ms/it)
+        elbo: -7664.681166855957
+   iteration: 592
+
+Optimizing  19%|██████                         |  ETA: 0:00:31 (12.10 ms/it)
+        elbo: -7682.021137806496
+   iteration: 605
+
+Optimizing  20%|██████▏                        |  ETA: 0:00:30 (12.02 ms/it)
+        elbo: -7432.090013715715
+   iteration: 618
+
+Optimizing  20%|██████▎                        |  ETA: 0:00:30 (11.95 ms/it)
+        elbo: -6470.418408146807
+   iteration: 631
+
+Optimizing  21%|██████▍                        |  ETA: 0:00:29 (11.86 ms/it)
+        elbo: -6815.9817510067605
+   iteration: 645
+
+Optimizing  21%|██████▌                        |  ETA: 0:00:29 (11.77 ms/it)
+        elbo: -6392.855663242778
+   iteration: 659
+
+Optimizing  21%|██████▋                        |  ETA: 0:00:29 (11.71 ms/it)
+        elbo: -6419.656714761296
+   iteration: 671
+
+Optimizing  22%|██████▊                        |  ETA: 0:00:29 (11.66 ms/it)
+        elbo: -6646.618870844414
+   iteration: 683
+
+Optimizing  22%|██████▉                        |  ETA: 0:00:28 (11.59 ms/it)
+        elbo: -6905.128804974315
+   iteration: 696
+
+Optimizing  23%|███████                        |  ETA: 0:00:28 (11.64 ms/it)
+        elbo: -6498.284047223416
+   iteration: 709
+
+Optimizing  23%|███████▏                       |  ETA: 0:00:29 (12.11 ms/it)
+        elbo: -6468.998254171839
+   iteration: 716
+
+Optimizing  23%|███████▏                       |  ETA: 0:00:30 (12.50 ms/it)
+        elbo: -6403.5855791302065
+   iteration: 718
+
+Optimizing  23%|███████▎                       |  ETA: 0:00:30 (12.44 ms/it)
+        elbo: -6732.935942117663
+   iteration: 731
+
+Optimizing  24%|███████▍                       |  ETA: 0:00:30 (12.37 ms/it)
+        elbo: -6106.404178544313
+   iteration: 743
+
+Optimizing  24%|███████▌                       |  ETA: 0:00:29 (12.30 ms/it)
+        elbo: -7457.7086569915455
+   iteration: 756
+
+Optimizing  25%|███████▋                       |  ETA: 0:00:29 (12.23 ms/it)
+        elbo: -7020.991117211363
+   iteration: 769
+
+Optimizing  25%|███████▊                       |  ETA: 0:00:29 (12.15 ms/it)
+        elbo: -6283.350057702389
+   iteration: 782
+
+Optimizing  25%|███████▉                       |  ETA: 0:00:28 (12.10 ms/it)
+        elbo: -6856.172054744044
+   iteration: 795
+
+Optimizing  26%|████████                       |  ETA: 0:00:28 (12.15 ms/it)
+        elbo: -7280.043938504295
+   iteration: 807
+
+Optimizing  26%|████████▏                      |  ETA: 0:00:28 (12.08 ms/it)
+        elbo: -6749.99433342575
+   iteration: 820
+
+Optimizing  27%|████████▎                      |  ETA: 0:00:28 (12.02 ms/it)
+        elbo: -6627.465864087242
+   iteration: 833
+
+Optimizing  27%|████████▍                      |  ETA: 0:00:27 (11.95 ms/it)
+        elbo: -7202.157373080082
+   iteration: 846
+
+Optimizing  27%|████████▌                      |  ETA: 0:00:27 (11.89 ms/it)
+        elbo: -5989.971403039376
+   iteration: 859
+
+Optimizing  28%|████████▋                      |  ETA: 0:00:27 (11.84 ms/it)
+        elbo: -6200.013868907694
+   iteration: 872
+
+Optimizing  28%|████████▊                      |  ETA: 0:00:26 (11.78 ms/it)
+        elbo: -7197.247095839143
+   iteration: 885
+
+Optimizing  29%|████████▉                      |  ETA: 0:00:26 (11.72 ms/it)
+        elbo: -6788.7461705890155
+   iteration: 898
+
+Optimizing  29%|█████████                      |  ETA: 0:00:26 (11.78 ms/it)
+        elbo: -6387.666732271029
+   iteration: 911
+
+Optimizing  29%|█████████▏                     |  ETA: 0:00:26 (11.74 ms/it)
+        elbo: -6227.773694458754
+   iteration: 923
+
+Optimizing  30%|█████████▎                     |  ETA: 0:00:26 (11.68 ms/it)
+        elbo: -6415.480866279802
+   iteration: 936
+
+Optimizing  30%|█████████▍                     |  ETA: 0:00:25 (11.64 ms/it)
+        elbo: -6461.8136087771745
+   iteration: 949
+
+Optimizing  31%|█████████▌                     |  ETA: 0:00:25 (11.59 ms/it)
+        elbo: -6457.135768056573
+   iteration: 962
+
+Optimizing  31%|█████████▋                     |  ETA: 0:00:25 (11.54 ms/it)
+        elbo: -6957.386559951428
+   iteration: 975
+
+Optimizing  32%|█████████▊                     |  ETA: 0:00:25 (11.50 ms/it)
+        elbo: -6427.108931117232
+   iteration: 988
+
+Optimizing  32%|█████████▉                     |  ETA: 0:00:25 (11.54 ms/it)
+   elbo_callback: -6413.742686155362
+        accuracy: 0.7375
+    time_elapsed: 11.685355186462402
+            elbo: -6512.005769419523
+       iteration: 1001
+
+
+
+
+Optimizing  32%|██████████                     |  ETA: 0:00:24 (11.49 ms/it)
+        elbo: -6006.665304557303
+   iteration: 1014
+
+Optimizing  33%|██████████▏                    |  ETA: 0:00:24 (11.45 ms/it)
+        elbo: -5704.774873987858
+   iteration: 1027
+
+Optimizing  33%|██████████▎                    |  ETA: 0:00:24 (11.40 ms/it)
+        elbo: -6128.533816315554
+   iteration: 1040
+
+Optimizing  34%|██████████▍                    |  ETA: 0:00:24 (11.36 ms/it)
+        elbo: -6658.544823928951
+   iteration: 1053
+
+Optimizing  34%|██████████▌                    |  ETA: 0:00:23 (11.32 ms/it)
+        elbo: -6858.585545416259
+   iteration: 1066
+
+Optimizing  35%|██████████▊                    |  ETA: 0:00:23 (11.27 ms/it)
+        elbo: -6412.014339699812
+   iteration: 1080
+
+Optimizing  35%|██████████▉                    |  ETA: 0:00:23 (11.23 ms/it)
+        elbo: -6480.494299501534
+   iteration: 1094
+
+Optimizing  35%|███████████                    |  ETA: 0:00:23 (11.27 ms/it)
+        elbo: -6638.445748921547
+   iteration: 1106
+
+Optimizing  36%|███████████▏                   |  ETA: 0:00:23 (11.23 ms/it)
+        elbo: -6253.255858797871
+   iteration: 1120
+
+Optimizing  36%|███████████▎                   |  ETA: 0:00:22 (11.18 ms/it)
+        elbo: -6158.19533087626
+   iteration: 1134
+
+Optimizing  37%|███████████▍                   |  ETA: 0:00:22 (11.14 ms/it)
+        elbo: -5895.738889727952
+   iteration: 1148
+
+Optimizing  37%|███████████▌                   |  ETA: 0:00:22 (11.10 ms/it)
+        elbo: -6136.297971658077
+   iteration: 1162
+
+Optimizing  38%|███████████▋                   |  ETA: 0:00:22 (11.06 ms/it)
+        elbo: -6361.527034356664
+   iteration: 1176
+
+Optimizing  38%|███████████▊                   |  ETA: 0:00:21 (11.02 ms/it)
+        elbo: -6305.848249351677
+   iteration: 1189
+
+Optimizing  38%|███████████▉                   |  ETA: 0:00:21 (11.06 ms/it)
+        elbo: -6212.028081036038
+   iteration: 1202
+
+Optimizing  39%|████████████                   |  ETA: 0:00:21 (11.02 ms/it)
+        elbo: -6533.081556253726
+   iteration: 1216
+
+Optimizing  39%|████████████▏                  |  ETA: 0:00:21 (10.98 ms/it)
+        elbo: -6080.628606810662
+   iteration: 1230
+
+Optimizing  40%|████████████▍                  |  ETA: 0:00:21 (10.95 ms/it)
+        elbo: -6401.844107375991
+   iteration: 1244
+
+Optimizing  40%|████████████▌                  |  ETA: 0:00:20 (10.91 ms/it)
+        elbo: -6840.157503364951
+   iteration: 1258
+
+Optimizing  41%|████████████▋                  |  ETA: 0:00:20 (10.88 ms/it)
+        elbo: -6842.95476513252
+   iteration: 1272
+
+Optimizing  41%|████████████▊                  |  ETA: 0:00:20 (10.84 ms/it)
+        elbo: -6323.746453225569
+   iteration: 1286
+
+Optimizing  42%|████████████▉                  |  ETA: 0:00:20 (10.81 ms/it)
+        elbo: -6492.85794674548
+   iteration: 1300
+
+Optimizing  42%|█████████████                  |  ETA: 0:00:20 (10.85 ms/it)
+        elbo: -6141.765323198976
+   iteration: 1312
+
+Optimizing  42%|█████████████▏                 |  ETA: 0:00:20 (10.81 ms/it)
+        elbo: -6357.985400694219
+   iteration: 1326
+
+Optimizing  43%|█████████████▎                 |  ETA: 0:00:19 (10.79 ms/it)
+        elbo: -5905.729094712532
+   iteration: 1339
+
+Optimizing  43%|█████████████▍                 |  ETA: 0:00:19 (10.76 ms/it)
+        elbo: -6267.49262409832
+   iteration: 1352
+
+Optimizing  44%|█████████████▌                 |  ETA: 0:00:19 (10.73 ms/it)
+        elbo: -6121.489812640867
+   iteration: 1365
+
+Optimizing  44%|█████████████▋                 |  ETA: 0:00:19 (10.70 ms/it)
+        elbo: -6102.089391029831
+   iteration: 1379
+
+Optimizing  45%|█████████████▊                 |  ETA: 0:00:19 (10.67 ms/it)
+        elbo: -6001.741730759956
+   iteration: 1393
+
+Optimizing  45%|█████████████▉                 |  ETA: 0:00:18 (10.71 ms/it)
+        elbo: -6466.554859497489
+   iteration: 1405
+
+Optimizing  45%|██████████████                 |  ETA: 0:00:18 (10.68 ms/it)
+        elbo: -6188.020679366899
+   iteration: 1418
+
+Optimizing  46%|██████████████▏                |  ETA: 0:00:18 (10.66 ms/it)
+        elbo: -5779.341650885326
+   iteration: 1431
+
+Optimizing  46%|██████████████▎                |  ETA: 0:00:18 (10.63 ms/it)
+        elbo: -6014.923831251499
+   iteration: 1445
+
+Optimizing  47%|██████████████▌                |  ETA: 0:00:18 (10.60 ms/it)
+        elbo: -6153.028623018806
+   iteration: 1458
+
+Optimizing  47%|██████████████▋                |  ETA: 0:00:18 (10.58 ms/it)
+        elbo: -6030.226551441341
+   iteration: 1471
+
+Optimizing  47%|██████████████▊                |  ETA: 0:00:17 (10.56 ms/it)
+        elbo: -6343.9221903304
+   iteration: 1484
+
+Optimizing  48%|██████████████▉                |  ETA: 0:00:17 (10.53 ms/it)
+        elbo: -6514.117364935974
+   iteration: 1497
+
+Optimizing  48%|███████████████                |  ETA: 0:00:17 (10.57 ms/it)
+        elbo: -6165.383746254625
+   iteration: 1510
+
+Optimizing  49%|███████████████▏               |  ETA: 0:00:17 (10.54 ms/it)
+        elbo: -6085.303217074812
+   iteration: 1524
+
+Optimizing  49%|███████████████▎               |  ETA: 0:00:17 (10.52 ms/it)
+        elbo: -6216.144225669914
+   iteration: 1537
+
+Optimizing  50%|███████████████▍               |  ETA: 0:00:17 (10.49 ms/it)
+        elbo: -6303.380760189046
+   iteration: 1551
+
+Optimizing  50%|███████████████▌               |  ETA: 0:00:16 (10.47 ms/it)
+        elbo: -5728.967996513557
    iteration: 1564
 
-Optimizing  50%|███████████████▋               |  ETA: 0:00:15 ( 9.97 ms/it)
-        elbo: -6760.761536857573
+Optimizing  50%|███████████████▋               |  ETA: 0:00:16 (10.45 ms/it)
+        elbo: -6373.673749669287
    iteration: 1578
 
-Optimizing  51%|███████████████▊               |  ETA: 0:00:15 ( 9.95 ms/it)
-        elbo: -6207.8694925339505
-   iteration: 1592
+Optimizing  51%|███████████████▊               |  ETA: 0:00:16 (10.43 ms/it)
+        elbo: -7682.534649405829
+   iteration: 1591
 
-Optimizing  51%|███████████████▉               |  ETA: 0:00:15 ( 9.99 ms/it)
-        elbo: -6022.752261572503
+Optimizing  51%|███████████████▉               |  ETA: 0:00:16 (10.46 ms/it)
+        elbo: -6211.872958740237
    iteration: 1604
 
-Optimizing  52%|████████████████               |  ETA: 0:00:15 ( 9.97 ms/it)
-        elbo: -6997.542416276894
-   iteration: 1618
+Optimizing  52%|████████████████               |  ETA: 0:00:16 (10.44 ms/it)
+        elbo: -6285.1295514903995
+   iteration: 1617
 
-Optimizing  52%|████████████████▏              |  ETA: 0:00:15 ( 9.95 ms/it)
-        elbo: -6696.618733475789
-   iteration: 1632
+Optimizing  52%|████████████████▏              |  ETA: 0:00:16 (10.41 ms/it)
+        elbo: -6006.50060080719
+   iteration: 1631
 
-Optimizing  53%|████████████████▎              |  ETA: 0:00:15 ( 9.93 ms/it)
-        elbo: -6869.484126929714
+Optimizing  53%|████████████████▎              |  ETA: 0:00:15 (10.39 ms/it)
+        elbo: -7153.844520831072
    iteration: 1645
 
-Optimizing  53%|████████████████▍              |  ETA: 0:00:15 ( 9.91 ms/it)
-        elbo: -6218.58046437866
-   iteration: 1658
-
-Optimizing  53%|████████████████▌              |  ETA: 0:00:14 ( 9.90 ms/it)
-        elbo: -6295.977105970306
-   iteration: 1671
-
-Optimizing  54%|████████████████▊              |  ETA: 0:00:14 ( 9.88 ms/it)
-        elbo: -8532.658099680471
-   iteration: 1685
-
-Optimizing  54%|████████████████▉              |  ETA: 0:00:14 ( 9.86 ms/it)
-        elbo: -6176.277086202863
-   iteration: 1698
-
-Optimizing  55%|████████████████▉              |  ETA: 0:00:14 ( 9.90 ms/it)
-        elbo: -6192.464888822974
-   iteration: 1710
-
-Optimizing  55%|█████████████████▏             |  ETA: 0:00:14 ( 9.88 ms/it)
-        elbo: -7140.514121250354
-   iteration: 1723
-
-Optimizing  55%|█████████████████▎             |  ETA: 0:00:14 ( 9.87 ms/it)
-        elbo: -5858.578503378121
-   iteration: 1737
-
-Optimizing  56%|█████████████████▍             |  ETA: 0:00:14 ( 9.85 ms/it)
-        elbo: -5889.836259916851
-   iteration: 1750
-
-Optimizing  56%|█████████████████▌             |  ETA: 0:00:13 ( 9.84 ms/it)
-        elbo: -6268.050647525025
-   iteration: 1763
-
-Optimizing  57%|█████████████████▋             |  ETA: 0:00:13 ( 9.82 ms/it)
-        elbo: -6264.233053159131
-   iteration: 1777
-
-Optimizing  57%|█████████████████▊             |  ETA: 0:00:13 ( 9.80 ms/it)
-        elbo: -6367.661644340076
-   iteration: 1790
-
-Optimizing  58%|█████████████████▉             |  ETA: 0:00:13 ( 9.85 ms/it)
-        elbo: -9234.261602695742
-   iteration: 1803
-
-Optimizing  58%|██████████████████             |  ETA: 0:00:13 ( 9.83 ms/it)
-        elbo: -6084.816079176313
-   iteration: 1816
-
-Optimizing  58%|██████████████████▏            |  ETA: 0:00:13 ( 9.82 ms/it)
-        elbo: -5843.339617760602
-   iteration: 1829
-
-Optimizing  59%|██████████████████▎            |  ETA: 0:00:13 ( 9.80 ms/it)
-        elbo: -6665.396000750015
-   iteration: 1843
-
-Optimizing  59%|██████████████████▍            |  ETA: 0:00:12 ( 9.79 ms/it)
-        elbo: -5774.7404233390935
-   iteration: 1857
-
-Optimizing  60%|██████████████████▌            |  ETA: 0:00:12 ( 9.77 ms/it)
-        elbo: -6679.254663480368
-   iteration: 1870
-
-Optimizing  60%|██████████████████▋            |  ETA: 0:00:12 ( 9.76 ms/it)
-        elbo: -7532.219815064793
-   iteration: 1884
-
-Optimizing  61%|██████████████████▊            |  ETA: 0:00:12 ( 9.75 ms/it)
-        elbo: -6203.983031790393
-   iteration: 1898
-
-Optimizing  61%|██████████████████▉            |  ETA: 0:00:12 ( 9.78 ms/it)
-        elbo: -6280.455338855392
-   iteration: 1910
-
-Optimizing  61%|███████████████████            |  ETA: 0:00:12 ( 9.76 ms/it)
-        elbo: -6257.38767245659
-   iteration: 1924
-
-Optimizing  62%|███████████████████▎           |  ETA: 0:00:12 ( 9.75 ms/it)
-        elbo: -6737.098149713835
-   iteration: 1938
-
-Optimizing  62%|███████████████████▍           |  ETA: 0:00:11 ( 9.73 ms/it)
-        elbo: -6307.883695088048
-   iteration: 1951
-
-Optimizing  63%|███████████████████▌           |  ETA: 0:00:11 ( 9.72 ms/it)
-        elbo: -6670.5128057368975
-   iteration: 1965
-
-Optimizing  63%|███████████████████▋           |  ETA: 0:00:11 ( 9.71 ms/it)
-        elbo: -9756.559586464075
-   iteration: 1978
-
-Optimizing  64%|███████████████████▊           |  ETA: 0:00:11 ( 9.69 ms/it)
-        elbo: -6493.167773549531
-   iteration: 1991
-
-Optimizing  64%|███████████████████▉           |  ETA: 0:00:11 ( 9.73 ms/it)
-        elbo: -6094.657953495406
-   iteration: 2004
-
-Optimizing  64%|████████████████████           |  ETA: 0:00:11 ( 9.72 ms/it)
-        elbo: -5490.787413628816
-   iteration: 2018
-
-Optimizing  65%|████████████████████▏          |  ETA: 0:00:11 ( 9.70 ms/it)
-        elbo: -6727.898832050397
-   iteration: 2031
-
-Optimizing  65%|████████████████████▎          |  ETA: 0:00:11 ( 9.70 ms/it)
-        elbo: -6001.571833405069
-   iteration: 2044
-
-Optimizing  66%|████████████████████▍          |  ETA: 0:00:10 ( 9.68 ms/it)
-        elbo: -6380.922466367082
-   iteration: 2057
-
-Optimizing  66%|████████████████████▌          |  ETA: 0:00:10 ( 9.67 ms/it)
-        elbo: -7056.488447259748
-   iteration: 2070
-
-Optimizing  67%|████████████████████▋          |  ETA: 0:00:10 ( 9.67 ms/it)
-        elbo: -5796.464401517496
-   iteration: 2083
-
-Optimizing  67%|████████████████████▊          |  ETA: 0:00:10 ( 9.65 ms/it)
-        elbo: -7235.776530356575
-   iteration: 2097
-
-Optimizing  67%|████████████████████▉          |  ETA: 0:00:10 ( 9.68 ms/it)
-        elbo: -6198.605095989847
-   iteration: 2109
-
-Optimizing  68%|█████████████████████          |  ETA: 0:00:10 ( 9.67 ms/it)
-        elbo: -8720.866256264293
-   iteration: 2123
-
-Optimizing  68%|█████████████████████▏         |  ETA: 0:00:10 ( 9.66 ms/it)
-        elbo: -6756.043288282399
-   iteration: 2135
-
-Optimizing  69%|█████████████████████▎         |  ETA: 0:00:09 ( 9.65 ms/it)
-        elbo: -7871.748806797507
-   iteration: 2149
-
-Optimizing  69%|█████████████████████▍         |  ETA: 0:00:09 ( 9.64 ms/it)
-        elbo: -5316.483533229995
-   iteration: 2162
-
-Optimizing  70%|█████████████████████▌         |  ETA: 0:00:09 ( 9.63 ms/it)
-        elbo: -6104.992095520642
-   iteration: 2176
-
-Optimizing  70%|█████████████████████▊         |  ETA: 0:00:09 ( 9.62 ms/it)
-        elbo: -5628.430411432999
-   iteration: 2190
-
-Optimizing  70%|█████████████████████▊         |  ETA: 0:00:09 ( 9.64 ms/it)
-        elbo: -5721.513039424283
-   iteration: 2202
-
-Optimizing  71%|██████████████████████         |  ETA: 0:00:09 ( 9.63 ms/it)
-        elbo: -6553.414271428578
-   iteration: 2216
-
-Optimizing  71%|██████████████████████▏        |  ETA: 0:00:09 ( 9.62 ms/it)
-        elbo: -5917.964663661413
-   iteration: 2230
-
-Optimizing  72%|██████████████████████▎        |  ETA: 0:00:09 ( 9.61 ms/it)
-        elbo: -6509.093787289839
-   iteration: 2243
-
-Optimizing  72%|██████████████████████▍        |  ETA: 0:00:08 ( 9.59 ms/it)
-        elbo: -6317.14242294098
-   iteration: 2257
-
-Optimizing  73%|██████████████████████▌        |  ETA: 0:00:08 ( 9.58 ms/it)
-        elbo: -5879.137905339166
-   iteration: 2271
-
-Optimizing  73%|██████████████████████▋        |  ETA: 0:00:08 ( 9.57 ms/it)
-        elbo: -6490.5764726024245
-   iteration: 2285
-
-Optimizing  73%|██████████████████████▊        |  ETA: 0:00:08 ( 9.56 ms/it)
-        elbo: -5943.555070183746
-   iteration: 2298
-
-Optimizing  74%|██████████████████████▉        |  ETA: 0:00:08 ( 9.59 ms/it)
-        elbo: -5428.409097089798
-   iteration: 2311
-
-Optimizing  74%|███████████████████████        |  ETA: 0:00:08 ( 9.58 ms/it)
-        elbo: -7039.038154215037
-   iteration: 2325
-
-Optimizing  75%|███████████████████████▏       |  ETA: 0:00:08 ( 9.57 ms/it)
-        elbo: -6882.353735202386
-   iteration: 2338
-
-Optimizing  75%|███████████████████████▎       |  ETA: 0:00:07 ( 9.56 ms/it)
-        elbo: -6671.677324468095
-   iteration: 2352
-
-Optimizing  76%|███████████████████████▍       |  ETA: 0:00:07 ( 9.55 ms/it)
-        elbo: -5572.636069531704
-   iteration: 2365
-
-Optimizing  76%|███████████████████████▌       |  ETA: 0:00:07 ( 9.54 ms/it)
-        elbo: -8571.759872335839
-   iteration: 2379
-
-Optimizing  76%|███████████████████████▊       |  ETA: 0:00:07 ( 9.53 ms/it)
-        elbo: -5915.234762038838
-   iteration: 2393
-
-Optimizing  77%|███████████████████████▉       |  ETA: 0:00:07 ( 9.56 ms/it)
-        elbo: -6184.400176964339
-   iteration: 2406
-
-Optimizing  77%|████████████████████████       |  ETA: 0:00:07 ( 9.55 ms/it)
-        elbo: -6121.949577648715
-   iteration: 2420
-
-Optimizing  78%|████████████████████████▏      |  ETA: 0:00:07 ( 9.54 ms/it)
-        elbo: -5942.485028432902
-   iteration: 2432
-
-Optimizing  78%|████████████████████████▎      |  ETA: 0:00:07 ( 9.53 ms/it)
-        elbo: -5962.046167132416
-   iteration: 2446
-
-Optimizing  79%|████████████████████████▍      |  ETA: 0:00:06 ( 9.52 ms/it)
-        elbo: -17385.114189391956
-   iteration: 2460
-
-Optimizing  79%|████████████████████████▌      |  ETA: 0:00:06 ( 9.51 ms/it)
-        elbo: -14344.045409989558
-   iteration: 2474
-
-Optimizing  79%|████████████████████████▋      |  ETA: 0:00:06 ( 9.50 ms/it)
-        elbo: -6987.83930631434
-   iteration: 2488
-
-Optimizing  80%|████████████████████████▊      |  ETA: 0:00:06 ( 9.53 ms/it)
-   elbo_callback: -5873.277168052161
-        accuracy: 0.7899
-    time_elapsed: 23.955615997314453
-            elbo: -5342.797526760882
-       iteration: 2501
-
-
-
-
-Optimizing  80%|████████████████████████▉      |  ETA: 0:00:06 ( 9.52 ms/it)
-        elbo: -6058.355000962206
-   iteration: 2514
-
-Optimizing  81%|█████████████████████████      |  ETA: 0:00:06 ( 9.51 ms/it)
-        elbo: -9163.008866075097
-   iteration: 2528
-
-Optimizing  81%|█████████████████████████▏     |  ETA: 0:00:06 ( 9.50 ms/it)
-        elbo: -6016.580379838655
-   iteration: 2542
-
-Optimizing  82%|█████████████████████████▎     |  ETA: 0:00:05 ( 9.49 ms/it)
-        elbo: -7077.037149377364
-   iteration: 2555
-
-Optimizing  82%|█████████████████████████▌     |  ETA: 0:00:05 ( 9.48 ms/it)
-        elbo: -5726.002379696574
-   iteration: 2569
-
-Optimizing  82%|█████████████████████████▋     |  ETA: 0:00:05 ( 9.48 ms/it)
-        elbo: -8972.640290518524
-   iteration: 2582
-
-Optimizing  83%|█████████████████████████▊     |  ETA: 0:00:05 ( 9.47 ms/it)
-        elbo: -7881.605387529482
+Optimizing  53%|████████████████▍              |  ETA: 0:00:15 (10.37 ms/it)
+        elbo: -6995.74737027068
+   iteration: 1659
+
+Optimizing  53%|████████████████▋              |  ETA: 0:00:15 (10.35 ms/it)
+        elbo: -6085.688856279782
+   iteration: 1673
+
+Optimizing  54%|████████████████▊              |  ETA: 0:00:15 (10.33 ms/it)
+        elbo: -8087.16316176168
+   iteration: 1686
+
+Optimizing  54%|████████████████▉              |  ETA: 0:00:15 (10.31 ms/it)
+        elbo: -5863.253691606426
+   iteration: 1699
+
+Optimizing  55%|█████████████████              |  ETA: 0:00:15 (10.34 ms/it)
+        elbo: -6095.625448712066
+   iteration: 1712
+
+Optimizing  55%|█████████████████▏             |  ETA: 0:00:14 (10.32 ms/it)
+        elbo: -6158.103860449894
+   iteration: 1725
+
+Optimizing  56%|█████████████████▎             |  ETA: 0:00:14 (10.30 ms/it)
+        elbo: -6817.112185460267
+   iteration: 1738
+
+Optimizing  56%|█████████████████▍             |  ETA: 0:00:14 (10.28 ms/it)
+        elbo: -7237.446218546629
+   iteration: 1751
+
+Optimizing  56%|█████████████████▌             |  ETA: 0:00:14 (10.26 ms/it)
+        elbo: -9523.978128093211
+   iteration: 1765
+
+Optimizing  57%|█████████████████▋             |  ETA: 0:00:14 (10.24 ms/it)
+        elbo: -5909.787311168162
+   iteration: 1779
+
+Optimizing  57%|█████████████████▊             |  ETA: 0:00:14 (10.22 ms/it)
+        elbo: -6321.272844492081
+   iteration: 1792
+
+Optimizing  58%|█████████████████▉             |  ETA: 0:00:14 (10.25 ms/it)
+        elbo: -6018.99338145891
+   iteration: 1805
+
+Optimizing  58%|██████████████████             |  ETA: 0:00:13 (10.24 ms/it)
+        elbo: -7686.808353844814
+   iteration: 1818
+
+Optimizing  59%|██████████████████▏            |  ETA: 0:00:13 (10.22 ms/it)
+        elbo: -6253.9181276839845
+   iteration: 1832
+
+Optimizing  59%|██████████████████▎            |  ETA: 0:00:13 (10.20 ms/it)
+        elbo: -6565.935368103214
+   iteration: 1845
+
+Optimizing  59%|██████████████████▍            |  ETA: 0:00:13 (10.19 ms/it)
+        elbo: -6151.209037813572
+   iteration: 1858
+
+Optimizing  60%|██████████████████▌            |  ETA: 0:00:13 (10.17 ms/it)
+        elbo: -6428.457851134795
+   iteration: 1872
+
+Optimizing  60%|██████████████████▋            |  ETA: 0:00:13 (10.15 ms/it)
+        elbo: -6054.761629275987
+   iteration: 1885
+
+Optimizing  61%|██████████████████▊            |  ETA: 0:00:12 (10.13 ms/it)
+        elbo: -6479.422477762431
+   iteration: 1899
+
+Optimizing  61%|██████████████████▉            |  ETA: 0:00:12 (10.16 ms/it)
+        elbo: -7908.325383078019
+   iteration: 1911
+
+Optimizing  62%|███████████████████▏           |  ETA: 0:00:12 (10.14 ms/it)
+        elbo: -5980.875080335892
+   iteration: 1925
+
+Optimizing  62%|███████████████████▎           |  ETA: 0:00:12 (10.13 ms/it)
+        elbo: -7664.776463974895
+   iteration: 1939
+
+Optimizing  62%|███████████████████▍           |  ETA: 0:00:12 (10.11 ms/it)
+        elbo: -6799.698510783361
+   iteration: 1953
+
+Optimizing  63%|███████████████████▌           |  ETA: 0:00:12 (10.09 ms/it)
+        elbo: -6785.5792500426305
+   iteration: 1966
+
+Optimizing  63%|███████████████████▋           |  ETA: 0:00:12 (10.07 ms/it)
+        elbo: -6726.774762050755
+   iteration: 1980
+
+Optimizing  64%|███████████████████▊           |  ETA: 0:00:11 (10.06 ms/it)
+        elbo: -6641.243712958463
+   iteration: 1993
+
+Optimizing  64%|███████████████████▉           |  ETA: 0:00:11 (10.09 ms/it)
+        elbo: -18020.046890709582
+   iteration: 2006
+
+Optimizing  65%|████████████████████           |  ETA: 0:00:11 (10.07 ms/it)
+        elbo: -7529.267700724642
+   iteration: 2020
+
+Optimizing  65%|████████████████████▏          |  ETA: 0:00:11 (10.05 ms/it)
+        elbo: -6104.008252027151
+   iteration: 2034
+
+Optimizing  65%|████████████████████▎          |  ETA: 0:00:11 (10.04 ms/it)
+        elbo: -9255.660156826994
+   iteration: 2048
+
+Optimizing  66%|████████████████████▍          |  ETA: 0:00:11 (10.02 ms/it)
+        elbo: -6336.8627621228125
+   iteration: 2062
+
+Optimizing  66%|████████████████████▌          |  ETA: 0:00:11 (10.01 ms/it)
+        elbo: -9342.345480891177
+   iteration: 2076
+
+Optimizing  67%|████████████████████▊          |  ETA: 0:00:10 ( 9.99 ms/it)
+        elbo: -6673.967256614302
+   iteration: 2089
+
+Optimizing  67%|████████████████████▉          |  ETA: 0:00:10 (10.02 ms/it)
+        elbo: -9513.504353249175
+   iteration: 2102
+
+Optimizing  68%|█████████████████████          |  ETA: 0:00:10 (10.00 ms/it)
+        elbo: -6087.387136367909
+   iteration: 2116
+
+Optimizing  68%|█████████████████████▏         |  ETA: 0:00:10 ( 9.99 ms/it)
+        elbo: -6339.643475623951
+   iteration: 2130
+
+Optimizing  68%|█████████████████████▎         |  ETA: 0:00:10 ( 9.97 ms/it)
+        elbo: -6142.463917179989
+   iteration: 2144
+
+Optimizing  69%|█████████████████████▍         |  ETA: 0:00:10 ( 9.95 ms/it)
+        elbo: -6372.114159155745
+   iteration: 2158
+
+Optimizing  69%|█████████████████████▌         |  ETA: 0:00:10 ( 9.94 ms/it)
+        elbo: -5792.030543029998
+   iteration: 2172
+
+Optimizing  70%|█████████████████████▋         |  ETA: 0:00:09 ( 9.92 ms/it)
+        elbo: -6136.703892312535
+   iteration: 2186
+
+Optimizing  70%|█████████████████████▊         |  ETA: 0:00:09 ( 9.91 ms/it)
+        elbo: -8559.629920946578
+   iteration: 2200
+
+Optimizing  71%|█████████████████████▉         |  ETA: 0:00:09 ( 9.94 ms/it)
+        elbo: -5811.077319575638
+   iteration: 2212
+
+Optimizing  71%|██████████████████████         |  ETA: 0:00:09 ( 9.92 ms/it)
+        elbo: -8426.604128407553
+   iteration: 2226
+
+Optimizing  72%|██████████████████████▏        |  ETA: 0:00:09 ( 9.91 ms/it)
+        elbo: -6846.561692866129
+   iteration: 2240
+
+Optimizing  72%|██████████████████████▍        |  ETA: 0:00:09 ( 9.89 ms/it)
+        elbo: -6972.680677127018
+   iteration: 2254
+
+Optimizing  72%|██████████████████████▌        |  ETA: 0:00:09 ( 9.88 ms/it)
+        elbo: -5510.052551936877
+   iteration: 2268
+
+Optimizing  73%|██████████████████████▋        |  ETA: 0:00:08 ( 9.86 ms/it)
+        elbo: -5404.0519836655685
+   iteration: 2282
+
+Optimizing  73%|██████████████████████▊        |  ETA: 0:00:08 ( 9.85 ms/it)
+        elbo: -6616.750006071292
+   iteration: 2296
+
+Optimizing  74%|██████████████████████▉        |  ETA: 0:00:08 ( 9.88 ms/it)
+        elbo: -6136.545960830675
+   iteration: 2308
+
+Optimizing  74%|███████████████████████        |  ETA: 0:00:08 ( 9.86 ms/it)
+        elbo: -5694.769433394462
+   iteration: 2322
+
+Optimizing  75%|███████████████████████▏       |  ETA: 0:00:08 ( 9.85 ms/it)
+        elbo: -6091.503982489709
+   iteration: 2335
+
+Optimizing  75%|███████████████████████▎       |  ETA: 0:00:08 ( 9.84 ms/it)
+        elbo: -5921.537473700099
+   iteration: 2348
+
+Optimizing  75%|███████████████████████▍       |  ETA: 0:00:08 ( 9.83 ms/it)
+        elbo: -5938.709369383509
+   iteration: 2362
+
+Optimizing  76%|███████████████████████▌       |  ETA: 0:00:07 ( 9.82 ms/it)
+        elbo: -6130.841890263003
+   iteration: 2376
+
+Optimizing  76%|███████████████████████▋       |  ETA: 0:00:07 ( 9.80 ms/it)
+        elbo: -6042.774185502789
+   iteration: 2390
+
+Optimizing  77%|███████████████████████▊       |  ETA: 0:00:07 ( 9.83 ms/it)
+        elbo: -6305.016742629791
+   iteration: 2402
+
+Optimizing  77%|███████████████████████▉       |  ETA: 0:00:07 ( 9.81 ms/it)
+        elbo: -6566.106847994337
+   iteration: 2416
+
+Optimizing  78%|████████████████████████▏      |  ETA: 0:00:07 ( 9.80 ms/it)
+        elbo: -6489.877330446625
+   iteration: 2430
+
+Optimizing  78%|████████████████████████▎      |  ETA: 0:00:07 ( 9.79 ms/it)
+        elbo: -10411.562184497725
+   iteration: 2444
+
+Optimizing  79%|████████████████████████▍      |  ETA: 0:00:07 ( 9.78 ms/it)
+        elbo: -6121.969131478422
+   iteration: 2458
+
+Optimizing  79%|████████████████████████▌      |  ETA: 0:00:06 ( 9.77 ms/it)
+        elbo: -5726.869238235451
+   iteration: 2471
+
+Optimizing  79%|████████████████████████▋      |  ETA: 0:00:06 ( 9.76 ms/it)
+        elbo: -5596.51174064411
+   iteration: 2485
+
+Optimizing  80%|████████████████████████▊      |  ETA: 0:00:06 ( 9.75 ms/it)
+        elbo: -5949.118584319705
+   iteration: 2498
+
+Optimizing  80%|████████████████████████▉      |  ETA: 0:00:06 ( 9.77 ms/it)
+        elbo: -5912.644308251938
+   iteration: 2511
+
+Optimizing  81%|█████████████████████████      |  ETA: 0:00:06 ( 9.76 ms/it)
+        elbo: -7684.221101174972
+   iteration: 2525
+
+Optimizing  81%|█████████████████████████▏     |  ETA: 0:00:06 ( 9.74 ms/it)
+        elbo: -14324.34258218342
+   iteration: 2539
+
+Optimizing  82%|█████████████████████████▎     |  ETA: 0:00:06 ( 9.73 ms/it)
+        elbo: -7479.357656908184
+   iteration: 2553
+
+Optimizing  82%|█████████████████████████▍     |  ETA: 0:00:05 ( 9.72 ms/it)
+        elbo: -7731.708131015021
+   iteration: 2567
+
+Optimizing  82%|█████████████████████████▋     |  ETA: 0:00:05 ( 9.71 ms/it)
+        elbo: -6360.990912345493
+   iteration: 2581
+
+Optimizing  83%|█████████████████████████▊     |  ETA: 0:00:05 ( 9.70 ms/it)
+        elbo: -7791.512825024217
    iteration: 2595
 
-Optimizing  83%|█████████████████████████▉     |  ETA: 0:00:05 ( 9.50 ms/it)
-        elbo: -5637.243452448886
+Optimizing  83%|█████████████████████████▉     |  ETA: 0:00:05 ( 9.72 ms/it)
+        elbo: -9090.762703717934
    iteration: 2607
 
-Optimizing  84%|██████████████████████████     |  ETA: 0:00:05 ( 9.49 ms/it)
-        elbo: -5834.50845054299
+Optimizing  84%|██████████████████████████     |  ETA: 0:00:05 ( 9.71 ms/it)
+        elbo: -7130.555876229336
    iteration: 2620
 
-Optimizing  84%|██████████████████████████▏    |  ETA: 0:00:05 ( 9.49 ms/it)
-        elbo: -8161.515941217956
+Optimizing  84%|██████████████████████████▏    |  ETA: 0:00:05 ( 9.70 ms/it)
+        elbo: -5586.206413239788
    iteration: 2633
 
-Optimizing  85%|██████████████████████████▎    |  ETA: 0:00:05 ( 9.48 ms/it)
-        elbo: -5436.071182688735
-   iteration: 2646
+Optimizing  85%|██████████████████████████▎    |  ETA: 0:00:05 ( 9.69 ms/it)
+        elbo: -5450.765658716831
+   iteration: 2647
 
-Optimizing  85%|██████████████████████████▍    |  ETA: 0:00:04 ( 9.47 ms/it)
-        elbo: -6274.886602198609
-   iteration: 2659
+Optimizing  85%|██████████████████████████▍    |  ETA: 0:00:05 ( 9.68 ms/it)
+        elbo: -7787.310350847371
+   iteration: 2660
 
-Optimizing  85%|██████████████████████████▌    |  ETA: 0:00:04 ( 9.47 ms/it)
-        elbo: -12186.343609251395
-   iteration: 2671
+Optimizing  85%|██████████████████████████▌    |  ETA: 0:00:04 ( 9.67 ms/it)
+        elbo: -5929.113563448013
+   iteration: 2673
 
-Optimizing  86%|██████████████████████████▋    |  ETA: 0:00:04 ( 9.47 ms/it)
-        elbo: -5946.74225974801
-   iteration: 2683
+Optimizing  86%|██████████████████████████▋    |  ETA: 0:00:04 ( 9.66 ms/it)
+        elbo: -8966.910824842691
+   iteration: 2687
 
-Optimizing  86%|██████████████████████████▊    |  ETA: 0:00:04 ( 9.46 ms/it)
-        elbo: -5567.611665275007
-   iteration: 2696
+Optimizing  86%|██████████████████████████▊    |  ETA: 0:00:04 ( 9.69 ms/it)
+   elbo_callback: -5796.646484092178
+        accuracy: 0.7715
+    time_elapsed: 26.298647165298462
+            elbo: -5551.167981075799
+       iteration: 2701
 
-Optimizing  87%|██████████████████████████▉    |  ETA: 0:00:04 ( 9.49 ms/it)
-        elbo: -5884.672869764564
-   iteration: 2709
 
-Optimizing  87%|███████████████████████████    |  ETA: 0:00:04 ( 9.48 ms/it)
-        elbo: -7567.002743094601
-   iteration: 2723
 
-Optimizing  87%|███████████████████████████▏   |  ETA: 0:00:04 ( 9.47 ms/it)
-        elbo: -5543.730588832403
-   iteration: 2737
 
-Optimizing  88%|███████████████████████████▎   |  ETA: 0:00:04 ( 9.46 ms/it)
-        elbo: -5361.069507105631
-   iteration: 2750
+Optimizing  87%|██████████████████████████▉    |  ETA: 0:00:04 ( 9.67 ms/it)
+        elbo: -6545.093519788153
+   iteration: 2715
 
-Optimizing  88%|███████████████████████████▍   |  ETA: 0:00:03 ( 9.45 ms/it)
-        elbo: -6731.185549244058
-   iteration: 2763
+Optimizing  87%|███████████████████████████    |  ETA: 0:00:04 ( 9.66 ms/it)
+        elbo: -7769.364491765388
+   iteration: 2729
 
-Optimizing  89%|███████████████████████████▌   |  ETA: 0:00:03 ( 9.44 ms/it)
-        elbo: -5382.212115255651
-   iteration: 2776
+Optimizing  88%|███████████████████████████▏   |  ETA: 0:00:04 ( 9.65 ms/it)
+        elbo: -6105.967385471225
+   iteration: 2743
 
-Optimizing  89%|███████████████████████████▋   |  ETA: 0:00:03 ( 9.44 ms/it)
-        elbo: -5583.913698660188
-   iteration: 2789
+Optimizing  88%|███████████████████████████▎   |  ETA: 0:00:04 ( 9.64 ms/it)
+        elbo: -5908.039318154531
+   iteration: 2757
 
-Optimizing  90%|███████████████████████████▊   |  ETA: 0:00:03 ( 9.46 ms/it)
-        elbo: -5502.857049652784
-   iteration: 2802
+Optimizing  89%|███████████████████████████▌   |  ETA: 0:00:03 ( 9.63 ms/it)
+        elbo: -6121.066015152461
+   iteration: 2771
 
-Optimizing  90%|███████████████████████████▉   |  ETA: 0:00:03 ( 9.45 ms/it)
-        elbo: -6943.237679853247
-   iteration: 2815
+Optimizing  89%|███████████████████████████▋   |  ETA: 0:00:03 ( 9.62 ms/it)
+        elbo: -7420.558975092074
+   iteration: 2785
 
-Optimizing  90%|████████████████████████████   |  ETA: 0:00:03 ( 9.44 ms/it)
-        elbo: -6685.3077689156435
-   iteration: 2828
+Optimizing  89%|███████████████████████████▊   |  ETA: 0:00:03 ( 9.61 ms/it)
+        elbo: -6908.176150812953
+   iteration: 2799
 
-Optimizing  91%|████████████████████████████▏  |  ETA: 0:00:03 ( 9.44 ms/it)
-        elbo: -5687.374679323368
-   iteration: 2842
+Optimizing  90%|███████████████████████████▉   |  ETA: 0:00:03 ( 9.63 ms/it)
+        elbo: -6142.021514049847
+   iteration: 2811
 
-Optimizing  91%|████████████████████████████▎  |  ETA: 0:00:03 ( 9.43 ms/it)
-        elbo: -5733.033689135175
-   iteration: 2856
+Optimizing  90%|████████████████████████████   |  ETA: 0:00:03 ( 9.62 ms/it)
+        elbo: -10399.973175791789
+   iteration: 2825
 
-Optimizing  92%|████████████████████████████▍  |  ETA: 0:00:02 ( 9.42 ms/it)
-        elbo: -6164.204856853362
-   iteration: 2870
+Optimizing  91%|████████████████████████████▏  |  ETA: 0:00:03 ( 9.61 ms/it)
+        elbo: -6815.576133756967
+   iteration: 2839
 
-Optimizing  92%|████████████████████████████▋  |  ETA: 0:00:02 ( 9.41 ms/it)
-        elbo: -6529.1432036884435
-   iteration: 2884
+Optimizing  91%|████████████████████████████▎  |  ETA: 0:00:03 ( 9.61 ms/it)
+        elbo: -5786.807383547418
+   iteration: 2852
 
-Optimizing  93%|████████████████████████████▊  |  ETA: 0:00:02 ( 9.40 ms/it)
-        elbo: -6081.186402029909
-   iteration: 2898
+Optimizing  92%|████████████████████████████▍  |  ETA: 0:00:03 ( 9.60 ms/it)
+        elbo: -7816.266803167336
+   iteration: 2866
 
-Optimizing  93%|████████████████████████████▉  |  ETA: 0:00:02 ( 9.43 ms/it)
-        elbo: -5456.4222818231565
-   iteration: 2910
+Optimizing  92%|████████████████████████████▌  |  ETA: 0:00:02 ( 9.59 ms/it)
+        elbo: -5970.489457097176
+   iteration: 2879
 
-Optimizing  93%|█████████████████████████████  |  ETA: 0:00:02 ( 9.42 ms/it)
-        elbo: -9917.538677322476
-   iteration: 2924
+Optimizing  92%|████████████████████████████▋  |  ETA: 0:00:02 ( 9.58 ms/it)
+        elbo: -5358.30942936683
+   iteration: 2892
 
-Optimizing  94%|█████████████████████████████▏ |  ETA: 0:00:02 ( 9.41 ms/it)
-        elbo: -7559.710657448852
-   iteration: 2938
+Optimizing  93%|████████████████████████████▊  |  ETA: 0:00:02 ( 9.60 ms/it)
+        elbo: -5777.497533852955
+   iteration: 2905
 
-Optimizing  94%|█████████████████████████████▎ |  ETA: 0:00:02 ( 9.40 ms/it)
-        elbo: -5611.278732023706
-   iteration: 2952
+Optimizing  93%|████████████████████████████▉  |  ETA: 0:00:02 ( 9.59 ms/it)
+        elbo: -5377.1124190841965
+   iteration: 2919
 
-Optimizing  95%|█████████████████████████████▍ |  ETA: 0:00:02 ( 9.39 ms/it)
-        elbo: -5456.94879846191
-   iteration: 2966
+Optimizing  94%|█████████████████████████████  |  ETA: 0:00:02 ( 9.58 ms/it)
+        elbo: -7143.201274613701
+   iteration: 2932
 
-Optimizing  95%|█████████████████████████████▌ |  ETA: 0:00:01 ( 9.39 ms/it)
-        elbo: -6013.033167730659
-   iteration: 2981
+Optimizing  94%|█████████████████████████████▏ |  ETA: 0:00:02 ( 9.57 ms/it)
+        elbo: -6973.874916830028
+   iteration: 2946
 
-Optimizing  96%|█████████████████████████████▋ |  ETA: 0:00:01 ( 9.38 ms/it)
-        elbo: -5581.443608373581
-   iteration: 2995
+Optimizing  95%|█████████████████████████████▎ |  ETA: 0:00:02 ( 9.57 ms/it)
+        elbo: -6335.382173201471
+   iteration: 2959
 
-Optimizing  96%|█████████████████████████████▊ |  ETA: 0:00:01 ( 9.40 ms/it)
-        elbo: -9184.859547648886
-   iteration: 3008
+Optimizing  95%|█████████████████████████████▌ |  ETA: 0:00:02 ( 9.56 ms/it)
+        elbo: -7115.040864745518
+   iteration: 2973
 
-Optimizing  97%|█████████████████████████████▉ |  ETA: 0:00:01 ( 9.39 ms/it)
-        elbo: -5928.869469015347
-   iteration: 3021
+Optimizing  95%|█████████████████████████████▋ |  ETA: 0:00:01 ( 9.55 ms/it)
+        elbo: -6048.929007005928
+   iteration: 2986
 
-Optimizing  97%|██████████████████████████████ |  ETA: 0:00:01 ( 9.38 ms/it)
-        elbo: -5921.088401338015
-   iteration: 3035
+Optimizing  96%|█████████████████████████████▊ |  ETA: 0:00:01 ( 9.54 ms/it)
+        elbo: -6665.337375649089
+   iteration: 3000
 
-Optimizing  97%|██████████████████████████████▎|  ETA: 0:00:01 ( 9.38 ms/it)
-        elbo: -6053.890275450002
-   iteration: 3049
+Optimizing  96%|█████████████████████████████▉ |  ETA: 0:00:01 ( 9.56 ms/it)
+        elbo: -6786.646144724401
+   iteration: 3012
 
-Optimizing  98%|██████████████████████████████▍|  ETA: 0:00:01 ( 9.37 ms/it)
-        elbo: -5232.234460658985
-   iteration: 3063
+Optimizing  97%|██████████████████████████████ |  ETA: 0:00:01 ( 9.55 ms/it)
+        elbo: -12821.195890727033
+   iteration: 3026
 
-Optimizing  98%|██████████████████████████████▌|  ETA: 0:00:00 ( 9.37 ms/it)
-        elbo: -5378.109871719725
-   iteration: 3077
+Optimizing  97%|██████████████████████████████▏|  ETA: 0:00:01 ( 9.54 ms/it)
+        elbo: -5735.60807906552
+   iteration: 3040
 
-Optimizing  99%|██████████████████████████████▋|  ETA: 0:00:00 ( 9.47 ms/it)
-        elbo: -5471.337790532568
-   iteration: 3086
+Optimizing  98%|██████████████████████████████▎|  ETA: 0:00:01 ( 9.54 ms/it)
+        elbo: -5509.8249627653595
+   iteration: 3054
 
-Optimizing  99%|██████████████████████████████▋|  ETA: 0:00:00 ( 9.55 ms/it)
-        elbo: -5529.899346745905
-   iteration: 3088
+Optimizing  98%|██████████████████████████████▍|  ETA: 0:00:01 ( 9.53 ms/it)
+        elbo: -5940.207817277738
+   iteration: 3068
 
-Optimizing  99%|██████████████████████████████▊|  ETA: 0:00:00 ( 9.55 ms/it)
-        elbo: -5916.790595063091
-   iteration: 3100
+Optimizing  98%|██████████████████████████████▌|  ETA: 0:00:00 ( 9.52 ms/it)
+        elbo: -5735.980529792974
+   iteration: 3081
 
-Optimizing  99%|██████████████████████████████▉|  ETA: 0:00:00 ( 9.58 ms/it)
-        elbo: -5639.791619073055
-   iteration: 3112
+Optimizing  99%|██████████████████████████████▋|  ETA: 0:00:00 ( 9.51 ms/it)
+        elbo: -8459.764520843215
+   iteration: 3095
 
-Optimizing  99%|███████████████████████████████|  ETA: 0:00:00 ( 9.58 ms/it)
-        elbo: -5809.333458392987
-   iteration: 3125
+Optimizing  99%|██████████████████████████████▊|  ETA: 0:00:00 ( 9.53 ms/it)
+        elbo: -6826.1740022204185
+   iteration: 3107
 
-Optimizing 100%|███████████████████████████████| Time: 0:00:29 ( 9.57 ms/it)
-        elbo: -11072.277612497037
+Optimizing  99%|██████████████████████████████▉|  ETA: 0:00:00 ( 9.52 ms/it)
+        elbo: -10279.788058555032
+   iteration: 3121
+
+Optimizing 100%|███████████████████████████████| Time: 0:00:29 ( 9.52 ms/it)
+        elbo: -11519.477556293728
    iteration: 3130
-Optimizing   0%|                               |  ETA: 0:17:29 ( 0.34  s/it)
+Optimizing   0%|                               |  ETA: 0:17:07 ( 0.33  s/it)
        epoch: 1
         step: 2
-        elbo: -10626.852303505006
+        elbo: -28605.52251706226
    iteration: 2
 
 
 
-Optimizing   4%|█▍                             |  ETA: 0:00:19 ( 6.36 ms/it)
+Optimizing   4%|█▎                             |  ETA: 0:00:20 ( 6.60 ms/it)
        epoch: 1
-        step: 135
-        elbo: -17572.868496392508
-   iteration: 135
+        step: 129
+        elbo: -12294.419058149882
+   iteration: 129
 
 
 
-Optimizing   7%|██                             |  ETA: 0:00:14 ( 4.78 ms/it)
+Optimizing  10%|███                            |  ETA: 0:00:10 ( 3.67 ms/it)
        epoch: 1
-        step: 206
-        elbo: -10679.975592392038
-   iteration: 206
+        step: 305
+        elbo: -7354.41007531387
+   iteration: 305
 
 
 
-Optimizing  12%|███▊                           |  ETA: 0:00:09 ( 3.19 ms/it)
+Optimizing  12%|███▉                           |  ETA: 0:00:09 ( 3.14 ms/it)
        epoch: 2
-        step: 70
-        elbo: -9392.358760491667
-   iteration: 383
+        step: 76
+        elbo: -7541.75471732486
+   iteration: 389
 
 
 
-Optimizing  15%|████▌                          |  ETA: 0:00:08 ( 2.97 ms/it)
+Optimizing  15%|████▋                          |  ETA: 0:00:08 ( 2.87 ms/it)
        epoch: 2
-        step: 145
-        elbo: -6452.760066821602
-   iteration: 458
+        step: 159
+        elbo: -9070.800164479944
+   iteration: 472
 
 
 
-Optimizing  16%|█████▏                         |  ETA: 0:00:07 ( 2.86 ms/it)
+Optimizing  17%|█████▎                         |  ETA: 0:00:07 ( 2.76 ms/it)
        epoch: 2
+        step: 221
+        elbo: -6764.522397605248
+   iteration: 534
+
+
+
+Optimizing  24%|███████▎                       |  ETA: 0:00:06 ( 2.37 ms/it)
+       epoch: 3
+        step: 111
+        elbo: -6340.7937355202275
+   iteration: 737
+
+
+
+Optimizing  26%|████████                       |  ETA: 0:00:05 ( 2.30 ms/it)
+       epoch: 3
+        step: 185
+        elbo: -6091.841719865273
+   iteration: 811
+
+
+
+Optimizing  34%|██████████▌                    |  ETA: 0:00:04 ( 2.05 ms/it)
+       epoch: 4
+        step: 116
+        elbo: -5490.411941958115
+   iteration: 1055
+
+
+
+Optimizing  36%|███████████▎                   |  ETA: 0:00:04 ( 2.02 ms/it)
+       epoch: 4
         step: 201
-        elbo: -6996.6708764242
-   iteration: 514
+        elbo: -8323.37885231091
+   iteration: 1140
 
 
 
-Optimizing  22%|██████▉                        |  ETA: 0:00:06 ( 2.40 ms/it)
-       epoch: 3
-        step: 64
-        elbo: -7641.75527122943
-   iteration: 690
-
-
-
-Optimizing  25%|███████▊                       |  ETA: 0:00:05 ( 2.28 ms/it)
-       epoch: 3
-        step: 161
-        elbo: -6215.174200540378
-   iteration: 787
-
-
-
-Optimizing  27%|████████▌                      |  ETA: 0:00:05 ( 2.24 ms/it)
-       epoch: 3
-        step: 231
-        elbo: -7042.291651935856
-   iteration: 857
-
-
-
-Optimizing  29%|█████████                      |  ETA: 0:00:05 ( 2.23 ms/it)
-       epoch: 3
-        step: 287
-        elbo: -6818.200628662637
-   iteration: 913
-
-
-
-Optimizing  35%|██████████▊                    |  ETA: 0:00:04 ( 2.03 ms/it)
+Optimizing  38%|███████████▉                   |  ETA: 0:00:04 ( 2.00 ms/it)
        epoch: 4
-        step: 150
-        elbo: -6110.352275711138
-   iteration: 1089
+        step: 265
+        elbo: -6645.704842713213
+   iteration: 1204
 
 
 
-Optimizing  38%|███████████▊                   |  ETA: 0:00:04 ( 1.98 ms/it)
-       epoch: 4
-        step: 247
-        elbo: -6501.454683988143
-   iteration: 1186
-
-
-
-Optimizing  40%|████████████▌                  |  ETA: 0:00:04 ( 1.97 ms/it)
+Optimizing  44%|█████████████▋                 |  ETA: 0:00:03 ( 1.89 ms/it)
        epoch: 5
-        step: 5
-        elbo: -8619.46647120773
-   iteration: 1257
+        step: 121
+        elbo: -7604.592664097547
+   iteration: 1373
 
 
 
-Optimizing  42%|█████████████                  |  ETA: 0:00:04 ( 1.97 ms/it)
+Optimizing  47%|██████████████▌                |  ETA: 0:00:03 ( 1.86 ms/it)
        epoch: 5
+        step: 218
+        elbo: -5867.803175197939
+   iteration: 1470
+
+
+
+Optimizing  49%|███████████████▎               |  ETA: 0:00:03 ( 1.85 ms/it)
+       epoch: 5
+        step: 288
+        elbo: -5700.844847368424
+   iteration: 1540
+
+
+
+Optimizing  56%|█████████████████▎             |  ETA: 0:00:02 ( 1.79 ms/it)
+       epoch: 6
+        step: 178
+        elbo: -5674.300030511759
+   iteration: 1743
+
+
+
+Optimizing  58%|██████████████████             |  ETA: 0:00:02 ( 1.78 ms/it)
+       epoch: 6
+        step: 254
+        elbo: -7103.2661177246655
+   iteration: 1819
+
+
+
+Optimizing  64%|███████████████████▊           |  ETA: 0:00:02 ( 1.72 ms/it)
+       epoch: 7
+        step: 111
+        elbo: -6522.612352025189
+   iteration: 1989
+
+
+
+Optimizing  67%|████████████████████▋          |  ETA: 0:00:02 ( 1.70 ms/it)
+       epoch: 7
+        step: 208
+        elbo: -7216.7432411862255
+   iteration: 2086
+
+
+
+Optimizing  69%|█████████████████████▍         |  ETA: 0:00:02 ( 1.70 ms/it)
+       epoch: 7
+        step: 279
+        elbo: -6882.585072758554
+   iteration: 2157
+
+
+
+Optimizing  71%|██████████████████████         |  ETA: 0:00:02 ( 1.71 ms/it)
+       epoch: 8
+        step: 26
+        elbo: -5432.729213838868
+   iteration: 2217
+
+
+
+Optimizing  76%|███████████████████████▋       |  ETA: 0:00:01 ( 1.66 ms/it)
+       epoch: 8
+        step: 194
+        elbo: -5475.108011429828
+   iteration: 2385
+
+
+
+Optimizing  79%|████████████████████████▋      |  ETA: 0:00:01 ( 1.65 ms/it)
+       epoch: 8
+        step: 291
+        elbo: -5757.162349984267
+   iteration: 2482
+
+
+
+Optimizing  82%|█████████████████████████▎     |  ETA: 0:00:01 ( 1.65 ms/it)
+       epoch: 9
+        step: 51
+        elbo: -5868.941174830618
+   iteration: 2555
+
+
+
+Optimizing  84%|█████████████████████████▉     |  ETA: 0:00:01 ( 1.66 ms/it)
+       epoch: 9
+        step: 112
+        elbo: -5085.5081160375985
+   iteration: 2616
+
+
+
+Optimizing  89%|███████████████████████████▋   |  ETA: 0:00:01 ( 1.62 ms/it)
+       epoch: 9
+        step: 279
+        elbo: -5954.771106101285
+   iteration: 2783
+
+
+
+Optimizing  92%|████████████████████████████▌  |  ETA: 0:00:00 ( 1.61 ms/it)
+       epoch: 10
         step: 63
-        elbo: -5931.551227559587
-   iteration: 1315
+        elbo: -7308.036213869079
+   iteration: 2880
 
 
 
-Optimizing  48%|██████████████▊                |  ETA: 0:00:03 ( 1.86 ms/it)
-       epoch: 5
-        step: 236
-        elbo: -6126.633134203323
-   iteration: 1488
-
-
-
-Optimizing  51%|███████████████▊               |  ETA: 0:00:03 ( 1.83 ms/it)
-       epoch: 6
-        step: 20
-        elbo: -6102.5348552087025
-   iteration: 1585
-
-
-
-Optimizing  53%|████████████████▍              |  ETA: 0:00:03 ( 1.83 ms/it)
-       epoch: 6
-        step: 92
-        elbo: -5661.767287533863
-   iteration: 1657
-
-
-
-Optimizing  55%|█████████████████              |  ETA: 0:00:03 ( 1.83 ms/it)
-       epoch: 6
-        step: 150
-        elbo: -6545.816721197492
-   iteration: 1715
-
-
-
-Optimizing  60%|██████████████████▋            |  ETA: 0:00:02 ( 1.76 ms/it)
-       epoch: 7
-        step: 8
-        elbo: -5440.929053854249
-   iteration: 1886
-
-
-
-Optimizing  63%|███████████████████▋           |  ETA: 0:00:02 ( 1.74 ms/it)
-       epoch: 7
-        step: 104
-        elbo: -6925.067974662637
-   iteration: 1982
-
-
-
-Optimizing  66%|████████████████████▍          |  ETA: 0:00:02 ( 1.74 ms/it)
-       epoch: 7
-        step: 175
-        elbo: -5465.771177626591
-   iteration: 2053
-
-
-
-Optimizing  67%|████████████████████▉          |  ETA: 0:00:02 ( 1.75 ms/it)
-       epoch: 7
-        step: 233
-        elbo: -7324.241407018408
-   iteration: 2111
-
-
-
-Optimizing  73%|██████████████████████▋        |  ETA: 0:00:01 ( 1.70 ms/it)
-       epoch: 8
-        step: 90
-        elbo: -5667.898782424695
-   iteration: 2281
-
-
-
-Optimizing  76%|███████████████████████▌       |  ETA: 0:00:01 ( 1.68 ms/it)
-       epoch: 8
-        step: 186
-        elbo: -5717.129153214438
-   iteration: 2377
-
-
-
-Optimizing  78%|████████████████████████▎      |  ETA: 0:00:01 ( 1.68 ms/it)
-       epoch: 8
-        step: 257
-        elbo: -6848.12328745913
-   iteration: 2448
-
-
-
-Optimizing  80%|████████████████████████▉      |  ETA: 0:00:01 ( 1.69 ms/it)
-       epoch: 9
-        step: 5
-        elbo: -8864.787315104826
-   iteration: 2509
-
-
-
-Optimizing  86%|██████████████████████████▊    |  ETA: 0:00:01 ( 1.67 ms/it)
-       epoch: 9
-        step: 201
-        elbo: -7400.596292284845
-   iteration: 2705
-
-
-
-Optimizing  93%|████████████████████████████▊  |  ETA: 0:00:00 ( 1.62 ms/it)
+Optimizing  94%|█████████████████████████████▎ |  ETA: 0:00:00 ( 1.61 ms/it)
        epoch: 10
-        step: 83
-        elbo: -5070.529957226258
-   iteration: 2900
+        step: 137
+        elbo: -8959.274417153998
+   iteration: 2954
 
 
 
-Optimizing  96%|█████████████████████████████▊ |  ETA: 0:00:00 ( 1.64 ms/it)
+Optimizing  96%|█████████████████████████████▉ |  ETA: 0:00:00 ( 1.62 ms/it)
        epoch: 10
-        step: 186
-        elbo: -8168.390844192143
-   iteration: 3003
+        step: 199
+        elbo: -5737.397827815588
+   iteration: 3016
 
 
 
-Optimizing 100%|███████████████████████████████| Time: 0:00:05 ( 1.62 ms/it)
+Optimizing 100%|███████████████████████████████| Time: 0:00:05 ( 1.60 ms/it)
        epoch: 10
         step: 313
-        elbo: -5490.25483554709
+        elbo: -6553.243313127821
    iteration: 3130</code></pre><p>Let&#39;s visualize the evolution of the ELBO.</p><pre><code class="language-julia hljs">using Plots
 
 t = 1:logging_interval:max_iter
@@ -1812,4 +1801,4 @@ plot!(
     label=&quot;Subsampling&quot;,
 )
 savefig(&quot;subsampling_example_time_accuracy.svg&quot;)
-nothing</code></pre><p><img src="../subsampling_example_time_accuracy.svg" alt/></p><p>But remember that subsampling will always be <em>asymptotically</em> slower than no subsampling. That is, as the number of iterations increase, there will be a point where no subsampling will overtake subsampling even in terms of wallclock time. Therefore, subsampling is most beneficial when a crude solution to the VI problem suffices.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-HBB2010"><a class="tag is-link" href="#citeref-HBB2010">HBB2010</a>Hoffman, M., Bach, F., &amp; Blei, D. (2010). Online learning for latent Dirichlet allocation. In <em>Advances in Neural Information Processing Systems</em>, 23.</li><li class="footnote" id="footnote-HBWP2013"><a class="tag is-link" href="#citeref-HBWP2013">HBWP2013</a>Hoffman, M. D., Blei, D. M., Wang, C., &amp; Paisley, J. (2013). Stochastic variational inference. <em>Journal of Machine Learning Research</em>, 14(1), 1303-1347.</li><li class="footnote" id="footnote-TL2014"><a class="tag is-link" href="#citeref-TL2014">TL2014</a>Titsias, M., &amp; Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In <em>Proceedings of the International Conference on Machine Learning</em> (pp. 1971-1979). PMLR.</li><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. <em>Journal of Machine Learning Research</em>, 18(14), 1-45.</li><li class="footnote" id="footnote-Tan2018"><a class="tag is-link" href="#citeref-Tan2018">Tan2018</a>Tan, Choon Lin (2018), &quot;Phishing Dataset for Machine Learning: Feature Evaluation&quot;, Mendeley Data, V1, doi: 10.17632/h3cgnj8hft.1]</li><li class="footnote" id="footnote-MKR2020"><a class="tag is-link" href="#citeref-MKR2020">MKR2020</a>Mishchenko, K., Khaled, A., &amp; Richtárik, P. (2020). Random reshuffling: Simple analysis with vast improvements. Advances in Neural Information Processing Systems, 33, 17309-17320.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../basic/">« Basic Example</a><a class="docs-footer-nextpage" href="../stan/">Stan Models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.0 on <span class="colophon-date" title="Saturday 22 November 2025 20:15">Saturday 22 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing</code></pre><p><img src="../subsampling_example_time_accuracy.svg" alt/></p><p>But remember that subsampling will always be <em>asymptotically</em> slower than no subsampling. That is, as the number of iterations increase, there will be a point where no subsampling will overtake subsampling even in terms of wallclock time. Therefore, subsampling is most beneficial when a crude solution to the VI problem suffices.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-HBB2010"><a class="tag is-link" href="#citeref-HBB2010">HBB2010</a>Hoffman, M., Bach, F., &amp; Blei, D. (2010). Online learning for latent Dirichlet allocation. In <em>Advances in Neural Information Processing Systems</em>, 23.</li><li class="footnote" id="footnote-HBWP2013"><a class="tag is-link" href="#citeref-HBWP2013">HBWP2013</a>Hoffman, M. D., Blei, D. M., Wang, C., &amp; Paisley, J. (2013). Stochastic variational inference. <em>Journal of Machine Learning Research</em>, 14(1), 1303-1347.</li><li class="footnote" id="footnote-TL2014"><a class="tag is-link" href="#citeref-TL2014">TL2014</a>Titsias, M., &amp; Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In <em>Proceedings of the International Conference on Machine Learning</em> (pp. 1971-1979). PMLR.</li><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. <em>Journal of Machine Learning Research</em>, 18(14), 1-45.</li><li class="footnote" id="footnote-Tan2018"><a class="tag is-link" href="#citeref-Tan2018">Tan2018</a>Tan, Choon Lin (2018), &quot;Phishing Dataset for Machine Learning: Feature Evaluation&quot;, Mendeley Data, V1, doi: 10.17632/h3cgnj8hft.1]</li><li class="footnote" id="footnote-MKR2020"><a class="tag is-link" href="#citeref-MKR2020">MKR2020</a>Mishchenko, K., Khaled, A., &amp; Richtárik, P. (2020). Random reshuffling: Simple analysis with vast improvements. Advances in Neural Information Processing Systems, 33, 17309-17320.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../basic/">« Basic Example</a><a class="docs-footer-nextpage" href="../stan/">Stan Models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Tuesday 25 November 2025 19:43">Tuesday 25 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
