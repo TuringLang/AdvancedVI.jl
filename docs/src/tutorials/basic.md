@@ -73,28 +73,33 @@ nothing
 Next, we will wrap our original `LogDensityProblem` into a new `LogDensityProblem` that applies the transformation and the corresponding Jacobian adjustment.
 
 ```@example basic
-struct TransformedLogDensityProblem{Prob,Trans}
+struct TransformedLogDensityProblem{Prob,BInv}
     prob::Prob
-    transform::Trans
+    binv::BInv
 end
 
-function TransformedLogDensityProblem(prob, transform)
-    return TransformedLogDensityProblem{typeof(prob),typeof(transform)}(prob, transform)
+function TransformedLogDensityProblem(prob)
+    b = Bijectors.bijector(prob)
+    binv = Bijectors.inverse(b)
+    return TransformedLogDensityProblem{typeof(prob),typeof(binv)}(prob, binv)
 end
 
 function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem, θ_trans)
-    (; prob, transform) = prob_trans
-    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(transform, θ_trans)
+    (; prob, binv) = prob_trans
+    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
     return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
 end
 
 function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
-    return LogDensityProblems.dimension(prob_trans.prob)
+    (; prob, binv) = prob_trans
+    b = Bijectors.inverse(binv)
+    d = LogDensityProblems.dimension(prob)
+    return prod(Bijectors.output_size(b, (d,)))
 end
 
 function LogDensityProblems.capabilities(
-    ::Type{TransformedLogDensityProblem{Prob,Trans}}
-) where {Prob,Trans}
+    ::Type{TransformedLogDensityProblem{Prob,BInv}}
+) where {Prob,BInv}
     return LogDensityProblems.capabilities(Prob)
 end
 nothing
@@ -129,9 +134,7 @@ The model can now be instantiated as follows:
 
 ```@example basic
 prob = LogReg(X, y);
-b = Bijectors.bijector(prob)
-binv = Bijectors.inverse(b)
-prob_trans = TransformedLogDensityProblem(prob, binv)
+prob_trans = TransformedLogDensityProblem(prob)
 nothing
 ```
 
@@ -216,6 +219,8 @@ This, however, is not the original constrained posterior that we wanted to appro
 Therefore, we finally need to apply a change-of-variable to `q_out` to make it approximate our original problem:
 
 ```julia
+b = Bijectors.bijector(prob)
+binv = Bijectors.inverse(b)
 q_trans = Bijectors.TransformedDistribution(q_out, binv)
 ```
 

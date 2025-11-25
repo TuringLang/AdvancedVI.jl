@@ -102,28 +102,33 @@ nothing
 to transform the posterior to be unconstrained:
 
 ```@example flow
-struct TransformedLogDensityProblem{Prob,Trans}
+struct TransformedLogDensityProblem{Prob,BInv}
     prob::Prob
-    transform::Trans
+    binv::BInv
 end
 
-function TransformedLogDensityProblem(prob, transform)
-    return TransformedLogDensityProblem{typeof(prob),typeof(transform)}(prob, transform)
+function TransformedLogDensityProblem(prob)
+    b = Bijectors.bijector(prob)
+    binv = Bijectors.inverse(b)
+    return TransformedLogDensityProblem{typeof(prob),typeof(binv)}(prob, binv)
 end
 
 function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem, θ_trans)
-    (; prob, transform) = prob_trans
-    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(transform, θ_trans)
+    (; prob, binv) = prob_trans
+    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
     return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
 end
 
 function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
-    return LogDensityProblems.dimension(prob_trans.prob)
+    (; prob, binv) = prob_trans
+    b = Bijectors.inverse(binv)
+    d = LogDensityProblems.dimension(prob)
+    return prod(Bijectors.output_size(b, (d,)))
 end
 
 function LogDensityProblems.capabilities(
-    ::Type{TransformedLogDensityProblem{Prob,Trans}}
-) where {Prob,Trans}
+    ::Type{TransformedLogDensityProblem{Prob,BInv}}
+) where {Prob,BInv}
     return LogDensityProblems.capabilities(Prob)
 end
 nothing
@@ -137,8 +142,7 @@ using ReverseDiff: ReverseDiff
 using DifferentiationInterface: DifferentiationInterface
 using LogDensityProblemsAD: LogDensityProblemsAD
 
-binv = Bijectors.inverse(Bijectors.bijector(prob))
-prob_trans = TransformedLogDensityProblem(prob, binv)
+prob_trans = TransformedLogDensityProblem(prob)
 prob_trans_ad = LogDensityProblemsAD.ADgradient(
     ADTypes.AutoForwardDiff(), prob_trans; x=[1.0, 1.0]
 )
@@ -157,6 +161,8 @@ q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
 max_iter = 3*10^3
 alg = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
 q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
+b = Bijectors.bijector(prob)
+binv = Bijectors.inverse(b)
 q_out_trans = Bijectors.TransformedDistribution(q_out, binv)
 nothing
 ```
