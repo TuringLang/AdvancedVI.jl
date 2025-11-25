@@ -523,28 +523,33 @@ function Bijectors.bijector(model::LogReg)
         [1:d, (d + 1):(d + 1)],
     )
 end
-nothing</code></pre><p>Next, we will wrap our original <code>LogDensityProblem</code> into a new <code>LogDensityProblem</code> that applies the transformation and the corresponding Jacobian adjustment.</p><pre><code class="language-julia hljs">struct TransformedLogDensityProblem{Prob,Trans}
+nothing</code></pre><p>Next, we will wrap our original <code>LogDensityProblem</code> into a new <code>LogDensityProblem</code> that applies the transformation and the corresponding Jacobian adjustment.</p><pre><code class="language-julia hljs">struct TransformedLogDensityProblem{Prob,BInv}
     prob::Prob
-    transform::Trans
+    binv::BInv
 end
 
-function TransformedLogDensityProblem(prob, transform)
-    return TransformedLogDensityProblem{typeof(prob),typeof(transform)}(prob, transform)
+function TransformedLogDensityProblem(prob)
+    b = Bijectors.bijector(prob)
+    binv = Bijectors.inverse(b)
+    return TransformedLogDensityProblem{typeof(prob),typeof(binv)}(prob, binv)
 end
 
 function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem, θ_trans)
-    (; prob, transform) = prob_trans
-    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(transform, θ_trans)
+    (; prob, binv) = prob_trans
+    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
     return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
 end
 
 function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
-    return LogDensityProblems.dimension(prob_trans.prob)
+    (; prob, binv) = prob_trans
+    b = Bijectors.inverse(binv)
+    d = LogDensityProblems.dimension(prob)
+    return prod(Bijectors.output_size(b, (d,)))
 end
 
 function LogDensityProblems.capabilities(
-    ::Type{TransformedLogDensityProblem{Prob,Trans}}
-) where {Prob,Trans}
+    ::Type{TransformedLogDensityProblem{Prob,BInv}}
+) where {Prob,BInv}
     return LogDensityProblems.capabilities(Prob)
 end
 nothing</code></pre><p>For more details on the usage of bijectors, please refer to the documentation of <a href="https://github.com/TuringLang/Bijectors.jl"><code>Bijectors</code></a>.</p><p>For the dataset, we will use the popular <a href="https://archive.ics.uci.edu/dataset/151/connectionist+bench+sonar+mines+vs+rocks">sonar classification dataset</a> from the UCI repository. This can be automatically downloaded using <a href="https://github.com/JuliaAI/OpenML.jl"><code>OpenML</code></a>. The sonar dataset corresponds to the dataset id 40.</p><pre><code class="language-julia hljs">using OpenML: OpenML
@@ -557,9 +562,7 @@ nothing</code></pre><p>Let&#39;s apply some basic pre-processing and add an inte
 X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
 X = hcat(X, ones(size(X, 1)))
 nothing</code></pre><p>The model can now be instantiated as follows:</p><pre><code class="language-julia hljs">prob = LogReg(X, y);
-b = Bijectors.bijector(prob)
-binv = Bijectors.inverse(b)
-prob_trans = TransformedLogDensityProblem(prob, binv)
+prob_trans = TransformedLogDensityProblem(prob)
 nothing</code></pre><h2 id="Basic-Usage"><a class="docs-heading-anchor" href="#Basic-Usage">Basic Usage</a><a id="Basic-Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Usage" title="Permalink"></a></h2><p>For the VI algorithm, we will use <code>KLMinRepGradDescent</code>:</p><pre><code class="language-julia hljs">using ADTypes, ReverseDiff
 using AdvancedVI
 
@@ -573,9 +576,7 @@ nothing</code></pre><p>For the variational family, we will consider a <code>Full
 d = LogDensityProblems.dimension(prob_trans)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
 nothing</code></pre><p><code>KLMinRepGradDescent</code> requires the variational approximation and the target log-density to have unconstrained support. Since we applied a bijector to the posterior to make it unconstrained, and the support of a <code>FullRankGaussian</code> is already the full <span>$\mathbb{R}^d$</span>, we are ready to go.</p><p>We can now run VI:</p><pre><code class="language-julia hljs">max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(
-    alg, max_iter, prob_trans_ad, q; show_progress=false
-)
+q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
 nothing</code></pre><p>Let&#39;s verify that the optimization procedure converged. For this, we will visually inspect that the maximization objective of <code>KLMinRepGradDescent</code>, the &quot;evidence lower bound&quot; (ELBO) increased. Since <code>KLMinRepGradDescent</code> stores the ELBO estimate at each iteration in <code>info</code>, we can visualize this as follows:</p><pre><code class="language-julia hljs">using Plots
 
 plot(
@@ -586,7 +587,10 @@ plot(
     label=nothing,
 )
 savefig(&quot;basic_example_elbo.svg&quot;)
-nothing</code></pre><p><img src="../basic_example_elbo.svg" alt/></p><p>Recall that we applied a change-of-variable to the posterior to make it unconstrained. This, however, is not the original constrained posterior that we wanted to approximate. Therefore, we finally need to apply a change-of-variable to <code>q_out</code> to make it approximate our original problem:</p><pre><code class="language-julia hljs">q_trans = Bijectors.TransformedDistribution(q_out, binv)</code></pre><h2 id="Custom-Callback"><a class="docs-heading-anchor" href="#Custom-Callback">Custom Callback</a><a id="Custom-Callback-1"></a><a class="docs-heading-anchor-permalink" href="#Custom-Callback" title="Permalink"></a></h2><p>The ELBO estimates above however, use only a handful of Monte Carlo samples. Furthermore, the ELBO is evaluated on the iterates of the optimization procedure, which may not coincide with the actual output of the algorithm. (For instance, if parameter averaging is used.) Therefore, we may want to occasionally estimate higher resolution ELBO estimates. Also, depending on the problem, we may want to monitor some problem-specific diagnostics for monitoring the progress.</p><p>For both use cases above, defining a custom <code>callback</code> function can be useful. In this example, we will compute a more accurate estimate of the ELBO and the classification accuracy every <code>logging_interval = 10</code> iterations.</p><pre><code class="language-julia hljs">using StatsFuns: StatsFuns
+nothing</code></pre><p><img src="../basic_example_elbo.svg" alt/></p><p>Recall that we applied a change-of-variable to the posterior to make it unconstrained. This, however, is not the original constrained posterior that we wanted to approximate. Therefore, we finally need to apply a change-of-variable to <code>q_out</code> to make it approximate our original problem:</p><pre><code class="language-julia hljs">b = Bijectors.bijector(prob)
+binv = Bijectors.inverse(b)
+q_trans = Bijectors.TransformedDistribution(q_out, binv)
+nothing</code></pre><h2 id="Custom-Callback"><a class="docs-heading-anchor" href="#Custom-Callback">Custom Callback</a><a id="Custom-Callback-1"></a><a class="docs-heading-anchor-permalink" href="#Custom-Callback" title="Permalink"></a></h2><p>The ELBO estimates above however, use only a handful of Monte Carlo samples. Furthermore, the ELBO is evaluated on the iterates of the optimization procedure, which may not coincide with the actual output of the algorithm. (For instance, if parameter averaging is used.) Therefore, we may want to occasionally estimate higher resolution ELBO estimates. Also, depending on the problem, we may want to monitor some problem-specific diagnostics for monitoring the progress.</p><p>For both use cases above, defining a custom <code>callback</code> function can be useful. In this example, we will compute a more accurate estimate of the ELBO and the classification accuracy every <code>logging_interval = 10</code> iterations.</p><pre><code class="language-julia hljs">using StatsFuns: StatsFuns
 
 &quot;&quot;&quot;
     logistic_prediction(X, μ_β, Σ_β)
@@ -647,4 +651,4 @@ plot(
     label=nothing,
 )
 savefig(&quot;basic_example_acc.svg&quot;)
-nothing</code></pre><p><img src="../basic_example_acc.svg" alt/></p><p>Clearly, the accuracy is improving over time.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-TL2014"><a class="tag is-link" href="#citeref-TL2014">TL2014</a>Titsias, M., &amp; Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In <em>International Conference on Machine Learning</em>. PMLR.</li><li class="footnote" id="footnote-RMW2014"><a class="tag is-link" href="#citeref-RMW2014">RMW2014</a>Rezende, D. J., Mohamed, S., &amp; Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In <em>International Conference on Machine Learning</em>. PMLR.</li><li class="footnote" id="footnote-KW2014"><a class="tag is-link" href="#citeref-KW2014">KW2014</a>Kingma, D. P., &amp; Welling, M. (2014). Auto-encoding variational bayes. In <em>International Conference on Learning Representations</em>.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../general/">« General Usage</a><a class="docs-footer-nextpage" href="../subsampling/">Scaling to Large Datasets »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Tuesday 25 November 2025 19:43">Tuesday 25 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing</code></pre><p><img src="../basic_example_acc.svg" alt/></p><p>Clearly, the accuracy is improving over time.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-TL2014"><a class="tag is-link" href="#citeref-TL2014">TL2014</a>Titsias, M., &amp; Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In <em>International Conference on Machine Learning</em>. PMLR.</li><li class="footnote" id="footnote-RMW2014"><a class="tag is-link" href="#citeref-RMW2014">RMW2014</a>Rezende, D. J., Mohamed, S., &amp; Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In <em>International Conference on Machine Learning</em>. PMLR.</li><li class="footnote" id="footnote-KW2014"><a class="tag is-link" href="#citeref-KW2014">KW2014</a>Kingma, D. P., &amp; Welling, M. (2014). Auto-encoding variational bayes. In <em>International Conference on Learning Representations</em>.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../general/">« General Usage</a><a class="docs-footer-nextpage" href="../subsampling/">Scaling to Large Datasets »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Tuesday 25 November 2025 20:12">Tuesday 25 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
