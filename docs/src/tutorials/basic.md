@@ -218,10 +218,11 @@ Recall that we applied a change-of-variable to the posterior to make it unconstr
 This, however, is not the original constrained posterior that we wanted to approximate.
 Therefore, we finally need to apply a change-of-variable to `q_out` to make it approximate our original problem:
 
-```julia
+```@example basic
 b = Bijectors.bijector(prob)
 binv = Bijectors.inverse(b)
 q_trans = Bijectors.TransformedDistribution(q_out, binv)
+nothing
 ```
 
 ## Custom Callback
