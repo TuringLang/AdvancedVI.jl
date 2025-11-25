@@ -187,9 +187,7 @@ We can now run VI:
 
 ```@example basic
 max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(
-    alg, max_iter, prob_trans_ad, q; show_progress=false
-)
+q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
 nothing
 ```
 
