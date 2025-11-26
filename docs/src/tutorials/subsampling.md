@@ -208,12 +208,12 @@ end
 
 time_begin = time()
 _, info_full, _ = AdvancedVI.optimize(
-    alg_full, max_iter, prob_ad, q; show_progress=true, callback
+    alg_full, max_iter, prob_ad, q; show_progress=false, callback
 );
 
 time_begin = time()
 _, info_sub, _ = AdvancedVI.optimize(
-    alg_sub, max_iter, prob_ad, q; show_progress=true, callback
+    alg_sub, max_iter, prob_ad, q; show_progress=false, callback
 );
 nothing
 ```
