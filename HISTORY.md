@@ -1,3 +1,14 @@
+# Release 0.7
+
+## Removal of special treatment to `Bijectors.TransformedDistribution`
+
+Previously, `KLMinRepGradDescent`, `KLMinRepGradProxDescent`, `KLMinScoreGradDescent` only required the support of the target log-density problem to match that of `q`.
+This was implemented by giving a special treatment to `q <: Bijectors.TransformedDistribution` through the `Bijectors` extension.
+This, however, resulted in a multiplicative complexity in maintaining the relevant bits.
+Since this is not the only way to deal with constrained supports, `Bijectors` extension is now removed.
+In addition, `KLMinRepGradDescent`, `KLMinRepGradProxDescent`, `KLMinScoreGradDescent` now expect an unconstrained target log-density problem.
+Instead, a tutorial has been added to the documentation on how to deal with a target log-density problem with constrained support.
+
 # Release 0.6
 
 ## New Algorithms

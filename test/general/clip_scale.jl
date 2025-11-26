@@ -1,10 +1,8 @@
 
 @testset "interface ClipScale" begin
     @testset "MvLocationScale" begin
-        @testset "$(string(covtype)) $(realtype) $(bijector)" for covtype in
-                                                                  [:meanfield, :fullrank],
-            realtype in [Float32, Float64],
-            bijector in [nothing, :identity]
+        @testset "$(string(covtype)) $(realtype)" for covtype in [:meanfield, :fullrank],
+            realtype in [Float32, Float64]
 
             d = 5
             μ = zeros(realtype, d)
@@ -16,29 +14,18 @@
                 L = Diagonal(ones(realtype, d))
                 MeanFieldGaussian(μ, L)
             end
-            q = if isnothing(bijector)
-                q
-            else
-                Bijectors.TransformedDistribution(q, identity)
-            end
 
             params, re = Optimisers.destructure(q)
             opt_st = Optimisers.setup(Descent(1e-2), params)
             params′ = AdvancedVI.apply(ClipScale(ϵ), typeof(q), opt_st, params, re)
             q′ = re(params′)
 
-            if isnothing(bijector)
-                @test all(var(q′) .≥ ϵ^2)
-            else
-                @test all(var(q′.dist) .≥ ϵ^2)
-            end
+            @test all(var(q′) .≥ ϵ^2)
         end
     end
 
     @testset "MvLocationScaleLowRank" begin
-        @testset "$(realtype) $(bijector)" for realtype in [Float32, Float64],
-            bijector in [nothing, :identity]
-
+        @testset "$(realtype)" for realtype in [Float32, Float64]
             n_rank = 2
             d = 5
             μ = zeros(realtype, d)
@@ -48,22 +35,13 @@
             q = MvLocationScaleLowRank(
                 μ, D, U, Normal{realtype}(zero(realtype), one(realtype))
             )
-            q = if isnothing(bijector)
-                q
-            else
-                Bijectors.TransformedDistribution(q, bijector)
-            end
 
             params, re = Optimisers.destructure(q)
             opt_st = Optimisers.setup(Descent(1e-2), params)
             params′ = AdvancedVI.apply(ClipScale(ϵ), typeof(q), opt_st, params, re)
             q′ = re(params′)
 
-            if isnothing(bijector)
-                @test all(var(q′) .≥ ϵ^2)
-            else
-                @test all(var(q′.dist) .≥ ϵ^2)
-            end
+            @test all(var(q′.dist) .≥ ϵ^2)
         end
     end
 end

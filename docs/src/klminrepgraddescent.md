@@ -1,9 +1,7 @@
 # [`KLMinRepGradDescent`](@id klminrepgraddescent)
 
-## Description
-
-This algorithm aims to minimize the exclusive (or reverse) Kullback-Leibler (KL) divergence via stochastic gradient descent in the space of parameters.
-Specifically, it uses the the *reparameterization gradient estimator*.
+This algorithms aim to minimize the exclusive (or reverse) Kullback-Leibler (KL) divergence via stochastic gradient descent in the space of parameters.
+Specifically, it uses the the *reparameterization gradient* estimator.
 As a result, this algorithm is best applicable when the target log-density is differentiable and the sampling process of the variational family is differentiable.
 (See the [methodology section](@ref klminrepgraddescent_method) for more details.)
 This algorithm is also commonly referred to as automatic differentiation variational inference, black-box variational inference with the reparameterization gradient, and stochastic gradient variational inference.
@@ -13,30 +11,15 @@ This algorithm is also commonly referred to as automatic differentiation variati
 KLMinRepGradDescent
 ```
 
-The associated objective value can be estimated through the following:
-
-```@docs; canonical=false
-estimate_objective(
-    ::Random.AbstractRNG,
-    ::Union{<:KLMinRepGradDescent,<:KLMinRepGradProxDescent,<:KLMinScoreGradDescent},
-    ::Any,
-    ::Any;
-    ::Int,
-    ::AbstractEntropyEstimator,
-)
-```
-
 ## [Methodology](@id klminrepgraddescent_method)
 
-This algorithm aims to solve the problem
+This algorithms aim to solve the problem
 
 ```math
   \mathrm{minimize}_{q \in \mathcal{Q}}\quad \mathrm{KL}\left(q, \pi\right)
 ```
 
 where $\mathcal{Q}$ is some family of distributions, often called the variational family, by running stochastic gradient descent in the (Euclidean) space of parameters.
-That is, for all $$q_{\lambda} \in \mathcal{Q}$$, we assume $$q_{\lambda}$$ there is a corresponding vector of parameters $$\lambda \in \Lambda$$, where the space of parameters is Euclidean such that $$\Lambda \subset \mathbb{R}^p$$.
-
 Since we usually only have access to the unnormalized densities of the target distribution $\pi$, we don't have direct access to the KL divergence.
 Instead, the ELBO maximization strategy maximizes a surrogate objective, the *evidence lower bound* (ELBO; [^JGJS1999])
 
@@ -57,7 +40,7 @@ Algorithmically, `KLMinRepGradDescent` iterates the step
 where $\widehat{\nabla \mathrm{ELBO}}(q_{\lambda})$ is the reparameterization gradient estimate[^HC1983][^G1991][^R1992][^P1996] of the ELBO gradient and $$\mathrm{operator}$$ is an optional operator (*e.g.* projections, identity mapping).
 
 The reparameterization gradient, also known as the push-in gradient or the pathwise gradient, was introduced to VI in [^TL2014][^RMW2014][^KW2014].
-For the variational family $$\mathcal{Q}$$, suppose the process of sampling from $$q_{\lambda} \in \mathcal{Q}$$ can be described by some differentiable reparameterization function $$T_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
+For the variational family $\mathcal{Q} = \{q_{\lambda} \mid \lambda \in \Lambda\}$, suppose the process of sampling from $q_{\lambda}$ can be described by some differentiable reparameterization function $$T_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
 
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
@@ -80,51 +63,6 @@ where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples.
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*.
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-## [Handling Constraints with `Bijectors`](@id bijectors)
-
-As mentioned in the docstring, `KLMinRepGradDescent` assumes that the variational approximation $$q_{\lambda}$$ and the target distribution $$\pi$$ have the same support for all $$\lambda \in \Lambda$$.
-However, in general, it is most convenient to use variational families that have the whole Euclidean space $$\mathbb{R}^d$$ as their support.
-This is the case for the [location-scale distributions](@ref locscale) provided by `AdvancedVI`.
-For target distributions which the support is not the full $$\mathbb{R}^d$$, we can apply some transformation $$b$$ to $$q_{\lambda}$$ to match its support such that
-
-```math
-z \sim  q_{b,\lambda} \qquad\Leftrightarrow\qquad
-z \stackrel{d}{=} b^{-1}\left(\eta\right);\quad \eta \sim q_{\lambda},
-```
-
-where $$b$$ is often called a *bijector*, since it is often chosen among bijective transformations.
-This idea is known as automatic differentiation VI[^KTRGB2017] and has subsequently been improved by Tensorflow Probability[^DLTBV2017].
-In Julia, [Bijectors.jl](https://github.com/TuringLang/Bijectors.jl)[^FXTYG2020] provides a comprehensive collection of bijections.
-
-[^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of Machine Learning Research*, 18(14), 1-45.
-[^DLTBV2017]: Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... & Saurous, R. A. (2017). Tensorflow distributions. arXiv.
-[^FXTYG2020]: Fjelde, T. E., Xu, K., Tarek, M., Yalburgi, S., & Ge, H. (2020,. Bijectors. jl: Flexible transformations for probability distributions. In *Symposium on Advances in Approximate Bayesian Inference*.
-    One caveat of ADVI is that, after applying the bijection, a Jacobian adjustment needs to be applied.
-    That is, the objective is now
-```math
-\mathrm{ADVI}\left(\lambda\right)
-\triangleq
-\mathbb{E}_{\eta \sim q_{\lambda}}\left[
-  \log \pi\left( b^{-1}\left( \eta \right) \right)
-  + \log \lvert J_{b^{-1}}\left(\eta\right) \rvert
-\right]
-+ \mathbb{H}\left(q_{\lambda}\right)
-```
-
-This is automatically handled by `AdvancedVI` through `TransformedDistribution` provided by `Bijectors.jl`.
-See the following example:
-
-```julia
-using Bijectors
-q = MeanFieldGaussian(μ, L)
-b = Bijectors.bijector(dist)
-binv = inverse(b)
-q_transformed = Bijectors.TransformedDistribution(q, binv)
-```
-
-By passing `q_transformed` to `optimize`, the Jacobian adjustment for the bijector `b` is automatically applied.
-(See the [Basic Example](@ref basic) for a fully working example.)
-
 ## [Entropy Gradient Estimators](@id entropygrad)
 
 For the gradient of the entropy term, we provide three choices with varying requirements.
@@ -157,7 +95,7 @@ Depending on the variational family, this might be computationally inefficient o
 For example, if ``q_{\lambda}`` is a Gaussian with a full-rank covariance, a back-substitution must be performed at every step, making the per-iteration complexity ``\mathcal{O}(d^3)`` and reducing numerical stability.
 
 ```@setup repgradelbo
-using Bijectors
+using Distributions
 using FillArrays
 using LinearAlgebra
 using LogDensityProblems
@@ -168,51 +106,38 @@ using Optimisers
 using ADTypes, ForwardDiff, ReverseDiff
 using AdvancedVI
 
-struct NormalLogNormal{MX,SX,MY,SY}
-    μ_x::MX
-    σ_x::SX
-    μ_y::MY
-    Σ_y::SY
+struct Dist{D}
+    dist::D
 end
 
-function LogDensityProblems.logdensity(model::NormalLogNormal, θ)
-    (; μ_x, σ_x, μ_y, Σ_y) = model
-    logpdf(LogNormal(μ_x, σ_x), θ[1]) + logpdf(MvNormal(μ_y, Σ_y), θ[2:end])
+function LogDensityProblems.logdensity(model::Dist, θ)
+    return logpdf(model.dist, θ)
 end
 
-function LogDensityProblems.logdensity_and_gradient(model::NormalLogNormal, θ)
+function LogDensityProblems.logdensity_and_gradient(model::Dist, θ)
     return (
         LogDensityProblems.logdensity(model, θ),
         ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
     )
 end
 
-function LogDensityProblems.dimension(model::NormalLogNormal)
-    length(model.μ_y) + 1
+function LogDensityProblems.dimension(model::Dist)
+    return length(model.dist)
 end
 
-function LogDensityProblems.capabilities(::Type{<:NormalLogNormal})
+function LogDensityProblems.capabilities(::Type{<:Dist})
     LogDensityProblems.LogDensityOrder{1}()
 end
 
 n_dims = 10
-μ_x    = 2.0
-σ_x    = 0.3
-μ_y    = Fill(2.0, n_dims)
-σ_y    = Fill(1.0, n_dims)
-model  = NormalLogNormal(μ_x, σ_x, μ_y, Diagonal(σ_y.^2));
+μ      = Fill(2.0, n_dims)
+σ      = Fill(1.0, n_dims)
+model  = Dist(MvNormal(μ, Diagonal(σ.^2)));
 
 d  = LogDensityProblems.dimension(model);
-μ  = zeros(d);
-L  = Diagonal(ones(d));
-q0 = AdvancedVI.MeanFieldGaussian(μ, L)
-
-function Bijectors.bijector(model::NormalLogNormal)
-    (; μ_x, σ_x, μ_y, Σ_y) = model
-    Bijectors.Stacked(
-        Bijectors.bijector.([LogNormal(μ_x, σ_x), MvNormal(μ_y, Σ_y)]),
-        [1:1, 2:1+length(μ_y)])
-end
+μ0 = zeros(d);
+L0 = Diagonal(ones(d));
+q0 = AdvancedVI.MeanFieldGaussian(μ0, L0)
 ```
 
 In this example, the true posterior is contained within the variational family.
@@ -223,10 +148,6 @@ Recall that the original ADVI objective with a closed-form entropy (CFE) is give
 
 ```@example repgradelbo
 n_montecarlo = 16;
-b = Bijectors.bijector(model);
-binv = inverse(b)
-
-q0_trans = Bijectors.TransformedDistribution(q0, binv)
 
 cfe = KLMinRepGradDescent(
     AutoReverseDiff();
@@ -250,12 +171,11 @@ nothing
 ```
 
 ```@setup repgradelbo
-max_iter = 3*10^3
+max_iter = 10^3
 
 function callback(; params, restructure, kwargs...)
-    q = restructure(params).dist
-    dist2 = sum(abs2, q.location - vcat([μ_x], μ_y)) 
-        + sum(abs2, diag(q.scale) - vcat(σ_x, σ_y))
+    q = restructure(params)
+    dist2 = sum(abs2, q.location - μ) + sum(abs2, diag(q.scale) - σ)
     (dist = sqrt(dist2),)
 end
 
@@ -263,7 +183,7 @@ _, info_cfe, _ = AdvancedVI.optimize(
     cfe,
     max_iter,
     model,
-    q0_trans;
+    q0;
     show_progress = false,
     callback      = callback,
 ); 
@@ -272,7 +192,7 @@ _, info_stl, _ = AdvancedVI.optimize(
     stl,
     max_iter,
     model,
-    q0_trans;
+    q0;
     show_progress = false,
     callback      = callback,
 ); 
@@ -281,7 +201,7 @@ _, info_stl, _ = AdvancedVI.optimize(
     stl,
     max_iter,
     model,
-    q0_trans;
+    q0;
     show_progress = false,
     callback      = callback,
 ); 
@@ -364,7 +284,7 @@ _, info_qmc, _ = AdvancedVI.optimize(
     KLMinRepGradDescent(AutoReverseDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2), operator=ClipScale()),
     max_iter,
     model,
-    q0_trans;
+    q0;
     show_progress = false,
     callback      = callback,
 ); 

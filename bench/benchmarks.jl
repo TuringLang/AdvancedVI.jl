@@ -1,7 +1,6 @@
 using ADTypes
 using AdvancedVI
 using BenchmarkTools
-using Bijectors
 using Distributions
 using DistributionsAD
 using Enzyme, ForwardDiff, ReverseDiff, Zygote, Mooncake
@@ -17,8 +16,34 @@ BLAS.set_num_threads(min(4, Threads.nthreads()))
 @info sprint(versioninfo)
 @info "BLAS threads: $(BLAS.get_num_threads())"
 
-include("normallognormal.jl")
-include("unconstrdist.jl")
+struct Dist{D<:ContinuousMultivariateDistribution}
+    dist::D
+end
+
+function LogDensityProblems.logdensity(model::Dist, x)
+    return logpdf(model.dist, x)
+end
+
+function LogDensityProblems.logdensity_and_gradient(model::Dist, θ)
+    return (
+        LogDensityProblems.logdensity(model, θ),
+        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
+    )
+end
+
+function LogDensityProblems.dimension(model::Dist)
+    return length(model.dist)
+end
+
+function LogDensityProblems.capabilities(::Type{<:Dist})
+    return LogDensityProblems.LogDensityOrder{0}()
+end
+
+function normal(; n_dims=10, realtype=Float64)
+    μ = fill(realtype(5), n_dims)
+    Σ = Diagonal(ones(realtype, n_dims))
+    return Dist(MvNormal(μ, Σ))
+end
 
 const SUITES = BenchmarkGroup()
 
@@ -33,10 +58,7 @@ end
 begin
     T = Float64
 
-    for (probname, prob) in [
-        ("normal + bijector", normallognormal(; n_dims=10, realtype=T))
-        ("normal", normal(; n_dims=10, realtype=T))
-    ]
+    for (probname, prob) in [("normal", normal(; n_dims=10, realtype=T))]
         max_iter = 10^4
         d = LogDensityProblems.dimension(prob)
         opt = Optimisers.Adam(T(1e-3))
@@ -59,9 +81,7 @@ begin
                 ),
             ]
 
-            b = Bijectors.bijector(prob)
-            binv = inverse(b)
-            q = Bijectors.TransformedDistribution(family, binv)
+            q = family
             alg = KLMinRepGradDescent(adtype; optimizer=opt, entropy, operator=ClipScale())
 
             SUITES[probname][objname][familyname][adname] = begin

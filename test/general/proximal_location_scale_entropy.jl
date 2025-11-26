@@ -1,10 +1,8 @@
 
 @testset "interface ProximalLocationScaleEntropy" begin
     @testset "MvLocationScale" begin
-        @testset "$(string(covtype)) $(realtype) $(bijector)" for covtype in
-                                                                  [:meanfield, :fullrank],
-            realtype in [Float32, Float64],
-            bijector in [nothing, :identity]
+        @testset "$(string(covtype)) $(realtype)" for covtype in [:meanfield, :fullrank],
+            realtype in [Float32, Float64]
 
             stepsize = 1e-2
             optimizer = Descent(stepsize)
@@ -21,11 +19,6 @@
                 FullRankGaussian(μ, L)
             elseif covtype == :meanfield
                 MeanFieldGaussian(μ, L)
-            end
-            q = if isnothing(bijector)
-                q
-            else
-                Bijectors.TransformedDistribution(q, identity)
             end
 
             # The proximal operator for the entropy of a location scale distribution 
@@ -49,7 +42,7 @@
             )
 
             q′ = re(params′)
-            scale′ = isnothing(bijector) ? q′.scale : q′.dist.scale
+            scale′ = q′.scale
 
             grad_left = ReverseDiff.gradient(
                 L_ -> first(logabsdet(LowerTriangular(reshape(L_, d, d)))), vec(scale′)

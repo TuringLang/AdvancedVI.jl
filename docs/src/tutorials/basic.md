@@ -50,14 +50,13 @@ end
 nothing
 ```
 
-Since the support of `σ` is constrained to be positive and most VI algorithms assume an unconstrained Euclidean support, we need to use a *bijector* to transform `θ`.
-We will use [`Bijectors`](https://github.com/TuringLang/Bijectors.jl) for this purpose.
-This corresponds to the automatic differentiation variational inference (ADVI) formulation[^KTRGB2017].
+Notice that the support of `σ` is constrained to be positive.
+Since most VI algorithms assume an unconstrained Euclidean support, we will apply a change-of-variable by a bijective map (a *bijector*) to the posterior to make it unconstrained.
+For this, we will use the [`Bijectors`](https://github.com/TuringLang/Bijectors.jl) package.
 
 In our case, we need a bijector that applies an identity map for the first `size(X,2)` coordinates, and map the last coordinate to the support of `LogNormal(0, 3)`.
-This can be done as  follows:
+This can be constructed as follows:
 
-[^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. *Journal of machine learning research*.
 ```@example basic
 using Bijectors: Bijectors
 
@@ -71,7 +70,42 @@ end
 nothing
 ```
 
-For more details, please refer to the documentation of [`Bijectors`](https://github.com/TuringLang/Bijectors.jl).
+Next, we will wrap our original `LogDensityProblem` into a new `LogDensityProblem` that applies the transformation and the corresponding Jacobian adjustment.
+
+```@example basic
+struct TransformedLogDensityProblem{Prob,BInv}
+    prob::Prob
+    binv::BInv
+end
+
+function TransformedLogDensityProblem(prob)
+    b = Bijectors.bijector(prob)
+    binv = Bijectors.inverse(b)
+    return TransformedLogDensityProblem{typeof(prob),typeof(binv)}(prob, binv)
+end
+
+function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem, θ_trans)
+    (; prob, binv) = prob_trans
+    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
+    return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
+end
+
+function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
+    (; prob, binv) = prob_trans
+    b = Bijectors.inverse(binv)
+    d = LogDensityProblems.dimension(prob)
+    return prod(Bijectors.output_size(b, (d,)))
+end
+
+function LogDensityProblems.capabilities(
+    ::Type{TransformedLogDensityProblem{Prob,BInv}}
+) where {Prob,BInv}
+    return LogDensityProblems.capabilities(Prob)
+end
+nothing
+```
+
+For more details on the usage of bijectors, please refer to the documentation of [`Bijectors`](https://github.com/TuringLang/Bijectors.jl).
 
 For the dataset, we will use the popular [sonar classification dataset](https://archive.ics.uci.edu/dataset/151/connectionist+bench+sonar+mines+vs+rocks) from the UCI repository.
 This can be automatically downloaded using [`OpenML`](https://github.com/JuliaAI/OpenML.jl).
@@ -99,7 +133,8 @@ nothing
 The model can now be instantiated as follows:
 
 ```@example basic
-model = LogReg(X, y)
+prob = LogReg(X, y);
+prob_trans = TransformedLogDensityProblem(prob)
 nothing
 ```
 
@@ -134,7 +169,7 @@ For this example, we will use `LogDensityProblemsAD` to equip our problem with a
 using DifferentiationInterface: DifferentiationInterface
 using LogDensityProblemsAD: LogDensityProblemsAD
 
-model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model)
+prob_trans_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoForwardDiff(), prob_trans)
 nothing
 ```
 
@@ -143,30 +178,19 @@ For the variational family, we will consider a `FullRankGaussian` approximation:
 ```@example basic
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(model_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37*I, d, d)))
+d = LogDensityProblems.dimension(prob_trans)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
 nothing
 ```
 
-Now, `KLMinRepGradDescent` requires the variational approximation and the target log-density to have the same support.
-Since `y` follows a log-normal prior, its support is bounded to be the positive half-space ``\mathbb{R}_+``.
-Thus, we will use [Bijectors](https://github.com/TuringLang/Bijectors.jl) to match the support of our target posterior and the variational approximation.
-The bijector can now be applied to `q` to match the support of the target problem.
-
-```@example basic
-b = Bijectors.bijector(model)
-binv = Bijectors.inverse(b)
-q_transformed = Bijectors.TransformedDistribution(q, binv)
-nothing
-```
+`KLMinRepGradDescent` requires the variational approximation and the target log-density to have unconstrained support.
+Since we applied a bijector to the posterior to make it unconstrained, and the support of a `FullRankGaussian` is already the full $\mathbb{R}^d$, we are ready to go.
 
 We can now run VI:
 
 ```@example basic
 max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(
-    alg, max_iter, model_ad, q_transformed; show_progress=false
-)
+q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
 nothing
 ```
 
@@ -190,6 +214,17 @@ nothing
 
 ![](basic_example_elbo.svg)
 
+Recall that we applied a change-of-variable to the posterior to make it unconstrained.
+This, however, is not the original constrained posterior that we wanted to approximate.
+Therefore, we finally need to apply a change-of-variable to `q_out` to make it approximate our original problem:
+
+```@example basic
+b = Bijectors.bijector(prob)
+binv = Bijectors.inverse(b)
+q_trans = Bijectors.TransformedDistribution(q_out, binv)
+nothing
+```
+
 ## Custom Callback
 
 The ELBO estimates above however, use only a handful of Monte Carlo samples.
@@ -210,7 +245,7 @@ using StatsFuns: StatsFuns
 Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
 """
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((model.X*Σ_β) .* model.X; dims=2)[:, 1]
+    xtΣx = sum((prob.X*Σ_β) .* prob.X; dims=2)[:, 1]
     κ = @. 1/sqrt(1 + π/8*xtΣx)
     return StatsFuns.logistic.(κ .* X*μ_β)
 end
@@ -221,18 +256,19 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
 
         # Use the averaged parameters (the eventual output of the algorithm)
         q_avg = restructure(averaged_params)
+        q_avg_trans = Bijectors.TransformedDistribution(q_avg, binv)
 
         # Compute predictions
-        μ_β = mean(q_avg.dist)[1:(end - 1)] # posterior mean of β
-        Σ_β = cov(q_avg.dist)[1:(end - 1), end - 1] # marginal posterior covariance of β
+        μ_β = mean(q_avg_trans.dist)[1:(end - 1)] # posterior mean of β
+        Σ_β = cov(q_avg_trans.dist)[1:(end - 1), end - 1] # marginal posterior covariance of β
         y_pred = logistic_prediction(X, μ_β, Σ_β) .> 0.5
 
         # Prediction accuracy
-        acc = mean(y_pred .== model.y)
+        acc = mean(y_pred .== prob.y)
 
         # Higher fidelity estimate of the ELBO on the averaged parameters
         n_samples = 256
-        elbo_callback = -estimate_objective(alg, q_avg, model; n_samples)
+        elbo_callback = -estimate_objective(alg, q_avg, prob_trans; n_samples)
 
         (elbo_callback=elbo_callback, accuracy=acc)
     else
@@ -250,7 +286,7 @@ The `callback` can be supplied to `optimize`:
 ```@example basic
 max_iter = 10^4
 q_out, info, _ = AdvancedVI.optimize(
-    alg, max_iter, model_ad, q_transformed; show_progress=false, callback=callback
+    alg, max_iter, prob_trans_ad, q; show_progress=false, callback=callback
 )
 nothing
 ```

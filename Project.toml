@@ -1,6 +1,6 @@
 name = "AdvancedVI"
 uuid = "b5ca4192-6429-45e5-a2d9-87aec30a685c"
-version = "0.6"
+version = "0.7"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -20,13 +20,11 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [weakdeps]
-Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
 Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 
 [extensions]
-AdvancedVIBijectorsExt = ["Bijectors", "Optimisers"]
 AdvancedVIEnzymeExt = ["Enzyme", "ChainRulesCore"]
 AdvancedVIMooncakeExt = ["Mooncake", "ChainRulesCore"]
 AdvancedVIReverseDiffExt = ["ReverseDiff", "ChainRulesCore"]
@@ -34,7 +32,6 @@ AdvancedVIReverseDiffExt = ["ReverseDiff", "ChainRulesCore"]
 [compat]
 ADTypes = "1"
 Accessors = "0.1"
-Bijectors = "0.13, 0.14, 0.15"
 ChainRulesCore = "1"
 DiffResults = "1"
 DifferentiationInterface = "0.6, 0.7"
@@ -54,7 +51,6 @@ StatsBase = "0.32, 0.33, 0.34"
 julia = "1.10, 1.11.2"
 
 [extras]
-Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
 Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
