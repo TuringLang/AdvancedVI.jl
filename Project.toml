@@ -23,11 +23,13 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
+DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8"
 
 [extensions]
 AdvancedVIEnzymeExt = ["Enzyme", "ChainRulesCore"]
 AdvancedVIMooncakeExt = ["Mooncake", "ChainRulesCore"]
 AdvancedVIReverseDiffExt = ["ReverseDiff", "ChainRulesCore"]
+AdvancedVIDynamicPPLExt = ["DynamicPPL", "Accessors", "Distributions"]
 
 [compat]
 ADTypes = "1"
@@ -37,6 +39,7 @@ DiffResults = "1"
 DifferentiationInterface = "0.6, 0.7"
 Distributions = "0.25.111"
 DocStringExtensions = "0.8, 0.9"
+DynamicPPL = "0.38"
 Enzyme = "0.13"
 FillArrays = "1.3"
 Functors = "0.4, 0.5"
@@ -51,6 +54,7 @@ StatsBase = "0.32, 0.33, 0.34"
 julia = "1.10, 1.11.2"
 
 [extras]
+DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8"
 Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
