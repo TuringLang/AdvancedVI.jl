@@ -175,7 +175,7 @@ histogram2d(
     samples[1, :],
     samples[2, :];
     normalize=:pdf,
-    nbins=(16, 16),
+    nbins=(64, 64),
     xlabel="α",
     ylabel="β",
     xlims=(0, 4),
@@ -267,7 +267,7 @@ histogram2d(
     samples[1, :],
     samples[2, :];
     normalize=:pdf,
-    nbins=(16, 16),
+    nbins=(64, 64),
     xlabel="α",
     ylabel="β",
     xlims=(0, 4),
