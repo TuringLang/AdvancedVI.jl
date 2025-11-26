@@ -481,8 +481,7 @@
 <!-- NAVBAR END -->
 
 
-
-<div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AdvancedVI.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">AdvancedVI</a></li><li><a class="tocitem" href="../../general/">General Usage</a></li><li><span class="tocitem">Tutorials</span><ul><li class="is-active"><a class="tocitem" href>Basic Example</a><ul class="internal"><li><a class="tocitem" href="#Problem-Setup"><span>Problem Setup</span></a></li><li><a class="tocitem" href="#Basic-Usage"><span>Basic Usage</span></a></li><li><a class="tocitem" href="#Custom-Callback"><span>Custom Callback</span></a></li></ul></li><li><a class="tocitem" href="../subsampling/">Scaling to Large Datasets</a></li><li><a class="tocitem" href="../stan/">Stan Models</a></li><li><a class="tocitem" href="../flows/">Normalizing Flows</a></li></ul></li><li><span class="tocitem">Algorithms</span><ul><li><a class="tocitem" href="../../klminrepgraddescent/"><code>KLMinRepGradDescent</code></a></li><li><a class="tocitem" href="../../klminrepgradproxdescent/"><code>KLMinRepGradProxDescent</code></a></li><li><a class="tocitem" href="../../klminscoregraddescent/"><code>KLMinScoreGradDescent</code></a></li><li><a class="tocitem" href="../../klminwassfwdbwd/"><code>KLMinWassFwdBwd</code></a></li><li><a class="tocitem" href="../../klminnaturalgraddescent/"><code>KLMinNaturalGradDescent</code></a></li><li><a class="tocitem" href="../../klminsqrtnaturalgraddescent/"><code>KLMinSqrtNaturalGradDescent</code></a></li><li><a class="tocitem" href="../../fisherminbatchmatch/"><code>FisherMinBatchMatch</code></a></li></ul></li><li><a class="tocitem" href="../../families/">Variational Families</a></li><li><a class="tocitem" href="../../optimization/">Optimization</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Basic Example</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Basic Example</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/TuringLang/AdvancedVI.jl/blob/main/docs/src/tutorials/basic.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="basic"><a class="docs-heading-anchor" href="#basic">Basic Example</a><a id="basic-1"></a><a class="docs-heading-anchor-permalink" href="#basic" title="Permalink"></a></h1><p>In this tutorial, we will demonstrate the basic usage of <code>AdvancedVI</code> with <a href="https://github.com/tpapp/LogDensityProblems.jl"><code>LogDensityProblem</code></a> interface.</p><h2 id="Problem-Setup"><a class="docs-heading-anchor" href="#Problem-Setup">Problem Setup</a><a id="Problem-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Problem-Setup" title="Permalink"></a></h2><p>Let&#39;s consider a basic logistic regression example with a hierarchical prior. For a dataset <span>$(X, y)$</span> with the design matrix <span>$X \in \mathbb{R}^{n \times d}$</span> and the response variables <span>$y \in \{0, 1\}^n$</span>, we assume the following data generating process:</p><p class="math-container">\[\begin{aligned}
+<div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AdvancedVI.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">AdvancedVI</a></li><li><a class="tocitem" href="../../general/">General Usage</a></li><li><span class="tocitem">Tutorials</span><ul><li class="is-active"><a class="tocitem" href>Basic Example</a><ul class="internal"><li><a class="tocitem" href="#Problem-Setup"><span>Problem Setup</span></a></li><li><a class="tocitem" href="#Basic-Usage"><span>Basic Usage</span></a></li><li><a class="tocitem" href="#Custom-Callback"><span>Custom Callback</span></a></li></ul></li><li><a class="tocitem" href="../subsampling/">Scaling to Large Datasets</a></li><li><a class="tocitem" href="../stan/">Stan Models</a></li><li><a class="tocitem" href="../flows/">Normalizing Flows</a></li><li><a class="tocitem" href="../constrained/">Dealing with Constrained Posteriors</a></li></ul></li><li><span class="tocitem">Algorithms</span><ul><li><a class="tocitem" href="../../klminrepgraddescent/"><code>KLMinRepGradDescent</code></a></li><li><a class="tocitem" href="../../klminrepgradproxdescent/"><code>KLMinRepGradProxDescent</code></a></li><li><a class="tocitem" href="../../klminscoregraddescent/"><code>KLMinScoreGradDescent</code></a></li><li><a class="tocitem" href="../../klminwassfwdbwd/"><code>KLMinWassFwdBwd</code></a></li><li><a class="tocitem" href="../../klminnaturalgraddescent/"><code>KLMinNaturalGradDescent</code></a></li><li><a class="tocitem" href="../../klminsqrtnaturalgraddescent/"><code>KLMinSqrtNaturalGradDescent</code></a></li><li><a class="tocitem" href="../../fisherminbatchmatch/"><code>FisherMinBatchMatch</code></a></li></ul></li><li><a class="tocitem" href="../../families/">Variational Families</a></li><li><a class="tocitem" href="../../optimization/">Optimization</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Basic Example</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Basic Example</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/TuringLang/AdvancedVI.jl/blob/main/docs/src/tutorials/basic.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="basic"><a class="docs-heading-anchor" href="#basic">Basic Example</a><a id="basic-1"></a><a class="docs-heading-anchor-permalink" href="#basic" title="Permalink"></a></h1><p>In this tutorial, we will demonstrate the basic usage of <code>AdvancedVI</code> with <a href="https://github.com/tpapp/LogDensityProblems.jl"><code>LogDensityProblem</code></a> interface.</p><h2 id="Problem-Setup"><a class="docs-heading-anchor" href="#Problem-Setup">Problem Setup</a><a id="Problem-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Problem-Setup" title="Permalink"></a></h2><p>Let&#39;s consider a basic logistic regression example with a hierarchical prior. For a dataset <span>$(X, y)$</span> with the design matrix <span>$X \in \mathbb{R}^{n \times d}$</span> and the response variables <span>$y \in \{0, 1\}^n$</span>, we assume the following data generating process:</p><p class="math-container">\[\begin{aligned}
 \sigma &amp;\sim \text{LogNormal}(0, 3) \\
 \beta &amp;\sim \text{Normal}\left(0_d, \sigma^2 \mathrm{I}_d\right) \\
 y &amp;\sim \mathrm{BernoulliLogit}\left(X \beta\right)
@@ -515,7 +514,7 @@ end
 function LogDensityProblems.capabilities(::Type{&lt;:LogReg})
     return LogDensityProblems.LogDensityOrder{0}()
 end
-nothing</code></pre><p>Since the support of <code>σ</code> is constrained to be positive and most VI algorithms assume an unconstrained Euclidean support, we need to use a <em>bijector</em> to transform <code>θ</code>. We will use <a href="https://github.com/TuringLang/Bijectors.jl"><code>Bijectors</code></a> for this purpose. This corresponds to the automatic differentiation variational inference (ADVI) formulation<sup class="footnote-reference"><a id="citeref-KTRGB2017" href="#footnote-KTRGB2017" class="footnote-ref">[KTRGB2017]</a><span class="footnote-preview" id="fn-KTRGB2017"></span></sup>.</p><p>In our case, we need a bijector that applies an identity map for the first <code>size(X,2)</code> coordinates, and map the last coordinate to the support of <code>LogNormal(0, 3)</code>. This can be done as  follows:</p><pre><code class="language-julia hljs">using Bijectors: Bijectors
+nothing</code></pre><p>Notice that the support of <code>σ</code> is constrained to be positive. Since most VI algorithms assume an unconstrained Euclidean support, we will apply a change-of-variable by a bijective map (a <em>bijector</em>) to the posterior to make it unconstrained. For this, we will use the <a href="https://github.com/TuringLang/Bijectors.jl"><code>Bijectors</code></a> package.</p><p>In our case, we need a bijector that applies an identity map for the first <code>size(X,2)</code> coordinates, and map the last coordinate to the support of <code>LogNormal(0, 3)</code>. This can be constructed as follows:</p><pre><code class="language-julia hljs">using Bijectors: Bijectors
 
 function Bijectors.bijector(model::LogReg)
     d = size(model.X, 2)
@@ -524,7 +523,36 @@ function Bijectors.bijector(model::LogReg)
         [1:d, (d + 1):(d + 1)],
     )
 end
-nothing</code></pre><p>For more details, please refer to the documentation of <a href="https://github.com/TuringLang/Bijectors.jl"><code>Bijectors</code></a>.</p><p>For the dataset, we will use the popular <a href="https://archive.ics.uci.edu/dataset/151/connectionist+bench+sonar+mines+vs+rocks">sonar classification dataset</a> from the UCI repository. This can be automatically downloaded using <a href="https://github.com/JuliaAI/OpenML.jl"><code>OpenML</code></a>. The sonar dataset corresponds to the dataset id 40.</p><pre><code class="language-julia hljs">using OpenML: OpenML
+nothing</code></pre><p>Next, we will wrap our original <code>LogDensityProblem</code> into a new <code>LogDensityProblem</code> that applies the transformation and the corresponding Jacobian adjustment.</p><pre><code class="language-julia hljs">struct TransformedLogDensityProblem{Prob,BInv}
+    prob::Prob
+    binv::BInv
+end
+
+function TransformedLogDensityProblem(prob)
+    b = Bijectors.bijector(prob)
+    binv = Bijectors.inverse(b)
+    return TransformedLogDensityProblem{typeof(prob),typeof(binv)}(prob, binv)
+end
+
+function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem, θ_trans)
+    (; prob, binv) = prob_trans
+    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
+    return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
+end
+
+function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
+    (; prob, binv) = prob_trans
+    b = Bijectors.inverse(binv)
+    d = LogDensityProblems.dimension(prob)
+    return prod(Bijectors.output_size(b, (d,)))
+end
+
+function LogDensityProblems.capabilities(
+    ::Type{TransformedLogDensityProblem{Prob,BInv}}
+) where {Prob,BInv}
+    return LogDensityProblems.capabilities(Prob)
+end
+nothing</code></pre><p>For more details on the usage of bijectors, please refer to the documentation of <a href="https://github.com/TuringLang/Bijectors.jl"><code>Bijectors</code></a>.</p><p>For the dataset, we will use the popular <a href="https://archive.ics.uci.edu/dataset/151/connectionist+bench+sonar+mines+vs+rocks">sonar classification dataset</a> from the UCI repository. This can be automatically downloaded using <a href="https://github.com/JuliaAI/OpenML.jl"><code>OpenML</code></a>. The sonar dataset corresponds to the dataset id 40.</p><pre><code class="language-julia hljs">using OpenML: OpenML
 using DataFrames: DataFrames
 data = Array(DataFrames.DataFrame(OpenML.load(40)))
 X = Matrix{Float64}(data[:, 1:(end - 1)])
@@ -533,7 +561,8 @@ nothing</code></pre><p>Let&#39;s apply some basic pre-processing and add an inte
 
 X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
 X = hcat(X, ones(size(X, 1)))
-nothing</code></pre><p>The model can now be instantiated as follows:</p><pre><code class="language-julia hljs">model = LogReg(X, y)
+nothing</code></pre><p>The model can now be instantiated as follows:</p><pre><code class="language-julia hljs">prob = LogReg(X, y);
+prob_trans = TransformedLogDensityProblem(prob)
 nothing</code></pre><h2 id="Basic-Usage"><a class="docs-heading-anchor" href="#Basic-Usage">Basic Usage</a><a id="Basic-Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Usage" title="Permalink"></a></h2><p>For the VI algorithm, we will use <code>KLMinRepGradDescent</code>:</p><pre><code class="language-julia hljs">using ADTypes, ReverseDiff
 using AdvancedVI
 
@@ -541,18 +570,13 @@ alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(); operator=ClipScale());
 nothing</code></pre><p>This algorithm minimizes the exclusive/reverse KL divergence via stochastic gradient descent in the (Euclidean) space of the parameters of the variational approximation with the reparametrization gradient<sup class="footnote-reference"><a id="citeref-TL2014" href="#footnote-TL2014" class="footnote-ref">[TL2014]</a><span class="footnote-preview" id="fn-TL2014"></span></sup><sup class="footnote-reference"><a id="citeref-RMW2014" href="#footnote-RMW2014" class="footnote-ref">[RMW2014]</a><span class="footnote-preview" id="fn-RMW2014"></span></sup><sup class="footnote-reference"><a id="citeref-KW2014" href="#footnote-KW2014" class="footnote-ref">[KW2014]</a><span class="footnote-preview" id="fn-KW2014"></span></sup>. This is also commonly referred as automatic differentiation VI, black-box VI, stochastic gradient VI, and so on.</p><p>For certain algorithms such as <code>KLMinRepGradDescent</code>, projection or proximal operators can be used through the keyword argument <code>operator</code>. For this example, we will use Gaussian variational family, which is part of the more broad <a href="../../families/#locscale">location-scale family</a>. Location-scale family distributions require the scale matrix to have strictly positive eigenvalues at all times. Here, the projection operator <code>ClipScale</code> ensures this.</p><p><code>KLMinRepGradDescent</code>, in particular, assumes that the target <code>LogDensityProblem</code> is differentiable. If the <code>LogDensityProblem</code> has a differentiation <a href="https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities">capability</a> of at least first-order, we can take advantage of this. For this example, we will use <code>LogDensityProblemsAD</code> to equip our problem with a first-order capability:</p><pre><code class="language-julia hljs">using DifferentiationInterface: DifferentiationInterface
 using LogDensityProblemsAD: LogDensityProblemsAD
 
-model_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), model)
+prob_trans_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoForwardDiff(), prob_trans)
 nothing</code></pre><p>For the variational family, we will consider a <code>FullRankGaussian</code> approximation:</p><pre><code class="language-julia hljs">using LinearAlgebra
 
-d = LogDensityProblems.dimension(model_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37*I, d, d)))
-nothing</code></pre><p>Now, <code>KLMinRepGradDescent</code> requires the variational approximation and the target log-density to have the same support. Since <code>y</code> follows a log-normal prior, its support is bounded to be the positive half-space <span>$\mathbb{R}_+$</span>. Thus, we will use <a href="https://github.com/TuringLang/Bijectors.jl">Bijectors</a> to match the support of our target posterior and the variational approximation. The bijector can now be applied to <code>q</code> to match the support of the target problem.</p><pre><code class="language-julia hljs">b = Bijectors.bijector(model)
-binv = Bijectors.inverse(b)
-q_transformed = Bijectors.TransformedDistribution(q, binv)
-nothing</code></pre><p>We can now run VI:</p><pre><code class="language-julia hljs">max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(
-    alg, max_iter, model_ad, q_transformed; show_progress=false
-)
+d = LogDensityProblems.dimension(prob_trans)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+nothing</code></pre><p><code>KLMinRepGradDescent</code> requires the variational approximation and the target log-density to have unconstrained support. Since we applied a bijector to the posterior to make it unconstrained, and the support of a <code>FullRankGaussian</code> is already the full <span>$\mathbb{R}^d$</span>, we are ready to go.</p><p>We can now run VI:</p><pre><code class="language-julia hljs">max_iter = 10^4
+q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
 nothing</code></pre><p>Let&#39;s verify that the optimization procedure converged. For this, we will visually inspect that the maximization objective of <code>KLMinRepGradDescent</code>, the &quot;evidence lower bound&quot; (ELBO) increased. Since <code>KLMinRepGradDescent</code> stores the ELBO estimate at each iteration in <code>info</code>, we can visualize this as follows:</p><pre><code class="language-julia hljs">using Plots
 
 plot(
@@ -563,7 +587,10 @@ plot(
     label=nothing,
 )
 savefig(&quot;basic_example_elbo.svg&quot;)
-nothing</code></pre><p><img src="../basic_example_elbo.svg" alt/></p><h2 id="Custom-Callback"><a class="docs-heading-anchor" href="#Custom-Callback">Custom Callback</a><a id="Custom-Callback-1"></a><a class="docs-heading-anchor-permalink" href="#Custom-Callback" title="Permalink"></a></h2><p>The ELBO estimates above however, use only a handful of Monte Carlo samples. Furthermore, the ELBO is evaluated on the iterates of the optimization procedure, which may not coincide with the actual output of the algorithm. (For instance, if parameter averaging is used.) Therefore, we may want to occasionally estimate higher resolution ELBO estimates. Also, depending on the problem, we may want to monitor some problem-specific diagnostics for monitoring the progress.</p><p>For both use cases above, defining a custom <code>callback</code> function can be useful. In this example, we will compute a more accurate estimate of the ELBO and the classification accuracy every <code>logging_interval = 10</code> iterations.</p><pre><code class="language-julia hljs">using StatsFuns: StatsFuns
+nothing</code></pre><p><img src="../basic_example_elbo.svg" alt/></p><p>Recall that we applied a change-of-variable to the posterior to make it unconstrained. This, however, is not the original constrained posterior that we wanted to approximate. Therefore, we finally need to apply a change-of-variable to <code>q_out</code> to make it approximate our original problem:</p><pre><code class="language-julia hljs">b = Bijectors.bijector(prob)
+binv = Bijectors.inverse(b)
+q_trans = Bijectors.TransformedDistribution(q_out, binv)
+nothing</code></pre><h2 id="Custom-Callback"><a class="docs-heading-anchor" href="#Custom-Callback">Custom Callback</a><a id="Custom-Callback-1"></a><a class="docs-heading-anchor-permalink" href="#Custom-Callback" title="Permalink"></a></h2><p>The ELBO estimates above however, use only a handful of Monte Carlo samples. Furthermore, the ELBO is evaluated on the iterates of the optimization procedure, which may not coincide with the actual output of the algorithm. (For instance, if parameter averaging is used.) Therefore, we may want to occasionally estimate higher resolution ELBO estimates. Also, depending on the problem, we may want to monitor some problem-specific diagnostics for monitoring the progress.</p><p>For both use cases above, defining a custom <code>callback</code> function can be useful. In this example, we will compute a more accurate estimate of the ELBO and the classification accuracy every <code>logging_interval = 10</code> iterations.</p><pre><code class="language-julia hljs">using StatsFuns: StatsFuns
 
 &quot;&quot;&quot;
     logistic_prediction(X, μ_β, Σ_β)
@@ -571,7 +598,7 @@ nothing</code></pre><p><img src="../basic_example_elbo.svg" alt/></p><h2 id="Cus
 Approximate the posterior predictive probability for a logistic link function using Mackay&#39;s approximation (Bishop p. 220).
 &quot;&quot;&quot;
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((model.X*Σ_β) .* model.X; dims=2)[:, 1]
+    xtΣx = sum((prob.X*Σ_β) .* prob.X; dims=2)[:, 1]
     κ = @. 1/sqrt(1 + π/8*xtΣx)
     return StatsFuns.logistic.(κ .* X*μ_β)
 end
@@ -582,18 +609,19 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
 
         # Use the averaged parameters (the eventual output of the algorithm)
         q_avg = restructure(averaged_params)
+        q_avg_trans = Bijectors.TransformedDistribution(q_avg, binv)
 
         # Compute predictions
-        μ_β = mean(q_avg.dist)[1:(end - 1)] # posterior mean of β
-        Σ_β = cov(q_avg.dist)[1:(end - 1), end - 1] # marginal posterior covariance of β
+        μ_β = mean(q_avg_trans.dist)[1:(end - 1)] # posterior mean of β
+        Σ_β = cov(q_avg_trans.dist)[1:(end - 1), end - 1] # marginal posterior covariance of β
         y_pred = logistic_prediction(X, μ_β, Σ_β) .&gt; 0.5
 
         # Prediction accuracy
-        acc = mean(y_pred .== model.y)
+        acc = mean(y_pred .== prob.y)
 
         # Higher fidelity estimate of the ELBO on the averaged parameters
         n_samples = 256
-        elbo_callback = -estimate_objective(alg, q_avg, model; n_samples)
+        elbo_callback = -estimate_objective(alg, q_avg, prob_trans; n_samples)
 
         (elbo_callback=elbo_callback, accuracy=acc)
     else
@@ -602,7 +630,7 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
 end
 nothing</code></pre><p>Note that the interface for the callback function will depend on the VI algorithm being used. Therefore, please refer to the documentation of each VI algorithm.</p><p>The <code>callback</code> can be supplied to <code>optimize</code>:</p><pre><code class="language-julia hljs">max_iter = 10^4
 q_out, info, _ = AdvancedVI.optimize(
-    alg, max_iter, model_ad, q_transformed; show_progress=false, callback=callback
+    alg, max_iter, prob_trans_ad, q; show_progress=false, callback=callback
 )
 nothing</code></pre><p>First, let&#39;s compare the default estimate of the ELBO, which uses a small number of samples and is evaluated in the current iterate, versus the ELBO computed in the callback, which uses a large number of samples and is evaluated on the averaged iterate.</p><pre><code class="language-julia hljs">t = 1:max_iter
 elbo = [i.elbo for i in info[t]]
@@ -623,4 +651,4 @@ plot(
     label=nothing,
 )
 savefig(&quot;basic_example_acc.svg&quot;)
-nothing</code></pre><p><img src="../basic_example_acc.svg" alt/></p><p>Clearly, the accuracy is improving over time.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. <em>Journal of machine learning research</em>.</li><li class="footnote" id="footnote-TL2014"><a class="tag is-link" href="#citeref-TL2014">TL2014</a>Titsias, M., &amp; Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In <em>International Conference on Machine Learning</em>. PMLR.</li><li class="footnote" id="footnote-RMW2014"><a class="tag is-link" href="#citeref-RMW2014">RMW2014</a>Rezende, D. J., Mohamed, S., &amp; Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In <em>International Conference on Machine Learning</em>. PMLR.</li><li class="footnote" id="footnote-KW2014"><a class="tag is-link" href="#citeref-KW2014">KW2014</a>Kingma, D. P., &amp; Welling, M. (2014). Auto-encoding variational bayes. In <em>International Conference on Learning Representations</em>.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../general/">« General Usage</a><a class="docs-footer-nextpage" href="../subsampling/">Scaling to Large Datasets »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.0 on <span class="colophon-date" title="Friday 21 November 2025 15:16">Friday 21 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing</code></pre><p><img src="../basic_example_acc.svg" alt/></p><p>Clearly, the accuracy is improving over time.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-TL2014"><a class="tag is-link" href="#citeref-TL2014">TL2014</a>Titsias, M., &amp; Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In <em>International Conference on Machine Learning</em>. PMLR.</li><li class="footnote" id="footnote-RMW2014"><a class="tag is-link" href="#citeref-RMW2014">RMW2014</a>Rezende, D. J., Mohamed, S., &amp; Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In <em>International Conference on Machine Learning</em>. PMLR.</li><li class="footnote" id="footnote-KW2014"><a class="tag is-link" href="#citeref-KW2014">KW2014</a>Kingma, D. P., &amp; Welling, M. (2014). Auto-encoding variational bayes. In <em>International Conference on Learning Representations</em>.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../general/">« General Usage</a><a class="docs-footer-nextpage" href="../subsampling/">Scaling to Large Datasets »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Wednesday 26 November 2025 12:18">Wednesday 26 November 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
