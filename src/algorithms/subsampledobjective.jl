@@ -30,12 +30,7 @@ function init(
 )
     (; objective, subsampling) = subobj
     sub_st = init(rng, subsampling)
-    batch, _, _ = step(rng, subsampling, sub_st)
-    prob_sub = subsample(prob, batch)
-    q_init_sub = subsample(q_init, batch)
-    obj_st = AdvancedVI.init(
-        rng, objective, adtype, q_init_sub, prob_sub, params, restructure
-    )
+    obj_st = AdvancedVI.init(rng, objective, adtype, q_init, prob, params, restructure)
     return SubsampledObjectiveState(prob, sub_st, obj_st)
 end
 

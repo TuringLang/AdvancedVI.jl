@@ -1,70 +1,173 @@
 module AdvancedVIDynamicPPLExt
 
+using ADTypes: ADTypes
 using Accessors
+using AdvancedVI: AdvancedVI
+using DifferentiationInterface: DifferentiationInterface
 using Distributions: Distributions
 using DynamicPPL: DynamicPPL
-using AdvancedVI: AdvancedVI
+using LogDensityProblems: LogDensityProblems
+using Random
 
-
-struct AdjustedLogLikelihoodAccumulator{T} <: DynamicPPL.LogProbAccumulator{T}
-    "the scalar log likelihood value"
-    logp::T
-
-    "adjustment factor to be multplied to the cummulative log-likelihood"
-    adj::T
+adtype_capabilities(::Type{Nothing}) = LogDensityProblems.LogDensityOrder{0}()
+function adtype_capabilities(::Type{<:ADTypes.AbstractADType})
+    LogDensityProblems.LogDensityOrder{1}()
 end
 
-DynamicPPL.logp(acc::AdjustedLogLikelihoodAccumulator) = acc.logp
-
-DynamicPPL.accumulator_name(::Type{<:AdjustedLogLikelihoodAccumulator}) = :LogLikelihood
-
-DynamicPPL.accumulate_assume!!(acc::AdjustedLogLikelihoodAccumulator, val, logjac, vn, right) = acc
-
-function DynamicPPL.accumulate_observe!!(acc::AdjustedLogLikelihoodAccumulator, right, left, vn)
-    # Note that it's important to use the loglikelihood function here, not logpdf, because
-    # they handle vectors differently:
-    # https://github.com/JuliaStats/Distributions.jl/issues/1972
-    return DynamicPPL.acclogp(acc, Distributions.loglikelihood(right, left))
+struct DynamicPPLModelLogDensityFunction{
+    Model<:DynamicPPL.Model,
+    LogLikeAdj<:Real,
+    VarInfo<:DynamicPPL.AbstractVarInfo,
+    ADType<:ADTypes.AbstractADType,
+    PrepGrad<:Union{Nothing,DifferentiationInterface.GradientPrep},
+    PrepHess<:Union{Nothing,DifferentiationInterface.HessianPrep},
+}
+    model::Model
+    loglikeadj::LogLikeAdj
+    varinfo::VarInfo
+    adtype::ADType
+    prep_grad::PrepGrad
+    prep_hess::PrepHess
 end
 
-function DynamicPPL.convert_eltype(::Type{T}, acc::AdjustedLogLikelihoodAccumulator) where {T}
-    return AdjustedLogLikelihoodAccumulator(convert(T, DynamicPPL.logp(acc)), convert(T, acc.adj))
+function logdensity_impl(
+    params, model::DynamicPPL.Model, loglikeadj::Real, varinfo::DynamicPPL.AbstractVarInfo
+)
+    vi = DynamicPPL.unflatten(varinfo, params)
+    _, vi = DynamicPPL.evaluate!!(model, vi)
+    loglike = DynamicPPL.getloglikelihood(vi)
+    logprior = DynamicPPL.getlogprior(vi)
+    logjac = DynamicPPL.getlogjac(vi)
+    return convert(eltype(params), loglikeadj)*loglike + logprior - logjac
 end
 
-function DynamicPPL._zero(acc::AdjustedLogLikelihoodAccumulator{T}) where {T}
-    return AdjustedLogLikelihoodAccumulator(zero(T), acc.adj)
+function subsample_dynamicpplmodel(model::DynamicPPL.Model, batch)
+    return DynamicPPL.decondition(
+        model, DynamicPPL.@varname(datapoints)) | (; datapoints=batch)
 end
 
-function DynamicPPL.acclogp(acc::AdjustedLogLikelihoodAccumulator, val)
-    return AdjustedLogLikelihoodAccumulator(DynamicPPL.logp(acc) + val, acc.adj)
+function DynamicPPLModelLogDensityFunction(
+    model::DynamicPPL.Model,
+    varinfo::DynamicPPL.AbstractVarInfo;
+    adtype::Union{Nothing,ADTypes.AbstractADType}=nothing,
+    loglikeadj::Real=1.0,
+    subsampling::Union{Nothing,AdvancedVI.AbstractSubsampling}=nothing,
+)
+    if !DynamicPPL.is_supported(adtype)
+        @warn "The AD backend $adtype is not officially supported by DynamicPPL. Gradient calculations may still work, but compatibility is not guaranteed."
+    end
+    
+    model_sub = if isnothing(subsampling)
+        model
+    else
+        rng = Random.default_rng()
+        sub_st = AdvancedVI.init(rng, subsampling)
+        batch, _, _ = AdvancedVI.step(rng, subsampling, sub_st)
+        subsample_dynamicpplmodel(model, batch)
+    end
+
+    params = [val for val in varinfo[:]]
+    prep_grad =
+        if adtype_capabilities(typeof(adtype)) >= LogDensityProblems.LogDensityOrder{1}()
+            DifferentiationInterface.prepare_gradient(
+                logdensity_impl,
+                adtype,
+                params,
+                DifferentiationInterface.Constant(model_sub),
+                DifferentiationInterface.Constant(loglikeadj),
+                DifferentiationInterface.Constant(varinfo),
+            )
+        else
+            nothing
+        end
+    prep_hess =
+        if adtype_capabilities(typeof(adtype)) > LogDensityProblems.LogDensityOrder{2}()
+            DifferentiationInterface.prepare_hessian(
+                logdensity_impl,
+                adtype,
+                params,
+                DifferentiationInterface.Constant(model_sub),
+                DifferentiationInterface.Constant(loglikeadj),
+                DifferentiationInterface.Constant(varinfo),
+            )
+        else
+            nothing
+        end
+    return DynamicPPLModelLogDensityFunction{
+        typeof(model),
+        typeof(loglikeadj),
+        typeof(varinfo),
+        typeof(adtype),
+        typeof(prep_grad),
+        typeof(prep_hess),
+    }(
+        model, loglikeadj, varinfo, adtype, prep_grad, prep_hess
+    )
 end
 
+function LogDensityProblems.logdensity(prob::DynamicPPLModelLogDensityFunction, params)
+    (; model, loglikeadj, varinfo) = prob
+    return logdensity_impl(params, model, loglikeadj, varinfo)
+end
 
-function AdvancedVI.subsample(prob::DynamicPPL.LogDensityFunction, batch_idx)
-    (; model, getlogdensity, varinfo, adtype) = prob
+function LogDensityProblems.logdensity_and_gradient(
+    prob::DynamicPPLModelLogDensityFunction, params
+)
+    (; model, adtype, loglikeadj, varinfo, prep_grad) = prob
+    return DifferentiationInterface.value_and_gradient(
+        logdensity_impl,
+        prep_grad,
+        adtype,
+        params,
+        DifferentiationInterface.Constant(model),
+        DifferentiationInterface.Constant(loglikeadj),
+        DifferentiationInterface.Constant(varinfo),
+    )
+end
 
-    @assert haskey(model.defaults, :datapoints) "Subsampling is turned on, but the model does not have have a `datapoints` keyword argument."
+function LogDensityProblems.logdensity_gradient_and_hessian(
+    prob::DynamicPPLModelLogDensityFunction, params
+)
+    (; model, adtype, loglikeadj, varinfo, prep_hess) = prob
+    return DifferentiationInterface.value_gradient_and_hessian(
+        logdensity_impl,
+        prep_hess,
+        adtype,
+        params,
+        DifferentiationInterface.Constant(model),
+        DifferentiationInterface.Constant(loglikeadj),
+        DifferentiationInterface.Constant(varinfo),
+    )
+end
+
+function LogDensityProblems.capabilities(
+    ::Type{<:DynamicPPLModelLogDensityFunction{M,L,V,ADType,PG,PH}}
+) where {M,L,V,ADType<:ADTypes.AbstractADType,PG,PH}
+    return adtype_capabilities(ADType)
+end
+
+function LogDensityProblems.dimension(prob::DynamicPPLModelLogDensityFunction)
+    return length(prob.varinfo[:])
+end
+
+function AdvancedVI.subsample(prob::DynamicPPLModelLogDensityFunction, batch)
+    model = prob.model
+
+    if !haskey(model.defaults, :datapoints)
+        throw(
+            ArgumentError(
+                "Subsampling is turned on, but the model does not have have a `datapoints` keyword argument.",
+            ),
+        )
+    end
 
     n_datapoints = length(model.defaults.datapoints)
-    batch = model.defaults.datapoints[batch_idx]
-    model_subsampled = @set model.defaults.datapoints = batch
-    batchsize = length(batch_idx)
+    batchsize = length(batch)
+    model_sub = subsample_dynamicpplmodel(model, batch)
+    loglikeadj = n_datapoints/batchsize
 
-    logprior_acc, logjac_acc, _ = DynamicPPL.getaccs(varinfo)
-
-    T = typeof(DynamicPPL.logp(logprior_acc))
-    adj = convert(T, n_datapoints/batchsize)
-    loglikacc_adj = AdjustedLogLikelihoodAccumulator(zero(T), adj)
-
-    accs′ = (logprior_acc, logjac_acc, loglikacc_adj)
-    varinfo′ = DynamicPPL.setaccs!!(varinfo, accs′)
-
-    # As of DynamicPPL 0.38.9, the constructor below calls to `DI.prepare`.
-    # DynamicPPL#1156 is expected to relax this so that we can simply
-    # mutate the updated files with Accessors.@set
-    prob′′ = DynamicPPL.LogDensityFunction(
-        model_subsampled, getlogdensity, varinfo′; adtype=adtype
-    )
+    prob′ = @set prob.model = model_sub
+    prob′′ = @set prob′.loglikeadj = loglikeadj
     return prob′′
 end
 
