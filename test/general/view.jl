@@ -3,8 +3,9 @@
     struct LogDensityNoView end
     dims = 2
     LogDensityProblems.dimension(::LogDensityNoView) = dims
-    LogDensityProblems.capabilities(::Type{<:LogDensityNoView}) =
-        LogDensityProblems.LogDensityOrder{1}()
+    LogDensityProblems.capabilities(::Type{<:LogDensityNoView}) = LogDensityProblems.LogDensityOrder{
+        1
+    }()
     function LogDensityProblems.logdensity(::LogDensityNoView, x::AbstractArray)
         return sum(x .^ 2)
     end
