@@ -307,6 +307,8 @@ function optimize end
 export optimize
 
 include("utils.jl")
+export use_view_in_gradient
+
 include("optimize.jl")
 
 ## Parameter Space SGD Implementations

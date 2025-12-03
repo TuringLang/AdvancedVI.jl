@@ -44,7 +44,11 @@ function gaussian_expectation_gradient_and_hessian!(
         m, C = q.location, q.scale
         z = C*u .+ m
         for b in 1:n_samples
-            zb, ub = view(z, :, b), view(u, :, b)
+            zb, ub = if use_view_in_gradient(prob)
+                view(z, :, b), view(u, :, b)
+            else
+                z[:, b], u[:, b]
+            end
             logπ, ∇logπ = LogDensityProblems.logdensity_and_gradient(prob, zb)
             logπ_avg += logπ/n_samples
 
@@ -60,7 +64,11 @@ function gaussian_expectation_gradient_and_hessian!(
         # Second-order: use naive sample average
         z = rand(rng, q, n_samples)
         for b in 1:n_samples
-            zb = view(z, :, b)
+            zb = if use_view_in_gradient(prob)
+                view(z, :, b)
+            else
+                z[:, b]
+            end
             logπ, ∇logπ, ∇2logπ = LogDensityProblems.logdensity_gradient_and_hessian(
                 prob, zb
             )

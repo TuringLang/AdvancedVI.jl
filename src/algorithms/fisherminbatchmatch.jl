@@ -92,7 +92,12 @@ function rand_batch_match_samples_with_objective!(
     z = C*u .+ μ
     logπ_sum = zero(eltype(μ))
     for b in 1:n_samples
-        logπb, gb = LogDensityProblems.logdensity_and_gradient(prob, view(z, :, b))
+        zb = if use_view_in_gradient(prob)
+            view(z, :, b)
+        else
+            z[:, b]
+        end
+        logπb, gb = LogDensityProblems.logdensity_and_gradient(prob, zb)
         grad_buf[:, b] = gb
         logπ_sum += logπb
     end

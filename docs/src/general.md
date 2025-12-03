@@ -15,6 +15,14 @@ optimize
 Each algorithm may interact differently with the arguments of `optimize`.
 Therefore, please refer to the documentation of each different algorithm for a detailed description on their behavior and their requirements.
 
+The `prob` argument to `optimize` must satisfy the LogDensityProblems.jl interface.
+Some algorithms in AdvancedVI will call `logdensity_and_gradient` or `logdensity_gradient_and_hessian` methods using not a vector, but a view of an array.
+If this is not supported by the `prob` argument, you should define this method to return `false`:
+
+```@docs
+use_view_in_gradient
+```
+
 ## [Monitoring the Objective Value](@id estimate_objective)
 
 Furthermore, each algorithm has an associated variational objective subject to *minimization*. (By convention, we assume all objectives are minimized rather than maximized.)
