@@ -9,15 +9,17 @@
         return sum(x .^ 2)
     end
     function LogDensityProblems.logdensity(::LogDensityNoView, ::SubArray)
-        error("Cannot use view")
+        return error("Cannot use view")
     end
-    function LogDensityProblems.logdensity_and_gradient(::LogDensityNoView, x::AbstractArray)
+    function LogDensityProblems.logdensity_and_gradient(
+        ::LogDensityNoView, x::AbstractArray
+    )
         ld = sum(x .^ 2)
         grad = 2 .* x
         return ld, grad
     end
     function LogDensityProblems.logdensity_and_gradient(::LogDensityNoView, ::SubArray)
-        error("Cannot use view")
+        return error("Cannot use view")
     end
 
     names_and_algs = [
@@ -37,7 +39,9 @@
             algorithm,
             10,
             LogDensityNoView(),
-            FullRankGaussian(zeros(dims), LowerTriangular(Matrix{Float64}(0.6 * I, dims, dims)));
+            FullRankGaussian(
+                zeros(dims), LowerTriangular(Matrix{Float64}(0.6 * I, dims, dims))
+            );
             show_progress=false,
         )
     end
@@ -49,9 +53,10 @@
             algorithm,
             10,
             LogDensityNoView(),
-            FullRankGaussian(zeros(dims), LowerTriangular(Matrix{Float64}(0.6 * I, dims, dims)));
+            FullRankGaussian(
+                zeros(dims), LowerTriangular(Matrix{Float64}(0.6 * I, dims, dims))
+            );
             show_progress=false,
         ) isa Any
     end
-
 end
