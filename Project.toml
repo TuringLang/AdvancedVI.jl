@@ -29,7 +29,7 @@ DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8"
 AdvancedVIEnzymeExt = ["Enzyme", "ChainRulesCore"]
 AdvancedVIMooncakeExt = ["Mooncake", "ChainRulesCore"]
 AdvancedVIReverseDiffExt = ["ReverseDiff", "ChainRulesCore"]
-AdvancedVIDynamicPPLExt = ["DynamicPPL", "Accessors", "Distributions"]
+AdvancedVIDynamicPPLExt = ["DynamicPPL", "Accessors", "Distributions", "DifferentiationInterface", "LogDensityProblems"]
 
 [compat]
 ADTypes = "1"
