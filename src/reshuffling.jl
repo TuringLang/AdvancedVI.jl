@@ -20,7 +20,9 @@ struct ReshufflingBatchSubsamplingState{It}
     iterator::It
 end
 
-Base.length(sub::ReshufflingBatchSubsampling) = ceil(Int, length(sub.dataset)/sub.batchsize)
+function Base.length(sub::ReshufflingBatchSubsampling)
+    return ceil(Int, length(sub.dataset) / sub.batchsize)
+end
 
 function reshuffle_batches(rng::Random.AbstractRNG, sub::ReshufflingBatchSubsampling)
     (; dataset, batchsize) = sub
@@ -37,15 +39,22 @@ function step(
     rng::Random.AbstractRNG,
     sub::ReshufflingBatchSubsampling,
     state::ReshufflingBatchSubsamplingState,
+    drop_trailing_batch_if_too_small::Bool=false,
 )
     (; epoch, iterator) = state
-    (sub_step, batch), batch_it′ = Iterators.peel(iterator)
-    epoch′, iterator′′ = if isempty(batch_it′)
-        epoch + 1, reshuffle_batches(rng, sub)
-    else
-        epoch, batch_it′
+    (sub_step, batch), iterator = Iterators.peel(iterator)
+    if isempty(iterator)
+        iterator = reshuffle_batches(rng, sub)
+        if drop_trailing_batch_if_too_small && length(batch) < sub.batchsize
+            # Ignore the trailing batch if its size is smaller than `batchsize`.
+            # This should only be used when estimating gradients during optimization.
+            # This is necessary to ensure that all batches have the same size.
+            # Otherwise, `DifferentiationInterface.prepare_*` behaves incorrectly.
+            (sub_step, batch), iterator = Iterators.peel(iterator)
+        end
+        epoch = epoch + 1
     end
     info = (epoch=epoch, step=sub_step)
-    state′ = ReshufflingBatchSubsamplingState(epoch′, iterator′′)
-    return batch, state′, info
+    state = ReshufflingBatchSubsamplingState(epoch, iterator)
+    return batch, state, info
 end
