@@ -1,3 +1,10 @@
+
+# Release 0.6.1
+
+`ReshufflingBatchSubsampling(dataset, batchsize)` now ensures that all batches have the size exactly `batchsize`. This means that, if "last batch" has an uneven batch size, it will be ignored. This is necessary to ensure that target log-density problems with `DifferentiationInterface.prepare_gradient` return the correct outcome.
+
+In addition, a subtle related bug with algorithms sharing the `step` function in `common.jl` has been fixed. When calling `DifferentiationInterface.prepare_gradient` on the objective forward paths, now the subsampled objective is used instead of the non-subsampled objective. This means that `DifferentiationInterface.prepare_gradient` will see the correct type of objective used during optimization.
+
 # Release 0.6
 
 ## New Algorithms
