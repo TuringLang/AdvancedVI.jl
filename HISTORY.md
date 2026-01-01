@@ -1,4 +1,3 @@
-
 # Release 0.6.1
 
 `ReshufflingBatchSubsampling(dataset, batchsize)` now ensures that all batches have the size exactly `batchsize`. This means that, if "last batch" has an uneven batch size, it will be ignored. This is necessary to ensure that target log-density problems with `DifferentiationInterface.prepare_gradient` return the correct outcome.
