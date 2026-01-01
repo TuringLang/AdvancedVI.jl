@@ -25,8 +25,8 @@ function init(
     adtype::ADTypes.AbstractADType,
     q_init,
     prob,
-    ::Any,
-    ::Any,
+    params,
+    restructure,
 )
     (; objective, subsampling) = subobj
     sub_st = init(rng, subsampling)
