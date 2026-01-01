@@ -1,3 +1,4 @@
+
 # Release 0.7
 
 ## Removal of special treatment to `Bijectors.TransformedDistribution`
@@ -8,6 +9,12 @@ This, however, resulted in a multiplicative complexity in maintaining the releva
 Since this is not the only way to deal with constrained supports, `Bijectors` extension is now removed.
 In addition, `KLMinRepGradDescent`, `KLMinRepGradProxDescent`, `KLMinScoreGradDescent` now expect an unconstrained target log-density problem.
 Instead, a tutorial has been added to the documentation on how to deal with a target log-density problem with constrained support.
+
+# Release 0.6.1
+
+`ReshufflingBatchSubsampling(dataset, batchsize)` now ensures that all batches have the size exactly `batchsize`. This means that, if "last batch" has an uneven batch size, it will be ignored. This is necessary to ensure that target log-density problems with `DifferentiationInterface.prepare_gradient` return the correct outcome.
+
+In addition, a subtle related bug with algorithms sharing the `step` function in `common.jl` has been fixed. When calling `DifferentiationInterface.prepare_gradient` on the objective forward paths, now the subsampled objective is used instead of the non-subsampled objective. This means that `DifferentiationInterface.prepare_gradient` will see the correct type of objective used during optimization.
 
 # Release 0.6
 

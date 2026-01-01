@@ -30,7 +30,17 @@ function init(
 )
     (; objective, subsampling) = subobj
     sub_st = init(rng, subsampling)
-    obj_st = AdvancedVI.init(rng, objective, adtype, q_init, prob, params, restructure)
+
+    # This is necessary to ensure that `init` sees the type "conditioned" on a minibatch
+    # when calling `DifferentiationInterface.prepare_*` inside it.
+    batch, _, _ = step(rng, subsampling, sub_st, true)
+    prob_sub = subsample(prob, batch)
+    q_init_sub = subsample(q_init, batch)
+    params_sub, re_sub = Optimisers.destructure(q_init_sub)
+
+    obj_st = AdvancedVI.init(
+        rng, objective, adtype, q_init_sub, prob_sub, params_sub, re_sub
+    )
     return SubsampledObjectiveState(prob, sub_st, obj_st)
 end
 
@@ -66,7 +76,7 @@ function estimate_gradient!(
     (; prob, sub_st, obj_st) = state
     q = restructure(params)
 
-    batch, sub_st′, sub_inf = step(rng, subsampling, sub_st)
+    batch, sub_st′, sub_inf = step(rng, subsampling, sub_st, true)
     prob_sub = subsample(prob, batch)
     q_sub = subsample(q, batch)
     params_sub, re_sub = Optimisers.destructure(q_sub)
