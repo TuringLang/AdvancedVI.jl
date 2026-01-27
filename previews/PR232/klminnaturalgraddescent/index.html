@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>KLMinNaturalGradDescent · AdvancedVI.jl</title><meta name="title" content="KLMinNaturalGradDescent · AdvancedVI.jl"/><meta property="og:title" content="KLMinNaturalGradDescent · AdvancedVI.jl"/><meta property="twitter:title" content="KLMinNaturalGradDescent · AdvancedVI.jl"/><meta name="description" content="Documentation for AdvancedVI.jl."/><meta property="og:description" content="Documentation for AdvancedVI.jl."/><meta property="twitter:description" content="Documentation for AdvancedVI.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body>
+<!-- NAVBAR START -->
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
+
+    /* Documenter.jl CSS Overrides */
+    html {
+        scroll-padding-top: calc(var(--navbar-height) + 1rem);
+    }
+    .docs-sidebar, #documenter {
+        margin-top: var(--navbar-height);
+    }
+    .docs-version-selector {
+        margin-bottom: 60px !important;
+    }
+    @media screen and (max-width: 1056px) {
+        .docs-version-selector {
+            margin-bottom: 60px !important;
+        }
+        .docs-sidebar {
+            margin-top: 0 !important;
+        }
+    }
+    /* End of Documenter.jl Tweaks */
+
+    /* Color and Font Variables */
+    :root {
+        --heading-color: #6c757d;
+        --item-color: rgb(165, 165, 165);
+        --primary-bg: white;
+        --hover-color: #8faad2;
+        --deprecated-bg: #ff4d4d;
+        --deprecated-text: white;
+        --icon-color: #6c757d;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --dropdown-hover-bg: #e9ecef;
+        
+        /* Typography */
+        --font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        --nav-link-font-size: 1.0625rem;
+        --turing-title-font-size: 21.25px;
+        --icon-font-size: 1.25rem;
+        --dropdown-arrow-font-size: 0.6875rem;
+        --badge-font-size: 0.75rem;
+
+        /* Sizing and Spacing */
+        --navbar-height: 3.75rem;
+        --logo-height: 31px;
+        --logo-width: auto;
+        --logo-padding-top: 7px;
+        --logo-margin-left: 0.8rem;
+        --title-margin-left: 0.4px;
+        --title-nav-spacing: 1.1rem;
+        --nav-item-margin-left: 1.3rem;
+        --icon-margin-left: 1rem;
+        --dropdown-padding: 1.875rem;
+        --dropdown-item-width: 12.5rem;
+        --dropdown-subitem-width: 15.625rem;
+        --dropdown-subitem-padding: 0.125rem 0.625rem;
+    }
+
+    /* Dark Theme Variable Overrides */
+    html.theme--documenter-dark {
+        --heading-color: #e0e0e0;
+        --item-color: #bdbdbd;
+        --primary-bg: #1f2424;
+        --hover-color: #ffffff;
+        --icon-color: #e0e0e0;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #424242;
+    }
+
+    /* Catppuccin Theme Overrides */
+    html.theme--catppuccin-latte {
+        --heading-color: #4c4f69;
+        --primary-bg: #eff1f5;
+        --icon-color: #4c4f69;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --dropdown-hover-bg: #e6e9ef;
+    }
+    html.theme--catppuccin-frappe {
+        --heading-color: #c6d0f5;
+        --primary-bg: #303446;
+        --icon-color: #c6d0f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #51576d;
+    }
+    html.theme--catppuccin-macchiato {
+        --heading-color: #cad3f5;
+        --primary-bg: #24273a;
+        --icon-color: #cad3f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #494d64;
+    }
+    html.theme--catppuccin-mocha {
+        --heading-color: #cad3f5;
+        --primary-bg: #1e1e2e;
+        --icon-color: #cad3f5;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --dropdown-hover-bg: #45475a;
+    }
+
+
+    /* Main Navigation Bar */
+    .ext-navigation {
+        font-family: var(--font-family);
+        position: fixed;
+        height: var(--navbar-height);
+        top: 0;
+        width: 100%;
+        background-color: var(--primary-bg);
+        z-index: 1000;
+        box-shadow: 0 2px 4px var(--shadow-color);
+        display: flex;
+        align-items: center;
+        padding: 0 1.0625rem;
+        transition: transform 0.3s, background-color 0.3s;
+    }
+
+    nav.ext-navigation .ext-navbar-logo {
+        margin-left: var(--logo-margin-left);
+        height: auto;
+        max-height: var(--logo-height);
+        width: auto;
+        padding-top: var(--logo-padding-top);
+    }
+    
+    /* Theme-aware logo text color */
+    .ext-navbar-logo .logo-text {
+        fill: var(--heading-color);
+    }
+    
+    .ext-navbar-title {
+        color: var(--heading-color) !important;
+        font-size: var(--turing-title-font-size) !important;
+        margin-left: var(--title-margin-left);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    .ext-navbar-title:hover {
+        color: var(--hover-color) !important;
+    }
+
+    .ext-nav-links {
+        display: flex;
+        align-items: center;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        flex-grow: 1;
+        margin-left: var(--title-nav-spacing);
+    }
+
+    .ext-nav-links li:first-child {
+        margin-left: 0 !important;
+    }
+
+    .ext-nav-links li {
+        margin-left: var(--nav-item-margin-left) !important;
+    }
+
+    .ext-nav-link {
+        color: var(--heading-color) !important;
+        text-decoration: none;
+        font-size: var(--nav-link-font-size) !important;
+        transition: color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .ext-nav-link:hover,
+    .ext-navbar-item-single a:hover,
+    .ext-navbar-icons a:hover {
+        color: var(--hover-color) !important;
+    }
+
+    .ext-navbar-item-single a {
+        color: var(--heading-color) !important;
+    }
+    
+    .ext-navbar-icons {
+        display: flex;
+        align-items: center;
+    }
+
+    .ext-navbar-icons a {
+        color: var(--icon-color) !important;
+        font-size: var(--icon-font-size) !important;
+        transition: color 0.2s ease;
+        margin-left: var(--icon-margin-left);
+    }
+
+    .ext-menu-toggle {
+        display: none;
+        font-size: 1.5rem;
+        color: var(--heading-color);
+        cursor: pointer;
+    }
+
+    .ext-dropdown {
+        display: none;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        padding: var(--dropdown-padding);
+        position: absolute;
+        top: var(--navbar-height);
+        width: 100%;
+        left: 0;
+        background-color: var(--primary-bg);
+        line-height: 1.875rem;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, background-color 0.3s;
+        transform: translateY(-0.625rem);
+        box-shadow: 0 4px 6px var(--shadow-color);
+    }
+
+    #library-handler::after {
+        content: "▼";
+        font-size: var(--dropdown-arrow-font-size);
+        margin-left: 0.3125rem;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    #library-handler.open::after {
+        content: "▲";
+    }
+
+    .ext-dropdown.show {
+        display: grid;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .ext-dropdown ul {
+        width: var(--dropdown-item-width);
+        margin-bottom: 1.25rem;
+    }
+
+    .ext-dropdown ul li {
+        text-align: left;
+        display: flex;
+        align-items: center;
+    }
+
+    .ext-dropdown ul a li {
+        color: var(--item-color);
+        width: var(--dropdown-subitem-width);
+        border-radius: 3px;
+        padding: var(--dropdown-subitem-padding);
+        transition: background-color 0.2s ease;
+    }
+
+    .ext-dropdown ul a li:hover {
+        background-color: var(--dropdown-hover-bg);
+    }
+
+    .ext-dropdown-item-heading {
+        color: var(--heading-color);
+        text-align: center;
+    }
+
+    .deprecated-badge {
+        background-color: var(--deprecated-bg);
+        color: var(--deprecated-text);
+        font-size: var(--badge-font-size);
+        padding: .1rem;
+        border-radius: 3px;
+        margin-left: 0.5rem;
+        line-height: 1;
+    }
+
+    @media (max-width: 966px) {
+        .ext-dropdown {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .ext-nav-links {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            background-color: var(--primary-bg);
+            position: absolute;
+            top: var(--navbar-height);
+            left: 0;
+            padding: 0.625rem 0;
+            height: auto;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            margin-left: 0;
+        }
+
+        .ext-nav-links.show {
+            display: flex;
+        }
+
+        .ext-nav-links li {
+            margin: 0.625rem 0 !important;
+            text-align: center;
+        }
+        
+        .ext-menu-toggle {
+            display: block;
+            margin-left: auto;
+        }
+
+        .ext-navigation.hide {
+            transform: translateY(calc(-1 * var(--navbar-height)));
+        }
+
+        .ext-dropdown {
+            position: static;
+            display: block;
+            opacity: 1;
+            transform: none;
+            box-shadow: none;
+            grid-template-columns: 1fr;
+            padding: 0.625rem;
+            text-align: center;
+        }
+
+        .ext-dropdown ul {
+            width: auto;
+            display: inline-block;
+            margin: 0 auto 0.3125rem;
+            text-align: left;
+        }
+    }
+</style>
+<nav class="ext-navigation">
+    <a href="https://turinglang.org/">
+        <svg width="4333" height="1145" viewBox="0 0 4333 1145" fill="none" xmlns="http://www.w3.org/2000/svg" class="ext-navbar-logo">
+            <path class="logo-text" d="M0.44603 193.181V66.9868H663.471V193.181H406.62V898H257.297V193.181H0.44603ZM1097.24 635.874V274.74H1244.13V898H1101.7V787.225H1095.21C1081.14 822.121 1058.01 850.66 1025.82 872.842C993.902 895.024 954.542 906.115 907.744 906.115C866.896 906.115 830.783 897.053 799.403 878.929C768.295 860.534 743.948 833.889 726.365 798.993C708.782 763.826 699.99 721.356 699.99 671.581V274.74H846.878V648.858C846.878 688.353 857.699 719.733 879.34 742.997C900.981 766.261 929.385 777.893 964.551 777.893C986.192 777.893 1007.16 772.618 1027.45 762.068C1047.73 751.518 1064.37 735.828 1077.35 714.999C1090.61 693.899 1097.24 667.524 1097.24 635.874ZM1395.17 898V274.74H1537.6V378.617H1544.09C1555.45 342.639 1574.93 314.911 1602.52 295.434C1630.38 275.687 1662.17 265.813 1697.88 265.813C1705.99 265.813 1715.05 266.219 1725.06 267.031C1735.34 267.572 1743.86 268.518 1750.63 269.871V404.992C1744.4 402.828 1734.53 400.934 1721 399.311C1707.75 397.417 1694.9 396.471 1682.46 396.471C1655.68 396.471 1631.6 402.287 1610.23 413.919C1589.13 425.28 1572.49 441.105 1560.32 461.393C1548.15 481.682 1542.06 505.081 1542.06 531.591V898H1395.17ZM1848.21 898V274.74H1995.1V898H1848.21ZM1922.06 186.283C1898.8 186.283 1878.78 178.573 1862.01 163.154C1845.24 147.464 1836.85 128.664 1836.85 106.752C1836.85 84.5701 1845.24 65.7695 1862.01 50.3503C1878.78 34.6606 1898.8 26.8158 1922.06 26.8158C1945.6 26.8158 1965.61 34.6606 1982.12 50.3503C1998.89 65.7695 2007.27 84.5701 2007.27 106.752C2007.27 128.664 1998.89 147.464 1982.12 163.154C1965.61 178.573 1945.6 186.283 1922.06 186.283ZM2293.04 532.809V898H2146.15V274.74H2286.54V380.646H2293.85C2308.18 345.75 2331.04 318.022 2362.42 297.463C2394.07 276.904 2433.16 266.625 2479.69 266.625C2522.7 266.625 2560.17 275.822 2592.09 294.217C2624.28 312.612 2649.17 339.257 2666.75 374.153C2684.6 409.049 2693.39 451.385 2693.12 501.159V898H2546.24V523.882C2546.24 482.223 2535.41 449.626 2513.77 426.092C2492.4 402.557 2462.78 390.79 2424.91 390.79C2399.21 390.79 2376.35 396.471 2356.34 407.832C2336.59 418.923 2321.03 435.019 2309.67 456.119C2298.58 477.218 2293.04 502.782 2293.04 532.809ZM3113.5 1144.71C3060.75 1144.71 3015.44 1137.54 2977.57 1123.2C2939.7 1109.13 2909.26 1090.2 2886.27 1066.39C2863.28 1042.59 2847.32 1016.21 2838.39 987.269L2970.67 955.213C2976.62 967.386 2985.28 979.424 2996.64 991.327C3008 1003.5 3023.28 1013.51 3042.49 1021.35C3061.97 1029.47 3086.45 1033.53 3115.93 1033.53C3157.59 1033.53 3192.08 1023.38 3219.4 1003.09C3246.73 983.076 3260.39 950.074 3260.39 904.087V786.008H3253.08C3245.51 801.157 3234.42 816.711 3219.81 832.671C3205.47 848.632 3186.4 862.022 3162.6 872.842C3139.06 883.663 3109.44 889.073 3073.73 889.073C3025.85 889.073 2982.44 877.847 2943.48 855.394C2904.8 832.671 2873.96 798.857 2850.97 753.952C2828.24 708.777 2816.88 652.24 2816.88 584.341C2816.88 515.902 2828.24 458.147 2850.97 411.078C2873.96 363.739 2904.93 327.896 2943.89 303.55C2982.84 278.933 3026.26 266.625 3074.14 266.625C3110.66 266.625 3140.69 272.847 3164.22 285.29C3188.03 297.463 3206.96 312.206 3221.03 329.519C3235.09 346.561 3245.78 362.657 3253.08 377.805H3261.2V274.74H3406.06V908.144C3406.06 961.435 3393.34 1005.53 3367.92 1040.42C3342.49 1075.32 3307.73 1101.43 3263.63 1118.74C3219.54 1136.05 3169.5 1144.71 3113.5 1144.71ZM3114.72 773.835C3145.83 773.835 3172.34 766.261 3194.25 751.112C3216.16 735.963 3232.79 714.187 3244.16 685.783C3255.52 657.379 3261.2 623.295 3261.2 583.53C3261.2 544.305 3255.52 509.95 3244.16 480.465C3233.07 450.979 3216.56 428.12 3194.65 411.89C3173.01 395.389 3146.37 387.138 3114.72 387.138C3081.98 387.138 3054.66 395.659 3032.75 412.701C3010.84 429.744 2994.34 453.143 2983.25 482.899C2972.16 512.385 2966.61 545.929 2966.61 583.53C2966.61 621.672 2972.16 655.08 2983.25 683.754C2994.61 712.158 3011.25 734.34 3033.16 750.3C3055.34 765.99 3082.53 773.835 3114.72 773.835ZM3647.08 906.927C3622.47 906.927 3601.37 898.271 3583.78 880.958C3566.2 863.645 3557.54 842.545 3557.82 817.658C3557.54 793.312 3566.2 772.482 3583.78 755.17C3601.37 737.857 3622.47 729.2 3647.08 729.2C3670.89 729.2 3691.58 737.857 3709.17 755.17C3727.02 772.482 3736.08 793.312 3736.35 817.658C3736.08 834.159 3731.75 849.173 3723.37 862.698C3715.25 876.224 3704.43 887.044 3690.91 895.16C3677.65 903.004 3663.04 906.927 3647.08 906.927ZM3888.01 274.74H4034.9V933.708C4034.9 978.613 4026.38 1015.67 4009.33 1044.89C3992.29 1074.1 3967.67 1095.88 3935.48 1110.22C3903.29 1124.55 3864.2 1131.72 3818.22 1131.72C3812.81 1131.72 3807.8 1131.59 3803.2 1131.32C3798.6 1131.32 3793.6 1131.18 3788.19 1130.91V1011.21C3792.25 1011.48 3795.9 1011.62 3799.15 1011.62C3802.39 1011.89 3805.77 1012.02 3809.29 1012.02C3837.42 1012.02 3857.58 1005.12 3869.75 991.327C3881.92 977.801 3888.01 957.918 3888.01 931.679V274.74ZM3961.05 186.283C3937.51 186.283 3917.36 178.573 3900.59 163.154C3884.09 147.464 3875.84 128.664 3875.84 106.752C3875.84 84.5701 3884.09 65.7695 3900.59 50.3503C3917.36 34.6606 3937.51 26.8158 3961.05 26.8158C3984.31 26.8158 4004.19 34.6606 4020.7 50.3503C4037.47 65.7695 4045.85 84.5701 4045.85 106.752C4045.85 128.664 4037.47 147.464 4020.7 163.154C4004.19 178.573 3984.31 186.283 3961.05 186.283ZM4332.83 66.9868V898H4185.94V66.9868H4332.83Z" fill="currentColor"/>
+            <path d="M4076 108.5C4076 168.424 4027.42 217 3967.5 217C3907.58 217 3859 168.424 3859 108.5C3859 48.5762 3907.58 0 3967.5 0C4027.42 0 4076 48.5762 4076 108.5Z" fill="#389725"/>
+            <path d="M3755 814.5C3755 874.424 3706.42 923 3646.5 923C3586.58 923 3538 874.424 3538 814.5C3538 754.576 3586.58 706 3646.5 706C3706.42 706 3755 754.576 3755 814.5Z" fill="#9457B1"/>
+            <path d="M2030 108.5C2030 168.424 1981.42 217 1921.5 217C1861.58 217 1813 168.424 1813 108.5C1813 48.5762 1861.58 0 1921.5 0C1981.42 0 2030 48.5762 2030 108.5Z" fill="#CA3B33"/>
+        </svg>
+    </a>
+    <!-- <a class="ext-navbar-title" href="https://turinglang.org/">Turing.jl</a> -->
+    
+    <ul class="ext-nav-links">
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/getting-started/">Get Started</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/tutorials/">Tutorials</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/docs/faq/">FAQ</a></li>
+        <li>
+            <p class="ext-nav-link" id="library-handler">Libraries</p>
+            <div class="ext-dropdown" id="ext-dropdown-items">
+                <ul>
+                    <li class="ext-dropdown-item-heading">Modelling Languages</li>
+                    <a href="https://turinglang.org/DynamicPPL.jl/"><li>DynamicPPL</li></a>
+                    <a href="https://turinglang.org/JuliaBUGS.jl/"><li>JuliaBUGS</li></a>
+                    <a href="https://turinglang.org/TuringGLM.jl/"><li>TuringGLM</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">MCMC</li>
+                    <a href="https://turinglang.org/AdvancedHMC.jl/"><li>AdvancedHMC</li></a>
+                    <a href="https://turinglang.org/AbstractMCMC.jl/"><li>AbstractMCMC</li></a>
+                    <a href="https://github.com/theogf/ThermodynamicIntegration.jl"><li>ThermodynamicIntegration</li></a>
+                    <a href="https://turinglang.org/AdvancedPS.jl/"><li>AdvancedPS</li></a>
+                    <a href="https://turinglang.org/SliceSampling.jl/"><li>SliceSampling</li></a>
+                    <a href="https://turinglang.org/EllipticalSliceSampling.jl/"><li>EllipticalSliceSampling</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Diagnostics</li>
+                    <a href="https://turinglang.org/MCMCChains.jl/"><li>MCMCChains</li></a>
+                    <a href="https://turinglang.org/MCMCDiagnosticTools.jl/"><li>MCMCDiagnosticTools</li></a>
+                    <a href="https://turinglang.org/ParetoSmooth.jl/"><li>ParetoSmooth</li></a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Gaussian Processes</li>
+                    <a href="https://juliagaussianprocesses.github.io/AbstractGPs.jl/"><li>AbstractGPs</li></a>
+                    <a href="https://juliagaussianprocesses.github.io/KernelFunctions.jl/"><li>KernelFunctions</li></a>
+                    <a href="https://juliagaussianprocesses.github.io/ApproximateGPs.jl/"><li>ApproximateGPs</li></a>
+                </ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/Bijectors.jl/">Bijectors</a></li></ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/TuringCallbacks.jl/">TuringCallbacks</a></li></ul>
+                <ul><li class="ext-dropdown-item-heading ext-navbar-item-single"><a href="https://turinglang.org/Deprecated/TuringBenchmarking/">TuringBenchmarking</a><span class="deprecated-badge">Deprecated</span></li></ul>
+            </div>
+        </li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/news/">News</a></li>
+        <li><a class="ext-nav-link" href="https://turinglang.org/team/">Team</a></li>
+    </ul>
+
+    <div class="ext-navbar-icons">
+        <a href="https://x.com/TuringLang" aria-label="Turing on X"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="https://discourse.julialang.org/c/domain/probprog/48" aria-label="Turing on Discourse"><i class="fa-brands fa-discourse"></i></a>
+        <a href="https://julialang.slack.com/archives/CCYDC34A0" aria-label="Turing on Slack"><i class="fa-brands fa-slack"></i></a>
+        <a href="https://github.com/TuringLang/" aria-label="Turing.jl on GitHub"><i class="fa-brands fa-github"></i></a>
+    </div>
+
+    <span class="ext-menu-toggle"><i class="fa-solid fa-bars"></i></span>
+</nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const menuToggle = document.querySelector(".ext-menu-toggle");
+        const navLinks = document.querySelector(".ext-nav-links");
+        const nav = document.querySelector(".ext-navigation");
+        const libraryHandler = document.getElementById("library-handler");
+        const dropdownContainer = document.getElementById("ext-dropdown-items");
+        let lastScrollY = window.scrollY;
+
+        function closeDropdown() {
+            if (dropdownContainer.classList.contains("show")) {
+                libraryHandler.classList.remove("open");
+                dropdownContainer.classList.remove("show");
+                setTimeout(() => {
+                    if (!dropdownContainer.classList.contains("show")) {
+                        dropdownContainer.style.display = "none";
+                    }
+                }, 300);
+            }
+        }
+
+        function openDropdown() {
+            dropdownContainer.style.display = "grid";
+            libraryHandler.classList.add("open");
+            setTimeout(() => {
+                dropdownContainer.classList.add("show");
+            }, 10);
+        }
+
+        function setAppropriateHeight() {
+            if (window.innerWidth <= 768) {
+                const viewportHeight = window.innerHeight;
+                const navHeight = nav.offsetHeight;
+                navLinks.style.maxHeight = `${viewportHeight - navHeight}px`;
+                navLinks.style.overflowY = "auto";
+            } else {
+                navLinks.style.maxHeight = "";
+                navLinks.style.overflowY = "";
+            }
+        }
+
+        menuToggle.addEventListener("click", (event) => {
+            event.stopPropagation();
+            navLinks.classList.toggle("show");
+            if (navLinks.classList.contains("show")) {
+                setAppropriateHeight();
+                closeDropdown();
+                dropdownContainer.style.display = "none";
+            }
+        });
+
+        libraryHandler.addEventListener("click", (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            if (dropdownContainer.classList.contains("show")) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+            setAppropriateHeight();
+        });
+
+        // Close all menus if a click is registered outside the navigation bar.
+        document.addEventListener("click", (event) => {
+            if (!nav.contains(event.target)) {
+                navLinks.classList.remove("show");
+                closeDropdown();
+            }
+        });
+
+        // Hide navigation bar on scroll down in mobile view.
+        window.addEventListener("scroll", () => {
+            if (window.innerWidth <= 768) {
+                if (window.scrollY > lastScrollY && window.scrollY > nav.offsetHeight){
+                    nav.classList.add("hide");
+                } else {
+                    nav.classList.remove("hide");
+                }
+                lastScrollY = window.scrollY;
+            }
+        });
+
+        window.addEventListener("resize", setAppropriateHeight);
+    });
+</script>
+<!-- NAVBAR END -->
+
+
+<div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">AdvancedVI.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">AdvancedVI</a></li><li><a class="tocitem" href="../general/">General Usage</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../tutorials/basic/">Basic Example</a></li><li><a class="tocitem" href="../tutorials/subsampling/">Scaling to Large Datasets</a></li><li><a class="tocitem" href="../tutorials/stan/">Stan Models</a></li><li><a class="tocitem" href="../tutorials/flows/">Normalizing Flows</a></li><li><a class="tocitem" href="../tutorials/constrained/">Dealing with Constrained Posteriors</a></li></ul></li><li><span class="tocitem">Algorithms</span><ul><li><a class="tocitem" href="../klminrepgraddescent/"><code>KLMinRepGradDescent</code></a></li><li><a class="tocitem" href="../klminrepgradproxdescent/"><code>KLMinRepGradProxDescent</code></a></li><li><a class="tocitem" href="../klminscoregraddescent/"><code>KLMinScoreGradDescent</code></a></li><li><a class="tocitem" href="../klminwassfwdbwd/"><code>KLMinWassFwdBwd</code></a></li><li class="is-active"><a class="tocitem" href><code>KLMinNaturalGradDescent</code></a><ul class="internal"><li><a class="tocitem" href="#Description"><span>Description</span></a></li><li><a class="tocitem" href="#klminnaturalgraddescent_method"><span>Methodology</span></a></li></ul></li><li><a class="tocitem" href="../klminsqrtnaturalgraddescent/"><code>KLMinSqrtNaturalGradDescent</code></a></li><li><a class="tocitem" href="../fisherminbatchmatch/"><code>FisherMinBatchMatch</code></a></li></ul></li><li><a class="tocitem" href="../families/">Variational Families</a></li><li><a class="tocitem" href="../optimization/">Optimization</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Algorithms</a></li><li class="is-active"><a href><code>KLMinNaturalGradDescent</code></a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href><code>KLMinNaturalGradDescent</code></a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/TuringLang/AdvancedVI.jl/blob/main/docs/src/klminnaturalgraddescent.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="klminnaturalgraddescent"><a class="docs-heading-anchor" href="#klminnaturalgraddescent"><code>KLMinNaturalGradDescent</code></a><a id="klminnaturalgraddescent-1"></a><a class="docs-heading-anchor-permalink" href="#klminnaturalgraddescent" title="Permalink"></a></h1><h2 id="Description"><a class="docs-heading-anchor" href="#Description">Description</a><a id="Description-1"></a><a class="docs-heading-anchor-permalink" href="#Description" title="Permalink"></a></h2><p>This algorithm aims to minimize the exclusive (or reverse) Kullback-Leibler (KL) divergence by running natural gradient descent. <code>KLMinNaturalGradDescent</code> is a specific implementation of natural gradient variational inference (NGVI) also known as variational online Newton<sup class="footnote-reference"><a id="citeref-KR2023" href="#footnote-KR2023" class="footnote-ref">[KR2023]</a><span class="footnote-preview" id="fn-KR2023"></span></sup>. For nearly-Gaussian targets, NGVI tends to converge very quickly. If the <code>ensure_posdef</code> option is set to <code>true</code> (this is the default configuration), then the update rule of <sup class="footnote-reference"><a id="citeref-LSK2020" href="#footnote-LSK2020" class="footnote-ref">[LSK2020]</a><span class="footnote-preview" id="fn-LSK2020"></span></sup> is used, which guarantees the updated precision matrix is always positive definite. Since <code>KLMinNaturalGradDescent</code> is a measure-space algorithm, its use is restricted to full-rank Gaussian variational families (<code>FullRankGaussian</code>) that make the updates tractable.</p><article><details class="docstring" open="true"><summary id="AdvancedVI.KLMinNaturalGradDescent"><a class="docstring-binding" href="#AdvancedVI.KLMinNaturalGradDescent"><code>AdvancedVI.KLMinNaturalGradDescent</code></a> — <span class="docstring-category">Type</span></summary><section><div><pre><code class="language-julia hljs">KLMinNaturalGradDescent(stepsize, n_samples, ensure_posdef, subsampling)
+KLMinNaturalGradDescent(; stepsize, n_samples, ensure_posdef, subsampling)</code></pre><p>KL divergence minimization by running natural gradient descent<sup class="footnote-reference"><a id="citeref-KL2017" href="#footnote-KL2017" class="footnote-ref">[KL2017]</a><span class="footnote-preview" id="fn-KL2017"></span></sup><sup class="footnote-reference"><a id="citeref-KR2023" href="#footnote-KR2023" class="footnote-ref">[KR2023]</a><span class="footnote-preview" id="fn-KR2023"></span></sup>, also called variational online Newton. This algorithm can be viewed as an instantiation of mirror descent, where the Bregman divergence is chosen to be the KL divergence.</p><p>If the <code>ensure_posdef</code> argument is true, the algorithm applies the technique by Lin <em>et al.</em><sup class="footnote-reference"><a id="citeref-LSK2020" href="#footnote-LSK2020" class="footnote-ref">[LSK2020]</a><span class="footnote-preview" id="fn-LSK2020"></span></sup>, where the precision matrix update includes an additional term that guarantees positive definiteness. This, however, involves an additional set of matrix-matrix system solves that could be costly.</p><p>This algorithm requires second-order information about the target. If the target <code>LogDensityProblem</code> has second-order differentiation <a href="https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities">capability</a>, Hessians are used. Otherwise, if the target has only first-order capability, it will use only gradients but this will porbably result in slower convergence and less robust behavior.</p><p><strong>(Keyword) Arguments</strong></p><ul><li><code>stepsize::Float64</code>: Step size.</li><li><code>n_samples::Int</code>: Number of samples used to estimate the natural gradient. (default: <code>1</code>)</li><li><code>ensure_posdef::Bool</code>: Ensure that the updated precision preserves positive definiteness. (default: <code>true</code>)</li><li><code>subsampling::Union{Nothing,&lt;:AbstractSubsampling}</code>: Optional subsampling strategy.</li></ul><div class="admonition is-info" id="Note-cc857b8643abc0ee"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-cc857b8643abc0ee" title="Permalink"></a></header><div class="admonition-body"><p>The <code>subsampling</code> strategy is only applied to the target <code>LogDensityProblem</code> but not to the variational approximation <code>q</code>. That is, <code>KLMinNaturalGradDescent</code> does not support amortization or structured variational families.</p></div></div><p><strong>Output</strong></p><ul><li><code>q</code>: The last iterate of the algorithm.</li></ul><p><strong>Callback Signature</strong></p><p>The <code>callback</code> function supplied to <code>optimize</code> needs to have the following signature:</p><pre><code class="nohighlight hljs">callback(; rng, iteration, q, info)</code></pre><p>The keyword arguments are as follows:</p><ul><li><code>rng</code>: Random number generator internally used by the algorithm.</li><li><code>iteration</code>: The index of the current iteration.</li><li><code>q</code>: Current variational approximation.</li><li><code>info</code>: <code>NamedTuple</code> containing the information generated during the current iteration.</li></ul><p><strong>Requirements</strong></p><ul><li>The variational family is <a href="../families/#AdvancedVI.FullRankGaussian"><code>FullRankGaussian</code></a>.</li><li>The target distribution has unconstrained support.</li><li>The target <code>LogDensityProblems.logdensity(prob, x)</code> has at least first-order differentiation capability.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/TuringLang/AdvancedVI.jl/blob/e53a808bc85fc6d7c52d13cceb7bdd2c921113fa/src/algorithms/klminnaturalgraddescent.jl#L2-L43">source</a></section></details></article><p>The associated objective can be estimated through the following:</p><article><details class="docstring" open="true"><summary id="AdvancedVI.estimate_objective-Tuple{AbstractRNG, KLMinWassFwdBwd, MvLocationScale, Any}-klminnaturalgraddescent"><a class="docstring-binding" href="#AdvancedVI.estimate_objective-Tuple{AbstractRNG, KLMinWassFwdBwd, MvLocationScale, Any}-klminnaturalgraddescent"><code>AdvancedVI.estimate_objective</code></a> — <span class="docstring-category">Method</span></summary><section><div><pre><code class="language-julia hljs">estimate_objective([rng,] alg, q, prob; kwargs...)</code></pre><p>Estimate the variational objective to be minimized by the algorithm <code>alg</code> for approximating the target <code>prob</code> with the variational approximation <code>q</code>.</p><p><strong>Arguments</strong></p><ul><li><code>rng::Random.AbstractRNG</code>: Random number generator.</li><li><code>alg::AbstractVariationalAlgorithm</code>: Variational inference algorithm.</li><li><code>prob</code>: The target log-joint likelihood implementing the <code>LogDensityProblem</code> interface.</li><li><code>q</code>: Variational approximation.</li></ul><p><strong>Keyword Arguments</strong></p><p>Depending on the algorithm, additional keyword arguments may apply. Please refer to the respective documentation of each algorithm for more info.</p><p><strong>Returns</strong></p><ul><li><code>obj_est</code>: Estimate of the objective value.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/TuringLang/AdvancedVI.jl/blob/e53a808bc85fc6d7c52d13cceb7bdd2c921113fa/src/AdvancedVI.jl#L258-L275">source</a></section></details></article><h2 id="klminnaturalgraddescent_method"><a class="docs-heading-anchor" href="#klminnaturalgraddescent_method">Methodology</a><a id="klminnaturalgraddescent_method-1"></a><a class="docs-heading-anchor-permalink" href="#klminnaturalgraddescent_method" title="Permalink"></a></h2><p>This algorithm aims to solve the problem</p><p class="math-container">\[  \mathrm{minimize}_{q_{\lambda} \in \mathcal{Q}}\quad \mathrm{KL}\left(q_{\lambda}, \pi\right)\]</p><p>where <span>$\mathcal{Q}$</span> is some family of distributions, often called the variational family, by running stochastic gradient descent in the (Euclidean) space of parameters. That is, for all <span>$q_{\lambda} \in \mathcal{Q}$</span>, we assume <span>$q_{\lambda}$</span> there is a corresponding vector of parameters <span>$\lambda \in \Lambda$</span>, where the space of parameters is Euclidean such that <span>$\Lambda \subset \mathbb{R}^p$</span>.</p><p>Since we usually only have access to the unnormalized densities of the target distribution <span>$\pi$</span>, we don&#39;t have direct access to the KL divergence. Instead, the ELBO maximization strategy minimizes a surrogate objective, the <em>negative evidence lower bound</em><sup class="footnote-reference"><a id="citeref-JGJS1999" href="#footnote-JGJS1999" class="footnote-ref">[JGJS1999]</a><span class="footnote-preview" id="fn-JGJS1999"></span></sup></p><p class="math-container">\[  \mathcal{L}\left(q\right) \triangleq \mathbb{E}_{\theta \sim q} -\log \pi\left(\theta\right) - \mathbb{H}\left(q\right),\]</p><p>which is equivalent to the KL up to an additive constant (the evidence).</p><p>Suppose we had access to the exact gradients <span>$\nabla_{\lambda} \mathcal{L}\left(q_{\lambda}\right)$</span>. NGVI attempts to minimize <span>$\mathcal{L}$</span> via natural gradient descent, which corresponds to iterating the mirror descent update</p><p class="math-container">\[\lambda_{t+1} =  \argmin_{\lambda \in \Lambda} {\langle \nabla_{\lambda} \mathcal{L}\left(q_{\lambda_t}\right), \lambda - \lambda_t \rangle} + \frac{1}{2 \gamma_t} \mathrm{KL}\left(q, q_{\lambda_t}\right) .\]</p><p>This turns out to be equivalent to the update</p><p class="math-container">\[\lambda_{t+1} = \lambda_{t} - \gamma_t {F(\lambda_t)}^{-1} \nabla_{\lambda} \mathcal{L}(q_{\lambda_t}) ,\]</p><p>where <span>$F(\lambda_t)$</span> is the Fisher information matrix of <span>$q_{\lambda}$</span>. That is, natural gradient descent can be viewed as gradient descent with an iterate-dependent preconditioning. Furthermore, <span>${F(\lambda_t)}^{-1} \nabla_{\lambda} \mathcal{L}(q_{\lambda_t})$</span> is refered to as the <em>natural gradient</em> of the KL divergence<sup class="footnote-reference"><a id="citeref-A1998" href="#footnote-A1998" class="footnote-ref">[A1998]</a><span class="footnote-preview" id="fn-A1998"></span></sup>, hence natural gradient variational inference. Also note that the gradient is taken over the parameters of <span>$q_{\lambda}$</span>. Therefore, NGVI is parametrization dependent: for the same variational family, different parametrizations will result in different behavior. However, the pseudo-metric <span>$\mathrm{KL}\left(q, q_{\lambda_t}\right)$</span> is over measures. Therefore, NGVI tend to behave as a measure-space algorithm, but technically speaking, not a fully measure-space algorithm.</p><p>In practice, we don&#39;t have access to <span>$\nabla_{\lambda} \mathcal{L}\left(q_{\lambda}\right)$</span> apart from its unbiased estimate. Regardless, the natural gradient descent/mirror descent updates involving the stochastic estimates have been derived for some variational families. For instance, Gaussian variational families<sup class="footnote-reference"><a id="citeref-KR2023" href="#footnote-KR2023" class="footnote-ref">[KR2023]</a><span class="footnote-preview" id="fn-KR2023"></span></sup> and mixture of exponential families<sup class="footnote-reference"><a id="citeref-LKS2019" href="#footnote-LKS2019" class="footnote-ref">[LKS2019]</a><span class="footnote-preview" id="fn-LKS2019"></span></sup>. As of now, we only implement the Gaussian version.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-KR2023"><a class="tag is-link" href="#citeref-KR2023">KR2023</a>Khan, M. E., &amp; Rue, H. (2023). The Bayesian learning rule. <em>Journal of Machine Learning Research</em>, 24(281), 1-46.</li><li class="footnote" id="footnote-LSK2020"><a class="tag is-link" href="#citeref-LSK2020">LSK2020</a>Lin, W., Schmidt, M., &amp; Khan, M. E. (2020). Handling the positive-definite constraint in the Bayesian learning rule. In <em>International Conference on Machine Learning</em>. PMLR.</li><li class="footnote" id="footnote-LKS2019"><a class="tag is-link" href="#citeref-LKS2019">LKS2019</a>Lin, W., Khan, M. E., &amp; Schmidt, M. (2019). Fast and simple natural-gradient variational inference with mixture of exponential-family approximations. In <em>International Conference on Machine Learning</em>. PMLR.</li><li class="footnote" id="footnote-A1998"><a class="tag is-link" href="#citeref-A1998">A1998</a>Amari, S. I. (1998). Natural gradient works efficiently in learning. <em>Neural computation</em>, 10(2), 251-276.</li><li class="footnote" id="footnote-JGJS1999"><a class="tag is-link" href="#citeref-JGJS1999">JGJS1999</a>Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., &amp; Saul, L. K. (1999). An introduction to variational methods for graphical models. Machine learning, 37, 183-233.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../klminwassfwdbwd/">« <code>KLMinWassFwdBwd</code></a><a class="docs-footer-nextpage" href="../klminsqrtnaturalgraddescent/"><code>KLMinSqrtNaturalGradDescent</code> »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Tuesday 27 January 2026 00:39">Tuesday 27 January 2026</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
