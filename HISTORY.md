@@ -1,4 +1,3 @@
-
 # Release 0.6.2
 
 Some subtle bugs in the implementations of `KLMinWassFwdBwd`, `KLMinNaturalGradDescent`, `KLMinSqrtNaturalGradDescent` have been fixed.
