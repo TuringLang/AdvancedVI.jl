@@ -3,7 +3,7 @@
 
 Some subtle bugs in the implementations of `KLMinWassFwdBwd`, `KLMinNaturalGradDescent`, `KLMinSqrtNaturalGradDescent` have been fixed.
 Mainly, when calling to `gauss_expected_grad_hess`, these wrapped the Hessian estimate into a `Symmetric` adaptor. For the reparametrization gradient, however (which is used when dealing with log-density problems with only first-order capabilities), the estimate is not almost surely symmetric.
-So wrapping with `Symmetric` induces unexpected behavior. 
+So wrapping with `Symmetric` induces unexpected behavior.
 
 # Release 0.6.1
 
