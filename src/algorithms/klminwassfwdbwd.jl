@@ -103,8 +103,8 @@ function step(
     )
 
     m′ = m - η * (-grad_buf)
-    M = I - η*Symmetric(-hess_buf)
-    Σ_half = Hermitian(M*Σ*M)
+    M = I - η* (-hess_buf')
+    Σ_half = Hermitian(M*Σ*M')
 
     # Compute the JKO proximal operator
     Σ′ = (Σ_half + 2*η*I + sqrt(Hermitian(Σ_half*(Σ_half + 4*η*I))))/2
