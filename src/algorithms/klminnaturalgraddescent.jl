@@ -7,11 +7,12 @@ KL divergence minimization by running natural gradient descent[^KL2017][^KR2023]
 This algorithm can be viewed as an instantiation of mirror descent, where the Bregman divergence is chosen to be the KL divergence.
 
 If the `ensure_posdef` argument is true, the algorithm applies the technique by Lin *et al.*[^LSK2020], where the precision matrix update includes an additional term that guarantees positive definiteness.
-This, however, involves an additional set of matrix-matrix system solves that could be costly.
+This, however, involves an additional set of matrix-matrix multiplications that could be costly.
 
 This algorithm requires second-order information about the target.
 If the target `LogDensityProblem` has second-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), Hessians are used.
-Otherwise, if the target has only first-order capability, it will use only gradients but this will porbably result in slower convergence and less robust behavior.
+Otherwise, if the target has only first-order capability, it will use only gradients but `ensure_posdef` must be set to `true`.
+Also, compared to targets with second-order capability, convergence may be slower and the algorithm will be less robust.
 
 # (Keyword) Arguments
 - `stepsize::Float64`: Step size.
@@ -125,10 +126,10 @@ function step(
         # Lin, W., Schmidt, M., & Khan, M. E.
         # Handling the positive-definite constraint in the Bayesian learning rule.
         # In ICML 2020.
-        G_hat = S - Symmetric(-hess_buf)
+        G_hat = S - (-hess_buf)
         Hermitian(S - η*G_hat + η^2/2*G_hat*qcov*G_hat)
     else
-        Hermitian(((1 - η) * S + η * Symmetric(-hess_buf)))
+        Hermitian(((1 - η) * S + η * (-hess_buf)))
     end
     m′ = m - η * (S′ \ (-grad_buf))
 

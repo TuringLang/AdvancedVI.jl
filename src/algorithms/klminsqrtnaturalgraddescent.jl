@@ -7,7 +7,7 @@ KL divergence minimization algorithm obtained by discretizing the natural gradie
 
 This algorithm requires second-order information about the target.
 If the target `LogDensityProblem` has second-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), Hessians are used.
-Otherwise, if the target has only first-order capability, it will use only gradients but this will porbably result in slower convergence and less robust behavior.
+Otherwise, if the target has only first-order capability, it will use only gradients but this will probably result in slower convergence and less robust behavior.
 
 # (Keyword) Arguments
 - `stepsize::Float64`: Step size.
@@ -105,7 +105,7 @@ function step(
         rng, q, n_samples, grad_buf, hess_buf, prob_sub
     )
 
-    CtHCmI = C'*Symmetric(-hess_buf)*C - I
+    CtHCmI = C'*(-hess_buf)*C - I
     CtHCmI_tril = LowerTriangular(tril(CtHCmI) - Diagonal(diag(CtHCmI))/2)
 
     m′ = m - η * C * (C' * -grad_buf)
