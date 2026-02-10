@@ -55,7 +55,7 @@ function DynamicPPLModelLogDensityFunction(
     if !DynamicPPL.is_supported(adtype)
         @warn "The AD backend $adtype is not officially supported by DynamicPPL. Gradient calculations may still work, but correctness is not guaranteed."
     end
-    
+
     model_sub = if isnothing(subsampling)
         model
     else
