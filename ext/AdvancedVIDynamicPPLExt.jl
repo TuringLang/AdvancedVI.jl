@@ -42,8 +42,7 @@ function logdensity_impl(
 end
 
 function subsample_dynamicpplmodel(model::DynamicPPL.Model, batch)
-    return DynamicPPL.decondition(
-        model, DynamicPPL.@varname(datapoints)) | (; datapoints=batch)
+    return @set model.defaults.datapoints = batch
 end
 
 function DynamicPPLModelLogDensityFunction(
@@ -54,7 +53,7 @@ function DynamicPPLModelLogDensityFunction(
     subsampling::Union{Nothing,AdvancedVI.AbstractSubsampling}=nothing,
 )
     if !DynamicPPL.is_supported(adtype)
-        @warn "The AD backend $adtype is not officially supported by DynamicPPL. Gradient calculations may still work, but compatibility is not guaranteed."
+        @warn "The AD backend $adtype is not officially supported by DynamicPPL. Gradient calculations may still work, but correctness is not guaranteed."
     end
     
     model_sub = if isnothing(subsampling)
