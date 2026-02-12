@@ -62,21 +62,21 @@ function DynamicPPLModelLogDensityFunction(
     end
 
     params = [val for val in varinfo[:]]
-    prep_grad =
-        if adtype_capabilities(typeof(adtype)) >= LogDensityProblems.LogDensityOrder{1}()
-            DifferentiationInterface.prepare_gradient(
-                logdensity_impl,
-                adtype,
-                params,
-                DifferentiationInterface.Constant(model_sub),
-                DifferentiationInterface.Constant(loglikeadj),
-                DifferentiationInterface.Constant(varinfo),
-            )
-        else
-            nothing
-        end
-    prep_hess =
-        if adtype_capabilities(typeof(adtype)) > LogDensityProblems.LogDensityOrder{2}()
+    cap = adtype_capabilities(typeof(adtype))
+    prep_grad = if cap >= LogDensityProblems.LogDensityOrder{1}()
+        DifferentiationInterface.prepare_gradient(
+            logdensity_impl,
+            adtype,
+            params,
+            DifferentiationInterface.Constant(model_sub),
+            DifferentiationInterface.Constant(loglikeadj),
+            DifferentiationInterface.Constant(varinfo),
+        )
+    else
+        nothing
+    end
+    prep_hess = if cap > LogDensityProblems.LogDensityOrder{2}()
+        try
             DifferentiationInterface.prepare_hessian(
                 logdensity_impl,
                 adtype,
@@ -85,9 +85,13 @@ function DynamicPPLModelLogDensityFunction(
                 DifferentiationInterface.Constant(loglikeadj),
                 DifferentiationInterface.Constant(varinfo),
             )
-        else
+        catch
+            @warn "The selected AD backend has second-order capabilities but `DifferentiationInterface.prepare_hessian` failed. AdvancedVI will treat the model to only have first-order capability."
             nothing
         end
+    else
+        nothing
+    end
     return DynamicPPLModelLogDensityFunction{
         typeof(model),
         typeof(loglikeadj),
@@ -138,7 +142,13 @@ end
 function LogDensityProblems.capabilities(
     ::Type{<:DynamicPPLModelLogDensityFunction{M,L,V,ADType,PG,PH}}
 ) where {M,L,V,ADType<:ADTypes.AbstractADType,PG,PH}
-    return adtype_capabilities(ADType)
+    return if PH != Nothing
+        LogDensityProblems.LogDensityOrder{2}()
+    elseif PG != Nothing
+        LogDensityProblems.LogDensityOrder{1}()
+    else
+        LogDensityProblems.LogDensityOrder{0}()
+    end
 end
 
 function LogDensityProblems.dimension(prob::DynamicPPLModelLogDensityFunction)
