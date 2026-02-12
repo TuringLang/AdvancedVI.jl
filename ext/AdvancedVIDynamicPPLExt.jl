@@ -10,9 +10,24 @@ using LogDensityProblems: LogDensityProblems
 using Random
 
 adtype_capabilities(::Type{Nothing}) = LogDensityProblems.LogDensityOrder{0}()
+
 function adtype_capabilities(::Type{<:ADTypes.AbstractADType})
-    LogDensityProblems.LogDensityOrder{1}()
+    return LogDensityProblems.LogDensityOrder{1}()
 end
+
+function adtype_capabilities(
+    ::Type{
+        <:Union{
+            <:ADTypes.AutoForwardDiff,
+            <:ADTypes.AutoReverseDiff,
+            <:ADTypes.AutoMooncake,
+            <:ADTypes.AutoEnzyme,
+        },
+    },
+)
+    return LogDensityProblems.LogDensityOrder{2}()
+end
+
 
 struct DynamicPPLModelLogDensityFunction{
     Model<:DynamicPPL.Model,
@@ -75,7 +90,7 @@ function DynamicPPLModelLogDensityFunction(
     else
         nothing
     end
-    prep_hess = if cap > LogDensityProblems.LogDensityOrder{2}()
+    prep_hess = if cap >= LogDensityProblems.LogDensityOrder{2}()
         try
             DifferentiationInterface.prepare_hessian(
                 logdensity_impl,
