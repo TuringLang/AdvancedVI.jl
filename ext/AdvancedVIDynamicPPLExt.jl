@@ -63,6 +63,7 @@ end
 function DynamicPPLModelLogDensityFunction(
     model::DynamicPPL.Model,
     varinfo::DynamicPPL.AbstractVarInfo;
+    use_hessian::Bool=true,
     adtype::Union{Nothing,ADTypes.AbstractADType}=nothing,
     loglikeadj::Real=1.0,
     subsampling::Union{Nothing,AdvancedVI.AbstractSubsampling}=nothing,
@@ -90,7 +91,7 @@ function DynamicPPLModelLogDensityFunction(
     else
         nothing
     end
-    prep_hess = if cap >= LogDensityProblems.LogDensityOrder{2}()
+    prep_hess = if cap >= LogDensityProblems.LogDensityOrder{2}() && use_hessian
         try
             DifferentiationInterface.prepare_hessian(
                 logdensity_impl,
