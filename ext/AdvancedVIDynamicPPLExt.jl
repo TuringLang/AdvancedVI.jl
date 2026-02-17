@@ -53,11 +53,14 @@ function logdensity_impl(
     loglike = DynamicPPL.getloglikelihood(vi)
     logprior = DynamicPPL.getlogprior(vi)
     logjac = DynamicPPL.getlogjac(vi)
-    return convert(eltype(params), loglikeadj)*loglike + logprior - logjac
+    return convert(eltype(params), loglikeadj) * loglike + logprior - logjac
 end
 
-function subsample_dynamicpplmodel(model::DynamicPPL.Model, batch)
-    return @set model.defaults.datapoints = batch
+function subsample_dynamicpplmodel(
+    model::DynamicPPL.Model{F,A,D,M,Ta,Td,Ctx,Threaded}, batch
+) where {F,A,D,M,Ta,Td,Ctx,Threaded}
+    new_kwargs = merge(model.defaults, (; datapoints=batch))
+    return DynamicPPL.Model{Threaded}(model.f, model.args, new_kwargs, model.context)
 end
 
 function DynamicPPLModelLogDensityFunction(
