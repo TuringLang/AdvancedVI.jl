@@ -22,12 +22,12 @@ function adtype_capabilities(
             <:ADTypes.AutoReverseDiff,
             <:ADTypes.AutoMooncake,
             <:ADTypes.AutoEnzyme,
+            <:DifferentiationInterface.SecondOrder,
         },
     },
 )
     return LogDensityProblems.LogDensityOrder{2}()
 end
-
 
 struct DynamicPPLModelLogDensityFunction{
     Model<:DynamicPPL.Model,
@@ -53,11 +53,14 @@ function logdensity_impl(
     loglike = DynamicPPL.getloglikelihood(vi)
     logprior = DynamicPPL.getlogprior(vi)
     logjac = DynamicPPL.getlogjac(vi)
-    return convert(eltype(params), loglikeadj)*loglike + logprior - logjac
+    return convert(eltype(params), loglikeadj) * loglike + logprior - logjac
 end
 
-function subsample_dynamicpplmodel(model::DynamicPPL.Model, batch)
-    return @set model.defaults.datapoints = batch
+function subsample_dynamicpplmodel(
+    model::DynamicPPL.Model{F,A,D,M,Ta,Td,Ctx,Threaded}, batch
+) where {F,A,D,M,Ta,Td,Ctx,Threaded}
+    new_kwargs = merge(model.defaults, (; datapoints=batch))
+    return DynamicPPL.Model{Threaded}(model.f, model.args, new_kwargs, model.context)
 end
 
 function DynamicPPLModelLogDensityFunction(
@@ -82,7 +85,7 @@ function DynamicPPLModelLogDensityFunction(
     prep_grad = if cap >= LogDensityProblems.LogDensityOrder{1}()
         DifferentiationInterface.prepare_gradient(
             logdensity_impl,
-            adtype,
+            DifferentiationInterface.inner(adtype),
             params,
             DifferentiationInterface.Constant(model_sub),
             DifferentiationInterface.Constant(loglikeadj),
@@ -132,7 +135,7 @@ function LogDensityProblems.logdensity_and_gradient(
     return DifferentiationInterface.value_and_gradient(
         logdensity_impl,
         prep_grad,
-        adtype,
+        DifferentiationInterface.inner(adtype),
         params,
         DifferentiationInterface.Constant(model),
         DifferentiationInterface.Constant(loglikeadj),
@@ -185,7 +188,7 @@ function AdvancedVI.subsample(prob::DynamicPPLModelLogDensityFunction, batch)
     n_datapoints = length(model.defaults.datapoints)
     batchsize = length(batch)
     model_sub = subsample_dynamicpplmodel(model, batch)
-    loglikeadj = n_datapoints/batchsize
+    loglikeadj = n_datapoints / batchsize
 
     prob′ = @set prob.model = model_sub
     prob′′ = @set prob′.loglikeadj = loglikeadj
