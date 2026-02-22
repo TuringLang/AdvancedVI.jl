@@ -53,7 +53,6 @@
 
         Δλ0 = sum(abs2, q0.location - μ_true)
         Δλ = sum(abs2, q.location - μ_true)
-        @info("", Δλ0, Δλ)
         @test Δλ ≤ Δλ0/2
     end
 end
