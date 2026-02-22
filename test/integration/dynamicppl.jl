@@ -4,23 +4,21 @@
         x ~ MvNormal(μ, I)
     end
 
-    DynamicPPL.@model function normal_subsampled(μs; datapoints=1:size(μs,2))
+    DynamicPPL.@model function normal_subsampled(μs; datapoints=1:size(μs, 2))
         for i in datapoints
-            x ~ MvNormal(μs[:,i], I)
+            x ~ MvNormal(μs[:, i], I)
         end
     end
-    
+
     @testset "basic" begin
-        μ_true = [-2., 2.]
+        μ_true = [-2.0, 2.0]
 
         model = normal(μ_true)
         vi = DynamicPPL.VarInfo(model)
         vi = DynamicPPL.link!!(vi, model)
 
         ext = Base.get_extension(AdvancedVI, :AdvancedVIDynamicPPLExt)
-        prob = ext.DynamicPPLModelLogDensityFunction(
-            model, vi; adtype=AD
-        )
+        prob = ext.DynamicPPLModelLogDensityFunction(model, vi; adtype=AD)
 
         alg = KLMinRepGradProxDescent(AD)
         d = LogDensityProblems.dimension(prob)
@@ -35,7 +33,7 @@
     @testset "subsampling" begin
         n_data = 32
         μs = randn(2, n_data)
-        μ_true = mean(μs, dims=2)[:,1]
+        μ_true = mean(μs, dims=2)[:, 1]
 
         model = normal_subsampled(μs)
         vi = DynamicPPL.VarInfo(model)
@@ -46,9 +44,7 @@
         subsampling = ReshufflingBatchSubsampling(dataset, batchsize)
 
         ext = Base.get_extension(AdvancedVI, :AdvancedVIDynamicPPLExt)
-        prob = ext.DynamicPPLModelLogDensityFunction(
-            model, vi; adtype=AD, subsampling
-        )
+        prob = ext.DynamicPPLModelLogDensityFunction(model, vi; adtype=AD, subsampling)
 
         alg = KLMinRepGradProxDescent(AD; subsampling)
         d = LogDensityProblems.dimension(prob)
