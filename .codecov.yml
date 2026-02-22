@@ -1,14 +1,14 @@
 # https://docs.codecov.io/docs/codecovyml-reference
 
 # We have
-#   * 4 workflows for each AD backends
+#   * 5 workflows for each AD backends and integration tests
 #   * 1 separate workflow for non-AD tests
 #   * 3 operating systems
 #   * 2 Julia versions
-# In total this is 3 x 2 x (4 + 1) = 30 tests
+# In total this is 3 x 2 x (5 + 1) = 36 tests
 codecov:
   branch: main
   notify:
-    after_n_builds: 30
+    after_n_builds: 36
 comment:
-  after_n_builds: 30
+  after_n_builds: 36

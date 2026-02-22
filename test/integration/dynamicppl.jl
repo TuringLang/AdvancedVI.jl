@@ -32,7 +32,7 @@
 
     @testset "subsampling" begin
         n_data = 32
-        μs = randn(2, n_data)
+        μs = 3*randn(2, n_data)
         μ_true = mean(μs, dims=2)[:, 1]
 
         model = normal_subsampled(μs)
@@ -53,6 +53,7 @@
 
         Δλ0 = sum(abs2, q0.location - μ_true)
         Δλ = sum(abs2, q.location - μ_true)
+        @info("", Δλ0, Δλ)
         @test Δλ ≤ Δλ0/2
     end
 end
