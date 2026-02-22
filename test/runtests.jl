@@ -41,6 +41,10 @@ elseif AD_str == "Enzyme"
     )
 end
 
+if GROUP == "DynamicPPL"
+    using DynamicPPL
+end
+
 # Models for Inference Tests
 struct TestModel{M,L,S,SC}
     model::M
@@ -79,4 +83,8 @@ if GROUP == "All" || GROUP == "AD"
     include("algorithms/klminrepgraddescent.jl")
     include("algorithms/klminscoregraddescent.jl")
     include("algorithms/klminrepgradproxdescent.jl")
+end
+
+if GROUP == "DynamicPPL"
+    include("integration/dynamicppl.jl")
 end
