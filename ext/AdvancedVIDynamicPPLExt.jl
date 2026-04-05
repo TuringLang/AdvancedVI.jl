@@ -48,7 +48,7 @@ end
 function logdensity_impl(
     params, model::DynamicPPL.Model, loglikeadj::Real, varinfo::DynamicPPL.AbstractVarInfo
 )
-    vi = DynamicPPL.unflatten(varinfo, params)
+    vi = DynamicPPL.unflatten!!(varinfo, params)
     _, vi = DynamicPPL.evaluate!!(model, vi)
     loglike = DynamicPPL.getloglikelihood(vi)
     logprior = DynamicPPL.getlogprior(vi)
