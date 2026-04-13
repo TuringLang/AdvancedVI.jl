@@ -56,10 +56,24 @@ function StatsBase.entropy(q::MvLocationScale)
     return n_dims * convert(eltype(location), entropy(dist)) + logdet(scale)
 end
 
+function StatsBase.entropy(q::MvLocationScale{<:Diagonal})
+    (; location, scale, dist) = q
+    # Keep diagonal families on the elementwise log-det path for AD stability.
+    return length(location) * convert(eltype(location), entropy(dist)) +
+           sum(log, diag(scale))
+end
+
 function Distributions.logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
     (; location, scale, dist) = q
     z_std = scale \ (z - location)
     return sum(Base.Fix1(logpdf, dist), z_std) - logdet(scale)
+end
+
+function Distributions.logpdf(q::MvLocationScale{<:Diagonal}, z::AbstractVector{<:Real})
+    (; location, scale, dist) = q
+    scale_diag = diag(scale)
+    z_std = (z - location) ./ scale_diag
+    return sum(Base.Fix1(logpdf, dist), z_std) - sum(log, scale_diag)
 end
 
 function Distributions.rand(q::MvLocationScale)

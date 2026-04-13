@@ -56,13 +56,21 @@ In these cases, denoting the target log denstiy as $\log \pi$, we can effectivel
 where $$\epsilon_m \sim \varphi$$ are Monte Carlo samples.
 
 [^JGJS1999]: Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., & Saul, L. K. (1999). An introduction to variational methods for graphical models. Machine learning, 37, 183-233.
+
 [^HC1983]: Ho, Y. C., & Cao, X. (1983). Perturbation analysis and optimization of queueing networks. Journal of optimization theory and Applications, 40(4), 559-582.
+
 [^G1991]: Glasserman, P. (1991). Gradient estimation via perturbation analysis (Vol. 116). Springer Science & Business Media.
+
 [^R1992]: Rubinstein, R. Y. (1992). Sensitivity analysis of discrete event systems by the “push out” method. Annals of Operations Research, 39(1), 229-250.
+
 [^P1996]: Pflug, G. C. (1996). Optimization of stochastic models: the interface between simulation and optimization (Vol. 373). Springer Science & Business Media.
+
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*.
+
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*.
+
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
+
 ## [Entropy Gradient Estimators](@id entropygrad)
 
 For the gradient of the entropy term, we provide three choices with varying requirements.
@@ -103,7 +111,7 @@ using Plots
 using Random
 
 using Optimisers
-using ADTypes, ForwardDiff, ReverseDiff
+using ADTypes, ForwardDiff
 using AdvancedVI
 
 struct Dist{D}
@@ -150,10 +158,7 @@ Recall that the original ADVI objective with a closed-form entropy (CFE) is give
 n_montecarlo = 16;
 
 cfe = KLMinRepGradDescent(
-    AutoReverseDiff();
-    entropy=ClosedFormEntropy(),
-    optimizer=Adam(1e-2),
-    operator=ClipScale(),
+    AutoMooncake(); entropy=ClosedFormEntropy(), optimizer=Adam(1e-2), operator=ClipScale()
 )
 nothing
 ```
@@ -162,7 +167,7 @@ The repgradelbo estimator can instead be created as follows:
 
 ```@example repgradelbo
 stl = KLMinRepGradDescent(
-    AutoReverseDiff();
+    AutoMooncake();
     entropy=StickingTheLandingEntropy(),
     optimizer=Adam(1e-2),
     operator=ClipScale(),
@@ -197,38 +202,41 @@ _, info_stl, _ = AdvancedVI.optimize(
     callback      = callback,
 ); 
 
-_, info_stl, _ = AdvancedVI.optimize(
-    stl,
-    max_iter,
-    model,
-    q0;
-    show_progress = false,
-    callback      = callback,
-); 
-
 t        = [i.iteration for i in info_cfe]
 elbo_cfe = [i.elbo      for i in info_cfe]
 elbo_stl = [i.elbo      for i in info_stl]
 dist_cfe = [i.dist      for i in info_cfe]
 dist_stl = [i.dist      for i in info_stl]
-plot( t, elbo_cfe, label="BBVI CFE", xlabel="Iteration", ylabel="ELBO")
-plot!(t, elbo_stl, label="BBVI STL", xlabel="Iteration", ylabel="ELBO")
-savefig("advi_stl_elbo.svg")
-
-plot( t, dist_cfe, label="BBVI CFE", xlabel="Iteration", ylabel="distance to optimum", yscale=:log10)
-plot!(t, dist_stl, label="BBVI STL", xlabel="Iteration", ylabel="distance to optimum", yscale=:log10)
-savefig("advi_stl_dist.svg")
-nothing
 ```
 
-![](advi_stl_elbo.svg)
+```@example repgradelbo
+plot(t, elbo_cfe; label="BBVI CFE", xlabel="Iteration", ylabel="ELBO")
+plot!(t, elbo_stl; label="BBVI STL", xlabel="Iteration", ylabel="ELBO")
+```
 
 We can see that the noise of the repgradelbo estimator becomes smaller as VI converges.
 However, the speed of convergence may not always be significantly different.
 Also, due to noise, just looking at the ELBO may not be sufficient to judge which algorithm is better.
 This can be made apparent if we measure convergence through the distance to the optimum:
 
-![](advi_stl_dist.svg)
+```@example repgradelbo
+plot(
+    t,
+    dist_cfe;
+    label="BBVI CFE",
+    xlabel="Iteration",
+    ylabel="distance to optimum",
+    yscale=:log10,
+)
+plot!(
+    t,
+    dist_stl;
+    label="BBVI STL",
+    xlabel="Iteration",
+    ylabel="distance to optimum",
+    yscale=:log10,
+)
+```
 
 We can see that STL kicks-in at later stages of optimization.
 Therefore, when STL "works", it yields a higher accuracy solution even on large stepsizes.
@@ -236,7 +244,9 @@ However, whether STL works or not highly depends on the problem[^KMG2024].
 Furthermore, in a lot of cases, a low-accuracy solution may be sufficient.
 
 [^RWD2017]: Roeder, G., Wu, Y., & Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. Advances in Neural Information Processing Systems, 30.
+
 [^KMG2024]: Kim, K., Ma, Y., & Gardner, J. (2024). Linear Convergence of Black-Box Variational Inference: Should We Stick the Landing?. In International Conference on Artificial Intelligence and Statistics (pp. 235-243). PMLR.
+
 ## Advanced Usage
 
 There are two major ways to customize the behavior of `KLMinRepGradDescent`
@@ -259,10 +269,30 @@ Consider the case where we use the `MeanFieldGaussian` variational family.
 In this case, it suffices to override its `rand` specialization as follows:
 
 ```@example repgradelbo
+using Mooncake
 using QuasiMonteCarlo
 using StatsFuns
 
 qmcrng = SobolSample(; R=OwenScramble(; base=2, pad=32))
+
+# Keep Mooncake out of Sobol scrambling internals; the samples are constant w.r.t. `q`.
+function qmc_standard_samples(num_samples::Int, n_dims::Int)
+    norminvcdf.(QuasiMonteCarlo.sample(num_samples, n_dims, qmcrng))
+end
+
+Mooncake.@is_primitive(Mooncake.DefaultCtx, Tuple{typeof(qmc_standard_samples),Int,Int})
+
+function Mooncake.rrule!!(
+    ::Mooncake.CoDual{typeof(qmc_standard_samples)},
+    num_samples::Mooncake.CoDual{Int},
+    n_dims::Mooncake.CoDual{Int},
+)
+    samples = qmc_standard_samples(Mooncake.primal(num_samples), Mooncake.primal(n_dims))
+    qmc_standard_samples_pb(_) = (
+        Mooncake.NoRData(), Mooncake.NoRData(), Mooncake.NoRData()
+    )
+    return Mooncake.zero_fcodual(samples), qmc_standard_samples_pb
+end
 
 function Distributions.rand(
     rng::AbstractRNG, q::MvLocationScale{<:Diagonal,D,L}, num_samples::Int
@@ -270,8 +300,7 @@ function Distributions.rand(
     (; location, scale, dist) = q
     n_dims = length(location)
     scale_diag = diag(scale)
-    unif_samples = QuasiMonteCarlo.sample(num_samples, length(q), qmcrng)
-    std_samples = norminvcdf.(unif_samples)
+    std_samples = qmc_standard_samples(num_samples, n_dims)
     return scale_diag .* std_samples .+ location
 end
 nothing
@@ -281,7 +310,8 @@ nothing
 
 ```@setup repgradelbo
 _, info_qmc, _ = AdvancedVI.optimize(
-    KLMinRepGradDescent(AutoReverseDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2), operator=ClipScale()),
+    # Keep the QMC example on a native reverse-mode backend.
+    KLMinRepGradDescent(AutoMooncake(); n_samples=n_montecarlo, optimizer=Adam(1e-2), operator=ClipScale()),
     max_iter,
     model,
     q0;
@@ -292,13 +322,6 @@ _, info_qmc, _ = AdvancedVI.optimize(
 t        = [i.iteration for i in info_qmc]
 elbo_qmc = [i.elbo      for i in info_qmc]
 dist_qmc = [i.dist      for i in info_qmc]
-plot( t, elbo_cfe, label="BBVI CFE",     xlabel="Iteration", ylabel="ELBO")
-plot!(t, elbo_qmc, label="BBVI CFE QMC", xlabel="Iteration", ylabel="ELBO")
-savefig("advi_qmc_elbo.svg")
-
-plot( t, dist_cfe, label="BBVI CFE",     xlabel="Iteration", ylabel="distance to optimum", yscale=:log10)
-plot!(t, dist_qmc, label="BBVI CFE QMC", xlabel="Iteration", ylabel="distance to optimum", yscale=:log10)
-savefig("advi_qmc_dist.svg")
 
 # The following definition is necessary to revert the behavior of `rand` so that 
 # the example in example.md works with the regular non-QMC estimator.
@@ -314,12 +337,34 @@ nothing
 ```
 
 By plotting the ELBO, we can see the effect of quasi-Monte Carlo.
-![](advi_qmc_elbo.svg)
+
+```@example repgradelbo
+plot(t, elbo_cfe; label="BBVI CFE", xlabel="Iteration", ylabel="ELBO")
+plot!(t, elbo_qmc; label="BBVI CFE QMC", xlabel="Iteration", ylabel="ELBO")
+```
+
 We can see that quasi-Monte Carlo results in much lower variance than naive Monte Carlo.
 However, similarly to the STL example, just looking at the ELBO is often insufficient to really judge performance.
 Instead, let's look at the distance to the global optimum:
 
-![](advi_qmc_dist.svg)
+```@example repgradelbo
+plot(
+    t,
+    dist_cfe;
+    label="BBVI CFE",
+    xlabel="Iteration",
+    ylabel="distance to optimum",
+    yscale=:log10,
+)
+plot!(
+    t,
+    dist_qmc;
+    label="BBVI CFE QMC",
+    xlabel="Iteration",
+    ylabel="distance to optimum",
+    yscale=:log10,
+)
+```
 
 QMC yields an additional order of magnitude in accuracy.
 Also, unlike STL, it ever-so slightly accelerates convergence.

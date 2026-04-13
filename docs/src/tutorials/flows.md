@@ -71,13 +71,9 @@ contour(
     xlabel="α",
     ylabel="β",
     clims=(-8, Inf),
+    size=(560, 420),
 )
-
-savefig("flow_example_posterior.svg")
-nothing
 ```
-
-![](flow_example_posterior.svg)
 
 Notice that the two ends of the "banana" run deep both horizontally and vertically.
 This sort of nonlinear correlation structure is difficult to model using only location-scale distributions.
@@ -102,6 +98,8 @@ nothing
 to transform the posterior to be unconstrained:
 
 ```@example flow
+using ForwardDiff
+
 struct TransformedLogDensityProblem{Prob,BInv}
     prob::Prob
     binv::BInv
@@ -126,10 +124,17 @@ function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
     return prod(Bijectors.output_size(b, (d,)))
 end
 
+function LogDensityProblems.logdensity_and_gradient(
+    prob_trans::TransformedLogDensityProblem, θ
+)
+    f = Base.Fix1(LogDensityProblems.logdensity, prob_trans)
+    return f(θ), ForwardDiff.gradient(f, θ)
+end
+
 function LogDensityProblems.capabilities(
     ::Type{TransformedLogDensityProblem{Prob,BInv}}
 ) where {Prob,BInv}
-    return LogDensityProblems.capabilities(Prob)
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 nothing
 ```
@@ -138,14 +143,8 @@ Let's instantiate the model:
 
 ```@example flow
 using ADTypes: ADTypes
-using ReverseDiff: ReverseDiff
-using DifferentiationInterface: DifferentiationInterface
-using LogDensityProblemsAD: LogDensityProblemsAD
 
 prob_trans = TransformedLogDensityProblem(prob)
-prob_trans_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoForwardDiff(), prob_trans; x=[1.0, 1.0]
-)
 nothing
 ```
 
@@ -155,12 +154,12 @@ For the algorithm, we will use the `KLMinRepGradProxDescent` objective.
 using AdvancedVI
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(prob_trans_ad)
+d = LogDensityProblems.dimension(prob_trans)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
 
-max_iter = 3*10^3
-alg = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
-q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
+max_iter = 3 * 10^3
+alg = KLMinRepGradProxDescent(ADTypes.AutoMooncake())
+q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans, q; show_progress=false)
 b = Bijectors.bijector(prob)
 binv = Bijectors.inverse(b)
 q_out_trans = Bijectors.TransformedDistribution(q_out, binv)
@@ -180,12 +179,9 @@ histogram2d(
     ylabel="β",
     xlims=(0, 4),
     ylims=(-3, 25),
+    size=(560, 420),
 )
-savefig("flow_example_locationscale.svg")
-nothing
 ```
-
-![](flow_example_locationscale.svg)
 
 We can see that the mode is closely matched, but the tails don't go as deep as the true posterior.
 For this, we will need a more "expressive" variational family that is capable of representing nonlinear correlations.
@@ -200,7 +196,9 @@ In this example, we will use the popular `RealNVP`[^DSB2017].
 We will use a standard Gaussian base distribution with three layers, each with 16 hidden units.
 
 [^PNRML2021]: Papamakarios, G., Nalisnick, E., Rezende, D. J., Mohamed, S., & Lakshminarayanan, B. (2021). Normalizing flows for probabilistic modeling and inference. *Journal of Machine Learning Research*, 22(57), 1-64.
+
 [^DSB2017]: Dinh, L., Sohl-Dickstein, J., & Bengio, S. (2016). Density estimation using real nvp. In *Proceedings of the International Conference on Learning Representations*.
+
 ```@example flow
 using NormalizingFlows
 using Functors
@@ -222,14 +220,18 @@ When the variational family is "expressive," this gradient estimator has a varia
 Furthermore, Agrawal *et al.*[^AD2025] claim that using a larger number of Monte Carlo samples `n_samples` is beneficial.
 
 [^RM2015]: Rezende, D., & Mohamed, S. (2015, June). Variational inference with normalizing flows. In *Proceedings of the International conference on machine learning*. PMLR.
+
 [^RWD2017]: Roeder, G., Wu, Y., & Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. In *Advances in Neural Information Processing Systems*, 30.
+
 [^ASD2020]: Agrawal, A., Sheldon, D. R., & Domke, J. (2020). Advances in black-box VI: Normalizing flows, importance weighting, and optimization. In *Advances in Neural Information Processing Systems*, 33, 17358-17369.
+
 [^AD2025]: Agrawal, A., & Domke, J. (2024). Disentangling impact of capacity, objective, batchsize, estimators, and step-size on flow VI. In *Proceedings of the International Conference on Artificial Intelligence and Statistics*.
+
 ```@example flow
 using Optimisers: Optimisers
 
 alg_flow = KLMinRepGradDescent(
-    ADTypes.AutoReverseDiff(; compile=true);
+    ADTypes.AutoMooncake();
     n_samples=8,
     optimizer=Optimisers.Adam(1e-2),
     operator=IdentityOperator(),
@@ -243,7 +245,7 @@ Without further due, let's now run VI:
 ```@example flow
 max_iter = 300
 q_flow_out, info_flow, _ = AdvancedVI.optimize(
-    alg_flow, max_iter, prob_trans_ad, q_flow; show_progress=false
+    alg_flow, max_iter, prob_trans, q_flow; show_progress=false
 )
 q_flow_out_trans = Bijectors.TransformedDistribution(q_flow_out, binv)
 nothing
@@ -252,12 +254,14 @@ nothing
 We can do a quick visual diagnostic of whether the optimization went smoothly:
 
 ```@example flow
-plot([i.elbo for i in info_flow]; xlabel="Iteration", ylabel="ELBO", ylims=(-10, Inf))
-savefig("flow_example_flow_elbo.svg")
-nothing
+plot(
+    [i.elbo for i in info_flow];
+    xlabel="Iteration",
+    ylabel="ELBO",
+    ylims=(-10, Inf),
+    size=(700, 420),
+)
 ```
-
-![](flow_example_flow_elbo.svg)
 
 Finally, let's visualize the variational posterior:
 
@@ -272,12 +276,9 @@ histogram2d(
     ylabel="β",
     xlims=(0, 4),
     ylims=(-3, 25),
+    size=(560, 420),
 )
-savefig("flow_example_flow.svg")
-nothing
 ```
-
-![](flow_example_flow.svg)
 
 Compared to the Gaussian approximation, we can see that the tails go much deeper into vertical direction.
 This shows that, for this example with extreme nonlinear correlations, normalizing flows enable more accurate approximation.

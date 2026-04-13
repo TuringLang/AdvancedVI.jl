@@ -17,7 +17,6 @@ using LogDensityProblems
 
 using ADTypes
 using DiffResults
-using DifferentiationInterface
 using ChainRulesCore: ChainRulesCore
 
 using FillArrays
@@ -35,8 +34,7 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 # Arguments
 - `ad::ADTypes.AbstractADType`: 
     automatic differentiation backend. Currently supports
-    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
-    `ADTypes.AutoMooncake()` and
+    `ADTypes.AutoForwardDiff()`, `ADTypes.AutoReverseDiff()`, `ADTypes.AutoMooncake()` and
     `ADTypes.AutoEnzyme(;
         mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
         function_annotation=Enzyme.Const,
@@ -45,31 +43,38 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 - `f`: Function subject to differentiation.
 - `x`: The point to evaluate the gradient.
 - `aux`: Auxiliary input passed to `f`.
-- `prep`: Output of `DifferentiationInterface.prepare_gradient`.
+- `prep`: Output of `AdvancedVI._prepare_gradient`.
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
 function _value_and_gradient!(
     f, out::DiffResults.MutableDiffResult, ad::ADTypes.AbstractADType, x, aux
 )
-    grad_buf = DiffResults.gradient(out)
-    y, _ = DifferentiationInterface.value_and_gradient!(f, grad_buf, ad, x, Constant(aux))
-    DiffResults.value!(out, y)
-    return out
+    prep = _prepare_gradient(f, ad, x, aux)
+    return _value_and_gradient!(f, out, prep, ad, x, aux)
 end
 
 function _value_and_gradient!(
     f, out::DiffResults.MutableDiffResult, prep, ad::ADTypes.AbstractADType, x, aux
 )
-    grad_buf = DiffResults.gradient(out)
-    y, _ = DifferentiationInterface.value_and_gradient!(
-        f, grad_buf, prep, ad, x, Constant(aux)
-    )
+    y, ∇y = _value_and_gradient(f, prep, ad, x, aux)
+    copyto!(DiffResults.gradient(out), ∇y)
     DiffResults.value!(out, y)
     return out
 end
 
+function _value_and_gradient(f, prep, ad, x, aux)
+    throw(
+        ArgumentError(
+            "No gradient implementation found for AD backend $ad. " *
+            "Native integrations are available for `AutoForwardDiff`, `AutoMooncake`, and " *
+            "`AutoEnzyme`. For other backends, load `DifferentiationInterface` so " *
+            "`AdvancedVIDifferentiationInterfaceExt` can provide the fallback methods.",
+        ),
+    )
+end
+
 """
-    _prepare_gradient!(f, ad, x, aux)
+    _prepare_gradient(f, ad, x, aux)
 
 Prepare AD backend for taking gradients of a function `f` at `x` using the automatic differentiation backend `ad`.
 
@@ -79,8 +84,15 @@ Prepare AD backend for taking gradients of a function `f` at `x` using the autom
 - `x`: The point to evaluate the gradient.
 - `aux`: Auxiliary input passed to `f`.
 """
-function _prepare_gradient(f, ad::ADTypes.AbstractADType, x, aux)
-    return DifferentiationInterface.prepare_gradient(f, ad, x, Constant(aux))
+function _prepare_gradient(f, ad, x, aux)
+    throw(
+        ArgumentError(
+            "No gradient implementation found for AD backend $ad. " *
+            "Native integrations are available for `AutoForwardDiff`, `AutoMooncake`, and " *
+            "`AutoEnzyme`. For other backends, load `DifferentiationInterface` so " *
+            "`AdvancedVIDifferentiationInterfaceExt` can provide the fallback methods.",
+        ),
+    )
 end
 
 """
@@ -238,7 +250,7 @@ function step(
     objargs...;
     kwargs...,
 )
-    nothing
+    return nothing
 end
 
 """
@@ -276,11 +288,11 @@ Please refer to the respective documentation of each algorithm for more info.
 function estimate_objective(
     ::Random.AbstractRNG, ::AbstractVariationalAlgorithm, q, prob; kwargs...
 )
-    nothing
+    return nothing
 end
 
 function estimate_objective(alg::AbstractVariationalAlgorithm, q, prob; kwargs...)
-    estimate_objective(Random.default_rng(), alg, q, prob; kwargs...)
+    return estimate_objective(Random.default_rng(), alg, q, prob; kwargs...)
 end
 
 export estimate_objective

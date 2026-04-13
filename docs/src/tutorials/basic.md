@@ -35,7 +35,7 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
     logprior_σ = logpdf(LogNormal(0, 3), σ)
 
-    logit = X*β
+    logit = X * β
     loglike_y = mapreduce((li, yi) -> logpdf(BernoulliLogit(li), yi), +, logit, y)
     return loglike_y + logprior_β + logprior_σ
 end
@@ -73,6 +73,8 @@ nothing
 Next, we will wrap our original `LogDensityProblem` into a new `LogDensityProblem` that applies the transformation and the corresponding Jacobian adjustment.
 
 ```@example basic
+using ForwardDiff
+
 struct TransformedLogDensityProblem{Prob,BInv}
     prob::Prob
     binv::BInv
@@ -97,26 +99,35 @@ function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
     return prod(Bijectors.output_size(b, (d,)))
 end
 
+function LogDensityProblems.logdensity_and_gradient(
+    prob_trans::TransformedLogDensityProblem, θ
+)
+    f = Base.Fix1(LogDensityProblems.logdensity, prob_trans)
+    return f(θ), ForwardDiff.gradient(f, θ)
+end
+
 function LogDensityProblems.capabilities(
     ::Type{TransformedLogDensityProblem{Prob,BInv}}
 ) where {Prob,BInv}
-    return LogDensityProblems.capabilities(Prob)
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 nothing
 ```
 
 For more details on the usage of bijectors, please refer to the documentation of [`Bijectors`](https://github.com/TuringLang/Bijectors.jl).
 
-For the dataset, we will use the popular [sonar classification dataset](https://archive.ics.uci.edu/dataset/151/connectionist+bench+sonar+mines+vs+rocks) from the UCI repository.
-This can be automatically downloaded using [`OpenML`](https://github.com/JuliaAI/OpenML.jl).
-The sonar dataset corresponds to the dataset id 40.
+For a self-contained tutorial, we will generate a sonar-sized binary classification dataset.
 
 ```@example basic
-using OpenML: OpenML
-using DataFrames: DataFrames
-data = Array(DataFrames.DataFrame(OpenML.load(40)))
-X = Matrix{Float64}(data[:, 1:(end - 1)])
-y = Vector{Bool}(data[:, end] .== "Mine")
+using Random
+
+Random.seed!(1)
+n_data = 208
+n_features = 60
+X = randn(n_data, n_features)
+β_true = 0.2 .* collect(range(-1, 1; length=n_features))
+logits = X * β_true
+y = rand(n_data) .< @. inv(1 + exp(-logits))
 nothing
 ```
 
@@ -125,7 +136,7 @@ Let's apply some basic pre-processing and add an intercept column:
 ```@example basic
 using Statistics
 
-X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
+X = (X .- mean(X; dims=1)) ./ std(X; dims=1)
 X = hcat(X, ones(size(X, 1)))
 nothing
 ```
@@ -143,10 +154,10 @@ nothing
 For the VI algorithm, we will use `KLMinRepGradDescent`:
 
 ```@example basic
-using ADTypes, ReverseDiff
+using ADTypes
 using AdvancedVI
 
-alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(); operator=ClipScale());
+alg = KLMinRepGradDescent(ADTypes.AutoMooncake(); operator=ClipScale())
 nothing
 ```
 
@@ -158,20 +169,13 @@ For this example, we will use Gaussian variational family, which is part of the 
 Location-scale family distributions require the scale matrix to have strictly positive eigenvalues at all times.
 Here, the projection operator `ClipScale` ensures this.
 
-`KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
-If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
-For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
+`KLMinRepGradDescent`, in particular, differentiates the target `LogDensityProblem` directly through the chosen backend.
 
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
-[^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
-[^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-```@example basic
-using DifferentiationInterface: DifferentiationInterface
-using LogDensityProblemsAD: LogDensityProblemsAD
 
-prob_trans_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoForwardDiff(), prob_trans)
-nothing
-```
+[^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
+
+[^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
 
 For the variational family, we will consider a `FullRankGaussian` approximation:
 
@@ -179,7 +183,7 @@ For the variational family, we will consider a `FullRankGaussian` approximation:
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(prob_trans)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.2 * I, d, d)))
 nothing
 ```
 
@@ -189,8 +193,8 @@ Since we applied a bijector to the posterior to make it unconstrained, and the s
 We can now run VI:
 
 ```@example basic
-max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
+max_iter = 2_000
+q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans, q; show_progress=false)
 nothing
 ```
 
@@ -207,12 +211,9 @@ plot(
     xlabel="Iteration",
     ylabel="ELBO",
     label=nothing,
+    size=(700, 420),
 )
-savefig("basic_example_elbo.svg")
-nothing
 ```
-
-![](basic_example_elbo.svg)
 
 Recall that we applied a change-of-variable to the posterior to make it unconstrained.
 This, however, is not the original constrained posterior that we wanted to approximate.
@@ -245,9 +246,9 @@ using StatsFuns: StatsFuns
 Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
 """
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((prob.X*Σ_β) .* prob.X; dims=2)[:, 1]
-    κ = @. 1/sqrt(1 + π/8*xtΣx)
-    return StatsFuns.logistic.(κ .* X*μ_β)
+    xtΣx = vec(sum((X * Σ_β) .* X; dims=2))
+    κ = @. 1 / sqrt(1 + π / 8 * xtΣx)
+    return StatsFuns.logistic.(κ .* X * μ_β)
 end
 
 logging_interval = 100
@@ -260,7 +261,7 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
 
         # Compute predictions
         μ_β = mean(q_avg_trans.dist)[1:(end - 1)] # posterior mean of β
-        Σ_β = cov(q_avg_trans.dist)[1:(end - 1), end - 1] # marginal posterior covariance of β
+        Σ_β = cov(q_avg_trans.dist)[1:(end - 1), 1:(end - 1)] # marginal posterior covariance of β
         y_pred = logistic_prediction(X, μ_β, Σ_β) .> 0.5
 
         # Prediction accuracy
@@ -284,9 +285,9 @@ Therefore, please refer to the documentation of each VI algorithm.
 The `callback` can be supplied to `optimize`:
 
 ```@example basic
-max_iter = 10^4
+max_iter = 500
 q_out, info, _ = AdvancedVI.optimize(
-    alg, max_iter, prob_trans_ad, q; show_progress=false, callback=callback
+    alg, max_iter, prob_trans, q; show_progress=false, callback=callback
 )
 nothing
 ```
@@ -297,17 +298,13 @@ First, let's compare the default estimate of the ELBO, which uses a small number
 t = 1:max_iter
 elbo = [i.elbo for i in info[t]]
 
-t_callback = 1:logging_interval:max_iter
-elbo_callback = [i.elbo_callback for i in info[t_callback]]
+callback_info = [i for i in info if hasproperty(i, :elbo_callback)]
+t_callback = [i.iteration for i in callback_info]
+elbo_callback = [i.elbo_callback for i in callback_info]
 
-plot(t, elbo; xlabel="Iteration", ylabel="ELBO", label="Default")
+plot(t, elbo; xlabel="Iteration", ylabel="ELBO", label="Default", size=(700, 420))
 plot!(t_callback, elbo_callback; label="Callback", ylims=(-300, Inf), linewidth=2)
-
-savefig("basic_example_elbo_callback.svg")
-nothing
 ```
-
-![](basic_example_elbo_callback.svg)
 
 We can see that the default ELBO estimates are noisy compared to the higher fidelity estimates from the callback.
 After a few thousands of iterations, it is difficult to judge if we are still making progress or not.
@@ -316,18 +313,15 @@ In contrast, the estimates from callback show that the objective is increasing s
 Similarly, we can monitor the evolution of the prediction accuracy.
 
 ```@example basic
-acc_callback = [i.accuracy for i in info[t_callback]]
+acc_callback = [i.accuracy for i in callback_info]
 plot(
     t_callback,
     acc_callback;
     xlabel="Iteration",
     ylabel="Prediction Accuracy",
     label=nothing,
+    size=(700, 420),
 )
-savefig("basic_example_acc.svg")
-nothing
 ```
-
-![](basic_example_acc.svg)
 
 Clearly, the accuracy is improving over time.

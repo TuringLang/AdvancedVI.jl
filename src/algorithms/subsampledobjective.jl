@@ -32,7 +32,7 @@ function init(
     sub_st = init(rng, subsampling)
 
     # This is necessary to ensure that `init` sees the type "conditioned" on a minibatch
-    # when calling `DifferentiationInterface.prepare_*` inside it.
+    # when preparing backend-specific AD caches inside it.
     batch, _, _ = step(rng, subsampling, sub_st, true)
     prob_sub = subsample(prob, batch)
     q_init_sub = subsample(q_init, batch)

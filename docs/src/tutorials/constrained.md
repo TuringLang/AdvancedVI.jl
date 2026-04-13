@@ -84,6 +84,7 @@ Now, there are two ways how to do this in Julia.
 First, let's define the constrained posterior example above using the `LogDensityProblems` interface for illustration:
 
 [^KTRGB2017]: Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research, 18(14), 1-45.
+
 ```@example constraints
 using LogDensityProblems
 
@@ -147,6 +148,8 @@ This approach only requires the user to implement the model-specific `Bijectors.
 The rest can be done by simply copy-pasting the code below:
 
 ```@example constraints
+using ForwardDiff
+
 struct TransformedLogDensityProblem{Prob,BInv}
     prob::Prob
     binv::BInv
@@ -171,10 +174,17 @@ function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
     return prod(Bijectors.output_size(b, (d,)))
 end
 
+function LogDensityProblems.logdensity_and_gradient(
+    prob_trans::TransformedLogDensityProblem, θ
+)
+    f = Base.Fix1(LogDensityProblems.logdensity, prob_trans)
+    return f(θ), ForwardDiff.gradient(f, θ)
+end
+
 function LogDensityProblems.capabilities(
     ::Type{TransformedLogDensityProblem{Prob,BInv}}
 ) where {Prob,BInv}
-    return LogDensityProblems.capabilities(Prob)
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 nothing
 ```
@@ -188,15 +198,10 @@ x = randn(LogDensityProblems.dimension(prob_trans)) # sample on an unconstrained
 LogDensityProblems.logdensity(prob_trans, x)
 ```
 
-We can also wrap `prob_trans` with `LogDensityProblemsAD.ADGradient` to make it differentiable.
+We can now run VI directly on `prob_trans`.
 
 ```@example constraints
-using LogDensityProblemsAD
-using ADTypes, ReverseDiff
-
-prob_trans_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoReverseDiff(; compile=true), prob_trans; x=randn(2)
-)
+using ADTypes
 ```
 
 Let's now run VI to verify that it works.
@@ -206,11 +211,11 @@ Here, we will use `FisherMinBatchMatch`, which expects an unconstrained posterio
 using AdvancedVI
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(prob_trans_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+d = LogDensityProblems.dimension(prob_trans)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 
 q_opt, info, _ = AdvancedVI.optimize(
-    FisherMinBatchMatch(), 100, prob_trans_ad, q; show_progress=false
+    FisherMinBatchMatch(), 100, prob_trans, q; show_progress=false
 )
 nothing
 ```
@@ -228,12 +233,16 @@ using Plots
 
 x = rand(q_opt_trans, 1000)
 
-Plots.stephist(x[2, :]; normed=true, xlabel="Posterior of σ", label=nothing, xlims=(0, 2))
+Plots.stephist(
+    x[2, :];
+    normed=true,
+    xlabel="Posterior of σ",
+    label=nothing,
+    xlims=(0, 2),
+    size=(560, 360),
+)
 Plots.vline!([1.0]; label="True Value")
-savefig("constrained_histogram.svg")
 ```
-
-![](constrained_histogram.svg)
 
 We can see that the transformed posterior is indeed a meaningful approximation of the original posterior $\pi(\sigma \mid y_1, \ldots, y_n)$ we were interested in.
 
@@ -270,7 +279,7 @@ end
 LogDensityProblems.dimension(::MeanTransformed) = 2
 
 function LogDensityProblems.capabilities(::Type{MeanTransformed})
-    LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{0}()
 end
 
 n_data = 30
@@ -282,5 +291,7 @@ Now, `prob_bakedtrans` can be used identically as `prob_trans` above.
 For problems with larger dimensions, however, baking the bijector into the problem as above could be significantly more efficient.
 
 [^CGHetal2017]: Carpenter, B., Gelman, A., Hoffman, M. D., Lee, D., Goodrich, B., Betancourt, M., ... & Riddell, A. (2017). Stan: A probabilistic programming language. Journal of statistical software, 76, 1-32.
+
 [^DLTetal2017]: Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... & Saurous, R. A. (2017). Tensorflow distributions. arXiv preprint arXiv:1711.10604.
+
 [^FXTYG2020]: Fjelde, T. E., Xu, K., Tarek, M., Yalburgi, S., & Ge, H. (2020, February). Bijectors. jl: Flexible transformations for probability distributions. In Symposium on Advances in Approximate Bayesian Inference (pp. 1-17). PMLR.

@@ -21,15 +21,12 @@ using AdvancedVI
 
 const PROGRESS = haskey(ENV, "PROGRESS")
 const GROUP = get(ENV, "GROUP", "All")
-const AD_str = get(ENV, "AD", "ReverseDiff")
+const AD_str = get(ENV, "AD", "Mooncake")
 
 const AD = if AD_str == "ReverseDiff"
     AutoReverseDiff()
 elseif AD_str == "ForwardDiff"
     AutoForwardDiff()
-elseif AD_str == "Zygote"
-    using Zygote
-    AutoZygote()
 elseif AD_str == "Mooncake"
     using Mooncake
     AutoMooncake(; config=Mooncake.Config())
@@ -39,6 +36,12 @@ elseif AD_str == "Enzyme"
         mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
         function_annotation=Enzyme.Const,
     )
+else
+    error("Unsupported AD backend in tests: $(AD_str)")
+end
+
+if AD_str == "ReverseDiff"
+    using DifferentiationInterface
 end
 
 if GROUP == "DynamicPPL"

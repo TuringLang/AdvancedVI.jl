@@ -49,7 +49,7 @@ function step(
             # Ignore the trailing batch if its size is smaller than `batchsize`.
             # This should only be used when estimating gradients during optimization.
             # This is necessary to ensure that all batches have the same size.
-            # Otherwise, `DifferentiationInterface.prepare_*` behaves incorrectly.
+            # Otherwise, prepared AD caches may behave incorrectly.
             (sub_step, batch), iterator = Iterators.peel(iterator)
         end
         epoch = epoch + 1

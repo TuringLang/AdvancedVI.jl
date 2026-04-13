@@ -23,6 +23,7 @@ estimate_objective(
 ```
 
 [^CMPMGBS24]: Cai, D., Modi, C., Pillaud-Vivien, L., Margossian, C. C., Gower, R. M., Blei, D. M., & Saul, L. K. (2024). Batch and match: black-box variational inference with a score-based divergence. In *Proceedings of the International Conference on Machine Learning*.
+
 ## [Methodology](@id fisherminbatchmatch_method)
 
 This algorithm aims to solve the problem

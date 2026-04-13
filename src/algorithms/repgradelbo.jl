@@ -13,7 +13,7 @@ Evidence lower-bound objective with the reparameterization gradient formulation[
 # Requirements
 - The variational approximation ``q_{\\lambda}`` implements `rand`.
 - The target distribution and the variational approximation have the same support.
-- The target `LogDensityProblem` should satisfy either of the following: The target has a capability of at least `LogDensityProblems.LogDensityOrder{1}()` and the AD backend is one of `ReverseDiff`, `Zygote`, `Mooncake`, and `AutoEnzyme` in reverse mode so that `ADTypes.mode(adtype) == ADTypes.ReverseMode` is true. (In this case, `AdvancedVI` will take advantage of the existing `LogDensityProblems.logdensity_and_gradient`.) Otherwise, `LogDensityProblems.logdensity` should be differentiable under the selected AD backend.
+- The target `LogDensityProblem` should satisfy either of the following: The target has a capability of at least `LogDensityProblems.LogDensityOrder{1}()` and the AD backend is one of `ReverseDiff`, `Mooncake`, and `AutoEnzyme` in reverse mode so that `ADTypes.mode(adtype) == ADTypes.ReverseMode` is true. (In this case, `AdvancedVI` will take advantage of the existing `LogDensityProblems.logdensity_and_gradient`.) Otherwise, `LogDensityProblems.logdensity` should be differentiable under the selected AD backend.
 - The sampling process `rand(q)` must be differentiable by the selected AD backend.
 
 Depending on the options, additional requirements on ``q_{\\lambda}`` may apply.
@@ -53,10 +53,10 @@ function init(
         prob
     else
         if !(
-            adtype isa Union{<:AutoReverseDiff,<:AutoZygote,<:AutoMooncake,<:AutoEnzyme} &&
+            adtype isa Union{<:AutoReverseDiff,<:AutoMooncake,<:AutoEnzyme} &&
             ADTypes.mode(adtype) isa ADTypes.ReverseMode
         )
-            @info "The capability of the supplied target `LogDensityProblem` $(capability) is >= `LogDensityProblems.LogDensityOrder{1}()`. To make use of this, the `adtype` argument for AdvancedVI must be one of `AutoReverseDiff`, `AutoZygote`, `AutoMooncake`, or `AutoEnzyme` in reverse mode."
+            @info "The capability of the supplied target `LogDensityProblem` $(capability) is >= `LogDensityProblems.LogDensityOrder{1}()`. To make use of this, the `adtype` argument for AdvancedVI must be one of `AutoReverseDiff`, `AutoMooncake`, or `AutoEnzyme` in reverse mode."
         end
         MixedADLogDensityProblem(prob)
     end

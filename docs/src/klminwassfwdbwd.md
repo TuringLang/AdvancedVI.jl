@@ -23,6 +23,7 @@ estimate_objective(
 ```
 
 [^DBCS2023]: Diao, M. Z., Balasubramanian, K., Chewi, S., & Salim, A. (2023). Forward-backward Gaussian variational inference via JKO in the Bures-Wasserstein space. In *International Conference on Machine Learning*. PMLR.
+
 ## [Methodology](@id klminwassfwdbwd_method)
 
 This algorithm aims to solve the problem
@@ -74,4 +75,5 @@ Specifically, Diao *et al.*[^DBCS2023] derived the JKO update for multivariate G
 `KLMinWassFwdBwd` also exactly corresponds to the measure-space analog of [KLMinRepGradProxDescent](@ref klminrepgradproxdescent).
 
 [^JKO1998]: Jordan, R., Kinderlehrer, D., & Otto, F. (1998). The variational formulation of the Fokker--Planck equation. *SIAM Journal on Mathematical Analysis*, 29(1).
+
 [^JGJS1999]: Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., & Saul, L. K. (1999). An introduction to variational methods for graphical models. Machine learning, 37, 183-233.

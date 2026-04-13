@@ -9,7 +9,9 @@ However, instead of using the vanilla score gradient estimator, we differentiate
 `KLMinScoreGradDescent` is also an alias of `BBVI`.
 
 [^RBNRA2020]: Richter, L., Boustati, A., Nüsken, N., Ruiz, F., & Akyildiz, O. D. (2020). Vargrad: a low-variance gradient estimator for variational inference. Advances in Neural Information Processing Systems, 33, 13481-13492.
+
 [^SK2014]: Salimans, T., & Knowles, D. A. (2014). On using control variates with stochastic approximation for variational bayes and its connection to stochastic linear regression. arXiv preprint arXiv:1401.1022.
+
 ```@docs
 KLMinScoreGradDescent
 ```
@@ -83,10 +85,17 @@ where the variance is computed over the samples $z_1, \ldots, z_m \sim q_{\lambd
 Differentiating the VarGrad objective corresponds to the canonical score gradient combined with the "leave-one-out" control variate[^SK2014][^KvHW2019].
 
 [^JGJS1999]: Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., & Saul, L. K. (1999). An introduction to variational methods for graphical models. Machine learning, 37, 183-233.
+
 [^G1990]: Glynn, P. W. (1990). Likelihood ratio gradient estimation for stochastic systems. Communications of the ACM, 33(10), 75-84.
+
 [^KR1996]: Kleijnen, J. P., & Rubinstein, R. Y. (1996). Optimization and sensitivity analysis of computer simulation models by the score function method. European Journal of Operational Research, 88(3), 413-427.
+
 [^RSU1996]: Rubinstein, R. Y., Shapiro, A., & Uryasev, S. (1996). The score function method. Encyclopedia of Management Sciences, 1363-1366.
+
 [^W1992]: Williams, R. J. (1992). Simple statistical gradient-following algorithms for connectionist reinforcement learning. Machine learning, 8, 229-256.
+
 [^WW2013]: Wingate, D., & Weber, T. (2013). Automated variational inference in probabilistic programming. arXiv preprint arXiv:1301.1299.
+
 [^RGB2014]: Ranganath, R., Gerrish, S., & Blei, D. (2014). Black box variational inference. In Artificial intelligence and statistics (pp. 814-822). PMLR.
+
 [^KvHW2019]: Kool, W., van Hoof, H., & Welling, M. (2019). Buy 4 reinforce samples, get a baseline for free!.

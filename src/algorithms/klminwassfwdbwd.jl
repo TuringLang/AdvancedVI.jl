@@ -104,10 +104,10 @@ function step(
 
     m′ = m - η * (-grad_buf)
     M = I - η * (-hess_buf')
-    Σ_half = Hermitian(M*Σ*M')
+    Σ_half = Hermitian(M * Σ * M')
 
     # Compute the JKO proximal operator
-    Σ′ = (Σ_half + 2*η*I + sqrt(Hermitian(Σ_half*(Σ_half + 4*η*I))))/2
+    Σ′ = (Σ_half + 2 * η * I + sqrt(Hermitian(Σ_half * (Σ_half + 4 * η * I)))) / 2
     q′ = MvLocationScale(m′, cholesky(Σ′).L, q.dist)
 
     state = KLMinWassFwdBwdState(q′, prob, Σ′, iteration, sub_st′, grad_buf, hess_buf)
@@ -118,7 +118,7 @@ function step(
         info′ = callback(; rng, iteration, q=q′, info)
         info = !isnothing(info′) ? merge(info′, info) : info
     end
-    state, false, info
+    return state, false, info
 end
 
 """

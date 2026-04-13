@@ -1,10 +1,17 @@
 
+# Keep GR headless during docs builds.
+ENV["GKSwstype"] = "100"
+
 using AdvancedVI
 using Documenter
+using Mooncake
+using Plots
 
 # Necessary for invoking the docstring specializations
 using Random
 using ADTypes
+
+default(; size=(700, 420))
 
 DocMeta.setdocmeta!(AdvancedVI, :DocTestSetup, :(using AdvancedVI); recursive=true)
 

@@ -25,7 +25,9 @@ estimate_objective(
 ```
 
 [^KR2023]: Khan, M. E., & Rue, H. (2023). The Bayesian learning rule. *Journal of Machine Learning Research*, 24(281), 1-46.
+
 [^LSK2020]: Lin, W., Schmidt, M., & Khan, M. E. (2020). Handling the positive-definite constraint in the Bayesian learning rule. In *International Conference on Machine Learning*. PMLR.
+
 ## [Methodology](@id klminnaturalgraddescent_method)
 
 This algorithm aims to solve the problem
@@ -73,5 +75,7 @@ For instance, Gaussian variational families[^KR2023] and mixture of exponential 
 As of now, we only implement the Gaussian version.
 
 [^LKS2019]: Lin, W., Khan, M. E., & Schmidt, M. (2019). Fast and simple natural-gradient variational inference with mixture of exponential-family approximations. In *International Conference on Machine Learning*. PMLR.
+
 [^A1998]: Amari, S. I. (1998). Natural gradient works efficiently in learning. *Neural computation*, 10(2), 251-276.
+
 [^JGJS1999]: Jordan, M. I., Ghahramani, Z., Jaakkola, T. S., & Saul, L. K. (1999). An introduction to variational methods for graphical models. Machine learning, 37, 183-233.

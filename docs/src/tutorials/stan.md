@@ -29,19 +29,21 @@ model {
 nothing
 ```
 
-We also need to prepare the data.
+We also need to prepare the data. To keep the tutorial self-contained, we reuse a synthetic binary classification dataset.
 
 ```@example stan
-using DataFrames: DataFrames
-using OpenML: OpenML
+using Random
 using Statistics
 
-data = Array(DataFrames.DataFrame(OpenML.load(40)))
-
-X = Matrix{Float64}(data[:, 1:(end - 1)])
-X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
+Random.seed!(1)
+n_data = 208
+n_features = 60
+X = randn(n_data, n_features)
+β_true = 0.2 .* collect(range(-1, 1; length=n_features))
+logits = X * β_true
+y = Vector{Int}(rand(n_data) .< @. inv(1 + exp(-logits)))
+X = (X .- mean(X; dims=1)) ./ std(X; dims=1)
 X = hcat(X, ones(size(X, 1)))
-y = Vector{Int}(data[:, end] .== "Mine")
 
 stan_data = (X=transpose(X), y=y, N=size(X, 1), D=size(X, 2))
 nothing
@@ -75,18 +77,18 @@ nothing
 The rest is the same as all `LogDensityProblem` with the exception of how to deal with constrainted variables: Since `StanLogDensityProblems` automatically transforms the support of the target problem to be unconstrained, we do not need to involve `Bijectors`.
 
 ```@example stan
-using ADTypes, ReverseDiff
+using ADTypes
 using AdvancedVI
 using LinearAlgebra
 using LogDensityProblems
 using Plots
 
-alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(); operator=ClipScale())
+alg = KLMinRepGradDescent(ADTypes.AutoMooncake(); operator=ClipScale())
 
 d = LogDensityProblems.dimension(model)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37*I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37 * I, d, d)))
 
-max_iter = 10^4
+max_iter = 2_000
 q_out, info, _ = AdvancedVI.optimize(alg, max_iter, model, q; show_progress=false)
 
 plot(
@@ -95,11 +97,9 @@ plot(
     xlabel="Iteration",
     ylabel="ELBO",
     label=nothing,
+    size=(700, 420),
 )
-savefig("stan_example_elbo.svg")
 ```
-
-![](stan_example_elbo.svg)
 
 From variational posterior `q_out` we can draw samples from the unconstrained support of the model.
 To convert the samples back to the original (constrained) support of the model, it suffices to call [BridgeStan.param_constrain](https://roualdes.us/bridgestan/latest/languages/julia.html#BridgeStan.param_constrain).

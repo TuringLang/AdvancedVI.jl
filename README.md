@@ -6,10 +6,7 @@
 | AD Backend                                                 | Integration Status                                                                                                                                                                                                       |
 |:---------------------------------------------------------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) | [![ForwardDiff](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ForwardDiff.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ForwardDiff.yml?query=branch%3Amain) |
-| [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl) | [![ReverseDiff](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ReverseDiff.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/ReverseDiff.yml?query=branch%3Amain) |
-| [Zygote](https://github.com/FluxML/Zygote.jl)              | [![Zygote](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Zygote.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Zygote.yml?query=branch%3Amain)                |
 | [Mooncake](https://github.com/chalk-lab/Mooncake.jl)       | [![Mooncake](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Mooncake.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Mooncake.yml?query=branch%3Amain)          |
-| [Enzyme](https://github.com/EnzymeAD/Enzyme.jl)            | [![Enzyme](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Enzyme.yml/badge.svg?branch=main)](https://github.com/TuringLang/AdvancedVI.jl/actions/workflows/Enzyme.yml?query=branch%3Amain)                |
 
 # AdvancedVI.jl
 
@@ -53,7 +50,7 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
     logprior_σ = logpdf(LogNormal(0, 3), σ)
 
-    logit = X*β
+    logit = X * β
     loglike_y = mapreduce((li, yi) -> logpdf(BernoulliLogit(li), yi), +, logit, y)
     return loglike_y + logprior_β + logprior_σ
 end
@@ -89,6 +86,8 @@ Since most VI algorithms assume that the posterior is unconstrained, we will app
 This amounts to wrapping it into a `LogDensityProblem` that applies the transformation and the corresponding Jacobian adjustment.
 
 ```julia
+using ForwardDiff
+
 struct TransformedLogDensityProblem{Prob,BInv}
     prob::Prob
     binv::BInv
@@ -113,10 +112,17 @@ function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
     return prod(Bijectors.output_size(b, (d,)))
 end
 
+function LogDensityProblems.logdensity_and_gradient(
+    prob_trans::TransformedLogDensityProblem, θ
+)
+    f = Base.Fix1(LogDensityProblems.logdensity, prob_trans)
+    return f(θ), ForwardDiff.gradient(f, θ)
+end
+
 function LogDensityProblems.capabilities(
     ::Type{TransformedLogDensityProblem{Prob,BInv}}
 ) where {Prob,BInv}
-    return LogDensityProblems.capabilities(Prob)
+    return LogDensityProblems.LogDensityOrder{1}()
 end;
 ```
 
@@ -151,10 +157,10 @@ prob_trans = TransformedLogDensityProblem(prob)
 For the VI algorithm, we will use `KLMinRepGradDescent`:
 
 ```julia
-using ADTypes, ReverseDiff
+using ADTypes, Mooncake
 using AdvancedVI
 
-alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(); operator=ClipScale())
+alg = KLMinRepGradDescent(ADTypes.AutoMooncake(); operator=ClipScale())
 ```
 
 This algorithm minimizes the exclusive/reverse KL divergence via stochastic gradient descent in the (Euclidean) space of the parameters of the variational approximation with the reparametrization gradient[^TL2014][^RMW2014][^KW2014].
@@ -165,23 +171,15 @@ For this example, we will use Gaussian variational family, which is part of the 
 These require the scale matrix to have strictly positive eigenvalues at all times.
 Here, the projection operator `ClipScale` ensures this.
 
-This `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` has gradients.
-For this, it is straightforward to use `LogDensityProblemsAD`:
-
-```julia
-using DifferentiationInterface: DifferentiationInterface
-using LogDensityProblemsAD: LogDensityProblemsAD
-
-prob_trans_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoReverseDiff(), prob_trans);
-```
+This `KLMinRepGradDescent`, in particular, differentiates the target `LogDensityProblem` directly through the chosen backend.
 
 For the variational family, we will consider a `FullRankGaussian` approximation:
 
 ```julia
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(prob_trans_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+d = LogDensityProblems.dimension(prob_trans)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)));
 ```
 
@@ -189,7 +187,7 @@ We can now run VI:
 
 ```julia
 max_iter = 10^3
-q_opt, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q);
+q_opt, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans, q);
 ```
 
 Recall that we applied a change-of-variable to the posterior to make it unconstrained.
@@ -205,5 +203,7 @@ q_trans = Bijectors.TransformedDistribution(q_opt, binv)
 For more examples and details, please refer to the documentation.
 
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
+
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
+
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.

@@ -41,7 +41,7 @@ The derivative of the entropy with respect to ``\lambda`` is thus independent of
 ### API
 
 !!! note
-    
+
     For stable convergence, the initial `scale` needs to be sufficiently large and well-conditioned.
     Initializing `scale` to have small eigenvalues will often result in initial divergences and numerical instabilities.
 
@@ -133,30 +133,37 @@ where ``\mathbb{H}(\varphi)`` is the entropy of the base distribution.
 ```@setup lowrank
 using ADTypes
 using AdvancedVI
-using Distributions
+using ForwardDiff
 using LinearAlgebra
 using LogDensityProblems
 using Optimisers
 using Plots
-using ForwardDiff, ReverseDiff
+using Statistics
 
-struct Target{D}
-    dist::D
+struct Target{M,P,T}
+    μ::M
+    precision::P
+    lognorm::T
+end
+
+function Target(μ, Σ)
+    precision = inv(Σ)
+    lognorm = -0.5 * (length(μ) * log(2π) + logdet(Σ))
+    return Target(μ, precision, lognorm)
 end
 
 function LogDensityProblems.logdensity(model::Target, θ)
-    logpdf(model.dist, θ)
+    δ = θ - model.μ
+    return model.lognorm - 0.5 * dot(δ, model.precision, δ)
 end
 
 function LogDensityProblems.logdensity_and_gradient(model::Target, θ)
-    return (
-        LogDensityProblems.logdensity(model, θ),
-        ForwardDiff.gradient(Base.Fix1(LogDensityProblems.logdensity, model), θ),
-    )
+    δ = θ - model.μ
+    return LogDensityProblems.logdensity(model, θ), -(model.precision * δ)
 end
 
 function LogDensityProblems.dimension(model::Target)
-    return length(model.dist)
+    return length(model.μ)
 end
 
 function LogDensityProblems.capabilities(::Type{<:Target})
@@ -167,9 +174,8 @@ n_dims     = 30
 U_true     = randn(n_dims, 3)
 D_true     = Diagonal(log.(1 .+ exp.(randn(n_dims))))
 Σ_true     = D_true + U_true*U_true'
-Σsqrt_true = sqrt(Σ_true)
 μ_true     = randn(n_dims)
-model      = Target(MvNormal(μ_true, Σ_true));
+model      = Target(μ_true, Σ_true);
 
 d  = LogDensityProblems.dimension(model);
 μ  = zeros(d);
@@ -184,14 +190,14 @@ D     = ones(n_dims)
 U     = zeros(n_dims, 3)
 q0_lr = LowRankGaussian(μ, D, U)
 
-alg = KLMinRepGradDescent(AutoReverseDiff(); optimizer=Adam(0.01), operator=ClipScale())
+alg = KLMinRepGradDescent(AutoForwardDiff(); optimizer=Adam(0.01), operator=ClipScale())
 
-max_iter = 10^4
+max_iter = 2_000
 
 function callback(; params, averaged_params, restructure, kwargs...)
     q = restructure(averaged_params)
     μ, Σ = mean(q), cov(q)
-    (dist2 = sum(abs2, μ - μ_true) + tr(Σ + Σ_true - 2*sqrt(Σsqrt_true*Σ*Σsqrt_true)),)
+    (dist2 = sum(abs2, μ - μ_true) + sum(abs2, Σ - Σ_true),)
 end
 
 _, info_fr, _ = AdvancedVI.optimize(
@@ -216,23 +222,32 @@ t       = [i.iteration for i in info_fr]
 dist_fr = [sqrt(i.dist2) for i in info_fr]
 dist_mf = [sqrt(i.dist2) for i in info_mf]
 dist_lr = [sqrt(i.dist2) for i in info_lr]
-plot( t, dist_mf , label="Mean-Field Gaussian", xlabel="Iteration", ylabel="Wasserstein-2 Distance")
-plot!(t, dist_fr,  label="Full-Rank Gaussian",  xlabel="Iteration", ylabel="Wasserstein-2 Distance")
-plot!(t, dist_lr,  label="Low-Rank Gaussian",   xlabel="Iteration", ylabel="Wasserstein-2 Distance")
-savefig("lowrank_family_wasserstein.svg")
-nothing
+```
+
+```@example lowrank
+plot(
+    t,
+    dist_mf;
+    label="Mean-Field Gaussian",
+    xlabel="Iteration",
+    ylabel="Approximation Error",
+)
+plot!(
+    t, dist_fr; label="Full-Rank Gaussian", xlabel="Iteration", ylabel="Approximation Error"
+)
+plot!(
+    t, dist_lr; label="Low-Rank Gaussian", xlabel="Iteration", ylabel="Approximation Error"
+)
 ```
 
 Consider a 30-dimensional Gaussian with a diagonal plus low-rank covariance structure, where the true rank is 3.
 Then, we can compare the convergence speed of `LowRankGaussian` versus `FullRankGaussian`:
 
-![](lowrank_family_wasserstein.svg)
-
 As we can see, `LowRankGaussian` converges faster than `FullRankGaussian`.
 While `FullRankGaussian` can converge to the true solution since it is a more expressive variational family, `LowRankGaussian` gets there faster.
 
 !!! info
-    
+
     `MvLocationScaleLowRank` tend to work better with the `Optimisers.Adam` optimizer due to non-smoothness.
     Other optimisers may experience divergences.
 
