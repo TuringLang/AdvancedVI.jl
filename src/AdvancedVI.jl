@@ -17,12 +17,19 @@ using LogDensityProblems
 
 using ADTypes
 using DiffResults
-using DifferentiationInterface
+using AbstractPPL: AbstractPPL
 using ChainRulesCore: ChainRulesCore
 
 using FillArrays
 
 using StatsBase
+
+# Holds the AbstractPPL prepared evaluator together with the aux Ref so that
+# _value_and_gradient! can update aux before every evaluation.
+struct _VIGradPrep{P,R}
+    prepared::P
+    aux_ref::R
+end
 
 # Derivatives
 """
@@ -33,9 +40,9 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 `f` may receive auxiliary input as `f(x,aux)`.
 
 # Arguments
-- `ad::ADTypes.AbstractADType`: 
+- `ad::ADTypes.AbstractADType`:
     automatic differentiation backend. Currently supports
-    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
+    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`,
     `ADTypes.AutoMooncake()` and
     `ADTypes.AutoEnzyme(;
         mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
@@ -45,31 +52,36 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 - `f`: Function subject to differentiation.
 - `x`: The point to evaluate the gradient.
 - `aux`: Auxiliary input passed to `f`.
-- `prep`: Output of `DifferentiationInterface.prepare_gradient`.
+- `prep`: Output of `_prepare_gradient`.
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
 function _value_and_gradient!(
     f, out::DiffResults.MutableDiffResult, ad::ADTypes.AbstractADType, x, aux
 )
-    grad_buf = DiffResults.gradient(out)
-    y, _ = DifferentiationInterface.value_and_gradient!(f, grad_buf, ad, x, Constant(aux))
-    DiffResults.value!(out, y)
+    prepared = AbstractPPL.prepare(ad, Base.Fix2(f, aux), x)
+    val, grad = AbstractPPL.value_and_gradient(prepared, x)
+    DiffResults.value!(out, val)
+    copyto!(DiffResults.gradient(out), grad)
     return out
 end
 
 function _value_and_gradient!(
-    f, out::DiffResults.MutableDiffResult, prep, ad::ADTypes.AbstractADType, x, aux
+    f,
+    out::DiffResults.MutableDiffResult,
+    prep::_VIGradPrep,
+    ad::ADTypes.AbstractADType,
+    x,
+    aux,
 )
-    grad_buf = DiffResults.gradient(out)
-    y, _ = DifferentiationInterface.value_and_gradient!(
-        f, grad_buf, prep, ad, x, Constant(aux)
-    )
-    DiffResults.value!(out, y)
+    prep.aux_ref[] = aux
+    val, grad = AbstractPPL.value_and_gradient(prep.prepared, x)
+    DiffResults.value!(out, val)
+    copyto!(DiffResults.gradient(out), grad)
     return out
 end
 
 """
-    _prepare_gradient!(f, ad, x, aux)
+    _prepare_gradient(f, ad, x, aux)
 
 Prepare AD backend for taking gradients of a function `f` at `x` using the automatic differentiation backend `ad`.
 
@@ -80,7 +92,9 @@ Prepare AD backend for taking gradients of a function `f` at `x` using the autom
 - `aux`: Auxiliary input passed to `f`.
 """
 function _prepare_gradient(f, ad::ADTypes.AbstractADType, x, aux)
-    return DifferentiationInterface.prepare_gradient(f, ad, x, Constant(aux))
+    aux_ref = Ref(aux)
+    prepared = AbstractPPL.prepare(ad, x -> f(x, aux_ref[]), x)
+    return _VIGradPrep(prepared, aux_ref)
 end
 
 """
@@ -238,7 +252,7 @@ function step(
     objargs...;
     kwargs...,
 )
-    nothing
+    return nothing
 end
 
 """
@@ -276,11 +290,11 @@ Please refer to the respective documentation of each algorithm for more info.
 function estimate_objective(
     ::Random.AbstractRNG, ::AbstractVariationalAlgorithm, q, prob; kwargs...
 )
-    nothing
+    return nothing
 end
 
 function estimate_objective(alg::AbstractVariationalAlgorithm, q, prob; kwargs...)
-    estimate_objective(Random.default_rng(), alg, q, prob; kwargs...)
+    return estimate_objective(Random.default_rng(), alg, q, prob; kwargs...)
 end
 
 export estimate_objective

@@ -81,10 +81,10 @@ function init(
     grad_buf = Vector{eltype(q_init.location)}(undef, n_dims)
     hess_buf = Matrix{eltype(q_init.location)}(undef, n_dims, n_dims)
     scale = q_init.scale
-    qcov = Hermitian(scale*scale')
+    qcov = Hermitian(scale * scale')
     scale_inv = inv(scale)
     prec_chol = scale_inv'
-    prec = Hermitian(prec_chol*prec_chol')
+    prec = Hermitian(prec_chol * prec_chol')
     return KLMinNaturalGradDescentState(
         q_init, prob, prec, qcov, 0, sub_st, grad_buf, hess_buf
     )
@@ -127,7 +127,7 @@ function step(
         # Handling the positive-definite constraint in the Bayesian learning rule.
         # In ICML 2020.
         G_hat = S - (-hess_buf)
-        Hermitian(S - η*G_hat + η^2/2*G_hat*qcov*G_hat)
+        Hermitian(S - η * G_hat + η^2 / 2 * G_hat * qcov * G_hat)
     else
         Hermitian(((1 - η) * S + η * (-hess_buf)))
     end
@@ -136,7 +136,7 @@ function step(
     prec_chol = cholesky(S′).L
     prec_chol_inv = inv(prec_chol)
     scale = prec_chol_inv'
-    qcov = Hermitian(scale*scale')
+    qcov = Hermitian(scale * scale')
     q′ = MvLocationScale(m′, scale, q.dist)
 
     state = KLMinNaturalGradDescentState(
@@ -149,7 +149,7 @@ function step(
         info′ = callback(; rng, iteration, q=q′, info)
         info = !isnothing(info′) ? merge(info′, info) : info
     end
-    state, false, info
+    return state, false, info
 end
 
 """

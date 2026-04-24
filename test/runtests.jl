@@ -17,6 +17,7 @@ using Random, StableRNGs
 using Statistics
 using StatsBase
 
+using DifferentiationInterface
 using AdvancedVI
 
 const PROGRESS = haskey(ENV, "PROGRESS")

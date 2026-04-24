@@ -18,7 +18,9 @@ Optimisers.@def struct DoWG <: Optimisers.AbstractRule
     alpha = 1e-6
 end
 
-Optimisers.init(o::DoWG, x::AbstractArray{T}) where {T} = (copy(x), zero(T), T(o.alpha)*(1 + norm(x)))
+function Optimisers.init(o::DoWG, x::AbstractArray{T}) where {T}
+    return (copy(x), zero(T), T(o.alpha) * (1 + norm(x)))
+end
 
 function Optimisers.apply!(::DoWG, state, x::AbstractArray{T}, dx) where {T}
     x0, v, r = state
@@ -47,7 +49,9 @@ Optimisers.@def struct DoG <: Optimisers.AbstractRule
     alpha = 1e-6
 end
 
-Optimisers.init(o::DoG, x::AbstractArray{T}) where {T} = (copy(x), zero(T), T(o.alpha)*(1 + norm(x)))
+function Optimisers.init(o::DoG, x::AbstractArray{T}) where {T}
+    return (copy(x), zero(T), T(o.alpha) * (1 + norm(x)))
+end
 
 function Optimisers.apply!(::DoG, state, x::AbstractArray{T}, dx) where {T}
     x0, v, r = state
