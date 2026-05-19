@@ -18,14 +18,15 @@ using LogDensityProblems
 using ADTypes
 using DiffResults
 using AbstractPPL: AbstractPPL
+using AbstractPPL.Evaluators: Prepared, VectorEvaluator
 using ChainRulesCore: ChainRulesCore
 
 using FillArrays
 
 using StatsBase
 
-# Holds the AbstractPPL prepared evaluator together with the aux Ref so that
-# _value_and_gradient! can update aux before every evaluation.
+# `aux` is captured by Ref so the same prepared evaluator can be reused after
+# aux changes — re-preparing per call would defeat the cache.
 struct _VIGradPrep{P,R}
     prepared::P
     aux_ref::R
@@ -59,7 +60,7 @@ function _value_and_gradient!(
     f, out::DiffResults.MutableDiffResult, ad::ADTypes.AbstractADType, x, aux
 )
     prepared = AbstractPPL.prepare(ad, Base.Fix2(f, aux), x)
-    val, grad = AbstractPPL.value_and_gradient(prepared, x)
+    val, grad = AbstractPPL.value_and_gradient!!(prepared, x)
     DiffResults.value!(out, val)
     copyto!(DiffResults.gradient(out), grad)
     return out
@@ -74,7 +75,7 @@ function _value_and_gradient!(
     aux,
 )
     prep.aux_ref[] = aux
-    val, grad = AbstractPPL.value_and_gradient(prep.prepared, x)
+    val, grad = AbstractPPL.value_and_gradient!!(prep.prepared, x)
     DiffResults.value!(out, val)
     copyto!(DiffResults.gradient(out), grad)
     return out
@@ -109,6 +110,33 @@ This is an indirection for handling the type stability of `restructure`, as some
 - `params`: Variational Parameters.
 """
 restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restructure(params)
+
+# Gradient-only LDP fallback for any AD-prepared evaluator; backend extensions
+# override `capabilities` and add `logdensity_gradient_and_hessian` if they can.
+function LogDensityProblems.capabilities(
+    ::Type{<:Prepared{<:ADTypes.AbstractADType,<:VectorEvaluator}}
+)
+    LogDensityProblems.LogDensityOrder{1}()
+end
+
+function LogDensityProblems.dimension(
+    p::Prepared{<:ADTypes.AbstractADType,<:VectorEvaluator}
+)
+    p.evaluator.dim
+end
+
+function LogDensityProblems.logdensity(
+    p::Prepared{<:ADTypes.AbstractADType,<:VectorEvaluator}, x
+)
+    p(x)
+end
+
+function LogDensityProblems.logdensity_and_gradient(
+    p::Prepared{<:ADTypes.AbstractADType,<:VectorEvaluator}, x
+)
+    val, grad = AbstractPPL.value_and_gradient!!(p, x)
+    return val, copy(grad)
+end
 
 include("mixedad_logdensity.jl")
 
