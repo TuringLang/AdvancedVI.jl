@@ -18,7 +18,6 @@ using LogDensityProblems
 using ADTypes
 using DiffResults
 using AbstractPPL: AbstractPPL
-using AbstractPPL.Evaluators: Prepared, VectorEvaluator
 using ChainRulesCore: ChainRulesCore
 
 using FillArrays
@@ -110,33 +109,6 @@ This is an indirection for handling the type stability of `restructure`, as some
 - `params`: Variational Parameters.
 """
 restructure_ad_forward(::ADTypes.AbstractADType, restructure, params) = restructure(params)
-
-# Gradient-only LDP fallback for any AD-prepared evaluator; backend extensions
-# override `capabilities` and add `logdensity_gradient_and_hessian` if they can.
-function LogDensityProblems.capabilities(
-    ::Type{<:Prepared{<:ADTypes.AbstractADType,<:VectorEvaluator}}
-)
-    LogDensityProblems.LogDensityOrder{1}()
-end
-
-function LogDensityProblems.dimension(
-    p::Prepared{<:ADTypes.AbstractADType,<:VectorEvaluator}
-)
-    p.evaluator.dim
-end
-
-function LogDensityProblems.logdensity(
-    p::Prepared{<:ADTypes.AbstractADType,<:VectorEvaluator}, x
-)
-    p(x)
-end
-
-function LogDensityProblems.logdensity_and_gradient(
-    p::Prepared{<:ADTypes.AbstractADType,<:VectorEvaluator}, x
-)
-    val, grad = AbstractPPL.value_and_gradient!!(p, x)
-    return val, copy(grad)
-end
 
 include("mixedad_logdensity.jl")
 
