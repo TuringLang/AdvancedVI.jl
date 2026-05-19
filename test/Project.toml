@@ -27,6 +27,7 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [sources]
+AbstractPPL = {url = "https://github.com/TuringLang/AbstractPPL.jl", rev = "hg/hessian-order"}
 DynamicPPL = {url = "https://github.com/TuringLang/DynamicPPL.jl", rev = "adproblems-interface"}
 Bijectors = {url = "https://github.com/TuringLang/Bijectors.jl", rev = "replace-di-with-abstractppl"}
 

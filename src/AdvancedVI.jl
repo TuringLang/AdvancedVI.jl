@@ -24,8 +24,8 @@ using FillArrays
 
 using StatsBase
 
-# `aux` is captured by Ref so the same prepared evaluator can be reused after
-# aux changes — re-preparing per call would defeat the cache.
+# `AbstractPPL.prepare` bakes the closure at prep time, so `aux` is captured
+# via a `Ref` that callers mutate before each evaluation.
 struct _VIGradPrep{P,R}
     prepared::P
     aux_ref::R

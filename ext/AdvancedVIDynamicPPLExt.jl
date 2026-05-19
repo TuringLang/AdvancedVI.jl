@@ -1,17 +1,13 @@
 module AdvancedVIDynamicPPLExt
 
 using ADTypes: ADTypes
-using Accessors
 using AdvancedVI: AdvancedVI
 using AbstractPPL: AbstractPPL
-using Distributions: Distributions
 using DynamicPPL: DynamicPPL
 using LogDensityProblems: LogDensityProblems
 using Random
 
-function adtype_capabilities(::Type{Nothing})
-    return LogDensityProblems.LogDensityOrder{0}()
-end
+adtype_capabilities(::Type{Nothing}) = LogDensityProblems.LogDensityOrder{0}()
 
 function adtype_capabilities(::Type{<:ADTypes.AbstractADType})
     return LogDensityProblems.LogDensityOrder{1}()
@@ -35,31 +31,33 @@ function subsample_dynamicpplmodel(
     return DynamicPPL.Model{Threaded}(model.f, model.args, new_kwargs, model.context)
 end
 
+# `model_ref`/`loglikeadj_ref` are mutated in place by `subsample`; the closure
+# inside `prep_grad`/`prep_hess` reads through them so the prep stays valid
+# across subsampling steps (AbstractPPL bakes the closure into the prep, unlike
+# DI's `Constant` which can be rebound at call time).
 struct DynamicPPLModelLogDensityFunction{
     Model<:DynamicPPL.Model,
     VarInfo<:DynamicPPL.AbstractVarInfo,
     ADType<:Union{Nothing,ADTypes.AbstractADType},
     PrepGrad,
+    PrepHess,
 }
-    model::Model
-    varinfo::VarInfo
-    adtype::ADType
-    # Refs are updated in-place by subsample; the prepared AD evaluator reads
-    # through them on every call, so the prep remains valid across subsampling.
     model_ref::Ref{Any}
     loglikeadj_ref::Ref{Float64}
+    varinfo::VarInfo
+    adtype::ADType
     prep_grad::PrepGrad
+    prep_hess::PrepHess
 end
 
 function DynamicPPLModelLogDensityFunction(
     model::DynamicPPL.Model,
     varinfo::DynamicPPL.AbstractVarInfo;
-    use_hessian::Bool=false,
+    use_hessian::Bool=true,
     adtype::Union{Nothing,ADTypes.AbstractADType}=nothing,
     loglikeadj::Real=1.0,
     subsampling::Union{Nothing,AdvancedVI.AbstractSubsampling}=nothing,
 )
-    use_hessian && @warn "`use_hessian` is no longer supported and will be ignored."
     model_sub = if isnothing(subsampling)
         model
     else
@@ -69,24 +67,36 @@ function DynamicPPLModelLogDensityFunction(
         subsample_dynamicpplmodel(model, batch)
     end
 
-    params = [val for val in varinfo[:]]
-    cap = adtype_capabilities(typeof(adtype))
-
+    params = collect(varinfo[:])
     model_ref = Ref{Any}(model_sub)
     loglikeadj_ref = Ref{Float64}(float(loglikeadj))
+    f = params -> logdensity_impl(params, model_ref[], loglikeadj_ref[], varinfo)
+    cap = adtype_capabilities(typeof(adtype))
 
     prep_grad = if cap >= LogDensityProblems.LogDensityOrder{1}()
-        AbstractPPL.prepare(
-            adtype,
-            params -> logdensity_impl(params, model_ref[], loglikeadj_ref[], varinfo),
-            params,
-        )
+        AbstractPPL.prepare(adtype, f, params)
     else
         nothing
     end
-
-    return DynamicPPLModelLogDensityFunction(
-        model, varinfo, adtype, model_ref, loglikeadj_ref, prep_grad
+    prep_hess = if cap >= LogDensityProblems.LogDensityOrder{1}() && use_hessian
+        try
+            AbstractPPL.prepare(adtype, f, params; order=2)
+        catch err
+            err isa MethodError || rethrow()
+            @warn "The selected AD backend does not support `AbstractPPL.prepare(...; order=2)`. AdvancedVI will treat the model as first-order only."
+            nothing
+        end
+    else
+        nothing
+    end
+    return DynamicPPLModelLogDensityFunction{
+        typeof(model),
+        typeof(varinfo),
+        typeof(adtype),
+        typeof(prep_grad),
+        typeof(prep_hess),
+    }(
+        model_ref, loglikeadj_ref, varinfo, adtype, prep_grad, prep_hess
     )
 end
 
@@ -97,19 +107,27 @@ end
 function LogDensityProblems.logdensity_and_gradient(
     prob::DynamicPPLModelLogDensityFunction, params
 )
-    return AbstractPPL.value_and_gradient!!(prob.prep_grad, params)
+    val, grad = AbstractPPL.value_and_gradient!!(prob.prep_grad, params)
+    return val, copy(grad)
+end
+
+function LogDensityProblems.logdensity_gradient_and_hessian(
+    prob::DynamicPPLModelLogDensityFunction, params
+)
+    val, grad, H = AbstractPPL.value_gradient_and_hessian!!(prob.prep_hess, params)
+    return val, copy(grad), copy(H)
 end
 
 function LogDensityProblems.capabilities(
-    ::Type{<:DynamicPPLModelLogDensityFunction{M,V,Nothing,G}}
-) where {M,V,G}
-    return LogDensityProblems.LogDensityOrder{0}()
-end
-
-function LogDensityProblems.capabilities(
-    ::Type{<:DynamicPPLModelLogDensityFunction{M,V,<:ADTypes.AbstractADType,G}}
-) where {M,V,G}
-    return LogDensityProblems.LogDensityOrder{1}()
+    ::Type{<:DynamicPPLModelLogDensityFunction{M,V,ADType,PG,PH}}
+) where {M,V,ADType<:ADTypes.AbstractADType,PG,PH}
+    return if PH != Nothing
+        LogDensityProblems.LogDensityOrder{2}()
+    elseif PG != Nothing
+        LogDensityProblems.LogDensityOrder{1}()
+    else
+        LogDensityProblems.LogDensityOrder{0}()
+    end
 end
 
 function LogDensityProblems.dimension(prob::DynamicPPLModelLogDensityFunction)
@@ -117,7 +135,7 @@ function LogDensityProblems.dimension(prob::DynamicPPLModelLogDensityFunction)
 end
 
 function AdvancedVI.subsample(prob::DynamicPPLModelLogDensityFunction, batch)
-    model = prob.model
+    model = prob.model_ref[]
 
     if !haskey(model.defaults, :datapoints)
         throw(
