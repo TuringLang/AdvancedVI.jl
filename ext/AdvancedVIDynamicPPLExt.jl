@@ -90,11 +90,7 @@ function DynamicPPLModelLogDensityFunction(
         nothing
     end
     return DynamicPPLModelLogDensityFunction{
-        typeof(model),
-        typeof(varinfo),
-        typeof(adtype),
-        typeof(prep_grad),
-        typeof(prep_hess),
+        typeof(model),typeof(varinfo),typeof(adtype),typeof(prep_grad),typeof(prep_hess)
     }(
         model_ref, loglikeadj_ref, varinfo, adtype, prep_grad, prep_hess
     )

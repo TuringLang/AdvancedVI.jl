@@ -24,13 +24,6 @@ using FillArrays
 
 using StatsBase
 
-# `AbstractPPL.prepare` bakes the closure at prep time, so `aux` is captured
-# via a `Ref` that callers mutate before each evaluation.
-struct _VIGradPrep{P,R}
-    prepared::P
-    aux_ref::R
-end
-
 # Derivatives
 """
     _value_and_gradient!(f, out, ad, x, aux)
@@ -66,15 +59,10 @@ function _value_and_gradient!(
 end
 
 function _value_and_gradient!(
-    f,
-    out::DiffResults.MutableDiffResult,
-    prep::_VIGradPrep,
-    ad::ADTypes.AbstractADType,
-    x,
-    aux,
+    f, out::DiffResults.MutableDiffResult, prep, ad::ADTypes.AbstractADType, x, aux
 )
-    prep.aux_ref[] = aux
-    val, grad = AbstractPPL.value_and_gradient!!(prep.prepared, x)
+    prep.evaluator.context[1][] = aux
+    val, grad = AbstractPPL.value_and_gradient!!(prep, x)
     DiffResults.value!(out, val)
     copyto!(DiffResults.gradient(out), grad)
     return out
@@ -92,9 +80,7 @@ Prepare AD backend for taking gradients of a function `f` at `x` using the autom
 - `aux`: Auxiliary input passed to `f`.
 """
 function _prepare_gradient(f, ad::ADTypes.AbstractADType, x, aux)
-    aux_ref = Ref(aux)
-    prepared = AbstractPPL.prepare(ad, x -> f(x, aux_ref[]), x)
-    return _VIGradPrep(prepared, aux_ref)
+    return AbstractPPL.prepare(ad, (x, aref) -> f(x, aref[]), x; context=(Ref(aux),))
 end
 
 """
