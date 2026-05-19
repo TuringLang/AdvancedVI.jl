@@ -31,7 +31,7 @@ function init(
     ::Any,
     ::Any,
 )
-    return nothing
+    nothing
 end
 
 """

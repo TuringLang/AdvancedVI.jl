@@ -41,9 +41,9 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 `f` may receive auxiliary input as `f(x,aux)`.
 
 # Arguments
-- `ad::ADTypes.AbstractADType`:
+- `ad::ADTypes.AbstractADType`: 
     automatic differentiation backend. Currently supports
-    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`,
+    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
     `ADTypes.AutoMooncake()` and
     `ADTypes.AutoEnzyme(;
         mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
@@ -280,7 +280,7 @@ function step(
     objargs...;
     kwargs...,
 )
-    return nothing
+    nothing
 end
 
 """
@@ -318,11 +318,11 @@ Please refer to the respective documentation of each algorithm for more info.
 function estimate_objective(
     ::Random.AbstractRNG, ::AbstractVariationalAlgorithm, q, prob; kwargs...
 )
-    return nothing
+    nothing
 end
 
 function estimate_objective(alg::AbstractVariationalAlgorithm, q, prob; kwargs...)
-    return estimate_objective(Random.default_rng(), alg, q, prob; kwargs...)
+    estimate_objective(Random.default_rng(), alg, q, prob; kwargs...)
 end
 
 export estimate_objective
