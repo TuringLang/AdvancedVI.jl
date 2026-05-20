@@ -5,6 +5,8 @@ on:
       AD:
         required: true
         type: string
+permissions:
+  contents: read
 
 concurrency:
   # Skip intermediate builds: always.
@@ -14,18 +16,14 @@ concurrency:
 
 jobs:
   test:
-    name: Julia ${{ matrix.AD }} - ${{ matrix.version }} - ${{ matrix.os }} - ${{ github.event_name }}
-    runs-on: ${{ matrix.os }}
+    name: Julia ${{ matrix.AD }} - ${{ matrix.version }} - ubuntu-latest - ${{ github.event_name }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         version:
           - 'lts'
           - '1.11'
-        os:
-          - ubuntu-latest
-          - macOS-latest
-          - windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2

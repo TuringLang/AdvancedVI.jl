@@ -28,9 +28,6 @@ const AD = if AD_str == "ReverseDiff"
     AutoReverseDiff()
 elseif AD_str == "ForwardDiff"
     AutoForwardDiff()
-elseif AD_str == "Zygote"
-    using Zygote
-    AutoZygote()
 elseif AD_str == "Mooncake"
     using Mooncake
     AutoMooncake(; config=Mooncake.Config())
@@ -40,6 +37,8 @@ elseif AD_str == "Enzyme"
         mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
         function_annotation=Enzyme.Const,
     )
+else
+    throw(ArgumentError("Unsupported AD backend for tests: $AD_str"))
 end
 
 if GROUP == "DynamicPPL"

@@ -35,7 +35,7 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 # Arguments
 - `ad::ADTypes.AbstractADType`: 
     automatic differentiation backend. Currently supports
-    `ADTypes.AutoZygote()`, `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
+    `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
     `ADTypes.AutoMooncake()` and
     `ADTypes.AutoEnzyme(;
         mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
