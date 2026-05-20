@@ -5,6 +5,8 @@ on:
       AD:
         required: true
         type: string
+permissions:
+  contents: read
 
 concurrency:
   # Skip intermediate builds: always.
