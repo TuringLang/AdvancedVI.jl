@@ -35,15 +35,21 @@ end
 # inside `prep_grad`/`prep_hess` reads through them so the prep stays valid
 # across subsampling steps (AbstractPPL bakes the closure into the prep, unlike
 # DI's `Constant` which can be rebound at call time).
+#
+# `model_ref` is typed `Ref{Any}` because `subsample_dynamicpplmodel` returns a
+# `DynamicPPL.Model` whose `defaults` NamedTuple type varies with the batch — a
+# typed `Ref{<:DynamicPPL.Model}` would throw on reassignment. The tradeoff is a
+# dynamic dispatch on each `prob.model_ref[]` read; do not "tighten" it.
 struct DynamicPPLModelLogDensityFunction{
     Model<:DynamicPPL.Model,
+    LogLikeAdj<:Real,
     VarInfo<:DynamicPPL.AbstractVarInfo,
     ADType<:Union{Nothing,ADTypes.AbstractADType},
     PrepGrad,
     PrepHess,
 }
     model_ref::Ref{Any}
-    loglikeadj_ref::Ref{Float64}
+    loglikeadj_ref::Ref{LogLikeAdj}
     varinfo::VarInfo
     adtype::ADType
     prep_grad::PrepGrad
@@ -69,7 +75,8 @@ function DynamicPPLModelLogDensityFunction(
 
     params = collect(varinfo[:])
     model_ref = Ref{Any}(model_sub)
-    loglikeadj_ref = Ref{Float64}(float(loglikeadj))
+    adj0 = float(loglikeadj)
+    loglikeadj_ref = Ref(adj0)
     f = params -> logdensity_impl(params, model_ref[], loglikeadj_ref[], varinfo)
     cap = adtype_capabilities(typeof(adtype))
 
@@ -90,7 +97,12 @@ function DynamicPPLModelLogDensityFunction(
         nothing
     end
     return DynamicPPLModelLogDensityFunction{
-        typeof(model),typeof(varinfo),typeof(adtype),typeof(prep_grad),typeof(prep_hess)
+        typeof(model),
+        typeof(adj0),
+        typeof(varinfo),
+        typeof(adtype),
+        typeof(prep_grad),
+        typeof(prep_hess),
     }(
         model_ref, loglikeadj_ref, varinfo, adtype, prep_grad, prep_hess
     )
@@ -115,8 +127,8 @@ function LogDensityProblems.logdensity_gradient_and_hessian(
 end
 
 function LogDensityProblems.capabilities(
-    ::Type{<:DynamicPPLModelLogDensityFunction{M,V,ADType,PG,PH}}
-) where {M,V,ADType<:ADTypes.AbstractADType,PG,PH}
+    ::Type{<:DynamicPPLModelLogDensityFunction{M,L,V,ADType,PG,PH}}
+) where {M,L,V,ADType<:ADTypes.AbstractADType,PG,PH}
     return if PH != Nothing
         LogDensityProblems.LogDensityOrder{2}()
     elseif PG != Nothing
@@ -144,7 +156,8 @@ function AdvancedVI.subsample(prob::DynamicPPLModelLogDensityFunction, batch)
     n_datapoints = length(model.defaults.datapoints)
     batchsize = length(batch)
     model_sub = subsample_dynamicpplmodel(model, batch)
-    loglikeadj = n_datapoints / batchsize
+    T = eltype(prob.loglikeadj_ref)
+    loglikeadj = T(n_datapoints) / T(batchsize)
 
     prob.model_ref[] = model_sub
     prob.loglikeadj_ref[] = loglikeadj
