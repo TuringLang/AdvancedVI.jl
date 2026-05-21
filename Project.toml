@@ -65,5 +65,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 test = ["Pkg", "Test"]
 
 [sources]
-AbstractPPL = {url = "https://github.com/TuringLang/AbstractPPL.jl", rev = "hg/hessian-order"}
 DynamicPPL = {url = "https://github.com/TuringLang/DynamicPPL.jl", rev = "adproblems-interface"}

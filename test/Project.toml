@@ -26,12 +26,11 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 
 [sources]
-AbstractPPL = {url = "https://github.com/TuringLang/AbstractPPL.jl", rev = "hg/hessian-order"}
 DynamicPPL = {url = "https://github.com/TuringLang/DynamicPPL.jl", rev = "adproblems-interface"}
-Bijectors = {url = "https://github.com/TuringLang/Bijectors.jl", rev = "replace-di-with-abstractppl"}
 
 [compat]
 ADTypes = "0.2.1, 1"
+Bijectors = "0.16"
 DiffResults = "1"
 DifferentiationInterface = "0.6, 0.7"
 Distributions = "0.25.111"
