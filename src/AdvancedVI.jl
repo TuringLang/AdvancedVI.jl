@@ -68,6 +68,22 @@ function _value_and_gradient!(
     return out
 end
 
+# `AutoReverseDiff(; compile=true)` is the one backend AbstractPPL's DI
+# extension routes through a closure so the compiled tape can be reused.
+# That closure bakes `aref[]` in at prep time, so mutating the context Ref
+# between iterations would feed stale `aux` (e.g. an old `q_stop`) to AD
+# and diverge the optimization. Skip caching here and re-prepare each call.
+function _value_and_gradient!(
+    f,
+    out::DiffResults.MutableDiffResult,
+    ::Nothing,
+    ad::ADTypes.AutoReverseDiff{true},
+    x,
+    aux,
+)
+    return _value_and_gradient!(f, out, ad, x, aux)
+end
+
 """
     _prepare_gradient(f, ad, x, aux)
 
@@ -82,6 +98,10 @@ Prepare AD backend for taking gradients of a function `f` at `x` using the autom
 function _prepare_gradient(f, ad::ADTypes.AbstractADType, x, aux)
     return AbstractPPL.prepare(ad, (x, aref) -> f(x, aref[]), x; context=(Ref(aux),))
 end
+
+# See the dispatch above on `_value_and_gradient!` for the reason this returns
+# `nothing` for compiled-tape ReverseDiff.
+_prepare_gradient(::Any, ::ADTypes.AutoReverseDiff{true}, ::Any, ::Any) = nothing
 
 """
     restructure_ad_forward(adtype, restructure, params)
