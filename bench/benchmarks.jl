@@ -4,7 +4,7 @@ using BenchmarkTools
 using Distributions
 using DistributionsAD
 using DifferentiationInterface
-using Enzyme, ForwardDiff, ReverseDiff, Mooncake
+using Enzyme, ForwardDiff, Mooncake
 using FillArrays
 using InteractiveUtils
 using LinearAlgebra
@@ -69,7 +69,6 @@ begin
                 ("RepGradELBO + STL", StickingTheLandingEntropy()),
             ],
             (adname, adtype) in [
-                ("ReverseDiff", AutoReverseDiff()),
                 ("Mooncake", AutoMooncake(; config=Mooncake.Config())),
                 # ("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),
             ],
