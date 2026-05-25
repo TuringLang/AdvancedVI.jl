@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779742740816,
+  "lastUpdate": 1779744259147,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -34564,6 +34564,50 @@ window.BENCHMARK_DATA = {
             "value": 1197778193,
             "unit": "ns",
             "extra": "gctime=43521426\nmemory=590922664\nallocs=15198771\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "committer": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "id": "4a170ea36c7f11750f4eb912293b0f5f85f94ba2",
+          "message": "Use AbstractPPL evaluator interface",
+          "timestamp": "2026-05-25T19:13:09Z",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/pull/255/commits/4a170ea36c7f11750f4eb912293b0f5f85f94ba2"
+        },
+        "date": 1779744234009,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal/RepGradELBO/fullrank/Mooncake",
+            "value": 364746191,
+            "unit": "ns",
+            "extra": "gctime=33328395.5\nmemory=288427704\nallocs=3238817\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "normal/RepGradELBO/meanfield/Mooncake",
+            "value": 97508672,
+            "unit": "ns",
+            "extra": "gctime=10377393.5\nmemory=98980856\nallocs=1369599\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/fullrank/Mooncake",
+            "value": 428595911.5,
+            "unit": "ns",
+            "extra": "gctime=41687776\nmemory=331347504\nallocs=3669366\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/meanfield/Mooncake",
+            "value": 143032196,
+            "unit": "ns",
+            "extra": "gctime=10646138\nmemory=113432704\nallocs=1660277\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
           }
         ]
       }
