@@ -15,14 +15,14 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
   test:
-    name: Julia ${{ matrix.version }} - ubuntu-latest - ${{ github.event_name }}
+    name: Julia ${{ matrix.version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         version:
           - 'lts'
-          - '1.11'
+          - '1'
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
