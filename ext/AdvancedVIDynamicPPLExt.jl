@@ -33,8 +33,7 @@ end
 
 # `model_ref`/`loglikeadj_ref` are mutated in place by `subsample`; the closure
 # inside `prep_grad`/`prep_hess` reads through them so the prep stays valid
-# across subsampling steps (AbstractPPL bakes the closure into the prep, unlike
-# DI's `Constant` which can be rebound at call time).
+# across subsampling steps.
 #
 # `model_ref` is typed `Ref{Any}` because `subsample_dynamicpplmodel` returns a
 # `DynamicPPL.Model` whose `defaults` NamedTuple type varies with the batch — a
@@ -112,6 +111,8 @@ function LogDensityProblems.logdensity(prob::DynamicPPLModelLogDensityFunction, 
     return logdensity_impl(params, prob.model_ref[], prob.loglikeadj_ref[], prob.varinfo)
 end
 
+# `!!` may alias internal buffers of `prep_*`; copy so callers can retain the
+# arrays past the next AD call.
 function LogDensityProblems.logdensity_and_gradient(
     prob::DynamicPPLModelLogDensityFunction, params
 )
@@ -129,9 +130,9 @@ end
 function LogDensityProblems.capabilities(
     ::Type{<:DynamicPPLModelLogDensityFunction{M,L,V,ADType,PG,PH}}
 ) where {M,L,V,ADType<:ADTypes.AbstractADType,PG,PH}
-    return if PH != Nothing
+    return if PH !== Nothing
         LogDensityProblems.LogDensityOrder{2}()
-    elseif PG != Nothing
+    elseif PG !== Nothing
         LogDensityProblems.LogDensityOrder{1}()
     else
         LogDensityProblems.LogDensityOrder{0}()
