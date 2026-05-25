@@ -16,3 +16,4 @@ steps:
       setup:
         julia:
            - "1.10"
+           - "1"

@@ -25,7 +25,7 @@ jobs:
       - name: Build and deploy Documenter.jl docs
         uses: TuringLang/actions/DocsDocumenter@main
         with:
-          julia-version: 'lts'
+          julia-version: '1'
         
       - name: Run doctests
         shell: julia --project=docs --color=yes {0}
