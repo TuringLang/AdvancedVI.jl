@@ -104,6 +104,7 @@ using Random
 
 using Optimisers
 using ADTypes, ForwardDiff, ReverseDiff
+using DifferentiationInterface
 using AdvancedVI
 
 struct Dist{D}

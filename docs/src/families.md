@@ -139,6 +139,7 @@ using LogDensityProblems
 using Optimisers
 using Plots
 using ForwardDiff, ReverseDiff
+using DifferentiationInterface
 
 struct Target{D}
     dist::D
