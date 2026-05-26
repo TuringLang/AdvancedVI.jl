@@ -143,10 +143,10 @@ nothing
 For the VI algorithm, we will use `KLMinRepGradDescent`:
 
 ```@example basic
-using ADTypes, ReverseDiff
+using ADTypes, Mooncake
 using AdvancedVI
 
-alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(); operator=ClipScale());
+alg = KLMinRepGradDescent(ADTypes.AutoMooncake(); operator=ClipScale());
 nothing
 ```
 
@@ -166,7 +166,6 @@ For this example, we will use `LogDensityProblemsAD` to equip our problem with a
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
 ```@example basic
-using DifferentiationInterface: DifferentiationInterface
 using LogDensityProblemsAD: LogDensityProblemsAD
 
 prob_trans_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoForwardDiff(), prob_trans)

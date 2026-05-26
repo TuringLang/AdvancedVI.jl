@@ -192,10 +192,10 @@ We can also wrap `prob_trans` with `LogDensityProblemsAD.ADGradient` to make it 
 
 ```@example constraints
 using LogDensityProblemsAD
-using ADTypes, ReverseDiff
+using ADTypes, Mooncake
 
 prob_trans_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoReverseDiff(; compile=true), prob_trans; x=randn(2)
+    ADTypes.AutoMooncake(), prob_trans; x=randn(2)
 )
 ```
 

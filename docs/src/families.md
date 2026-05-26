@@ -138,8 +138,7 @@ using LinearAlgebra
 using LogDensityProblems
 using Optimisers
 using Plots
-using ForwardDiff, ReverseDiff
-using DifferentiationInterface
+using ForwardDiff, Mooncake
 
 struct Target{D}
     dist::D
@@ -185,7 +184,7 @@ D     = ones(n_dims)
 U     = zeros(n_dims, 3)
 q0_lr = LowRankGaussian(μ, D, U)
 
-alg = KLMinRepGradDescent(AutoReverseDiff(); optimizer=Adam(0.01), operator=ClipScale())
+alg = KLMinRepGradDescent(AutoMooncake(); optimizer=Adam(0.01), operator=ClipScale())
 
 max_iter = 10^4
 

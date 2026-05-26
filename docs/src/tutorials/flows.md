@@ -138,8 +138,7 @@ Let's instantiate the model:
 
 ```@example flow
 using ADTypes: ADTypes
-using ReverseDiff: ReverseDiff
-using DifferentiationInterface: DifferentiationInterface
+using Mooncake: Mooncake
 using LogDensityProblemsAD: LogDensityProblemsAD
 
 prob_trans = TransformedLogDensityProblem(prob)
@@ -159,7 +158,7 @@ d = LogDensityProblems.dimension(prob_trans_ad)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
 
 max_iter = 3*10^3
-alg = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
+alg = KLMinRepGradProxDescent(ADTypes.AutoMooncake())
 q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
 b = Bijectors.bijector(prob)
 binv = Bijectors.inverse(b)
@@ -229,7 +228,7 @@ Furthermore, Agrawal *et al.*[^AD2025] claim that using a larger number of Monte
 using Optimisers: Optimisers
 
 alg_flow = KLMinRepGradDescent(
-    ADTypes.AutoReverseDiff(; compile=true);
+    ADTypes.AutoMooncake();
     n_samples=8,
     optimizer=Optimisers.Adam(1e-2),
     operator=IdentityOperator(),

@@ -3,7 +3,6 @@ using AdvancedVI
 using BenchmarkTools
 using Distributions
 using DistributionsAD
-using DifferentiationInterface
 using Enzyme, ForwardDiff, Mooncake
 using FillArrays
 using InteractiveUtils
@@ -68,8 +67,9 @@ begin
                 ("RepGradELBO", ClosedFormEntropy()),
                 ("RepGradELBO + STL", StickingTheLandingEntropy()),
             ],
-            (adname, adtype) in [("Mooncake", AutoMooncake(; config=Mooncake.Config())),
-            # ("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),
+            (adname, adtype) in [
+                ("Mooncake", AutoMooncake()),
+                # ("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),
             ],
             (familyname, family) in [
                 ("meanfield", MeanFieldGaussian(zeros(T, d), Diagonal(ones(T, d)))),

@@ -83,12 +83,12 @@ nothing
 Let's now istantiate the model and set up automatic differentiation using [`LogDensityProblemsAD`](https://github.com/tpapp/LogDensityProblemsAD.jl?tab=readme-ov-file).
 
 ```@example subsampling
-using ADTypes, ReverseDiff
+using ADTypes, Mooncake
 using LogDensityProblemsAD
 
 prob = LogReg(X, y, size(X, 1))
 prob_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoReverseDiff(), prob; x=randn(LogDensityProblems.dimension(prob))
+    ADTypes.AutoMooncake(), prob; x=randn(LogDensityProblems.dimension(prob))
 )
 nothing
 ```
@@ -129,7 +129,7 @@ We will us a batch size of 32, which results in `313 = length(subsampling) = cei
 dataset = 1:size(prob.X, 1)
 batchsize = 32
 subsampling = ReshufflingBatchSubsampling(dataset, batchsize)
-alg_sub = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true); subsampling)
+alg_sub = KLMinRepGradProxDescent(ADTypes.AutoMooncake(); subsampling)
 nothing
 ```
 
@@ -148,7 +148,7 @@ nothing
 If we don't supply a subsampling strategy to `KLMinRepGradProxDescent`, subsampling will not be used.
 
 ```@example subsampling
-alg_full = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
+alg_full = KLMinRepGradProxDescent(ADTypes.AutoMooncake())
 nothing
 ```
 
