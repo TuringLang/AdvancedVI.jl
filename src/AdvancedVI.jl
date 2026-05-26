@@ -238,7 +238,7 @@ function step(
     objargs...;
     kwargs...,
 )
-    nothing
+    return nothing
 end
 
 """
@@ -276,11 +276,11 @@ Please refer to the respective documentation of each algorithm for more info.
 function estimate_objective(
     ::Random.AbstractRNG, ::AbstractVariationalAlgorithm, q, prob; kwargs...
 )
-    nothing
+    return nothing
 end
 
 function estimate_objective(alg::AbstractVariationalAlgorithm, q, prob; kwargs...)
-    estimate_objective(Random.default_rng(), alg, q, prob; kwargs...)
+    return estimate_objective(Random.default_rng(), alg, q, prob; kwargs...)
 end
 
 export estimate_objective

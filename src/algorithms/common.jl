@@ -116,5 +116,5 @@ function step(
         )
         info = !isnothing(info′) ? merge(info′, info) : info
     end
-    state, false, info
+    return state, false, info
 end

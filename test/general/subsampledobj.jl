@@ -56,7 +56,7 @@
         sub_obj′ = SubsampledObjective(full_obj, sub)
         full_objval = estimate_objective(full_obj, q0, model; n_samples=10^8)
         sub_objval = estimate_objective(sub_obj′, q0, model; n_samples=10^8)
-        @test full_objval ≈ sub_objval rtol=0.1
+        @test full_objval ≈ sub_objval rtol = 0.1
     end
 
     @testset "estimate_gradient! batchsize=$(batchsize)" for batchsize in [1, 3, 4]

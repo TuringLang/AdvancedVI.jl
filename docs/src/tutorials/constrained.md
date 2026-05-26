@@ -207,7 +207,7 @@ using AdvancedVI
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(prob_trans_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 
 q_opt, info, _ = AdvancedVI.optimize(
     FisherMinBatchMatch(), 100, prob_trans_ad, q; show_progress=false
@@ -270,7 +270,7 @@ end
 LogDensityProblems.dimension(::MeanTransformed) = 2
 
 function LogDensityProblems.capabilities(::Type{MeanTransformed})
-    LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{0}()
 end
 
 n_data = 30

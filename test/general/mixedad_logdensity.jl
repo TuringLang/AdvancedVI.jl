@@ -28,7 +28,7 @@ function mixedad_test_fwd(x, prob)
     return (
         mean(Base.Fix1(LogDensityProblems.logdensity, prob), eachcol(xs)) +
         LogDensityProblems.logdensity(prob, x)
-    )/2
+    ) / 2
 end
 
 # MixedADLogDensityProblem only supports ReverseDiff, Enzyme, Mooncake in reverse-mode
