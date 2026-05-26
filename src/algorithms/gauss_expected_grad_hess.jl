@@ -42,17 +42,17 @@ function gaussian_expectation_gradient_and_hessian!(
         d = LogDensityProblems.dimension(prob)
         u = randn(rng, T, d, n_samples)
         m, C = q.location, q.scale
-        z = C*u .+ m
+        z = C * u .+ m
         for b in 1:n_samples
             zb, ub = z[:, b], u[:, b]
             logπ, ∇logπ = LogDensityProblems.logdensity_and_gradient(prob, zb)
-            logπ_avg += logπ/n_samples
+            logπ_avg += logπ / n_samples
 
             rdiv!(∇logπ, n_samples)
             ∇logπ_div_nsamples = ∇logπ
 
             grad_buf[:] .+= ∇logπ_div_nsamples
-            hess_buf[:, :] .+= ub*∇logπ_div_nsamples'
+            hess_buf[:, :] .+= ub * ∇logπ_div_nsamples'
         end
         hess_buf[:, :] .= C' \ hess_buf
         return logπ_avg, grad_buf, hess_buf
@@ -71,7 +71,7 @@ function gaussian_expectation_gradient_and_hessian!(
             rdiv!(∇2logπ, n_samples)
             ∇2logπ_div_nsamples = ∇2logπ
 
-            logπ_avg += logπ/n_samples
+            logπ_avg += logπ / n_samples
             grad_buf[:] .+= ∇logπ_div_nsamples
             hess_buf[:, :] .+= ∇2logπ_div_nsamples
         end

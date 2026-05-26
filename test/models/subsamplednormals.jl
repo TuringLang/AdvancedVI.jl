@@ -16,7 +16,7 @@ end
 
 function LogDensityProblems.logdensity(m::SubsampledNormals, x)
     (; likeadj, dists) = m
-    return likeadj*mapreduce(Base.Fix2(logpdf, only(x)), +, dists)
+    return likeadj * mapreduce(Base.Fix2(logpdf, only(x)), +, dists)
 end
 
 function LogDensityProblems.logdensity_and_gradient(m::SubsampledNormals, x)
@@ -44,7 +44,7 @@ end
 
 function AdvancedVI.subsample(m::SubsampledNormals, idx)
     n_data = length(m.dists)
-    return SubsampledNormals(m.dists[idx], n_data/length(idx), m.capability)
+    return SubsampledNormals(m.dists[idx], n_data / length(idx), m.capability)
 end
 
 function subsamplednormal(rng::Random.AbstractRNG, n_data::Int; capability::Int=1)
@@ -58,6 +58,6 @@ function subsamplednormal(rng::Random.AbstractRNG, n_data::Int; capability::Int=
     model = SubsampledNormals(rng, n_data, cap)
     n_dims = 1
     μ_true = [mean([mean(dist) for dist in model.dists])]
-    L_true = Diagonal([sqrt(1/n_data)])
+    L_true = Diagonal([sqrt(1 / n_data)])
     return TestModel(model, μ_true, L_true, n_dims, 1, true)
 end
