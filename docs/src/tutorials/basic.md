@@ -120,6 +120,57 @@ y = Vector{Bool}(data[:, end] .== "Mine")
 nothing
 ```
 
+```@setup basic
+using Bijectors: Bijectors
+using Mooncake: Mooncake
+
+Mooncake.@mooncake_overlay function Bijectors._with_logabsdet_jacobian(
+    sb::Bijectors.Stacked, x::AbstractVector
+)
+    T = eltype(x)
+    y = T[]
+    logjac = zero(T)
+    for i in eachindex(sb.bs)
+        yi, lji = Bijectors.with_logabsdet_jacobian(sb.bs[i], x[sb.ranges_in[i]])
+        y = vcat(y, yi)
+        logjac = logjac + sum(lji)
+    end
+    return (y, logjac)
+end
+```
+
+```@raw html
+<details>
+<summary>Why does Mooncake need help differentiating <code>Bijectors.Stacked</code> when <code>OpenML</code> is loaded? (click to expand)</summary>
+```
+
+Loading `OpenML` transitively brings in `CategoricalArrays`, which adds
+`Base.similar` methods with unbound type parameters. Those break Mooncake's
+compilation of `collect(::Base.Generator)` — used by `Bijectors.Stacked`'s
+`_with_logabsdet_jacobian` via `map(zip(...)) do ...`. The setup block above
+sidesteps it with `Mooncake.@mooncake_overlay`, replacing the implementation
+with an explicit loop:
+
+```julia
+Mooncake.@mooncake_overlay function Bijectors._with_logabsdet_jacobian(
+    sb::Bijectors.Stacked, x::AbstractVector
+)
+    T = eltype(x)
+    y = T[]
+    logjac = zero(T)
+    for i in eachindex(sb.bs)
+        yi, lji = Bijectors.with_logabsdet_jacobian(sb.bs[i], x[sb.ranges_in[i]])
+        y = vcat(y, yi)
+        logjac = logjac + sum(lji)
+    end
+    return (y, logjac)
+end
+```
+
+```@raw html
+</details>
+```
+
 Let's apply some basic pre-processing and add an intercept column:
 
 ```@example basic
