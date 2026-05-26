@@ -149,7 +149,7 @@ The rest can be done by simply copy-pasting the code below:
 ```@example constraints
 using ADTypes
 using AbstractPPL: AbstractPPL
-using ForwardDiff: ForwardDiff
+using Mooncake: Mooncake
 
 struct TransformedLogDensityProblem{Prob,BInv}
     prob::Prob
@@ -172,8 +172,9 @@ function LogDensityProblems.logdensity_and_gradient(
     prob_trans::TransformedLogDensityProblem, θ_trans
 )
     f = Base.Fix1(LogDensityProblems.logdensity, prob_trans)
-    prep = AbstractPPL.prepare(AutoForwardDiff(), f, θ_trans)
-    return AbstractPPL.value_and_gradient!!(prep, θ_trans)
+    x = collect(θ_trans)  # AutoMooncake requires a dense vector
+    prep = AbstractPPL.prepare(AutoMooncake(), f, x)
+    return AbstractPPL.value_and_gradient!!(prep, x)
 end
 
 function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
