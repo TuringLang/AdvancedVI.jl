@@ -6,12 +6,12 @@ end
 
 function LogDensityProblems.logdensity(model::TestQuad, x)
     Σ = model.Σ
-    return -x'*Σ*x/2
+    return -x' * Σ * x / 2
 end
 
 function LogDensityProblems.logdensity_and_gradient(model::TestQuad, x)
     Σ = model.Σ
-    return (LogDensityProblems.logdensity(model, x), -Σ*x)
+    return (LogDensityProblems.logdensity(model, x), -Σ * x)
 end
 
 function LogDensityProblems.logdensity_gradient_and_hessian(model::TestQuad, x)
@@ -36,7 +36,7 @@ end
 
     # True expected gradient is E_{x ~ N(μ, 1)} -Σ x = -Σ μ
     # True expected Hessian is E_{x ~ N(μ, 1)} -Σ = -Σ
-    E_∇ℓπ = -Σ*q.location
+    E_∇ℓπ = -Σ * q.location
     E_∇2ℓπ = -Σ
 
     @testset "$(cap)-order capability" for cap in [
@@ -48,7 +48,7 @@ end
         AdvancedVI.gaussian_expectation_gradient_and_hessian!(
             Random.default_rng(), q, n_samples, grad_buf, hess_buf, prob
         )
-        @test grad_buf ≈ E_∇ℓπ atol=1e-1
-        @test hess_buf ≈ E_∇2ℓπ atol=1e-1
+        @test grad_buf ≈ E_∇ℓπ atol = 1e-1
+        @test hess_buf ≈ E_∇2ℓπ atol = 1e-1
     end
 end

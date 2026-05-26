@@ -34,7 +34,7 @@
             @test isfinite(obj_est)
 
             obj_est = estimate_objective(alg, q_true, model; n_samples=10^5)
-            @test obj_est ≈ 0 atol=1e-3
+            @test obj_est ≈ 0 atol = 1e-3
         end
 
         @testset "determinism" begin
@@ -93,7 +93,7 @@
         Δλ0 = sum(abs2, q0.location - μ_true) + sum(abs2, q0.scale - L_true)
         Δλ = sum(abs2, q_out.location - μ_true) + sum(abs2, q_out.scale - L_true)
 
-        @test Δλ ≤ Δλ0/2
+        @test Δλ ≤ Δλ0 / 2
     end
 
     @testset "subsampling" begin
@@ -113,7 +113,7 @@
 
             obj_full = estimate_objective(alg, q0, model; n_samples=10^5)
             obj_sub = estimate_objective(alg_sub, q0, model; n_samples=10^5)
-            @test obj_full ≈ obj_sub rtol=0.1
+            @test obj_full ≈ obj_sub rtol = 0.1
         end
 
         @testset "determinism" begin
@@ -165,7 +165,7 @@
             Δλ0 = sum(abs2, q0.location - μ_true) + sum(abs2, q0.scale - L_true)
             Δλ = sum(abs2, q.location - μ_true) + sum(abs2, q.scale - L_true)
 
-            @test Δλ ≤ Δλ0/2
+            @test Δλ ≤ Δλ0 / 2
         end
     end
 end

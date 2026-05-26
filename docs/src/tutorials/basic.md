@@ -35,7 +35,7 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
     logprior_σ = logpdf(LogNormal(0, 3), σ)
 
-    logit = X*β
+    logit = X * β
     loglike_y = mapreduce((li, yi) -> logpdf(BernoulliLogit(li), yi), +, logit, y)
     return loglike_y + logprior_β + logprior_σ
 end
@@ -179,7 +179,7 @@ For the variational family, we will consider a `FullRankGaussian` approximation:
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(prob_trans)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 nothing
 ```
 
@@ -245,9 +245,9 @@ using StatsFuns: StatsFuns
 Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
 """
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((prob.X*Σ_β) .* prob.X; dims=2)[:, 1]
-    κ = @. 1/sqrt(1 + π/8*xtΣx)
-    return StatsFuns.logistic.(κ .* X*μ_β)
+    xtΣx = sum((prob.X * Σ_β) .* prob.X; dims=2)[:, 1]
+    κ = @. 1 / sqrt(1 + π / 8 * xtΣx)
+    return StatsFuns.logistic.(κ .* X * μ_β)
 end
 
 logging_interval = 100

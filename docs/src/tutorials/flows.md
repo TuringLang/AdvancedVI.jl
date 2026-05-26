@@ -158,7 +158,7 @@ using LinearAlgebra
 d = LogDensityProblems.dimension(prob_trans_ad)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(I, d, d)))
 
-max_iter = 3*10^3
+max_iter = 3 * 10^3
 alg = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
 q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
 b = Bijectors.bijector(prob)

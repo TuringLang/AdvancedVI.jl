@@ -1,4 +1,3 @@
-
 # Release 0.7
 
 ## Removal of special treatment to `Bijectors.TransformedDistribution`

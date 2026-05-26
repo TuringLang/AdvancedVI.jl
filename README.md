@@ -52,7 +52,7 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
     logprior_σ = logpdf(LogNormal(0, 3), σ)
 
-    logit = X*β
+    logit = X * β
     loglike_y = mapreduce((li, yi) -> logpdf(BernoulliLogit(li), yi), +, logit, y)
     return loglike_y + logprior_β + logprior_σ
 end
@@ -180,7 +180,7 @@ For the variational family, we will consider a `FullRankGaussian` approximation:
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(prob_trans_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 q = MeanFieldGaussian(zeros(d), Diagonal(ones(d)));
 ```
 

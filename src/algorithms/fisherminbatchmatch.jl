@@ -89,14 +89,14 @@ function rand_batch_match_samples_with_objective!(
     μ = q.location
     C = q.scale
     u = Random.randn!(rng, u_buf)
-    z = C*u .+ μ
+    z = C * u .+ μ
     logπ_sum = zero(eltype(μ))
     for b in 1:n_samples
         logπb, gb = LogDensityProblems.logdensity_and_gradient(prob, view(z, :, b))
         grad_buf[:, b] = gb
         logπ_sum += logπb
     end
-    logπ_avg = logπ_sum/n_samples
+    logπ_avg = logπ_sum / n_samples
 
     # Estimate objective values
     #
@@ -105,7 +105,7 @@ function rand_batch_match_samples_with_objective!(
     #   = E[| C' ( -(CC')\((Cu + μ) - μ) - ∇logπ(z)) |^2] (z = Cu + μ)
     #   = E[| C' ( -(CC')\(Cu) - ∇logπ(z)) |^2]
     #   = E[| -u - C'∇logπ(z)) |^2]
-    fisher = sum(abs2, -u_buf - (C'*grad_buf))/n_samples
+    fisher = sum(abs2, -u_buf - (C' * grad_buf)) / n_samples
 
     return u_buf, z, grad_buf, fisher, logπ_avg
 end
@@ -145,13 +145,13 @@ function step(
     gbar, Γ = mean_and_cov(grad_buf, 2)
 
     μmz = μ - zbar
-    λ = convert(eltype(μ), d*n_samples / iteration)
+    λ = convert(eltype(μ), d * n_samples / iteration)
 
-    U = Symmetric(λ*Γ + (λ/(1 + λ)*gbar)*gbar')
-    V = Symmetric(Σ + λ*C + (λ/(1 + λ)*μmz)*μmz')
+    U = Symmetric(λ * Γ + (λ / (1 + λ) * gbar) * gbar')
+    V = Symmetric(Σ + λ * C + (λ / (1 + λ) * μmz) * μmz')
 
-    Σ′ = Hermitian(2*V/(I + real(sqrt(I + 4*U*V))))
-    μ′ = 1/(1 + λ)*μ + λ/(1 + λ)*(Σ′*gbar + zbar)
+    Σ′ = Hermitian(2 * V / (I + real(sqrt(I + 4 * U * V))))
+    μ′ = 1 / (1 + λ) * μ + λ / (1 + λ) * (Σ′ * gbar + zbar)
     q′ = MvLocationScale(μ′[:, 1], cholesky(Σ′).L, q.dist)
 
     elbo = logπ_avg + entropy(q)
@@ -163,7 +163,7 @@ function step(
         info′ = callback(; rng, iteration, q, state)
         info = !isnothing(info′) ? merge(info′, info) : info
     end
-    state, false, info
+    return state, false, info
 end
 
 """
