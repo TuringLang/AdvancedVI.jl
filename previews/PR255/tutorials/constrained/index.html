@@ -518,7 +518,11 @@ b_σ = Bijectors.bijector(LogNormal(0, 1))</code></pre><pre class="documenter-ex
 end
 
 b = Bijectors.bijector(prob)
-binv = Bijectors.inverse(b)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Stacked(Function[identity, Base.Fix1{typeof(broadcast), typeof(exp)}(broadcast, exp)], UnitRange{Int64}[1:1, 2:2], UnitRange{Int64}[1:1, 2:2])</code></pre><p>Refer to the documentation of <code>Bijectors.jl</code> for more details.</p><h2 id="Wrap-the-LogDensityProblem"><a class="docs-heading-anchor" href="#Wrap-the-LogDensityProblem">Wrap the <code>LogDensityProblem</code></a><a id="Wrap-the-LogDensityProblem-1"></a><a class="docs-heading-anchor-permalink" href="#Wrap-the-LogDensityProblem" title="Permalink"></a></h2><p>The most general and easy way to obtain an unconstrained posterior using a <code>Bijector</code> is to wrap our original <code>LogDensityProblem</code> to form a new <code>LogDensityProblem</code>. This approach only requires the user to implement the model-specific <code>Bijectors.bijector</code> function as above. The rest can be done by simply copy-pasting the code below:</p><pre><code class="language-julia hljs">struct TransformedLogDensityProblem{Prob,BInv}
+binv = Bijectors.inverse(b)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Stacked(Function[identity, Base.Fix1{typeof(broadcast), typeof(exp)}(broadcast, exp)], UnitRange{Int64}[1:1, 2:2], UnitRange{Int64}[1:1, 2:2])</code></pre><p>Refer to the documentation of <code>Bijectors.jl</code> for more details.</p><h2 id="Wrap-the-LogDensityProblem"><a class="docs-heading-anchor" href="#Wrap-the-LogDensityProblem">Wrap the <code>LogDensityProblem</code></a><a id="Wrap-the-LogDensityProblem-1"></a><a class="docs-heading-anchor-permalink" href="#Wrap-the-LogDensityProblem" title="Permalink"></a></h2><p>The most general and easy way to obtain an unconstrained posterior using a <code>Bijector</code> is to wrap our original <code>LogDensityProblem</code> to form a new <code>LogDensityProblem</code>. This approach only requires the user to implement the model-specific <code>Bijectors.bijector</code> function as above. The rest can be done by simply copy-pasting the code below:</p><pre><code class="language-julia hljs">using ADTypes
+using AbstractPPL: AbstractPPL
+using Mooncake: Mooncake
+
+struct TransformedLogDensityProblem{Prob,BInv}
     prob::Prob
     binv::BInv
 end
@@ -535,6 +539,15 @@ function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem,
     return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
 end
 
+function LogDensityProblems.logdensity_and_gradient(
+    prob_trans::TransformedLogDensityProblem, θ_trans
+)
+    f = Base.Fix1(LogDensityProblems.logdensity, prob_trans)
+    x = collect(θ_trans)  # AutoMooncake requires a dense vector
+    prep = AbstractPPL.prepare(AutoMooncake(), f, x)
+    return AbstractPPL.value_and_gradient!!(prep, x)
+end
+
 function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
     (; prob, binv) = prob_trans
     b = Bijectors.inverse(binv)
@@ -542,32 +555,25 @@ function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
     return prod(Bijectors.output_size(b, (d,)))
 end
 
-function LogDensityProblems.capabilities(
-    ::Type{TransformedLogDensityProblem{Prob,BInv}}
-) where {Prob,BInv}
-    return LogDensityProblems.capabilities(Prob)
+function LogDensityProblems.capabilities(::Type{&lt;:TransformedLogDensityProblem})
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 nothing</code></pre><p>Wrapping <code>prob</code> with <code>TransformedLogDensityProblem</code> yields our unconstrained posterior.</p><pre><code class="language-julia hljs">prob_trans = TransformedLogDensityProblem(prob)
 
 x = randn(LogDensityProblems.dimension(prob_trans)) # sample on an unconstrained support
-LogDensityProblems.logdensity(prob_trans, x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">-72.53732917137893</code></pre><p>We can also wrap <code>prob_trans</code> with <code>LogDensityProblemsAD.ADGradient</code> to make it differentiable.</p><pre><code class="language-julia hljs">using LogDensityProblemsAD
-using ADTypes, ReverseDiff
-
-prob_trans_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoReverseDiff(; compile=true), prob_trans; x=randn(2)
-)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ReverseDiff AD wrapper for Main.TransformedLogDensityProblem{Main.Mean, Bijectors.Stacked{Vector{Function}, Vector{UnitRange{Int64}}}}(Main.Mean([-0.9236464333219703, -1.1605671210412376, -0.7718471092753391, 0.07041758753258211, -1.3290164895373355, -0.40322630206904697, 0.40538281683662897, 0.13384553285202105, -0.08737382687445457, -0.16030453552125204  …  0.26173292609508664, -0.9752197567588832, 2.859726152719804, -1.7829432547229183, -1.0315032079850632, -0.8033331431483943, 1.7262337367607565, 0.29584180433868745, 0.5420318999691136, 0.9108168269280812]), Stacked(Function[identity, Base.Fix1{typeof(broadcast), typeof(exp)}(broadcast, exp)], UnitRange{Int64}[1:1, 2:2], UnitRange{Int64}[1:1, 2:2])) (compiled tape)</code></pre><p>Let&#39;s now run VI to verify that it works. Here, we will use <code>FisherMinBatchMatch</code>, which expects an unconstrained posterior.</p><pre><code class="language-julia hljs">using AdvancedVI
+LogDensityProblems.logdensity(prob_trans, x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">-52.388972198392686</code></pre><p>Let&#39;s now run VI to verify that it works. Here, we will use <code>FisherMinBatchMatch</code>, which expects an unconstrained posterior.</p><pre><code class="language-julia hljs">using AdvancedVI
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(prob_trans_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+d = LogDensityProblems.dimension(prob_trans)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 
 q_opt, info, _ = AdvancedVI.optimize(
-    FisherMinBatchMatch(), 100, prob_trans_ad, q; show_progress=false
+    FisherMinBatchMatch(), 100, prob_trans, q; show_progress=false
 )
 nothing</code></pre><p>We have now obtained a variational approximation <code>q_opt</code> of the unconstrained posterior associated with <code>prob_trans</code>. It remains to transform <code>q_opt</code> back to the constrained space we were originally interested in. This can be done by wrapping it into a <code>Bijectors.TransformedDistribution</code>.</p><pre><code class="language-julia hljs">q_opt_trans = Bijectors.TransformedDistribution(q_opt, binv)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Bijectors.MultivariateTransformed{MvLocationScale{LinearAlgebra.LowerTriangular{Float64, Matrix{Float64}}, Distributions.Normal{Float64}, Vector{Float64}}, Bijectors.Stacked{Vector{Function}, Vector{UnitRange{Int64}}}}(
 dist: MvLocationScale{LinearAlgebra.LowerTriangular{Float64, Matrix{Float64}}, Distributions.Normal{Float64}, Vector{Float64}}(
-location: [-0.05144568288635834, -0.056796158641693004]
-scale: [0.17040809498903634 0.0; 0.005052152544179298 0.12538089441105355]
+location: [0.22281748300932913, -0.09108833246035819]
+scale: [0.15591091946850927 0.0; -0.0029512736491081426 0.12436454122680611]
 dist: Distributions.Normal{Float64}(μ=0.0, σ=1.0)
 )
 
@@ -605,9 +611,9 @@ end
 LogDensityProblems.dimension(::MeanTransformed) = 2
 
 function LogDensityProblems.capabilities(::Type{MeanTransformed})
-    LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{0}()
 end
 
 n_data = 30
 prob_bakedtrans = MeanTransformed(randn(n_data))
-nothing</code></pre><p>Now, <code>prob_bakedtrans</code> can be used identically as <code>prob_trans</code> above. For problems with larger dimensions, however, baking the bijector into the problem as above could be significantly more efficient.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research, 18(14), 1-45.</li><li class="footnote" id="footnote-CGHetal2017"><a class="tag is-link" href="#citeref-CGHetal2017">CGHetal2017</a>Carpenter, B., Gelman, A., Hoffman, M. D., Lee, D., Goodrich, B., Betancourt, M., ... &amp; Riddell, A. (2017). Stan: A probabilistic programming language. Journal of statistical software, 76, 1-32.</li><li class="footnote" id="footnote-DLTetal2017"><a class="tag is-link" href="#citeref-DLTetal2017">DLTetal2017</a>Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... &amp; Saurous, R. A. (2017). Tensorflow distributions. arXiv preprint arXiv:1711.10604.</li><li class="footnote" id="footnote-FXTYG2020"><a class="tag is-link" href="#citeref-FXTYG2020">FXTYG2020</a>Fjelde, T. E., Xu, K., Tarek, M., Yalburgi, S., &amp; Ge, H. (2020, February). Bijectors. jl: Flexible transformations for probability distributions. In Symposium on Advances in Approximate Bayesian Inference (pp. 1-17). PMLR.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../flows/">« Normalizing Flows</a><a class="docs-footer-nextpage" href="../../klminrepgraddescent/"><code>KLMinRepGradDescent</code> »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 26 May 2026 09:36">Tuesday 26 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing</code></pre><p>Now, <code>prob_bakedtrans</code> can be used identically as <code>prob_trans</code> above. For problems with larger dimensions, however, baking the bijector into the problem as above could be significantly more efficient.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research, 18(14), 1-45.</li><li class="footnote" id="footnote-CGHetal2017"><a class="tag is-link" href="#citeref-CGHetal2017">CGHetal2017</a>Carpenter, B., Gelman, A., Hoffman, M. D., Lee, D., Goodrich, B., Betancourt, M., ... &amp; Riddell, A. (2017). Stan: A probabilistic programming language. Journal of statistical software, 76, 1-32.</li><li class="footnote" id="footnote-DLTetal2017"><a class="tag is-link" href="#citeref-DLTetal2017">DLTetal2017</a>Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... &amp; Saurous, R. A. (2017). Tensorflow distributions. arXiv preprint arXiv:1711.10604.</li><li class="footnote" id="footnote-FXTYG2020"><a class="tag is-link" href="#citeref-FXTYG2020">FXTYG2020</a>Fjelde, T. E., Xu, K., Tarek, M., Yalburgi, S., &amp; Ge, H. (2020, February). Bijectors. jl: Flexible transformations for probability distributions. In Symposium on Advances in Approximate Bayesian Inference (pp. 1-17). PMLR.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../flows/">« Normalizing Flows</a><a class="docs-footer-nextpage" href="../../klminrepgraddescent/"><code>KLMinRepGradDescent</code> »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 26 May 2026 13:26">Tuesday 26 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

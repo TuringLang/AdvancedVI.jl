@@ -500,9 +500,9 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
     logprior_σ = logpdf(Normal(0, 3), σ)
 
-    logit = X*β
+    logit = X * β
     loglike_y = mapreduce((li, yi) -&gt; logpdf(BernoulliLogit(li), yi), +, logit, y)
-    return n_data/n*loglike_y + logprior_β + logprior_σ
+    return n_data / n * loglike_y + logprior_β + logprior_σ
 end
 
 function LogDensityProblems.dimension(model::LogReg)
@@ -522,33 +522,27 @@ nothing</code></pre><p>The features start from the seoncd column, while the last
 
 X = (X .- mean(X; dims=2)) ./ std(X; dims=2)
 X = hcat(X, ones(size(X, 1)))
-nothing</code></pre><p>Let&#39;s now istantiate the model and set up automatic differentiation using <a href="https://github.com/tpapp/LogDensityProblemsAD.jl?tab=readme-ov-file"><code>LogDensityProblemsAD</code></a>.</p><pre><code class="language-julia hljs">using ADTypes, ReverseDiff
-using LogDensityProblemsAD
+nothing</code></pre><p>Let&#39;s now instantiate the model.</p><pre><code class="language-julia hljs">using ADTypes, Mooncake
 
 prob = LogReg(X, y, size(X, 1))
-prob_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoReverseDiff(), prob; x=randn(LogDensityProblems.dimension(prob))
-)
-nothing</code></pre><p>To enable subsampling, <code>LogReg</code> has to implement the method <code>AdvancedVI.subsample</code>. For our model, this is fairly simple: We only need to select the rows of <code>X</code> and the elements of <code>y</code> corresponding to the batch of data points. As subtle point here is that we wrapped <code>prob</code> with <code>LogDensityProblemsAD.ADgradient</code> into <code>prob_ad</code>. Therefore, <code>AdvancedVI</code> sees <code>prob_ad</code> and not <code>prob</code>. This means we have to specialize <code>AdvancedVI.subsample</code> to <code>typeof(prob_ad)</code> and not <code>LogReg</code>.</p><pre><code class="language-julia hljs">using Accessors
+nothing</code></pre><p>To enable subsampling, <code>LogReg</code> has to implement the method <code>AdvancedVI.subsample</code>. For our model, this is fairly simple: We only need to select the rows of <code>X</code> and the elements of <code>y</code> corresponding to the batch of data points.</p><pre><code class="language-julia hljs">using Accessors
 using AdvancedVI
 
-function AdvancedVI.subsample(prob::typeof(prob_ad), idx)
-    (; X, y, n_data) = parent(prob_ad)
-    prob′ = @set prob.ℓ.X = X[idx, :]
-    prob′′ = @set prob′.ℓ.y = y[idx]
-    return prob′′
+function AdvancedVI.subsample(prob::LogReg, idx)
+    prob′ = @set prob.X = prob.X[idx, :]
+    return @set prob′.y = prob′.y[idx]
 end
 nothing</code></pre><div class="admonition is-info" id="Info-2ff349d416b1f545"><header class="admonition-header">Info<a class="admonition-anchor" href="#Info-2ff349d416b1f545" title="Permalink"></a></header><div class="admonition-body"><p>The default implementation of <code>AdvancedVI.subsample</code> is <code>AdvancedVI.subsample(model, idx) = model</code>. Therefore, if the specialization of <code>AdvancedVI.subsample</code> is not set up properly, <code>AdvancedVI</code> will silently use full-batch gradients instead of subsampling. It is thus useful to check whether the right specialization of <code>AdvancedVI.subsample</code> is being called.</p></div></div><h2 id="Scalable-Inference-via-AdvancedVI"><a class="docs-heading-anchor" href="#Scalable-Inference-via-AdvancedVI">Scalable Inference via AdvancedVI</a><a id="Scalable-Inference-via-AdvancedVI-1"></a><a class="docs-heading-anchor-permalink" href="#Scalable-Inference-via-AdvancedVI" title="Permalink"></a></h2><p>In this example, we will compare the convergence speed of <code>KLMinRepGradProxDescent</code> with and without subsampling. Subsampling can be turned on by supplying a subsampling strategy. Here, we will use <code>ReshufflingBatchSubsampling</code>, which implements random reshuffling. We will us a batch size of 32, which results in <code>313 = length(subsampling) = ceil(Int, size(X,2)/32)</code> steps per epoch.</p><pre><code class="language-julia hljs">dataset = 1:size(prob.X, 1)
 batchsize = 32
 subsampling = ReshufflingBatchSubsampling(dataset, batchsize)
-alg_sub = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true); subsampling)
+alg_sub = KLMinRepGradProxDescent(ADTypes.AutoMooncake(); subsampling)
 nothing</code></pre><p>Recall that each epoch is 313 steps. When using <code>ReshufflingBatchSubsampling</code>, it is best to choose the number of iterations to be a multiple of the number of steps <code>length(subsampling)</code> in an epoch. This is due to a peculiar property of <code>ReshufflingBatchSubsampling</code>: the objective value tends to <em>increase</em> during an epoch, and come down nearing the end. (Theoretically, this is due to conditionally <em>biased</em> nature of random reshuffling<sup class="footnote-reference"><a id="citeref-MKR2020" href="#footnote-MKR2020" class="footnote-ref">[MKR2020]</a><span class="footnote-preview" id="fn-MKR2020"></span></sup>.) Therefore, the objective value is minimized exactly after the last step of each epoch.</p><pre><code class="language-julia hljs">num_epochs = 10
 max_iter = num_epochs * length(subsampling)
-nothing</code></pre><p>If we don&#39;t supply a subsampling strategy to <code>KLMinRepGradProxDescent</code>, subsampling will not be used.</p><pre><code class="language-julia hljs">alg_full = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
+nothing</code></pre><p>If we don&#39;t supply a subsampling strategy to <code>KLMinRepGradProxDescent</code>, subsampling will not be used.</p><pre><code class="language-julia hljs">alg_full = KLMinRepGradProxDescent(ADTypes.AutoMooncake())
 nothing</code></pre><p>The variational family will be set up as follows:</p><pre><code class="language-julia hljs">using LinearAlgebra
 
-d = LogDensityProblems.dimension(prob_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+d = LogDensityProblems.dimension(prob)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 nothing</code></pre><p>It now remains to run VI. For comparison, we will record both the ELBO (with a large number of Monte Carlo samples) and the prediction accuracy.</p><pre><code class="language-julia hljs">using StatsFuns: StatsFuns
 
 logging_interval = 100
@@ -560,9 +554,9 @@ time_begin = nothing
 Approximate the posterior predictive probability for a logistic link function using Mackay&#39;s approximation (Bishop p. 220).
 &quot;&quot;&quot;
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((prob.X*Σ_β) .* prob.X; dims=2)[:, 1]
-    κ = @. 1/sqrt(1 + π/8*xtΣx)
-    return StatsFuns.logistic.(κ .* X*μ_β)
+    xtΣx = sum((prob.X * Σ_β) .* prob.X; dims=2)[:, 1]
+    κ = @. 1 / sqrt(1 + π / 8 * xtΣx)
+    return StatsFuns.logistic.(κ .* X * μ_β)
 end
 
 function callback(; iteration, averaged_params, restructure, kwargs...)
@@ -591,14 +585,15 @@ end
 
 time_begin = time()
 _, info_full, _ = AdvancedVI.optimize(
-    alg_full, max_iter, prob_ad, q; show_progress=false, callback
+    alg_full, max_iter, prob, q; show_progress=false, callback
 );
 
 time_begin = time()
 _, info_sub, _ = AdvancedVI.optimize(
-    alg_sub, max_iter, prob_ad, q; show_progress=false, callback
+    alg_sub, max_iter, prob, q; show_progress=false, callback
 );
-nothing</code></pre><p>Let&#39;s visualize the evolution of the ELBO.</p><pre><code class="language-julia hljs">using Plots
+nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[ Info: The capability of the supplied `LogDensityProblem` LogDensityProblems.LogDensityOrder{0}() is less than LogDensityProblems.LogDensityOrder{1}(). `AdvancedVI` will attempt to directly differentiate through `LogDensityProblems.logdensity`. If this is not intended, please supply a log-density problem with capability at least LogDensityProblems.LogDensityOrder{1}()
+[ Info: The capability of the supplied `LogDensityProblem` LogDensityProblems.LogDensityOrder{0}() is less than LogDensityProblems.LogDensityOrder{1}(). `AdvancedVI` will attempt to directly differentiate through `LogDensityProblems.logdensity`. If this is not intended, please supply a log-density problem with capability at least LogDensityProblems.LogDensityOrder{1}()</code></pre><p>Let&#39;s visualize the evolution of the ELBO.</p><pre><code class="language-julia hljs">using Plots
 
 t = 1:logging_interval:max_iter
 plot(
@@ -640,4 +635,4 @@ plot!(
     label=&quot;Subsampling&quot;,
 )
 savefig(&quot;subsampling_example_time_accuracy.svg&quot;)
-nothing</code></pre><p><img src="../subsampling_example_time_accuracy.svg" alt/></p><p>But remember that subsampling will always be <em>asymptotically</em> slower than no subsampling. That is, as the number of iterations increase, there will be a point where no subsampling will overtake subsampling even in terms of wallclock time. Therefore, subsampling is most beneficial when a crude solution to the VI problem suffices.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-HBB2010"><a class="tag is-link" href="#citeref-HBB2010">HBB2010</a>Hoffman, M., Bach, F., &amp; Blei, D. (2010). Online learning for latent Dirichlet allocation. In <em>Advances in Neural Information Processing Systems</em>, 23.</li><li class="footnote" id="footnote-HBWP2013"><a class="tag is-link" href="#citeref-HBWP2013">HBWP2013</a>Hoffman, M. D., Blei, D. M., Wang, C., &amp; Paisley, J. (2013). Stochastic variational inference. <em>Journal of Machine Learning Research</em>, 14(1), 1303-1347.</li><li class="footnote" id="footnote-TL2014"><a class="tag is-link" href="#citeref-TL2014">TL2014</a>Titsias, M., &amp; Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In <em>Proceedings of the International Conference on Machine Learning</em> (pp. 1971-1979). PMLR.</li><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. <em>Journal of Machine Learning Research</em>, 18(14), 1-45.</li><li class="footnote" id="footnote-Tan2018"><a class="tag is-link" href="#citeref-Tan2018">Tan2018</a>Tan, Choon Lin (2018), &quot;Phishing Dataset for Machine Learning: Feature Evaluation&quot;, Mendeley Data, V1, doi: 10.17632/h3cgnj8hft.1]</li><li class="footnote" id="footnote-MKR2020"><a class="tag is-link" href="#citeref-MKR2020">MKR2020</a>Mishchenko, K., Khaled, A., &amp; Richtárik, P. (2020). Random reshuffling: Simple analysis with vast improvements. Advances in Neural Information Processing Systems, 33, 17309-17320.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../basic/">« Basic Example</a><a class="docs-footer-nextpage" href="../stan/">Stan Models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 26 May 2026 09:36">Tuesday 26 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing</code></pre><p><img src="../subsampling_example_time_accuracy.svg" alt/></p><p>But remember that subsampling will always be <em>asymptotically</em> slower than no subsampling. That is, as the number of iterations increase, there will be a point where no subsampling will overtake subsampling even in terms of wallclock time. Therefore, subsampling is most beneficial when a crude solution to the VI problem suffices.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-HBB2010"><a class="tag is-link" href="#citeref-HBB2010">HBB2010</a>Hoffman, M., Bach, F., &amp; Blei, D. (2010). Online learning for latent Dirichlet allocation. In <em>Advances in Neural Information Processing Systems</em>, 23.</li><li class="footnote" id="footnote-HBWP2013"><a class="tag is-link" href="#citeref-HBWP2013">HBWP2013</a>Hoffman, M. D., Blei, D. M., Wang, C., &amp; Paisley, J. (2013). Stochastic variational inference. <em>Journal of Machine Learning Research</em>, 14(1), 1303-1347.</li><li class="footnote" id="footnote-TL2014"><a class="tag is-link" href="#citeref-TL2014">TL2014</a>Titsias, M., &amp; Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In <em>Proceedings of the International Conference on Machine Learning</em> (pp. 1971-1979). PMLR.</li><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. <em>Journal of Machine Learning Research</em>, 18(14), 1-45.</li><li class="footnote" id="footnote-Tan2018"><a class="tag is-link" href="#citeref-Tan2018">Tan2018</a>Tan, Choon Lin (2018), &quot;Phishing Dataset for Machine Learning: Feature Evaluation&quot;, Mendeley Data, V1, doi: 10.17632/h3cgnj8hft.1]</li><li class="footnote" id="footnote-MKR2020"><a class="tag is-link" href="#citeref-MKR2020">MKR2020</a>Mishchenko, K., Khaled, A., &amp; Richtárik, P. (2020). Random reshuffling: Simple analysis with vast improvements. Advances in Neural Information Processing Systems, 33, 17309-17320.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../basic/">« Basic Example</a><a class="docs-footer-nextpage" href="../stan/">Stan Models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 26 May 2026 13:26">Tuesday 26 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
