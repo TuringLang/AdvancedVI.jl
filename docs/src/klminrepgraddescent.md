@@ -150,10 +150,7 @@ Recall that the original ADVI objective with a closed-form entropy (CFE) is give
 n_montecarlo = 16;
 
 cfe = KLMinRepGradDescent(
-    AutoMooncake();
-    entropy=ClosedFormEntropy(),
-    optimizer=Adam(1e-2),
-    operator=ClipScale(),
+    AutoMooncake(); entropy=ClosedFormEntropy(), optimizer=Adam(1e-2), operator=ClipScale()
 )
 nothing
 ```
@@ -264,7 +261,7 @@ using StatsFuns
 
 # QMC samples are inputs to AD, not parameters; declare them non-differentiable
 # so Mooncake doesn't trace through Sobol/Owen bit-twiddling.
-Mooncake.@zero_derivative Mooncake.DefaultCtx Tuple{typeof(QuasiMonteCarlo.sample), Vararg}
+Mooncake.@zero_derivative Mooncake.DefaultCtx Tuple{typeof(QuasiMonteCarlo.sample),Vararg}
 
 qmcrng = SobolSample(; R=OwenScramble(; base=2, pad=32))
 
