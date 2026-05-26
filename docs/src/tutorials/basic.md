@@ -35,7 +35,7 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
     logprior_σ = logpdf(LogNormal(0, 3), σ)
 
-    logit = X*β
+    logit = X * β
     loglike_y = mapreduce((li, yi) -> logpdf(BernoulliLogit(li), yi), +, logit, y)
     return loglike_y + logprior_β + logprior_σ
 end
@@ -159,26 +159,17 @@ Location-scale family distributions require the scale matrix to have strictly po
 Here, the projection operator `ClipScale` ensures this.
 
 `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
-If the `LogDensityProblem` has a differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities) of at least first-order, we can take advantage of this.
-For this example, we will use `LogDensityProblemsAD` to equip our problem with a first-order capability:
+If the problem provides only a zeroth-order [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), `AdvancedVI` will differentiate through `LogDensityProblems.logdensity` directly using the AD backend supplied to the algorithm.
 
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-```@example basic
-using LogDensityProblemsAD: LogDensityProblemsAD
-
-prob_trans_ad = LogDensityProblemsAD.ADgradient(ADTypes.AutoForwardDiff(), prob_trans)
-nothing
-```
-
-For the variational family, we will consider a `FullRankGaussian` approximation:
-
+    For the variational family, we will consider a `FullRankGaussian` approximation:
 ```@example basic
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(prob_trans)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 nothing
 ```
 
@@ -189,7 +180,7 @@ We can now run VI:
 
 ```@example basic
 max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans_ad, q; show_progress=false)
+q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans, q; show_progress=false)
 nothing
 ```
 
@@ -244,9 +235,9 @@ using StatsFuns: StatsFuns
 Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
 """
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((prob.X*Σ_β) .* prob.X; dims=2)[:, 1]
-    κ = @. 1/sqrt(1 + π/8*xtΣx)
-    return StatsFuns.logistic.(κ .* X*μ_β)
+    xtΣx = sum((prob.X * Σ_β) .* prob.X; dims=2)[:, 1]
+    κ = @. 1 / sqrt(1 + π / 8 * xtΣx)
+    return StatsFuns.logistic.(κ .* X * μ_β)
 end
 
 logging_interval = 100
@@ -285,7 +276,7 @@ The `callback` can be supplied to `optimize`:
 ```@example basic
 max_iter = 10^4
 q_out, info, _ = AdvancedVI.optimize(
-    alg, max_iter, prob_trans_ad, q; show_progress=false, callback=callback
+    alg, max_iter, prob_trans, q; show_progress=false, callback=callback
 )
 nothing
 ```

@@ -32,9 +32,9 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
     logprior_σ = logpdf(Normal(0, 3), σ)
 
-    logit = X*β
+    logit = X * β
     loglike_y = mapreduce((li, yi) -> logpdf(BernoulliLogit(li), yi), +, logit, y)
-    return n_data/n*loglike_y + logprior_β + logprior_σ
+    return n_data / n * loglike_y + logprior_β + logprior_σ
 end
 
 function LogDensityProblems.dimension(model::LogReg)
@@ -80,34 +80,25 @@ X = hcat(X, ones(size(X, 1)))
 nothing
 ```
 
-Let's now istantiate the model and set up automatic differentiation using [`LogDensityProblemsAD`](https://github.com/tpapp/LogDensityProblemsAD.jl?tab=readme-ov-file).
+Let's now instantiate the model.
 
 ```@example subsampling
 using ADTypes, Mooncake
-using LogDensityProblemsAD
 
 prob = LogReg(X, y, size(X, 1))
-prob_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoMooncake(), prob; x=randn(LogDensityProblems.dimension(prob))
-)
 nothing
 ```
 
 To enable subsampling, `LogReg` has to implement the method `AdvancedVI.subsample`.
 For our model, this is fairly simple: We only need to select the rows of `X` and the elements of `y` corresponding to the batch of data points.
-As subtle point here is that we wrapped `prob` with `LogDensityProblemsAD.ADgradient` into `prob_ad`.
-Therefore, `AdvancedVI` sees `prob_ad` and not `prob`.
-This means we have to specialize `AdvancedVI.subsample` to `typeof(prob_ad)` and not `LogReg`.
 
 ```@example subsampling
 using Accessors
 using AdvancedVI
 
-function AdvancedVI.subsample(prob::typeof(prob_ad), idx)
-    (; X, y, n_data) = parent(prob_ad)
-    prob′ = @set prob.ℓ.X = X[idx, :]
-    prob′′ = @set prob′.ℓ.y = y[idx]
-    return prob′′
+function AdvancedVI.subsample(prob::LogReg, idx)
+    prob′ = @set prob.X = prob.X[idx, :]
+    return @set prob′.y = prob′.y[idx]
 end
 nothing
 ```
@@ -157,8 +148,8 @@ The variational family will be set up as follows:
 ```@example subsampling
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(prob_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+d = LogDensityProblems.dimension(prob)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 nothing
 ```
 
@@ -177,9 +168,9 @@ time_begin = nothing
 Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
 """
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((prob.X*Σ_β) .* prob.X; dims=2)[:, 1]
-    κ = @. 1/sqrt(1 + π/8*xtΣx)
-    return StatsFuns.logistic.(κ .* X*μ_β)
+    xtΣx = sum((prob.X * Σ_β) .* prob.X; dims=2)[:, 1]
+    κ = @. 1 / sqrt(1 + π / 8 * xtΣx)
+    return StatsFuns.logistic.(κ .* X * μ_β)
 end
 
 function callback(; iteration, averaged_params, restructure, kwargs...)
@@ -208,12 +199,12 @@ end
 
 time_begin = time()
 _, info_full, _ = AdvancedVI.optimize(
-    alg_full, max_iter, prob_ad, q; show_progress=false, callback
+    alg_full, max_iter, prob, q; show_progress=false, callback
 );
 
 time_begin = time()
 _, info_sub, _ = AdvancedVI.optimize(
-    alg_sub, max_iter, prob_ad, q; show_progress=false, callback
+    alg_sub, max_iter, prob, q; show_progress=false, callback
 );
 nothing
 ```

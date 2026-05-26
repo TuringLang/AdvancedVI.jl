@@ -147,6 +147,10 @@ This approach only requires the user to implement the model-specific `Bijectors.
 The rest can be done by simply copy-pasting the code below:
 
 ```@example constraints
+using ADTypes
+using AbstractPPL: AbstractPPL
+using ForwardDiff: ForwardDiff
+
 struct TransformedLogDensityProblem{Prob,BInv}
     prob::Prob
     binv::BInv
@@ -164,6 +168,14 @@ function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem,
     return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
 end
 
+function LogDensityProblems.logdensity_and_gradient(
+    prob_trans::TransformedLogDensityProblem, θ_trans
+)
+    f = Base.Fix1(LogDensityProblems.logdensity, prob_trans)
+    prep = AbstractPPL.prepare(AutoForwardDiff(), f, θ_trans)
+    return AbstractPPL.value_and_gradient!!(prep, θ_trans)
+end
+
 function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
     (; prob, binv) = prob_trans
     b = Bijectors.inverse(binv)
@@ -171,10 +183,8 @@ function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
     return prod(Bijectors.output_size(b, (d,)))
 end
 
-function LogDensityProblems.capabilities(
-    ::Type{TransformedLogDensityProblem{Prob,BInv}}
-) where {Prob,BInv}
-    return LogDensityProblems.capabilities(Prob)
+function LogDensityProblems.capabilities(::Type{<:TransformedLogDensityProblem})
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 nothing
 ```
@@ -188,17 +198,6 @@ x = randn(LogDensityProblems.dimension(prob_trans)) # sample on an unconstrained
 LogDensityProblems.logdensity(prob_trans, x)
 ```
 
-We can also wrap `prob_trans` with `LogDensityProblemsAD.ADGradient` to make it differentiable.
-
-```@example constraints
-using LogDensityProblemsAD
-using ADTypes, Mooncake
-
-prob_trans_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoMooncake(), prob_trans; x=randn(2)
-)
-```
-
 Let's now run VI to verify that it works.
 Here, we will use `FisherMinBatchMatch`, which expects an unconstrained posterior.
 
@@ -206,11 +205,11 @@ Here, we will use `FisherMinBatchMatch`, which expects an unconstrained posterio
 using AdvancedVI
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(prob_trans_ad)
-q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6*I, d, d)))
+d = LogDensityProblems.dimension(prob_trans)
+q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 
 q_opt, info, _ = AdvancedVI.optimize(
-    FisherMinBatchMatch(), 100, prob_trans_ad, q; show_progress=false
+    FisherMinBatchMatch(), 100, prob_trans, q; show_progress=false
 )
 nothing
 ```
@@ -270,7 +269,7 @@ end
 LogDensityProblems.dimension(::MeanTransformed) = 2
 
 function LogDensityProblems.capabilities(::Type{MeanTransformed})
-    LogDensityProblems.LogDensityOrder{0}()
+    return LogDensityProblems.LogDensityOrder{0}()
 end
 
 n_data = 30
