@@ -215,7 +215,8 @@ If the problem provides only a zeroth-order [capability](https://www.tamaspapp.e
 [^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
 [^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
 [^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
-    For the variational family, we will consider a `FullRankGaussian` approximation:
+For the variational family, we will consider a `FullRankGaussian` approximation:
+
 ```@example basic
 using LinearAlgebra
 

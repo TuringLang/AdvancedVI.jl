@@ -3,7 +3,8 @@ using AdvancedVI
 using BenchmarkTools
 using Distributions
 using DistributionsAD
-using Enzyme, ForwardDiff, Mooncake
+using DifferentiationInterface  # provides AbstractPPL.prepare for non-Mooncake, non-ForwardDiff backends
+using Enzyme, ForwardDiff, Mooncake, ReverseDiff
 using FillArrays
 using InteractiveUtils
 using LinearAlgebra
@@ -69,6 +70,7 @@ begin
             ],
             (adname, adtype) in [
                 ("Mooncake", AutoMooncake()),
+                ("ReverseDiff", AutoReverseDiff(; compile=true)),
                 # ("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),
             ],
             (familyname, family) in [

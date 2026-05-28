@@ -45,7 +45,7 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 - `f`: Function subject to differentiation.
 - `x`: The point to evaluate the gradient.
 - `aux`: Auxiliary input passed to `f`.
-- `prep`: Output of `_prepare_gradient`.
+- `prep`: Output of `_prepare_gradient` (`nothing` means "re-prepare each call").
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
 function _value_and_gradient!(
@@ -59,26 +59,21 @@ function _value_and_gradient!(
 end
 
 function _value_and_gradient!(
+    f, out::DiffResults.MutableDiffResult, ::Nothing, ad::ADTypes.AbstractADType, x, aux
+)
+    return _value_and_gradient!(f, out, ad, x, aux)
+end
+
+function _value_and_gradient!(
     f, out::DiffResults.MutableDiffResult, prep, ad::ADTypes.AbstractADType, x, aux
 )
+    # `context[1]` is the `Ref(aux)` placed there by `_prepare_gradient`; mutating
+    # it lets a cached prep see the new `aux` without rebuilding AD machinery.
     prep.evaluator.context[1][] = aux
     val, grad = AbstractPPL.value_and_gradient!!(prep, x)
     DiffResults.value!(out, val)
     copyto!(DiffResults.gradient(out), grad)
     return out
-end
-
-# Compiled-tape ReverseDiff bakes `aref[]` into the tape at prep time, so a
-# cached prep would feed stale `aux` to AD. Re-prepare each call instead.
-function _value_and_gradient!(
-    f,
-    out::DiffResults.MutableDiffResult,
-    ::Nothing,
-    ad::ADTypes.AutoReverseDiff{true},
-    x,
-    aux,
-)
-    return _value_and_gradient!(f, out, ad, x, aux)
 end
 
 """
@@ -96,6 +91,9 @@ function _prepare_gradient(f, ad::ADTypes.AbstractADType, x, aux)
     return AbstractPPL.prepare(ad, (x, aref) -> f(x, aref[]), x; context=(Ref(aux),))
 end
 
+# Compiled-tape ReverseDiff bakes context values into the tape at prep time,
+# so the `Ref(aux)` trick above would feed stale `aux` to AD. Skip the cache
+# and let `_value_and_gradient!` re-prepare on every call.
 _prepare_gradient(::Any, ::ADTypes.AutoReverseDiff{true}, ::Any, ::Any) = nothing
 
 """
