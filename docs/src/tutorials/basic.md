@@ -212,9 +212,6 @@ Here, the projection operator `ClipScale` ensures this.
 `KLMinRepGradDescent`, in particular, assumes that the target `LogDensityProblem` is differentiable.
 If the problem provides only a zeroth-order [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), `AdvancedVI` will differentiate through `LogDensityProblems.logdensity` directly using the AD backend supplied to the algorithm.
 
-[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
-[^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
-[^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.
 For the variational family, we will consider a `FullRankGaussian` approximation:
 
 ```@example basic
@@ -373,3 +370,7 @@ nothing
 ![](basic_example_acc.svg)
 
 Clearly, the accuracy is improving over time.
+
+[^TL2014]: Titsias, M., & Lázaro-Gredilla, M. (2014, June). Doubly stochastic variational Bayes for non-conjugate inference. In *International Conference on Machine Learning*. PMLR.
+[^RMW2014]: Rezende, D. J., Mohamed, S., & Wierstra, D. (2014, June). Stochastic backpropagation and approximate inference in deep generative models. In *International Conference on Machine Learning*. PMLR.
+[^KW2014]: Kingma, D. P., & Welling, M. (2014). Auto-encoding variational bayes. In *International Conference on Learning Representations*.

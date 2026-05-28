@@ -70,7 +70,7 @@ begin
             ],
             (adname, adtype) in [
                 ("Mooncake", AutoMooncake()),
-                ("ReverseDiff", AutoReverseDiff(; compile=true)),
+                ("ReverseDiff", AutoReverseDiff()),
                 # ("Enzyme", AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse), function_annotation=Enzyme.Const)),
             ],
             (familyname, family) in [
