@@ -39,18 +39,15 @@ function subsample_dynamicpplmodel(
     return DynamicPPL.Model{Threaded}(model.f, model.args, new_kwargs, model.context)
 end
 
-# `model` is the original (unsubsampled) source of truth for `subsample` — it
-# needs the full-dataset length on every call. `model_ref`/`loglikeadj_ref` are
-# mutated in place by `subsample`; the closure inside `prep_grad`/`prep_hess`
-# reads through them so the prep stays valid across subsampling steps.
+# `model` is the original (unsubsampled) source of truth; `subsample` must read
+# it (not `model_ref[]`) to get the full-dataset length on every call.
+# `model_ref`/`loglikeadj_ref` are mutated in place by `subsample` so the
+# closure inside `prep_grad`/`prep_hess` stays valid across subsampling steps.
 #
-# `model_ref` is typed `Ref{Any}` because `subsample_dynamicpplmodel` returns a
-# `DynamicPPL.Model` whose `defaults` NamedTuple type varies with the batch — a
-# typed `Ref{<:DynamicPPL.Model}` would throw on reassignment. The tradeoff is
-# a dynamic dispatch on each `prob.model_ref[]` read; do not "tighten" it.
-# Compiled-tape backends (e.g. `AutoReverseDiff(compile=true)`) bake the deref
-# into the tape at prep time and won't see `subsample` updates — they need a
-# fresh `prob` per batch change.
+# `model_ref` is `Ref{Any}` because `subsample_dynamicpplmodel`'s output type
+# varies with the batch; a typed Ref would throw on reassignment. Compiled-tape
+# backends (e.g. `AutoReverseDiff(compile=true)`) bake the deref into the tape
+# at prep time and won't observe `subsample` updates without a fresh `prob`.
 struct DynamicPPLModelLogDensityFunction{
     Model<:DynamicPPL.Model,
     LogLikeAdj<:Real,
@@ -191,7 +188,7 @@ end
 LogDensityProblems.dimension(prob::DynamicPPLModelLogDensityFunction) = prob.dim
 
 function AdvancedVI.subsample(prob::DynamicPPLModelLogDensityFunction, batch)
-    model = prob.model  # full dataset; do not read from `model_ref[]` here
+    model = prob.model  # full dataset — `model_ref[]` would already be subsampled
 
     if !haskey(model.defaults, :datapoints)
         throw(
