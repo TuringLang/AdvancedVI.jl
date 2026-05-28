@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779995286641,
+  "lastUpdate": 1779998458177,
   "repoUrl": "https://github.com/TuringLang/AdvancedVI.jl",
   "entries": {
     "Benchmark Results": [
@@ -35264,6 +35264,74 @@ window.BENCHMARK_DATA = {
             "value": 2042112606,
             "unit": "ns",
             "extra": "gctime=130213797\nmemory=1462193904\nallocs=31538723\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "committer": {
+            "name": "TuringLang",
+            "username": "TuringLang"
+          },
+          "id": "daf504e1a9ce9e92b7b7591e202d0b35b3535717",
+          "message": "Use AbstractPPL evaluator interface",
+          "timestamp": "2026-05-26T13:09:16Z",
+          "url": "https://github.com/TuringLang/AdvancedVI.jl/pull/255/commits/daf504e1a9ce9e92b7b7591e202d0b35b3535717"
+        },
+        "date": 1779998431356,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "normal/RepGradELBO/fullrank/Mooncake",
+            "value": 400574944,
+            "unit": "ns",
+            "extra": "gctime=29530967\nmemory=285867448\nallocs=3228814\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "normal/RepGradELBO/fullrank/ReverseDiff",
+            "value": 1087096733,
+            "unit": "ns",
+            "extra": "gctime=88980900\nmemory=657156056\nallocs=13687806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "normal/RepGradELBO/meanfield/Mooncake",
+            "value": 108040221,
+            "unit": "ns",
+            "extra": "gctime=9053148\nmemory=97060616\nallocs=1369597\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "normal/RepGradELBO/meanfield/ReverseDiff",
+            "value": 532684414,
+            "unit": "ns",
+            "extra": "gctime=39809906\nmemory=337162088\nallocs=7988763\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/fullrank/Mooncake",
+            "value": 471804144,
+            "unit": "ns",
+            "extra": "gctime=43044761\nmemory=328787248\nallocs=3659363\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/fullrank/ReverseDiff",
+            "value": 2365658912,
+            "unit": "ns",
+            "extra": "gctime=145817761\nmemory=1244367616\nallocs=29857816\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/meanfield/Mooncake",
+            "value": 160803518.5,
+            "unit": "ns",
+            "extra": "gctime=9191205.5\nmemory=111512464\nallocs=1660275\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "normal/RepGradELBO + STL/meanfield/ReverseDiff",
+            "value": 1157682030,
+            "unit": "ns",
+            "extra": "gctime=63803928\nmemory=590922664\nallocs=15198771\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
           }
         ]
       }
