@@ -45,7 +45,7 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 - `f`: Function subject to differentiation.
 - `x`: The point to evaluate the gradient.
 - `aux`: Auxiliary input passed to `f`.
-- `prep`: Output of `_prepare_gradient` (`nothing` means "re-prepare each call").
+- `prep`: Output of `_prepare_gradient`.
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
 function _value_and_gradient!(
@@ -56,12 +56,6 @@ function _value_and_gradient!(
     DiffResults.value!(out, val)
     copyto!(DiffResults.gradient(out), grad)
     return out
-end
-
-function _value_and_gradient!(
-    f, out::DiffResults.MutableDiffResult, ::Nothing, ad::ADTypes.AbstractADType, x, aux
-)
-    return _value_and_gradient!(f, out, ad, x, aux)
 end
 
 function _value_and_gradient!(
@@ -92,9 +86,20 @@ function _prepare_gradient(f, ad::ADTypes.AbstractADType, x, aux)
 end
 
 # Compiled-tape ReverseDiff bakes context values into the tape at prep time,
-# so the `Ref(aux)` trick above would feed stale `aux` to AD. Skip the cache
-# and let `_value_and_gradient!` re-prepare on every call.
-_prepare_gradient(::Any, ::ADTypes.AutoReverseDiff{true}, ::Any, ::Any) = nothing
+# so the `Ref(aux)` trick above would feed stale `aux` to AD. Reject it
+# loudly rather than silently producing wrong gradients.
+function _prepare_gradient(::Any, ::ADTypes.AutoReverseDiff{true}, ::Any, ::Any)
+    throw(
+        ArgumentError(
+            "`AutoReverseDiff(; compile=true)` is not safe to use with AdvancedVI: " *
+            "compiled tapes freeze captured values at preparation time, so " *
+            "subsequent iterations differentiate against stale data and silently " *
+            "produce incorrect gradients. Use `AutoReverseDiff(; compile=false)` " *
+            "(or another reverse-mode backend such as `AutoMooncake` or " *
+            "`AutoEnzyme`) instead.",
+        ),
+    )
+end
 
 """
     restructure_ad_forward(adtype, restructure, params)
@@ -305,6 +310,9 @@ export estimate_objective
 
 Inform `model` or `q` to only use the data points designated by the iterable collection `batch`.
 For `model`, the log-density should also be adjusted to account for the change in number of data points.
+
+Implementations may mutate `model`/`q` in place and return the same object;
+callers should not retain the pre-call binding.
 """
 subsample(model_or_q::Any, ::Any) = model_or_q
 
