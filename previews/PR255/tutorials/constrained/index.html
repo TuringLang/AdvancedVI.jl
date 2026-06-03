@@ -522,30 +522,37 @@ binv = Bijectors.inverse(b)</code></pre><pre class="documenter-example-output"><
 using AbstractPPL: AbstractPPL
 using Mooncake: Mooncake
 
-struct TransformedLogDensityProblem{Prob,BInv}
+struct TransformedLogDensityProblem{Prob,BInv,Prep}
     prob::Prob
     binv::BInv
+    prep::Prep
 end
 
-function TransformedLogDensityProblem(prob)
+function TransformedLogDensityProblem(prob; adtype::ADTypes.AbstractADType=AutoMooncake())
     b = Bijectors.bijector(prob)
     binv = Bijectors.inverse(b)
-    return TransformedLogDensityProblem{typeof(prob),typeof(binv)}(prob, binv)
+    d_unc = prod(Bijectors.output_size(b, (LogDensityProblems.dimension(prob),)))
+
+    f = let prob = prob, binv = binv
+        function (θ_trans)
+            θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
+            return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
+        end
+    end
+    prep = AbstractPPL.prepare(adtype, f, zeros(d_unc))
+    return TransformedLogDensityProblem(prob, binv, prep)
 end
 
 function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem, θ_trans)
-    (; prob, binv) = prob_trans
-    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
-    return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
+    return prob_trans.prep(θ_trans)
 end
 
 function LogDensityProblems.logdensity_and_gradient(
     prob_trans::TransformedLogDensityProblem, θ_trans
 )
-    f = Base.Fix1(LogDensityProblems.logdensity, prob_trans)
-    x = collect(θ_trans)  # AutoMooncake requires a dense vector
-    prep = AbstractPPL.prepare(AutoMooncake(), f, x)
-    return AbstractPPL.value_and_gradient!!(prep, x)
+    # `prep` was built for a dense `Vector`; collect view-typed inputs
+    # (e.g. minibatch column views) to match the AD backend&#39;s expectations.
+    return AbstractPPL.value_and_gradient!!(prob_trans.prep, collect(θ_trans))
 end
 
 function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
@@ -558,10 +565,10 @@ end
 function LogDensityProblems.capabilities(::Type{&lt;:TransformedLogDensityProblem})
     return LogDensityProblems.LogDensityOrder{1}()
 end
-nothing</code></pre><p>Wrapping <code>prob</code> with <code>TransformedLogDensityProblem</code> yields our unconstrained posterior.</p><pre><code class="language-julia hljs">prob_trans = TransformedLogDensityProblem(prob)
+nothing</code></pre><p>Wrapping <code>prob</code> with <code>TransformedLogDensityProblem</code> yields our unconstrained posterior. The <code>AbstractPPL.prepare</code> call traces the AD backend once at construction time, so the per-iteration <code>logdensity_and_gradient</code> call just runs the cached evaluator.</p><pre><code class="language-julia hljs">prob_trans = TransformedLogDensityProblem(prob)
 
 x = randn(LogDensityProblems.dimension(prob_trans)) # sample on an unconstrained support
-LogDensityProblems.logdensity(prob_trans, x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">-65.7628741447435</code></pre><p>Let&#39;s now run VI to verify that it works. Here, we will use <code>FisherMinBatchMatch</code>, which expects an unconstrained posterior.</p><pre><code class="language-julia hljs">using AdvancedVI
+LogDensityProblems.logdensity(prob_trans, x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">-531.5142937155658</code></pre><p>Let&#39;s now run VI to verify that it works. Here, we will use <code>FisherMinBatchMatch</code>, which expects an unconstrained posterior.</p><pre><code class="language-julia hljs">using AdvancedVI
 using LinearAlgebra
 
 d = LogDensityProblems.dimension(prob_trans)
@@ -572,8 +579,8 @@ q_opt, info, _ = AdvancedVI.optimize(
 )
 nothing</code></pre><p>We have now obtained a variational approximation <code>q_opt</code> of the unconstrained posterior associated with <code>prob_trans</code>. It remains to transform <code>q_opt</code> back to the constrained space we were originally interested in. This can be done by wrapping it into a <code>Bijectors.TransformedDistribution</code>.</p><pre><code class="language-julia hljs">q_opt_trans = Bijectors.TransformedDistribution(q_opt, binv)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Bijectors.MultivariateTransformed{MvLocationScale{LinearAlgebra.LowerTriangular{Float64, Matrix{Float64}}, Distributions.Normal{Float64}, Vector{Float64}}, Bijectors.Stacked{Vector{Function}, Vector{UnitRange{Int64}}}}(
 dist: MvLocationScale{LinearAlgebra.LowerTriangular{Float64, Matrix{Float64}}, Distributions.Normal{Float64}, Vector{Float64}}(
-location: [0.3222097369045452, 0.11113205957354315]
-scale: [0.19917775090745926 0.0; -0.002177642573796811 0.12965881812256322]
+location: [0.1383941339650683, 0.03542680772942982]
+scale: [0.17839908243103475 0.0; -0.015603011528979409 0.11814347720696862]
 dist: Distributions.Normal{Float64}(μ=0.0, σ=1.0)
 )
 
@@ -616,4 +623,4 @@ end
 
 n_data = 30
 prob_bakedtrans = MeanTransformed(randn(n_data))
-nothing</code></pre><p>Now, <code>prob_bakedtrans</code> can be used identically as <code>prob_trans</code> above. For problems with larger dimensions, however, baking the bijector into the problem as above could be significantly more efficient.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research, 18(14), 1-45.</li><li class="footnote" id="footnote-CGHetal2017"><a class="tag is-link" href="#citeref-CGHetal2017">CGHetal2017</a>Carpenter, B., Gelman, A., Hoffman, M. D., Lee, D., Goodrich, B., Betancourt, M., ... &amp; Riddell, A. (2017). Stan: A probabilistic programming language. Journal of statistical software, 76, 1-32.</li><li class="footnote" id="footnote-DLTetal2017"><a class="tag is-link" href="#citeref-DLTetal2017">DLTetal2017</a>Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... &amp; Saurous, R. A. (2017). Tensorflow distributions. arXiv preprint arXiv:1711.10604.</li><li class="footnote" id="footnote-FXTYG2020"><a class="tag is-link" href="#citeref-FXTYG2020">FXTYG2020</a>Fjelde, T. E., Xu, K., Tarek, M., Yalburgi, S., &amp; Ge, H. (2020, February). Bijectors. jl: Flexible transformations for probability distributions. In Symposium on Advances in Approximate Bayesian Inference (pp. 1-17). PMLR.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../flows/">« Normalizing Flows</a><a class="docs-footer-nextpage" href="../../klminrepgraddescent/"><code>KLMinRepGradDescent</code> »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 3 June 2026 11:34">Wednesday 3 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing</code></pre><p>Now, <code>prob_bakedtrans</code> can be used identically as <code>prob_trans</code> above. For problems with larger dimensions, however, baking the bijector into the problem as above could be significantly more efficient.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-KTRGB2017"><a class="tag is-link" href="#citeref-KTRGB2017">KTRGB2017</a>Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2017). Automatic differentiation variational inference. Journal of machine learning research, 18(14), 1-45.</li><li class="footnote" id="footnote-CGHetal2017"><a class="tag is-link" href="#citeref-CGHetal2017">CGHetal2017</a>Carpenter, B., Gelman, A., Hoffman, M. D., Lee, D., Goodrich, B., Betancourt, M., ... &amp; Riddell, A. (2017). Stan: A probabilistic programming language. Journal of statistical software, 76, 1-32.</li><li class="footnote" id="footnote-DLTetal2017"><a class="tag is-link" href="#citeref-DLTetal2017">DLTetal2017</a>Dillon, J. V., Langmore, I., Tran, D., Brevdo, E., Vasudevan, S., Moore, D., ... &amp; Saurous, R. A. (2017). Tensorflow distributions. arXiv preprint arXiv:1711.10604.</li><li class="footnote" id="footnote-FXTYG2020"><a class="tag is-link" href="#citeref-FXTYG2020">FXTYG2020</a>Fjelde, T. E., Xu, K., Tarek, M., Yalburgi, S., &amp; Ge, H. (2020, February). Bijectors. jl: Flexible transformations for probability distributions. In Symposium on Advances in Approximate Bayesian Inference (pp. 1-17). PMLR.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../flows/">« Normalizing Flows</a><a class="docs-footer-nextpage" href="../../klminrepgraddescent/"><code>KLMinRepGradDescent</code> »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 3 June 2026 16:56">Wednesday 3 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
