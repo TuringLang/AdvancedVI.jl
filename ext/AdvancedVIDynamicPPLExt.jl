@@ -16,7 +16,7 @@ end
 # `getlogdensity` callable for `DynamicPPL.logdensity_internal`: reads the
 # current `loglikeadj` through a Ref so the mutation done by `subsample` is
 # observed without rebuilding any AD prep.
-struct WeightedLogJoint{R}
+struct WeightedLogJoint{R<:Base.RefValue{<:Real}}
     loglikeadj_ref::R
 end
 function (g::WeightedLogJoint)(vi)
@@ -43,11 +43,10 @@ end
 # it (not `model_ref[]`) to get the full-dataset length on every call.
 # `model_ref`/`loglikeadj_ref` are mutated in place by `subsample` so the
 # closure inside `prep_grad`/`prep_hess` stays valid across subsampling steps.
-#
 # `model_ref` is `Ref{Any}` because `subsample_dynamicpplmodel`'s output type
-# varies with the batch; a typed Ref would throw on reassignment. Compiled-tape
-# backends (e.g. `AutoReverseDiff(compile=true)`) bake the deref into the tape
-# at prep time and won't observe `subsample` updates without a fresh `prob`.
+# varies with the batch (a typed Ref would throw on reassignment), and because
+# compiled-tape backends would otherwise bake the deref into the tape and miss
+# the `subsample` update.
 struct DynamicPPLModelLogDensityFunction{
     Model<:DynamicPPL.Model,
     LogLikeAdj<:Real,
@@ -93,8 +92,7 @@ function DynamicPPLModelLogDensityFunction(
     )
 
     model_ref = Ref{Any}(model_sub)
-    adj0 = float(loglikeadj)
-    loglikeadj_ref = Ref(adj0)
+    loglikeadj_ref = Ref(float(loglikeadj))
     getlogdensity = WeightedLogJoint(loglikeadj_ref)
     f =
         params -> DynamicPPL.logdensity_internal(
@@ -125,7 +123,7 @@ function DynamicPPLModelLogDensityFunction(
     end
     return DynamicPPLModelLogDensityFunction{
         typeof(model),
-        typeof(adj0),
+        typeof(loglikeadj_ref[]),
         typeof(ranges_and_transforms),
         typeof(transform_strategy),
         typeof(getlogdensity),

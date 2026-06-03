@@ -151,30 +151,37 @@ using ADTypes
 using AbstractPPL: AbstractPPL
 using Mooncake: Mooncake
 
-struct TransformedLogDensityProblem{Prob,BInv}
+struct TransformedLogDensityProblem{Prob,BInv,Prep}
     prob::Prob
     binv::BInv
+    prep::Prep
 end
 
-function TransformedLogDensityProblem(prob)
+function TransformedLogDensityProblem(prob; adtype::ADTypes.AbstractADType=AutoMooncake())
     b = Bijectors.bijector(prob)
     binv = Bijectors.inverse(b)
-    return TransformedLogDensityProblem{typeof(prob),typeof(binv)}(prob, binv)
+    d_unc = prod(Bijectors.output_size(b, (LogDensityProblems.dimension(prob),)))
+
+    f = let prob = prob, binv = binv
+        function (θ_trans)
+            θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
+            return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
+        end
+    end
+    prep = AbstractPPL.prepare(adtype, f, zeros(d_unc))
+    return TransformedLogDensityProblem(prob, binv, prep)
 end
 
 function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem, θ_trans)
-    (; prob, binv) = prob_trans
-    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
-    return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
+    return prob_trans.prep(θ_trans)
 end
 
 function LogDensityProblems.logdensity_and_gradient(
     prob_trans::TransformedLogDensityProblem, θ_trans
 )
-    f = Base.Fix1(LogDensityProblems.logdensity, prob_trans)
-    x = collect(θ_trans)  # AutoMooncake requires a dense vector
-    prep = AbstractPPL.prepare(AutoMooncake(), f, x)
-    return AbstractPPL.value_and_gradient!!(prep, x)
+    # `prep` was built for a dense `Vector`; collect view-typed inputs
+    # (e.g. minibatch column views) to match the AD backend's expectations.
+    return AbstractPPL.value_and_gradient!!(prob_trans.prep, collect(θ_trans))
 end
 
 function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
@@ -191,6 +198,7 @@ nothing
 ```
 
 Wrapping `prob` with `TransformedLogDensityProblem` yields our unconstrained posterior.
+The `AbstractPPL.prepare` call traces the AD backend once at construction time, so the per-iteration `logdensity_and_gradient` call just runs the cached evaluator.
 
 ```@example constraints
 prob_trans = TransformedLogDensityProblem(prob)
