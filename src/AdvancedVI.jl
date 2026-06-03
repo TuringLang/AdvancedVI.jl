@@ -311,8 +311,8 @@ export estimate_objective
 Inform `model` or `q` to only use the data points designated by the iterable collection `batch`.
 For `model`, the log-density should also be adjusted to account for the change in number of data points.
 
-Implementations may mutate `model`/`q` in place and return the same object;
-callers should not retain the pre-call binding.
+Implementations may mutate `model`/`q` in place and return the same object,
+so callers must not assume the returned value is distinct from the input.
 """
 subsample(model_or_q::Any, ::Any) = model_or_q
 

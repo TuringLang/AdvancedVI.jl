@@ -1,7 +1,5 @@
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
-AbstractPPL = "7a57a42e-76ec-4ea3-a279-07e840d6d9cf"
-Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
 DiffResults = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
 DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -26,7 +24,6 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 
 [compat]
 ADTypes = "0.2.1, 1"
-Bijectors = "0.16"
 DiffResults = "1"
 DifferentiationInterface = "0.6, 0.7"
 Distributions = "0.25.111"
