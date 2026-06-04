@@ -75,13 +75,13 @@ nothing
 The rest is the same as all `LogDensityProblem` with the exception of how to deal with constrainted variables: Since `StanLogDensityProblems` automatically transforms the support of the target problem to be unconstrained, we do not need to involve `Bijectors`.
 
 ```@example stan
-using ADTypes, ReverseDiff
+using ADTypes, Mooncake
 using AdvancedVI
 using LinearAlgebra
 using LogDensityProblems
 using Plots
 
-alg = KLMinRepGradDescent(ADTypes.AutoReverseDiff(); operator=ClipScale())
+alg = KLMinRepGradDescent(ADTypes.AutoMooncake(); operator=ClipScale())
 
 d = LogDensityProblems.dimension(model)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.37 * I, d, d)))

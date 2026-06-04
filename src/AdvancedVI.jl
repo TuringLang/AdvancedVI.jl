@@ -17,7 +17,7 @@ using LogDensityProblems
 
 using ADTypes
 using DiffResults
-using DifferentiationInterface
+using AbstractPPL: AbstractPPL
 using ChainRulesCore: ChainRulesCore
 
 using FillArrays
@@ -33,43 +33,41 @@ Evaluate the value and gradient of a function `f` at `x` using the automatic dif
 `f` may receive auxiliary input as `f(x,aux)`.
 
 # Arguments
-- `ad::ADTypes.AbstractADType`: 
-    automatic differentiation backend. Currently supports
-    `ADTypes.ForwardDiff()`, `ADTypes.ReverseDiff()`, 
-    `ADTypes.AutoMooncake()` and
-    `ADTypes.AutoEnzyme(;
-        mode=Enzyme.set_runtime_activity(Enzyme.Reverse),
-        function_annotation=Enzyme.Const,
-    )`.
-    If one wants to use `AutoEnzyme`, please make sure to include the `set_runtime_activity` and `function_annotation` as shown above.
+- `ad::ADTypes.AbstractADType`: automatic differentiation backend; any backend
+    with an `AbstractPPL.prepare` method is supported. `AutoEnzyme` requires
+    `set_runtime_activity` and `function_annotation=Enzyme.Const`.
+    `AutoReverseDiff(; compile=true)` is rejected because compiled tapes
+    freeze captured values at prep time.
 - `f`: Function subject to differentiation.
 - `x`: The point to evaluate the gradient.
 - `aux`: Auxiliary input passed to `f`.
-- `prep`: Output of `DifferentiationInterface.prepare_gradient`.
+- `prep`: Output of `_prepare_gradient`.
 - `out::DiffResults.MutableDiffResult`: Buffer to contain the output gradient and function value.
 """
 function _value_and_gradient!(
     f, out::DiffResults.MutableDiffResult, ad::ADTypes.AbstractADType, x, aux
 )
-    grad_buf = DiffResults.gradient(out)
-    y, _ = DifferentiationInterface.value_and_gradient!(f, grad_buf, ad, x, Constant(aux))
-    DiffResults.value!(out, y)
+    prepared = AbstractPPL.prepare(ad, Base.Fix2(f, aux), x)
+    val, grad = AbstractPPL.value_and_gradient!!(prepared, x)
+    DiffResults.value!(out, val)
+    copyto!(DiffResults.gradient(out), grad)
     return out
 end
 
 function _value_and_gradient!(
     f, out::DiffResults.MutableDiffResult, prep, ad::ADTypes.AbstractADType, x, aux
 )
-    grad_buf = DiffResults.gradient(out)
-    y, _ = DifferentiationInterface.value_and_gradient!(
-        f, grad_buf, prep, ad, x, Constant(aux)
-    )
-    DiffResults.value!(out, y)
+    # `context[1]` is the `Ref(aux)` placed there by `_prepare_gradient`; mutating
+    # it lets a cached prep see the new `aux` without rebuilding AD machinery.
+    prep.evaluator.context[1][] = aux
+    val, grad = AbstractPPL.value_and_gradient!!(prep, x)
+    DiffResults.value!(out, val)
+    copyto!(DiffResults.gradient(out), grad)
     return out
 end
 
 """
-    _prepare_gradient!(f, ad, x, aux)
+    _prepare_gradient(f, ad, x, aux)
 
 Prepare AD backend for taking gradients of a function `f` at `x` using the automatic differentiation backend `ad`.
 
@@ -80,7 +78,23 @@ Prepare AD backend for taking gradients of a function `f` at `x` using the autom
 - `aux`: Auxiliary input passed to `f`.
 """
 function _prepare_gradient(f, ad::ADTypes.AbstractADType, x, aux)
-    return DifferentiationInterface.prepare_gradient(f, ad, x, Constant(aux))
+    return AbstractPPL.prepare(ad, (x, aref) -> f(x, aref[]), x; context=(Ref(aux),))
+end
+
+# Compiled-tape ReverseDiff bakes context values into the tape at prep time,
+# so the `Ref(aux)` trick above would feed stale `aux` to AD. Reject it
+# loudly rather than silently producing wrong gradients.
+function _prepare_gradient(::Any, ::ADTypes.AutoReverseDiff{true}, ::Any, ::Any)
+    throw(
+        ArgumentError(
+            "`AutoReverseDiff(; compile=true)` is not safe to use with AdvancedVI: " *
+            "compiled tapes freeze captured values at preparation time, so " *
+            "subsequent iterations differentiate against stale data and silently " *
+            "produce incorrect gradients. Use `AutoReverseDiff(; compile=false)` " *
+            "(or another reverse-mode backend such as `AutoMooncake` or " *
+            "`AutoEnzyme`) instead.",
+        ),
+    )
 end
 
 """
@@ -292,6 +306,9 @@ export estimate_objective
 
 Inform `model` or `q` to only use the data points designated by the iterable collection `batch`.
 For `model`, the log-density should also be adjusted to account for the change in number of data points.
+
+Implementations may mutate `model`/`q` in place and return the same object,
+so callers must not assume the returned value is distinct from the input.
 """
 subsample(model_or_q::Any, ::Any) = model_or_q
 

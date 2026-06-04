@@ -103,7 +103,7 @@ using Plots
 using Random
 
 using Optimisers
-using ADTypes, ForwardDiff, ReverseDiff
+using ADTypes, ForwardDiff, Mooncake
 using AdvancedVI
 
 struct Dist{D}
@@ -150,10 +150,7 @@ Recall that the original ADVI objective with a closed-form entropy (CFE) is give
 n_montecarlo = 16;
 
 cfe = KLMinRepGradDescent(
-    AutoReverseDiff();
-    entropy=ClosedFormEntropy(),
-    optimizer=Adam(1e-2),
-    operator=ClipScale(),
+    AutoMooncake(); entropy=ClosedFormEntropy(), optimizer=Adam(1e-2), operator=ClipScale()
 )
 nothing
 ```
@@ -162,7 +159,7 @@ The repgradelbo estimator can instead be created as follows:
 
 ```@example repgradelbo
 stl = KLMinRepGradDescent(
-    AutoReverseDiff();
+    AutoMooncake();
     entropy=StickingTheLandingEntropy(),
     optimizer=Adam(1e-2),
     operator=ClipScale(),
@@ -262,6 +259,10 @@ In this case, it suffices to override its `rand` specialization as follows:
 using QuasiMonteCarlo
 using StatsFuns
 
+# QMC samples are inputs to AD, not parameters; declare them non-differentiable
+# so Mooncake doesn't trace through Sobol/Owen bit-twiddling.
+Mooncake.@zero_derivative Mooncake.DefaultCtx Tuple{typeof(QuasiMonteCarlo.sample),Vararg}
+
 qmcrng = SobolSample(; R=OwenScramble(; base=2, pad=32))
 
 function Distributions.rand(
@@ -281,7 +282,7 @@ nothing
 
 ```@setup repgradelbo
 _, info_qmc, _ = AdvancedVI.optimize(
-    KLMinRepGradDescent(AutoReverseDiff(); n_samples=n_montecarlo, optimizer=Adam(1e-2), operator=ClipScale()),
+    KLMinRepGradDescent(AutoMooncake(); n_samples=n_montecarlo, optimizer=Adam(1e-2), operator=ClipScale()),
     max_iter,
     model,
     q0;

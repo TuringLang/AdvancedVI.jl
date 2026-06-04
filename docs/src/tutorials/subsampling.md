@@ -80,34 +80,25 @@ X = hcat(X, ones(size(X, 1)))
 nothing
 ```
 
-Let's now istantiate the model and set up automatic differentiation using [`LogDensityProblemsAD`](https://github.com/tpapp/LogDensityProblemsAD.jl?tab=readme-ov-file).
+Let's now instantiate the model.
 
 ```@example subsampling
-using ADTypes, ReverseDiff
-using LogDensityProblemsAD
+using ADTypes, Mooncake
 
 prob = LogReg(X, y, size(X, 1))
-prob_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoReverseDiff(), prob; x=randn(LogDensityProblems.dimension(prob))
-)
 nothing
 ```
 
 To enable subsampling, `LogReg` has to implement the method `AdvancedVI.subsample`.
 For our model, this is fairly simple: We only need to select the rows of `X` and the elements of `y` corresponding to the batch of data points.
-As subtle point here is that we wrapped `prob` with `LogDensityProblemsAD.ADgradient` into `prob_ad`.
-Therefore, `AdvancedVI` sees `prob_ad` and not `prob`.
-This means we have to specialize `AdvancedVI.subsample` to `typeof(prob_ad)` and not `LogReg`.
 
 ```@example subsampling
 using Accessors
 using AdvancedVI
 
-function AdvancedVI.subsample(prob::typeof(prob_ad), idx)
-    (; X, y, n_data) = parent(prob_ad)
-    prob′ = @set prob.ℓ.X = X[idx, :]
-    prob′′ = @set prob′.ℓ.y = y[idx]
-    return prob′′
+function AdvancedVI.subsample(prob::LogReg, idx)
+    prob′ = @set prob.X = prob.X[idx, :]
+    return @set prob′.y = prob′.y[idx]
 end
 nothing
 ```
@@ -129,7 +120,7 @@ We will us a batch size of 32, which results in `313 = length(subsampling) = cei
 dataset = 1:size(prob.X, 1)
 batchsize = 32
 subsampling = ReshufflingBatchSubsampling(dataset, batchsize)
-alg_sub = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true); subsampling)
+alg_sub = KLMinRepGradProxDescent(ADTypes.AutoMooncake(); subsampling)
 nothing
 ```
 
@@ -148,7 +139,7 @@ nothing
 If we don't supply a subsampling strategy to `KLMinRepGradProxDescent`, subsampling will not be used.
 
 ```@example subsampling
-alg_full = KLMinRepGradProxDescent(ADTypes.AutoReverseDiff(; compile=true))
+alg_full = KLMinRepGradProxDescent(ADTypes.AutoMooncake())
 nothing
 ```
 
@@ -157,7 +148,7 @@ The variational family will be set up as follows:
 ```@example subsampling
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(prob_ad)
+d = LogDensityProblems.dimension(prob)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 nothing
 ```
@@ -208,12 +199,12 @@ end
 
 time_begin = time()
 _, info_full, _ = AdvancedVI.optimize(
-    alg_full, max_iter, prob_ad, q; show_progress=false, callback
+    alg_full, max_iter, prob, q; show_progress=false, callback
 );
 
 time_begin = time()
 _, info_sub, _ = AdvancedVI.optimize(
-    alg_sub, max_iter, prob_ad, q; show_progress=false, callback
+    alg_sub, max_iter, prob, q; show_progress=false, callback
 );
 nothing
 ```

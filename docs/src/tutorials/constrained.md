@@ -147,21 +147,41 @@ This approach only requires the user to implement the model-specific `Bijectors.
 The rest can be done by simply copy-pasting the code below:
 
 ```@example constraints
-struct TransformedLogDensityProblem{Prob,BInv}
+using ADTypes
+using AbstractPPL: AbstractPPL
+using Mooncake: Mooncake
+
+struct TransformedLogDensityProblem{Prob,BInv,Prep}
     prob::Prob
     binv::BInv
+    prep::Prep
 end
 
-function TransformedLogDensityProblem(prob)
+function TransformedLogDensityProblem(prob; adtype::ADTypes.AbstractADType=AutoMooncake())
     b = Bijectors.bijector(prob)
     binv = Bijectors.inverse(b)
-    return TransformedLogDensityProblem{typeof(prob),typeof(binv)}(prob, binv)
+    d_unc = prod(Bijectors.output_size(b, (LogDensityProblems.dimension(prob),)))
+
+    f = let prob = prob, binv = binv
+        function (θ_trans)
+            θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
+            return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
+        end
+    end
+    prep = AbstractPPL.prepare(adtype, f, zeros(d_unc))
+    return TransformedLogDensityProblem(prob, binv, prep)
 end
 
 function LogDensityProblems.logdensity(prob_trans::TransformedLogDensityProblem, θ_trans)
-    (; prob, binv) = prob_trans
-    θ, logabsdetjac = Bijectors.with_logabsdet_jacobian(binv, θ_trans)
-    return LogDensityProblems.logdensity(prob, θ) + logabsdetjac
+    return prob_trans.prep(θ_trans)
+end
+
+function LogDensityProblems.logdensity_and_gradient(
+    prob_trans::TransformedLogDensityProblem, θ_trans
+)
+    # `prep` was built for a dense `Vector`; collect view-typed inputs
+    # (e.g. minibatch column views) to match the AD backend's expectations.
+    return AbstractPPL.value_and_gradient!!(prob_trans.prep, collect(θ_trans))
 end
 
 function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
@@ -171,32 +191,20 @@ function LogDensityProblems.dimension(prob_trans::TransformedLogDensityProblem)
     return prod(Bijectors.output_size(b, (d,)))
 end
 
-function LogDensityProblems.capabilities(
-    ::Type{TransformedLogDensityProblem{Prob,BInv}}
-) where {Prob,BInv}
-    return LogDensityProblems.capabilities(Prob)
+function LogDensityProblems.capabilities(::Type{<:TransformedLogDensityProblem})
+    return LogDensityProblems.LogDensityOrder{1}()
 end
 nothing
 ```
 
 Wrapping `prob` with `TransformedLogDensityProblem` yields our unconstrained posterior.
+The `AbstractPPL.prepare` call traces the AD backend once at construction time, so the per-iteration `logdensity_and_gradient` call just runs the cached evaluator.
 
 ```@example constraints
 prob_trans = TransformedLogDensityProblem(prob)
 
 x = randn(LogDensityProblems.dimension(prob_trans)) # sample on an unconstrained support
 LogDensityProblems.logdensity(prob_trans, x)
-```
-
-We can also wrap `prob_trans` with `LogDensityProblemsAD.ADGradient` to make it differentiable.
-
-```@example constraints
-using LogDensityProblemsAD
-using ADTypes, ReverseDiff
-
-prob_trans_ad = LogDensityProblemsAD.ADgradient(
-    ADTypes.AutoReverseDiff(; compile=true), prob_trans; x=randn(2)
-)
 ```
 
 Let's now run VI to verify that it works.
@@ -206,11 +214,11 @@ Here, we will use `FisherMinBatchMatch`, which expects an unconstrained posterio
 using AdvancedVI
 using LinearAlgebra
 
-d = LogDensityProblems.dimension(prob_trans_ad)
+d = LogDensityProblems.dimension(prob_trans)
 q = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
 
 q_opt, info, _ = AdvancedVI.optimize(
-    FisherMinBatchMatch(), 100, prob_trans_ad, q; show_progress=false
+    FisherMinBatchMatch(), 100, prob_trans, q; show_progress=false
 )
 nothing
 ```

@@ -36,7 +36,8 @@ function StatsBase.entropy(q::MvLocationScaleLowRank)
     (; location, scale_diag, scale_factors, dist) = q
     n_dims = length(location)
     scale_diag2 = scale_diag .* scale_diag
-    UtDinvU = Hermitian(scale_factors' * (scale_factors ./ scale_diag2))
+    # `Symmetric` rather than `Hermitian`: Mooncake lacks an `rrule` for the `Hermitian` path.
+    UtDinvU = Symmetric(scale_factors' * (scale_factors ./ scale_diag2))
     logdetΣ = 2 * sum(log.(scale_diag)) + logdet(I + UtDinvU)
     return n_dims * convert(eltype(location), entropy(dist)) + logdetΣ / 2
 end

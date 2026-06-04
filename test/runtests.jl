@@ -17,6 +17,7 @@ using Random, StableRNGs
 using Statistics
 using StatsBase
 
+using DifferentiationInterface  # triggers DI's Enzyme extension
 using AdvancedVI
 
 const PROGRESS = haskey(ENV, "PROGRESS")
@@ -29,7 +30,7 @@ elseif AD_str == "ForwardDiff"
     AutoForwardDiff()
 elseif AD_str == "Mooncake"
     using Mooncake
-    AutoMooncake(; config=Mooncake.Config())
+    AutoMooncake()
 elseif AD_str == "Enzyme"
     using Enzyme
     AutoEnzyme(;

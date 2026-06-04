@@ -1,4 +1,9 @@
 
+# Force GR (Plots.jl's default backend) into its no-display workstation so
+# `savefig` writes files but no interactive window is opened. Must be set
+# before GR loads.
+ENV["GKSwstype"] = "100"
+
 using AdvancedVI
 using Documenter
 
