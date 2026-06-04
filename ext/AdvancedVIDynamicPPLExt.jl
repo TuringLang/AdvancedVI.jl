@@ -123,7 +123,7 @@ function DynamicPPLModelLogDensityFunction(
     end
     return DynamicPPLModelLogDensityFunction{
         typeof(model),
-        typeof(loglikeadj_ref[]),
+        eltype(loglikeadj_ref),
         typeof(ranges_and_transforms),
         typeof(transform_strategy),
         typeof(getlogdensity),
