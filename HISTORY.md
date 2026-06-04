@@ -1,3 +1,24 @@
+# Release 0.8
+
+## Migration to the AbstractPPL evaluator interface
+
+AdvancedVI no longer depends on `DifferentiationInterface`. Automatic differentiation is now routed through AbstractPPL's evaluator interface (`AbstractPPL.prepare` / `AbstractPPL.value_and_gradient!!`), introduced in AbstractPPL 0.15.
+
+For users, the consequence is that the AD backend package must be loaded so that its `AbstractPPL.prepare` method is available:
+
+  - `AutoForwardDiff` works with `using ForwardDiff`.
+  - `AutoMooncake` works with `using Mooncake`.
+  - Other backends routed through DifferentiationInterface (for example `AutoReverseDiff` and `AutoEnzyme`) additionally require `using DifferentiationInterface` alongside the concrete backend package.
+
+`AutoReverseDiff(; compile=true)` is now rejected with an `ArgumentError`. Compiled tapes freeze captured values at preparation time, so reusing a prepared evaluator across optimization iterations would differentiate against stale data and silently produce incorrect gradients. Use `AutoReverseDiff(; compile=false)`, or a reverse-mode backend such as `AutoMooncake` or `AutoEnzyme`, instead.
+
+## Compatibility bounds
+
+  - `AbstractPPL` is now a dependency, bounded to `0.15`.
+  - `DynamicPPL` is bumped from `0.40, 0.41` to `0.42`.
+  - `Mooncake` is bumped from `0.4, 0.5` to `0.5.31`.
+  - `DifferentiationInterface` is removed from the dependencies.
+
 # Release 0.7
 
 ## Removal of special treatment to `Bijectors.TransformedDistribution`
