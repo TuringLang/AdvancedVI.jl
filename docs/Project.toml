@@ -21,9 +21,6 @@ QuasiMonteCarlo = "8a4e6c94-4038-4cdc-81c3-7e6ffdb2a71b"
 StanLogDensityProblems = "a545de4d-8dba-46db-9d34-4e41d3f07807"
 StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 
-[sources]
-Mooncake = {url = "https://github.com/chalk-lab/Mooncake.jl", rev = "fix-1191-fcodual-unionall"}
-
 [compat]
 ADTypes = "1"
 AbstractPPL = "0.15"
@@ -38,7 +35,7 @@ ForwardDiff = "0.10, 1"
 Functors = "0.5"
 JSON = "0.21, 1"
 LogDensityProblems = "2.1.1"
-Mooncake = "0.4, 0.5"
+Mooncake = "0.5.31"
 NormalizingFlows = "0.2.2"
 OpenML = "0.3"
 Optimisers = "0.3, 0.4"
