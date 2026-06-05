@@ -1,0 +1,24 @@
+version: 2
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      all-github-actions-packages:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "julia"
+    directories:
+      - "/"
+      - "/bench"
+      - "/docs"
+      - "/test"
+    schedule:
+      interval: "weekly"
+    groups:
+      all-julia-packages:
+        patterns:
+          - "*"
