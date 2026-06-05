@@ -24,6 +24,41 @@
     }
     /* End of Documenter.jl Tweaks */
 
+    /* DocumenterVitepress integration:
+       Vitepress's default theme already exposes `--vp-layout-top-height` as
+       the hook for adding banner-style chrome above its own nav. Every
+       layout-sensitive component (`.VPNav` `top`, `.VPContent` `margin`,
+       `.VPSidebar` `top`, `.VPLocalNav` `padding-top`, `.VPDocAside` `top`
+       and TOC `padding-top`) is already authored to add this variable to
+       its own offset, so binding it to the TuringLang navbar height makes
+       Vitepress reflow itself correctly with zero further intervention.
+       (`:has(.VPNavBar)` scopes this to Vitepress builds; Documenter HTML
+       sites are untouched.) */
+    html:has(.VPNavBar) {
+        --vp-layout-top-height: var(--navbar-height);
+    }
+
+    /* When the rendered site is Vitepress (detected by .VPNavBar being in the
+       DOM), adopt Vitepress's design tokens so the TuringLang navbar tracks
+       the active theme (light/dark, brand colour, body font) and reads as one
+       piece of chrome with the Vitepress nav below it — rather than a stacked
+       second header with its own colour and typography. */
+    html:has(.VPNavBar) {
+        --primary-bg: var(--vp-c-bg);
+        --heading-color: var(--vp-c-text-1);
+        --item-color: var(--vp-c-text-2);
+        --icon-color: var(--vp-c-text-1);
+        --hover-color: var(--vp-c-brand-1);
+        --shadow-color: var(--vp-c-divider);
+        --dropdown-hover-bg: var(--vp-c-default-soft);
+        --font-family: var(--vp-font-family-base);
+    }
+    html:has(.VPNavBar) .ext-navigation {
+        box-shadow: none;
+        border-bottom: 1px solid var(--vp-c-divider);
+    }
+    /* End of DocumenterVitepress Tweaks */
+
     /* Color and Font Variables */
     :root {
         --heading-color: #6c757d;
@@ -543,4 +578,4 @@ plot(
     ylabel=&quot;ELBO&quot;,
     label=nothing,
 )
-savefig(&quot;stan_example_elbo.svg&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;/home/runner/work/AdvancedVI.jl/AdvancedVI.jl/docs/build/tutorials/stan_example_elbo.svg&quot;</code></pre><p><img src="../stan_example_elbo.svg" alt/></p><p>From variational posterior <code>q_out</code> we can draw samples from the unconstrained support of the model. To convert the samples back to the original (constrained) support of the model, it suffices to call <a href="https://roualdes.us/bridgestan/latest/languages/julia.html#BridgeStan.param_constrain">BridgeStan.param_constrain</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../subsampling/">« Scaling to Large Datasets</a><a class="docs-footer-nextpage" href="../flows/">Normalizing Flows »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 4 June 2026 13:58">Thursday 4 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+savefig(&quot;stan_example_elbo.svg&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;/home/runner/work/AdvancedVI.jl/AdvancedVI.jl/docs/build/tutorials/stan_example_elbo.svg&quot;</code></pre><p><img src="../stan_example_elbo.svg" alt/></p><p>From variational posterior <code>q_out</code> we can draw samples from the unconstrained support of the model. To convert the samples back to the original (constrained) support of the model, it suffices to call <a href="https://roualdes.us/bridgestan/latest/languages/julia.html#BridgeStan.param_constrain">BridgeStan.param_constrain</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../subsampling/">« Scaling to Large Datasets</a><a class="docs-footer-nextpage" href="../flows/">Normalizing Flows »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 5 June 2026 07:32">Friday 5 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
