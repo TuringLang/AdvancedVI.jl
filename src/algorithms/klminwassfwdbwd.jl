@@ -93,7 +93,7 @@ function step(
         prob, sub_st, NamedTuple()
     else
         batch, sub_st′, sub_inf = step(rng, subsampling, sub_st)
-        prob_sub = with_batch(prob, batch)
+        prob_sub = subsample(prob, batch)
         prob_sub, sub_st′, sub_inf
     end
 
@@ -153,7 +153,7 @@ function estimate_objective(
         sub_st = init(rng, sub)
         return mapreduce(+, 1:length(sub)) do _
             batch, sub_st, _ = step(rng, sub, sub_st)
-            prob_sub = with_batch(prob, batch)
+            prob_sub = subsample(prob, batch)
             estimate_objective(rng, obj, q, prob_sub) / length(sub)
         end
     end

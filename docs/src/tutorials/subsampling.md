@@ -89,14 +89,14 @@ prob = LogReg(X, y, size(X, 1))
 nothing
 ```
 
-To enable subsampling, `LogReg` has to implement the method `AdvancedVI.with_batch`.
+To enable subsampling, `LogReg` has to implement the method `AdvancedVI.subsample`.
 For our model, this is fairly simple: We only need to select the rows of `X` and the elements of `y` corresponding to the batch of data points.
 
 ```@example subsampling
 using Accessors
 using AdvancedVI
 
-function AdvancedVI.with_batch(prob::LogReg, idx)
+function AdvancedVI.subsample(prob::LogReg, idx)
     prob′ = @set prob.X = prob.X[idx, :]
     return @set prob′.y = prob′.y[idx]
 end
@@ -105,9 +105,9 @@ nothing
 
 !!! info
     
-    The default implementation of `AdvancedVI.with_batch` is `AdvancedVI.with_batch(model, idx) = model`.
-    Therefore, if the specialization of `AdvancedVI.with_batch` is not set up properly, `AdvancedVI` will silently use full-batch gradients instead of subsampling.
-    It is thus useful to check whether the right specialization of `AdvancedVI.with_batch` is being called.
+    The default implementation of `AdvancedVI.subsample` is `AdvancedVI.subsample(model, idx) = model`.
+    Therefore, if the specialization of `AdvancedVI.subsample` is not set up properly, `AdvancedVI` will silently use full-batch gradients instead of subsampling.
+    It is thus useful to check whether the right specialization of `AdvancedVI.subsample` is being called.
 
 ## Scalable Inference via AdvancedVI
 

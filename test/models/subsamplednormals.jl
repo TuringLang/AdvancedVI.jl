@@ -42,7 +42,7 @@ function LogDensityProblems.capabilities(::Type{SubsampledNormals{D,F,C}}) where
     return C()
 end
 
-function AdvancedVI.with_batch(m::SubsampledNormals, idx)
+function AdvancedVI.subsample(m::SubsampledNormals, idx)
     n_data = length(m.dists)
     return SubsampledNormals(m.dists[idx], n_data / length(idx), m.capability)
 end

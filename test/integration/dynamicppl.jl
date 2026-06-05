@@ -69,6 +69,6 @@
         @test Δλ ≤ Δλ0 / 2
 
         @test_throws ArgumentError SubsampledLogDensity(prob.prob, make_prob, 0)
-        @test_throws ArgumentError AdvancedVI.with_batch(prob, 1:(n_data + 1))
+        @test_throws ArgumentError AdvancedVI.subsample(prob, 1:(n_data + 1))
     end
 end
