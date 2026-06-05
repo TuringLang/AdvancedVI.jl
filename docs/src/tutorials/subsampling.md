@@ -289,8 +289,8 @@ Therefore, subsampling is most beneficial when a crude solution to the VI proble
 For `DynamicPPL` models, write the model as a **factory parametric in the
 minibatch size `N`**, leaving observations free so they can be supplied via
 `|` (conditioning) on each batch. The package extension defines a call method
-on [`AdvancedVI.WeightedLogJoint`](@ref) that wires `scale * loglikelihood + logprior - logjacobian` through `DynamicPPL`'s accumulators; wrap the
-resulting LDF factory in [`SubsampledLogDensity`](@ref).
+on `AdvancedVI.WeightedLogJoint` that wires `scale * loglikelihood + logprior - logjacobian` through `DynamicPPL`'s accumulators; wrap the
+resulting LDF factory in `SubsampledLogDensity`.
 
 ```julia
 using AdvancedVI, ADTypes, DynamicPPL, Distributions, LinearAlgebra, LogDensityProblems

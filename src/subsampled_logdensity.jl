@@ -1,7 +1,7 @@
 """
     SubsampledLogDensity(prob, make_prob, dataset_size)
 
-`LogDensityProblems`-compatible wrapper that supports [`subsample`](@ref):
+`LogDensityProblems`-compatible wrapper that supports `subsample`:
 `subsample(prob, batch)` returns a fresh wrapper whose inner problem is
 `make_prob(batch, dataset_size / length(batch))`. `make_prob` must return
 objects of the same concrete type as the initial `prob` so the wrapper stays
