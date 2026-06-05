@@ -38,8 +38,10 @@
 
     @testset "subsampling" begin
         n_data = 32
-        μ_true = [-2.0, 2.0]
-        observations = μ_true .+ randn(2, n_data)
+        observations = [-2.0, 2.0] .+ randn(2, n_data)
+        # MAP target — q converges to the sample mean (weak prior is negligible
+        # against `n_data` likelihood contributions).
+        μ_true = mean(observations; dims=2)[:, 1]
 
         model = normal_minibatch(observations, n_data)
         vi = DynamicPPL.link!!(DynamicPPL.VarInfo(model), model)
