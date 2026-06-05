@@ -43,9 +43,13 @@
         subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
         minibatch_model = batch -> normal_minibatch(μs[:, batch], length(batch))
 
-        make_prob = (batch, scale) -> DynamicPPL.LogDensityFunction(
-            minibatch_model(batch), AdvancedVI.WeightedLogJoint(scale), vi; adtype=AD
-        )
+        make_prob =
+            (batch, scale) -> DynamicPPL.LogDensityFunction(
+                minibatch_model(batch),
+                AdvancedVI.WeightedLogJoint(scale),
+                vi;
+                adtype=AD,
+            )
         prob = SubsampledLogDensity(make_prob(1:n_data, 1.0), make_prob, n_data)
 
         alg = KLMinRepGradProxDescent(AD; subsampling)

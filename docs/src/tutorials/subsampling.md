@@ -289,8 +289,7 @@ Therefore, subsampling is most beneficial when a crude solution to the VI proble
 For `DynamicPPL` models, write the model as a **factory parametric in the
 minibatch size `N`**, leaving observations free so they can be supplied via
 `|` (conditioning) on each batch. The package extension defines a call method
-on [`AdvancedVI.WeightedLogJoint`](@ref) that wires `scale * loglikelihood +
-logprior - logjacobian` through `DynamicPPL`'s accumulators; wrap the
+on [`AdvancedVI.WeightedLogJoint`](@ref) that wires `scale * loglikelihood + logprior - logjacobian` through `DynamicPPL`'s accumulators; wrap the
 resulting LDF factory in [`SubsampledLogDensity`](@ref).
 
 ```julia
@@ -299,28 +298,32 @@ using AdvancedVI, ADTypes, DynamicPPL, Distributions, LinearAlgebra, LogDensityP
 DynamicPPL.@model function bayes_logreg(X_batch, N)
     d = size(X_batch, 2)
     β ~ MvNormal(zeros(d), I)
-    y ~ arraydist([BernoulliLogit(dot(X_batch[i, :], β)) for i in 1:N])
+    return y ~ arraydist([BernoulliLogit(dot(X_batch[i, :], β)) for i in 1:N])
 end
 
 # `X`, `y_obs` are the full dataset; `n_data = size(X, 1)`.
 n_data, d = size(X, 1), size(X, 2)
 
 # Full-data model used only for varinfo / dim discovery.
-model = bayes_logreg(X, n_data) | (y = y_obs,)
-vi    = DynamicPPL.link!!(DynamicPPL.VarInfo(model), model)
+model = bayes_logreg(X, n_data) | (y=y_obs,)
+vi = DynamicPPL.link!!(DynamicPPL.VarInfo(model), model)
 
-batchsize       = 32
-subsampling     = ReshufflingBatchSubsampling(1:n_data, batchsize)
-minibatch_model = batch -> bayes_logreg(X[batch, :], length(batch)) | (y = y_obs[batch],)
+batchsize = 32
+subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
+minibatch_model = batch -> bayes_logreg(X[batch, :], length(batch)) | (y=y_obs[batch],)
 
-make_prob = (batch, scale) -> DynamicPPL.LogDensityFunction(
-    minibatch_model(batch), AdvancedVI.WeightedLogJoint(scale), vi; adtype=AutoForwardDiff()
-)
+make_prob =
+    (batch, scale) -> DynamicPPL.LogDensityFunction(
+        minibatch_model(batch),
+        AdvancedVI.WeightedLogJoint(scale),
+        vi;
+        adtype=AutoForwardDiff(),
+    )
 prob = SubsampledLogDensity(make_prob(1:n_data, 1.0), make_prob, n_data)
 
 alg = KLMinRepGradProxDescent(AutoForwardDiff(); subsampling)
 dim = LogDensityProblems.dimension(prob)
-q0  = FullRankGaussian(zeros(dim), LowerTriangular(Matrix{Float64}(0.6 * I, dim, dim)))
+q0 = FullRankGaussian(zeros(dim), LowerTriangular(Matrix{Float64}(0.6 * I, dim, dim)))
 q, _, _ = AdvancedVI.optimize(alg, 1000, prob, q0; show_progress=false)
 ```
 
