@@ -132,7 +132,7 @@ function step(
         prob, sub_st, NamedTuple()
     else
         batch, sub_st′, sub_inf = step(rng, subsampling, sub_st)
-        prob_sub = subsample(prob, batch)
+        prob_sub = with_batch(prob, batch)
         prob_sub, sub_st′, sub_inf
     end
 

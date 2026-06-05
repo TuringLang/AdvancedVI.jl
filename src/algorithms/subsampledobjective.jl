@@ -34,8 +34,8 @@ function init(
     # This is necessary to ensure that `init` sees the type "conditioned" on a minibatch
     # so that any prepared AD evaluator inside it sees the correct batch-subsampled type.
     batch, _, _ = step(rng, subsampling, sub_st, true)
-    prob_sub = subsample(prob, batch)
-    q_init_sub = subsample(q_init, batch)
+    prob_sub = with_batch(prob, batch)
+    q_init_sub = with_batch(q_init, batch)
     params_sub, re_sub = Optimisers.destructure(q_init_sub)
 
     obj_st = AdvancedVI.init(
@@ -51,8 +51,8 @@ function estimate_objective(
     sub_st = init(rng, subsampling)
     return mapreduce(+, 1:length(subsampling)) do _
         batch, sub_st, _ = step(rng, subsampling, sub_st)
-        prob_sub = subsample(prob, batch)
-        q_sub = subsample(q, batch)
+        prob_sub = with_batch(prob, batch)
+        q_sub = with_batch(q, batch)
         estimate_objective(rng, objective, q_sub, prob_sub; kwargs...) / length(subsampling)
     end
 end
@@ -77,8 +77,8 @@ function estimate_gradient!(
     q = restructure(params)
 
     batch, sub_st′, sub_inf = step(rng, subsampling, sub_st, true)
-    prob_sub = subsample(prob, batch)
-    q_sub = subsample(q, batch)
+    prob_sub = with_batch(prob, batch)
+    q_sub = with_batch(q, batch)
     params_sub, re_sub = Optimisers.destructure(q_sub)
 
     obj_st′ = set_objective_state_problem(obj_st, prob_sub)

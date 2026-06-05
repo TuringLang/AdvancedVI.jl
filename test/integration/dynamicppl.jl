@@ -4,9 +4,9 @@
         return x ~ MvNormal(μ, I)
     end
 
-    DynamicPPL.@model function normal_subsampled(μs; datapoints=1:size(μs, 2))
-        for i in datapoints
-            x ~ MvNormal(μs[:, i], I)
+    DynamicPPL.@model function normal_minibatch(μs_batch, N)
+        for i in 1:N
+            x ~ MvNormal(μs_batch[:, i], I)
         end
     end
 
@@ -17,8 +17,9 @@
         vi = DynamicPPL.VarInfo(model)
         vi = DynamicPPL.link!!(vi, model)
 
-        ext = Base.get_extension(AdvancedVI, :AdvancedVIDynamicPPLExt)
-        prob = ext.DynamicPPLModelLogDensityFunction(model, vi; adtype=AD)
+        prob = DynamicPPL.LogDensityFunction(
+            model, DynamicPPL.getlogjoint_internal, vi; adtype=AD
+        )
 
         alg = KLMinRepGradProxDescent(AD)
         d = LogDensityProblems.dimension(prob)
@@ -35,16 +36,17 @@
         μs = 3 * randn(2, n_data)
         μ_true = mean(μs; dims=2)[:, 1]
 
-        model = normal_subsampled(μs)
-        vi = DynamicPPL.VarInfo(model)
-        vi = DynamicPPL.link!!(vi, model)
+        model = normal_minibatch(μs, n_data)
+        vi = DynamicPPL.link!!(DynamicPPL.VarInfo(model), model)
 
-        dataset = 1:n_data
         batchsize = 2
-        subsampling = ReshufflingBatchSubsampling(dataset, batchsize)
+        subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
+        minibatch_model = batch -> normal_minibatch(μs[:, batch], length(batch))
 
-        ext = Base.get_extension(AdvancedVI, :AdvancedVIDynamicPPLExt)
-        prob = ext.DynamicPPLModelLogDensityFunction(model, vi; adtype=AD, subsampling)
+        make_prob = (batch, scale) -> DynamicPPL.LogDensityFunction(
+            minibatch_model(batch), AdvancedVI.WeightedLogJoint(scale), vi; adtype=AD
+        )
+        prob = SubsampledLogDensity(make_prob(1:n_data, 1.0), make_prob, n_data)
 
         alg = KLMinRepGradProxDescent(AD; subsampling)
         d = LogDensityProblems.dimension(prob)
@@ -54,5 +56,8 @@
         Δλ0 = sum(abs2, q0.location - μ_true)
         Δλ = sum(abs2, q.location - μ_true)
         @test Δλ ≤ Δλ0 / 2
+
+        @test_throws ArgumentError SubsampledLogDensity(prob.prob, make_prob, 0)
+        @test_throws ArgumentError AdvancedVI.with_batch(prob, 1:(n_data + 1))
     end
 end

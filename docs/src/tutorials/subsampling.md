@@ -89,14 +89,14 @@ prob = LogReg(X, y, size(X, 1))
 nothing
 ```
 
-To enable subsampling, `LogReg` has to implement the method `AdvancedVI.subsample`.
+To enable subsampling, `LogReg` has to implement the method `AdvancedVI.with_batch`.
 For our model, this is fairly simple: We only need to select the rows of `X` and the elements of `y` corresponding to the batch of data points.
 
 ```@example subsampling
 using Accessors
 using AdvancedVI
 
-function AdvancedVI.subsample(prob::LogReg, idx)
+function AdvancedVI.with_batch(prob::LogReg, idx)
     prob′ = @set prob.X = prob.X[idx, :]
     return @set prob′.y = prob′.y[idx]
 end
@@ -105,9 +105,9 @@ nothing
 
 !!! info
     
-    The default implementation of `AdvancedVI.subsample` is `AdvancedVI.subsample(model, idx) = model`.
-    Therefore, if the specialization of `AdvancedVI.subsample` is not set up properly, `AdvancedVI` will silently use full-batch gradients instead of subsampling.
-    It is thus useful to check whether the right specialization of `AdvancedVI.subsample` is being called.
+    The default implementation of `AdvancedVI.with_batch` is `AdvancedVI.with_batch(model, idx) = model`.
+    Therefore, if the specialization of `AdvancedVI.with_batch` is not set up properly, `AdvancedVI` will silently use full-batch gradients instead of subsampling.
+    It is thus useful to check whether the right specialization of `AdvancedVI.with_batch` is being called.
 
 ## Scalable Inference via AdvancedVI
 
@@ -283,3 +283,50 @@ nothing
 But remember that subsampling will always be *asymptotically* slower than no subsampling.
 That is, as the number of iterations increase, there will be a point where no subsampling will overtake subsampling even in terms of wallclock time.
 Therefore, subsampling is most beneficial when a crude solution to the VI problem suffices.
+
+## Subsampling with `DynamicPPL` Models
+
+For `DynamicPPL` models, write the model as a **factory parametric in the
+minibatch size `N`**, leaving observations free so they can be supplied via
+`|` (conditioning) on each batch. The package extension defines a call method
+on [`AdvancedVI.WeightedLogJoint`](@ref) that wires `scale * loglikelihood +
+logprior - logjacobian` through `DynamicPPL`'s accumulators; wrap the
+resulting LDF factory in [`SubsampledLogDensity`](@ref).
+
+```julia
+using AdvancedVI, ADTypes, DynamicPPL, Distributions, LinearAlgebra, LogDensityProblems
+
+DynamicPPL.@model function bayes_logreg(X_batch, N)
+    d = size(X_batch, 2)
+    β ~ MvNormal(zeros(d), I)
+    y ~ arraydist([BernoulliLogit(dot(X_batch[i, :], β)) for i in 1:N])
+end
+
+# `X`, `y_obs` are the full dataset; `n_data = size(X, 1)`.
+n_data, d = size(X, 1), size(X, 2)
+
+# Full-data model used only for varinfo / dim discovery.
+model = bayes_logreg(X, n_data) | (y = y_obs,)
+vi    = DynamicPPL.link!!(DynamicPPL.VarInfo(model), model)
+
+batchsize       = 32
+subsampling     = ReshufflingBatchSubsampling(1:n_data, batchsize)
+minibatch_model = batch -> bayes_logreg(X[batch, :], length(batch)) | (y = y_obs[batch],)
+
+make_prob = (batch, scale) -> DynamicPPL.LogDensityFunction(
+    minibatch_model(batch), AdvancedVI.WeightedLogJoint(scale), vi; adtype=AutoForwardDiff()
+)
+prob = SubsampledLogDensity(make_prob(1:n_data, 1.0), make_prob, n_data)
+
+alg = KLMinRepGradProxDescent(AutoForwardDiff(); subsampling)
+dim = LogDensityProblems.dimension(prob)
+q0  = FullRankGaussian(zeros(dim), LowerTriangular(Matrix{Float64}(0.6 * I, dim, dim)))
+q, _, _ = AdvancedVI.optimize(alg, 1000, prob, q0; show_progress=false)
+```
+
+The variational parameter shape must be **invariant across batches**. Above,
+`β` is a `d`-vector regardless of `N`; `N` only controls how many likelihood
+terms are summed. Models with per-datapoint latent variables (e.g. `users[:, j]`
+in a matrix factorisation) require a variational family whose dimension
+changes with `batch`, which is not yet supported by the parameter-space SGD
+algorithms in `AdvancedVI`.

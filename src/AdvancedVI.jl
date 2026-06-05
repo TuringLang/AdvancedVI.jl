@@ -301,8 +301,8 @@ export estimate_objective
 
 # Subsampling
 """
-    subsample(model, batch)
-    subsample(q, batch)
+    with_batch(model, batch)
+    with_batch(q, batch)
 
 Inform `model` or `q` to only use the data points designated by the iterable collection `batch`.
 For `model`, the log-density should also be adjusted to account for the change in number of data points.
@@ -310,13 +310,14 @@ For `model`, the log-density should also be adjusted to account for the change i
 Implementations may mutate `model`/`q` in place and return the same object,
 so callers must not assume the returned value is distinct from the input.
 """
-subsample(model_or_q::Any, ::Any) = model_or_q
+with_batch(model_or_q::Any, ::Any) = model_or_q
 
 abstract type AbstractSubsampling end
 
 include("reshuffling.jl")
+include("subsampled_logdensity.jl")
 
-export ReshufflingBatchSubsampling
+export ReshufflingBatchSubsampling, SubsampledLogDensity
 
 # Main optimization routine
 function optimize end
