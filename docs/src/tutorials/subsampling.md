@@ -327,6 +327,25 @@ q0 = FullRankGaussian(zeros(dim), LowerTriangular(Matrix{Float64}(0.6 * I, dim, 
 q, _, _ = AdvancedVI.optimize(alg, 1000, prob, q0; show_progress=false)
 ```
 
+!!! note "Conditioning vs. model arguments"
+    
+    Observations may be supplied either by conditioning a free random variable
+    (as above) or by passing them as a model argument:
+    
+    ```julia
+    DynamicPPL.@model function bayes_logreg(X_batch, y_batch, N)
+        β ~ MvNormal(zeros(size(X_batch, 2)), I)
+        return y_batch ~ arraydist([BernoulliLogit(dot(X_batch[i, :], β)) for i in 1:N])
+    end
+    
+    minibatch_model = batch -> bayes_logreg(X[batch, :], y_obs[batch], length(batch))
+    ```
+    
+    Both forms route the per-batch contributions into `LogLikelihoodAccumulator`,
+    so the SG correction applies identically. Use whichever reads more
+    naturally — typically arguments for densely-observed data and conditioning
+    when the same model shape is also used outside the SG-VI loop.
+
 The variational parameter shape must be **invariant across batches**. Above,
 `β` is a `d`-vector regardless of `N`; `N` only controls how many likelihood
 terms are summed. Models with per-datapoint latent variables (e.g. `users[:, j]`
