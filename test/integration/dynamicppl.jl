@@ -4,9 +4,14 @@
         return x ~ MvNormal(μ, I)
     end
 
-    DynamicPPL.@model function normal_minibatch(μs_batch, N)
+    # `μ` is the latent parameter being inferred from observations stored in
+    # `obs_batch`. The data observations land in `LogLikelihoodAccumulator`,
+    # which is what the SG-correction scale multiplies — verifying the
+    # minibatch correction actually exercises the likelihood path.
+    DynamicPPL.@model function normal_minibatch(obs_batch, N)
+        μ ~ MvNormal(zeros(size(obs_batch, 1)), 100.0 * I)
         for i in 1:N
-            x ~ MvNormal(μs_batch[:, i], I)
+            obs_batch[:, i] ~ MvNormal(μ, I)
         end
     end
 
@@ -33,15 +38,15 @@
 
     @testset "subsampling" begin
         n_data = 32
-        μs = 3 * randn(2, n_data)
-        μ_true = mean(μs; dims=2)[:, 1]
+        μ_true = [-2.0, 2.0]
+        observations = μ_true .+ randn(2, n_data)
 
-        model = normal_minibatch(μs, n_data)
+        model = normal_minibatch(observations, n_data)
         vi = DynamicPPL.link!!(DynamicPPL.VarInfo(model), model)
 
         batchsize = 2
         subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
-        minibatch_model = batch -> normal_minibatch(μs[:, batch], length(batch))
+        minibatch_model = batch -> normal_minibatch(observations[:, batch], length(batch))
 
         make_prob =
             (batch, scale) -> DynamicPPL.LogDensityFunction(
