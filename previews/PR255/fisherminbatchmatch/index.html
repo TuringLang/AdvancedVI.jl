@@ -24,6 +24,41 @@
     }
     /* End of Documenter.jl Tweaks */
 
+    /* DocumenterVitepress integration:
+       Vitepress's default theme already exposes `--vp-layout-top-height` as
+       the hook for adding banner-style chrome above its own nav. Every
+       layout-sensitive component (`.VPNav` `top`, `.VPContent` `margin`,
+       `.VPSidebar` `top`, `.VPLocalNav` `padding-top`, `.VPDocAside` `top`
+       and TOC `padding-top`) is already authored to add this variable to
+       its own offset, so binding it to the TuringLang navbar height makes
+       Vitepress reflow itself correctly with zero further intervention.
+       (`:has(.VPNavBar)` scopes this to Vitepress builds; Documenter HTML
+       sites are untouched.) */
+    html:has(.VPNavBar) {
+        --vp-layout-top-height: var(--navbar-height);
+    }
+
+    /* When the rendered site is Vitepress (detected by .VPNavBar being in the
+       DOM), adopt Vitepress's design tokens so the TuringLang navbar tracks
+       the active theme (light/dark, brand colour, body font) and reads as one
+       piece of chrome with the Vitepress nav below it — rather than a stacked
+       second header with its own colour and typography. */
+    html:has(.VPNavBar) {
+        --primary-bg: var(--vp-c-bg);
+        --heading-color: var(--vp-c-text-1);
+        --item-color: var(--vp-c-text-2);
+        --icon-color: var(--vp-c-text-1);
+        --hover-color: var(--vp-c-brand-1);
+        --shadow-color: var(--vp-c-divider);
+        --dropdown-hover-bg: var(--vp-c-default-soft);
+        --font-family: var(--vp-font-family-base);
+    }
+    html:has(.VPNavBar) .ext-navigation {
+        box-shadow: none;
+        border-bottom: 1px solid var(--vp-c-divider);
+    }
+    /* End of DocumenterVitepress Tweaks */
+
     /* Color and Font Variables */
     :root {
         --heading-color: #6c757d;
@@ -479,6 +514,7 @@
     });
 </script>
 <!-- NAVBAR END -->
+
 
 
 <div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">AdvancedVI.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">AdvancedVI</a></li><li><a class="tocitem" href="../general/">General Usage</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../tutorials/basic/">Basic Example</a></li><li><a class="tocitem" href="../tutorials/subsampling/">Scaling to Large Datasets</a></li><li><a class="tocitem" href="../tutorials/stan/">Stan Models</a></li><li><a class="tocitem" href="../tutorials/flows/">Normalizing Flows</a></li><li><a class="tocitem" href="../tutorials/constrained/">Dealing with Constrained Posteriors</a></li></ul></li><li><span class="tocitem">Algorithms</span><ul><li><a class="tocitem" href="../klminrepgraddescent/"><code>KLMinRepGradDescent</code></a></li><li><a class="tocitem" href="../klminrepgradproxdescent/"><code>KLMinRepGradProxDescent</code></a></li><li><a class="tocitem" href="../klminscoregraddescent/"><code>KLMinScoreGradDescent</code></a></li><li><a class="tocitem" href="../klminwassfwdbwd/"><code>KLMinWassFwdBwd</code></a></li><li><a class="tocitem" href="../klminnaturalgraddescent/"><code>KLMinNaturalGradDescent</code></a></li><li><a class="tocitem" href="../klminsqrtnaturalgraddescent/"><code>KLMinSqrtNaturalGradDescent</code></a></li><li class="is-active"><a class="tocitem" href><code>FisherMinBatchMatch</code></a><ul class="internal"><li><a class="tocitem" href="#Description"><span>Description</span></a></li><li><a class="tocitem" href="#fisherminbatchmatch_method"><span>Methodology</span></a></li></ul></li></ul></li><li><a class="tocitem" href="../families/">Variational Families</a></li><li><a class="tocitem" href="../optimization/">Optimization</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Algorithms</a></li><li class="is-active"><a href><code>FisherMinBatchMatch</code></a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href><code>FisherMinBatchMatch</code></a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/TuringLang/AdvancedVI.jl/blob/main/docs/src/fisherminbatchmatch.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="fisherminbatchmatch"><a class="docs-heading-anchor" href="#fisherminbatchmatch"><code>FisherMinBatchMatch</code></a><a id="fisherminbatchmatch-1"></a><a class="docs-heading-anchor-permalink" href="#fisherminbatchmatch" title="Permalink"></a></h1><h2 id="Description"><a class="docs-heading-anchor" href="#Description">Description</a><a id="Description-1"></a><a class="docs-heading-anchor-permalink" href="#Description" title="Permalink"></a></h2><p>This algorithm, known as batch-and-match (BaM) aims to minimize the covariance-weighted 2nd-order Fisher divergence by running a proximal point-type method<sup class="footnote-reference"><a id="citeref-CMPMGBS24" href="#footnote-CMPMGBS24" class="footnote-ref">[CMPMGBS24]</a><span class="footnote-preview" id="fn-CMPMGBS24"></span></sup>. On certain low-dimensional problems, BaM can converge very quickly without any tuning. Since <code>FisherMinBatchMatch</code> is a measure-space algorithm, its use is restricted to full-rank Gaussian variational families (<code>FullRankGaussian</code>) that make the measure-valued operations tractable.</p><article><details class="docstring" open="true"><summary id="AdvancedVI.FisherMinBatchMatch"><a class="docstring-binding" href="#AdvancedVI.FisherMinBatchMatch"><code>AdvancedVI.FisherMinBatchMatch</code></a> — <span class="docstring-category">Type</span></summary><section><div><pre><code class="language-julia hljs">FisherMinBatchMatch(n_samples, subsampling)
