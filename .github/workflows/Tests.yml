@@ -36,5 +36,6 @@ jobs:
           AD: ReverseDiff
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v6
+        if: github.actor != 'dependabot[bot]'
         with:
           files: lcov.info
