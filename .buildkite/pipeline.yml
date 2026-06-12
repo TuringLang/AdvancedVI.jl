@@ -6,8 +6,7 @@ steps:
       - JuliaCI/julia-test#v1: 
           test_args: "--quickfail"
     agents:
-      queue: "juliagpu"
-      cuda: "*"
+      queue: "cuda"
     timeout_in_minutes: 60
     env:
       GROUP: "GPU"
