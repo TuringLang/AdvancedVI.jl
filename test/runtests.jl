@@ -68,6 +68,7 @@ if GROUP == "All" || GROUP == "GENERAL"
     include("families/location_scale_low_rank.jl")
 
     include("general/gauss_expected_grad_hess.jl")
+    include("general/subsampled_logdensity.jl")
     include("algorithms/klminwassfwdbwd.jl")
     include("algorithms/klminsqrtnaturalgraddescent.jl")
     include("algorithms/klminnaturalgraddescent.jl")
