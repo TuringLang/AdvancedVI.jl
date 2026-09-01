@@ -91,8 +91,7 @@ function Optimisers.apply!(o::COCOB, state, x::AbstractArray{T}, dx) where {T}
     Optimisers.@.. G = G + abs(dx)
     Optimisers.@.. R = max(R + (x - x1) * -dx, 0)
     Optimisers.@.. θ = θ + -dx
-    denominator = similar(L)
-    Optimisers.@.. denominator = ifelse(iszero(L), one(T), L * max(G + L, α * L))
-    dx′ = Optimisers.@lazy -(x1 - x) - (θ / denominator * (L + R))
+    dx′ = Optimisers.@lazy -(x1 - x) -
+        (θ / ifelse(iszero(L), one(T), L * max(G + L, α * L)) * (L + R))
     return (L, G, R, θ, x1), dx′
 end

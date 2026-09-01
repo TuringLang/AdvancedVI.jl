@@ -39,10 +39,10 @@
             @test logpdf(q, z) ≈ logpdf(q_true, z) rtol = realtype(1e-2)
             @test eltype(logpdf(q, z)) == realtype
 
-            @test logpdf(q, z; non_differntiable=true) ≈ logpdf(q_true, z) rtol = realtype(
+            @test logpdf(q, z; non_differentiable=true) ≈ logpdf(q_true, z) rtol = realtype(
                 1e-2
             )
-            @test eltype(logpdf(q, z; non_differntiable=true)) == realtype
+            @test eltype(logpdf(q, z; non_differentiable=true)) == realtype
         end
 
         @testset "entropy" begin
@@ -166,5 +166,18 @@ end
     q_true = MvNormal(location, Diagonal(scale_diag .^ 2) + scale_factors * scale_factors')
     z = [0.7, -1.2]
 
-    @test logpdf(q, z; non_differntiable=true) ≈ logpdf(q_true, z)
+    @test logpdf(q, z; non_differentiable=true) ≈ logpdf(q_true, z)
+end
+
+@testset "negative diagonal scale" begin
+    location = [0.2, -0.1]
+    scale_diag = [-2.0, 3.0]
+    scale_factors = reshape([0.4, -0.3], 2, 1)
+    q = LowRankGaussian(location, scale_diag, scale_factors)
+    q_true = MvNormal(location, Diagonal(scale_diag .^ 2) + scale_factors * scale_factors')
+    z = [0.7, -1.2]
+
+    @test entropy(q) ≈ entropy(q_true)
+    @test logpdf(q, z) ≈ logpdf(q_true, z)
+    @test logpdf(q, z; non_differentiable=true) ≈ logpdf(q_true, z)
 end

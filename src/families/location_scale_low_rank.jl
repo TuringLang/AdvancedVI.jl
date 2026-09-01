@@ -49,20 +49,20 @@ function StatsBase.entropy(q::MvLocationScaleLowRank)
     scale_diag2 = scale_diag .* scale_diag
     # `Symmetric` rather than `Hermitian`: Mooncake lacks an `rrule` for the `Hermitian` path.
     UtDinvU = Symmetric(scale_factors' * (scale_factors ./ scale_diag2))
-    logdetΣ = 2 * sum(log.(scale_diag)) + logdet(I + UtDinvU)
+    logdetΣ = 2 * sum(log.(abs.(scale_diag))) + logdet(I + UtDinvU)
     return n_dims * convert(eltype(location), entropy(dist)) + logdetΣ / 2
 end
 
 function Distributions.logpdf(
-    q::MvLocationScaleLowRank, z::AbstractVector{<:Real}; non_differntiable::Bool=false
+    q::MvLocationScaleLowRank, z::AbstractVector{<:Real}; non_differentiable::Bool=false
 )
     (; location, scale_diag, scale_factors, dist) = q
     μ_base = mean(dist)
     n_dims = length(location)
 
-    scale2chol = if non_differntiable
+    scale2chol = if non_differentiable
         # Fast O(kd^2) path (not supported by most current AD frameworks):
-        scale2chol = Cholesky(LowerTriangular(diagm(scale_diag)))
+        scale2chol = Cholesky(LowerTriangular(diagm(abs.(scale_diag))))
         n_factors = size(scale_factors, 2)
         for k in 1:n_factors
             factor = scale_factors[:, k] # copy necessary due to in-place mutation
