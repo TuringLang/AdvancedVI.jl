@@ -169,7 +169,7 @@ KL divergence minimization by running stochastic gradient descent with the score
 
 # Keyword Arguments
 - `optimizer::Optimisers.AbstractRule`: Optimization algorithm to be used. Only `DoG`, `DoWG` and `Optimisers.Descent` are supported. (default: `DoWG()`)
-- `n_samples::Int`: Number of Monte Carlo samples to be used for estimating each gradient.
+- `n_samples::Int`: Number of Monte Carlo samples to be used for estimating each gradient. Must be at least `2`. (default: `2`)
 - `averager::AbstractAverager`: Parameter averaging strategy. (default: `PolynomialAveraging()`)
 - `operator::Union{<:IdentityOperator, <:ClipScale}`: Operator to be applied after each gradient descent step. (default: `IdentityOperator()`)
 - `subsampling::Union{<:Nothing,<:AbstractSubsampling}`: Data point subsampling strategy. If `nothing`, subsampling is not used. (default: `nothing`)
@@ -213,7 +213,7 @@ end
 function KLMinScoreGradDescent(
     adtype::ADTypes.AbstractADType;
     optimizer::Optimisers.AbstractRule=DoWG(),
-    n_samples::Int=1,
+    n_samples::Int=2,
     averager::AbstractAverager=PolynomialAveraging(),
     operator::AbstractOperator=IdentityOperator(),
     subsampling::Union{<:Nothing,<:AbstractSubsampling}=nothing,
