@@ -308,7 +308,7 @@ model = bayes_logreg(X) | (y=y_obs,)
 
 subsampling = ReshufflingBatchSubsampling(1:n_data, 32)
 make_prob = batch -> DynamicPPL.subsample(model, batch, n_data)
-prob = make_prob(1:n_data)
+prob = make_prob(1:min(32, n_data))
 
 alg = KLMinRepGradProxDescent(AutoForwardDiff(); subsampling)
 dim = LogDensityProblems.dimension(prob)
