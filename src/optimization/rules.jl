@@ -28,7 +28,7 @@ function Optimisers.apply!(::DoWG, state, x::AbstractArray{T}, dx) where {T}
     r = max(sqrt(sum(abs2, x - x0)), r)
     r2 = r * r
     v = v + r2 * sum(abs2, dx)
-    η = r2 / sqrt(v)
+    η = iszero(v) ? zero(v) : r2 / sqrt(v)
     dx′ = Optimisers.@lazy dx * η
     return (x0, v, r), dx′
 end
@@ -58,7 +58,7 @@ function Optimisers.apply!(::DoG, state, x::AbstractArray{T}, dx) where {T}
 
     r = max(sqrt(sum(abs2, x - x0)), r)
     v = v + sum(abs2, dx)
-    η = r / sqrt(v)
+    η = iszero(v) ? zero(v) : r / sqrt(v)
     dx′ = Optimisers.@lazy dx * η
     return (x0, v, r), dx′
 end
@@ -91,6 +91,8 @@ function Optimisers.apply!(o::COCOB, state, x::AbstractArray{T}, dx) where {T}
     Optimisers.@.. G = G + abs(dx)
     Optimisers.@.. R = max(R + (x - x1) * -dx, 0)
     Optimisers.@.. θ = θ + -dx
-    dx′ = Optimisers.@lazy -(x1 - x) - (θ / (L * max(G + L, α * L)) * (L + R))
+    denominator = similar(L)
+    Optimisers.@.. denominator = ifelse(iszero(L), one(T), L * max(G + L, α * L))
+    dx′ = Optimisers.@lazy -(x1 - x) - (θ / denominator * (L + R))
     return (L, G, R, θ, x1), dx′
 end
