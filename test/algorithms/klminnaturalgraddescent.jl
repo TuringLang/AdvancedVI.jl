@@ -41,6 +41,32 @@
             @test μ == μ_repl
             @test L == L_repl
         end
+
+        @testset "mean precision ensure_posdef=$(ensure_posdef)" for ensure_posdef in
+                                                                     [true, false]
+            seed = 0x729c871fc43a109d
+            stepsize = 1e-2
+            n_samples = 3
+            alg = KLMinNaturalGradDescent(; stepsize, n_samples, ensure_posdef)
+            state = AdvancedVI.init(StableRNG(seed), alg, q0, model)
+
+            _, grad, hess = AdvancedVI.gaussian_expectation_gradient_and_hessian!(
+                StableRNG(seed), q0, n_samples, zeros(n_dims), zeros(n_dims, n_dims), model
+            )
+            S = state.prec
+            S′ = if ensure_posdef
+                G_hat = S - (-hess)
+                Hermitian(S - stepsize * G_hat + stepsize^2 / 2 * G_hat * cov(q0) * G_hat)
+            else
+                Hermitian((1 - stepsize) * S + stepsize * (-hess))
+            end
+            mean_precision = ensure_posdef ? S : S′
+            m_expected = mean(q0) - stepsize * (mean_precision \ (-grad))
+
+            state′, _, _ = AdvancedVI.step(StableRNG(seed), alg, state, nothing)
+
+            @test state′.q.location ≈ m_expected
+        end
     end
 
     @testset "error low capability" begin
