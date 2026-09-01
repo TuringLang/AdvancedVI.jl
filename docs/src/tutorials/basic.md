@@ -181,9 +181,7 @@ using Random
 
 max_iter = 10^4
 rng = Random.Xoshiro(1)
-q_out, info, _ = AdvancedVI.optimize(
-    rng, alg, max_iter, prob_trans, q; show_progress=false
-)
+q_out, info, _ = AdvancedVI.optimize(rng, alg, max_iter, prob_trans, q; show_progress=false)
 nothing
 ```
 
