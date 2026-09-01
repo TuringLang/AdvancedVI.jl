@@ -100,18 +100,18 @@ L = Diagonal(ones(2));
 q = MvLocationScale(μ, L, Laplace())
 ```
 
-## The `LocationScaleLowRank` Family
+## The `LocationScaleLowRank` Gaussian family
 
 In practice, `LocationScale` families with full-rank scale matrices are known to converge slowly as they require a small SGD stepsize.
 Low-rank variational families can be an effective alternative[^ONS2018].
-`LocationScaleLowRank` generally represent any ``d``-dimensional distribution which its sampling path can be represented as
+`LocationScaleLowRank` represents a ``d``-dimensional Gaussian distribution whose sampling path can be written as
 
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
 z \stackrel{d}{=} D u_1 + U u_2  + m;\quad u_1, u_2 \sim \varphi
 ```
 
-where ``D \in \mathbb{R}^{d \times d}`` is a diagonal matrix, ``U \in \mathbb{R}^{d \times r}`` is a dense low-rank matrix for the rank ``r > 0``, ``m \in \mathbb{R}^d`` is the location, and ``\varphi`` is the *base distribution*.
+where ``D \in \mathbb{R}^{d \times d}`` is a diagonal matrix, ``U \in \mathbb{R}^{d \times r}`` is a dense low-rank matrix for the rank ``r > 0``, ``m \in \mathbb{R}^d`` is the location, and ``\varphi`` is a univariate Gaussian base distribution.
 ``m``, ``D``, and ``U`` form the variational parameters ``\lambda = (m, D, U)``.
 
 The covariance of this distribution is given as
@@ -120,15 +120,16 @@ The covariance of this distribution is given as
   \mathrm{Var}\left(q_{\lambda}\right) = D \mathrm{Var}(\varphi) D + U \mathrm{Var}(\varphi) U^{\top}
 ```
 
-and the entropy is given by the matrix determinant lemma as
+The entropy is given by the matrix determinant lemma as
 
 ```math
-  \mathbb{H}(q_{\lambda}) 
-  = \mathbb{H}(\varphi) + \log |\Sigma|
-  = \mathbb{H}(\varphi) + 2 \log |D| + \log |I + U^{\top} D^{-2} U|,
+  \mathbb{H}(q_{\lambda})
+  = d\mathbb{H}(\varphi) + \frac{1}{2}\log\lvert\det(D^2 + UU^{\top})\rvert
+  = d\mathbb{H}(\varphi) + \log\lvert\det D\rvert
+    + \frac{1}{2}\log\lvert\det(I + U^{\top}D^{-2}U)\rvert,
 ```
 
-where ``\mathbb{H}(\varphi)`` is the entropy of the base distribution.
+where ``\mathbb{H}(\varphi)`` is the entropy of one component of the base distribution.
 
 ```@setup lowrank
 using ADTypes

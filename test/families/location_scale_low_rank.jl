@@ -147,3 +147,13 @@
         end
     end
 end
+
+@testset "Gaussian base" begin
+    location = [0.2, -0.1]
+    scale_diag = [2.0, 3.0]
+    scale_factors = reshape([0.4, -0.3], 2, 1)
+
+    @test_throws ArgumentError MvLocationScaleLowRank(
+        location, scale_diag, scale_factors, Laplace()
+    )
+end

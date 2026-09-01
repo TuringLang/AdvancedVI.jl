@@ -1,12 +1,11 @@
 
 """
-    MvLocationLowRankScale(location, scale_diag, scale_factors, dist)
+    MvLocationScaleLowRank(location, scale_diag, scale_factors, dist)
 
-Variational family with a covariance in the form of a diagonal matrix plus a squared low-rank matrix.
+Gaussian variational family with diagonal-plus-low-rank covariance.
 The rank is given by `size(scale_factors, 2)`.
 
-It generally represents any distribution for which the sampling path can be
-represented as follows:
+It represents a Gaussian distribution with the following sampling path:
 ```julia
   d = length(location)
   r = size(scale_factors, 2)
@@ -14,14 +13,26 @@ represented as follows:
   u_factors = rand(dist, r)
   z = scale_diag.*u_diag + scale_factors*u_factors + location
 ```
+
+The base distribution `dist` must be univariate Gaussian.
 """
 struct MvLocationScaleLowRank{
-    D<:ContinuousDistribution,L,SD<:AbstractVector,SF<:AbstractMatrix
+    D<:Union{Normal,NormalCanon},L,SD<:AbstractVector,SF<:AbstractMatrix
 } <: ContinuousMultivariateDistribution
     location::L
     scale_diag::SD
     scale_factors::SF
     dist::D
+end
+
+function MvLocationScaleLowRank(
+    location, scale_diag, scale_factors, dist::ContinuousDistribution
+)
+    throw(
+        ArgumentError(
+            "`MvLocationScaleLowRank` requires a Gaussian base distribution; got $(typeof(dist)).",
+        ),
+    )
 end
 
 Functors.@functor MvLocationScaleLowRank (location, scale_diag, scale_factors)
