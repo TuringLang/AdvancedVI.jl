@@ -62,7 +62,7 @@ function Distributions.logpdf(
 
     scale2chol = if non_differntiable
         # Fast O(kd^2) path (not supported by most current AD frameworks):
-        scale2chol = Cholesky(LowerTriangular(diagm(sqrt.(scale_diag))))
+        scale2chol = Cholesky(LowerTriangular(diagm(scale_diag)))
         n_factors = size(scale_factors, 2)
         for k in 1:n_factors
             factor = scale_factors[:, k] # copy necessary due to in-place mutation

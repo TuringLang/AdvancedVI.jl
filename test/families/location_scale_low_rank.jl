@@ -157,3 +157,14 @@ end
         location, scale_diag, scale_factors, Laplace()
     )
 end
+
+@testset "non-unit diagonal fast density" begin
+    location = [0.2, -0.1]
+    scale_diag = [2.0, 3.0]
+    scale_factors = reshape([0.4, -0.3], 2, 1)
+    q = LowRankGaussian(location, scale_diag, scale_factors)
+    q_true = MvNormal(location, Diagonal(scale_diag .^ 2) + scale_factors * scale_factors')
+    z = [0.7, -1.2]
+
+    @test logpdf(q, z; non_differntiable=true) ≈ logpdf(q_true, z)
+end
