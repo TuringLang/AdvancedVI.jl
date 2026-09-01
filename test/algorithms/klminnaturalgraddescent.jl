@@ -67,6 +67,20 @@
 
             @test state′.q.location ≈ m_expected
         end
+
+        @testset "reported ELBO" begin
+            seed = 0xb94bde674ab20a05
+            n_samples = 3
+            alg = KLMinNaturalGradDescent(; n_samples, stepsize=1e-3)
+            state = AdvancedVI.init(StableRNG(seed), alg, q0, model)
+            logπ_avg, _, _ = AdvancedVI.gaussian_expectation_gradient_and_hessian!(
+                StableRNG(seed), q0, n_samples, zeros(n_dims), zeros(n_dims, n_dims), model
+            )
+
+            _, _, info = AdvancedVI.step(StableRNG(seed), alg, state, nothing)
+
+            @test info.elbo ≈ logπ_avg + entropy(q0)
+        end
     end
 
     @testset "error low capability" begin
