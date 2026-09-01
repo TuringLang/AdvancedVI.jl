@@ -248,10 +248,11 @@ While `FullRankGaussian` can converge to the true solution since it is a more ex
 MvLocationScaleLowRank
 ```
 
-The `logpdf` of  `MvLocationScaleLowRank` has an optional argument `non_differentiable::Bool` (default: `false`).
+For an `MvLocationScaleLowRank` with a `Normal` base distribution, `logpdf` has an optional argument `non_differentiable::Bool` (default: `false`).
 If set as `true`, a more efficient ``O\left(r d^2\right)`` implementation is used to evaluate the density.
 This, however, is not differentiable under most AD frameworks due to the use of Cholesky `lowrankupdate`.
 The default value is `false`, which uses a ``O\left(d^3\right)`` implementation, is differentiable and therefore compatible with the `StickingTheLandingEntropy` estimator.
+The density and entropy are not implemented for other base distributions because the low-rank term produces a convolution without the same closed form.
 
 The following is a specialized constructor for convenience:
 

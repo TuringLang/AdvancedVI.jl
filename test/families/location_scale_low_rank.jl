@@ -157,4 +157,14 @@ end
     z = [0.7, -1.2]
 
     @test logpdf(q, z; non_differentiable=true) ≈ logpdf(q_true, z)
+    @test_deprecated "`non_differntiable` is deprecated; use `non_differentiable`." logpdf(
+        q, z; non_differntiable=true
+    )
+end
+
+@testset "non-Gaussian density and entropy are unsupported" begin
+    q = MvLocationScaleLowRank([0.0], [1.0], ones(1, 1), Laplace())
+
+    @test_throws ArgumentError logpdf(q, [0.0])
+    @test_throws ArgumentError entropy(q)
 end
