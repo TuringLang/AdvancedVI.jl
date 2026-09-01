@@ -114,7 +114,7 @@ nothing
 In this example, we will compare the convergence speed of `KLMinRepGradProxDescent` with and without subsampling.
 Subsampling can be turned on by supplying a subsampling strategy.
 Here, we will use `ReshufflingBatchSubsampling`, which implements random reshuffling.
-We will use a batch size of 32, which results in `313 = length(subsampling) = ceil(Int, size(X, 2) / 32)` steps per epoch.
+We will use a batch size of 32, which results in `313 = length(subsampling) = ceil(Int, size(X, 1) / 32)` steps per epoch.
 
 ```@example subsampling
 dataset = 1:size(prob.X, 1)
