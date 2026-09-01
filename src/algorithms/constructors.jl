@@ -24,7 +24,7 @@ KL divergence minimization by running stochastic gradient descent with the repar
 # Callback Signature
 The `callback` function supplied to `optimize` needs to have the following signature:
 
-    callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
+    callback(; rng, iteration, restructure, params, averaged_params, gradient, state)
 
 The keyword arguments are as follows:
 - `rng`: Random number generator internally used by the algorithm.
@@ -33,13 +33,14 @@ The keyword arguments are as follows:
 - `params`: Current variational parameters.
 - `averaged_params`: Variational parameters averaged according to the averaging strategy.
 - `gradient`: The estimated (possibly stochastic) gradient.
+- `state`: Current optimization state.
 
 # Requirements
 - The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`. This requires the variational approximation to be marked as a functor through `Functors.@functor`.
 - The variational approximation ``q_{\\lambda}`` implements `rand`.
 - The target distribution and the variational approximation have the same support.
 - The target `LogDensityProblems.logdensity(prob, x)` must be differentiable with respect to `x` by the selected AD backend.
-- Additonal requirements on `q` may apply depending on the choice of `entropy`.
+- Additional requirements on `q` may apply depending on the choice of `entropy`.
 """
 struct KLMinRepGradDescent{
     Obj<:Union{<:RepGradELBO,<:SubsampledObjective},
@@ -103,7 +104,7 @@ Thus, only the entropy estimators with a "ZeroGradient" suffix are allowed.
 # Callback Signature
 The `callback` function supplied to `optimize` needs to have the following signature:
 
-    callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
+    callback(; rng, iteration, restructure, params, averaged_params, gradient, state)
 
 The keyword arguments are as follows:
 - `rng`: Random number generator internally used by the algorithm.
@@ -112,12 +113,13 @@ The keyword arguments are as follows:
 - `params`: Current variational parameters.
 - `averaged_params`: Variational parameters averaged according to the averaging strategy.
 - `gradient`: The estimated (possibly stochastic) gradient.
+- `state`: Current optimization state.
 
 # Requirements
 - The variational family is `MvLocationScale`.
 - The target distribution and the variational approximation have the same support.
 - The target `LogDensityProblems.logdensity(prob, x)` must be differentiable with respect to `x` by the selected AD backend.
-- Additonal requirements on `q` may apply depending on the choice of `entropy_zerograd`.
+- Additional requirements on `q` may apply depending on the choice of `entropy_zerograd`.
 """
 struct KLMinRepGradProxDescent{
     Obj<:Union{<:RepGradELBO,<:SubsampledObjective},
@@ -180,7 +182,7 @@ KL divergence minimization by running stochastic gradient descent with the score
 # Callback
 The `callback` function supplied to `optimize` needs to have the following signature:
 
-    callback(; rng, iteration, restructure, params, averaged_params, restructure, gradient)
+    callback(; rng, iteration, restructure, params, averaged_params, gradient, state)
 
 The keyword arguments are as follows:
 - `rng`: Random number generator internally used by the algorithm.
@@ -189,6 +191,7 @@ The keyword arguments are as follows:
 - `params`: Current variational parameters.
 - `averaged_params`: Variational parameters averaged according to the averaging strategy.
 - `gradient`: The estimated (possibly stochastic) gradient.
+- `state`: Current optimization state.
 
 # Requirements
 - The trainable parameters in the variational approximation are expected to be extractable through `Optimisers.destructure`. This requires the variational approximation to be marked as a functor through `Functors.@functor`.

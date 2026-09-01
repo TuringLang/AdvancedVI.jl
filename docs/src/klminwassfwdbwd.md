@@ -64,7 +64,7 @@ where $$\widehat{\nabla_{\mathrm{BW}} \mathcal{U}}$$ is a stochastic estimate of
 ```math
 \mathrm{JKO}_{\gamma_t \mathcal{H}}(\mu)
 =
-\argmin_{\nu \in \mathcal{Q}} \left\{ \mathcal{H}(\nu) + \frac{1}{2 \gamma_t} \mathrm{W}_2 {(\mu, \nu)}^2 \right\} ,
+\argmin_{\nu \in \mathcal{Q}} \left\lbrace \mathcal{H}(\nu) + \frac{1}{2 \gamma_t} \mathrm{W}_2 {(\mu, \nu)}^2 \right\rbrace ,
 ```
 
 and $$\mathrm{W}_2$$ is the Wasserstein-2 distance.

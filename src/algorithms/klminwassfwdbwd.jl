@@ -7,7 +7,7 @@ KL divergence minimization by running stochastic proximal gradient descent (forw
 
 This algorithm requires second-order information about the target.
 If the target `LogDensityProblem` has second-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), Hessians are used.
-Otherwise, if the target has only first-order capability, it will use only gradients but this will porbably result in slower convergence and less robust behavior.
+Otherwise, if the target has only first-order capability, it will use only gradients but this will probably result in slower convergence and less robust behavior.
 
 # (Keyword) Arguments
 - `n_samples::Int`: Number of samples used to estimate the Wasserstein gradient. (default: `1`)
@@ -133,7 +133,7 @@ Estimate the negative ELBO of the variational approximation `q` against the targ
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 
 # Keyword Arguments
-- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the the number of samples used for estimating the gradient during optimization.)
+- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the number of samples used for estimating the gradient during optimization.)
 
 # Returns
 - `obj_est`: Estimate of the objective value.

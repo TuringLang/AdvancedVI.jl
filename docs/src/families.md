@@ -9,17 +9,19 @@ The [location-scale](https://en.wikipedia.org/wiki/Location%E2%80%93scale_family
 
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
-z \stackrel{d}{=} C u + m;\quad u \sim \varphi
+z \stackrel{d}{=} C u + m;\quad u_i \stackrel{\mathrm{iid}}{\sim} \varphi
 ```
 
-where ``C`` is the *scale*, ``m`` is the location, and ``\varphi`` is the *base distribution*.
+where ``C`` is the *scale*, ``m`` is the location, and ``u`` has ``d`` independent components with univariate base distribution ``\varphi``.
 ``m`` and ``C`` form the variational parameters ``\lambda = (m, C)`` of ``q_{\lambda}``.
 The location-scale family encompasses many practical variational families, which can be instantiated by setting the *base distribution* of ``u`` and the structure of ``C``.
 
 The probability density is given by
 
 ```math
-  q_{\lambda}(z) = {|C|}^{-1} \varphi(C^{-1}(z - m)),
+  q_{\lambda}(z)
+  = {\lvert\det C\rvert}^{-1}
+    \prod_{i=1}^{d}\varphi\left({[C^{-1}(z-m)]}_i\right),
 ```
 
 the covariance is given as
@@ -31,7 +33,7 @@ the covariance is given as
 and the entropy is given as
 
 ```math
-  \mathbb{H}(q_{\lambda}) = \mathbb{H}(\varphi) + \log |C|,
+  \mathbb{H}(q_{\lambda}) = d\mathbb{H}(\varphi) + \log\lvert\det C\rvert,
 ```
 
 where ``\mathbb{H}(\varphi)`` is the entropy of the base distribution.
@@ -108,10 +110,11 @@ Low-rank variational families can be an effective alternative[^ONS2018].
 
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
-z \stackrel{d}{=} D u_1 + U u_2  + m;\quad u_1, u_2 \sim \varphi
+z \stackrel{d}{=} D u_1 + U u_2 + m,
 ```
 
-where ``D \in \mathbb{R}^{d \times d}`` is a diagonal matrix, ``U \in \mathbb{R}^{d \times r}`` is a dense low-rank matrix for the rank ``r > 0``, ``m \in \mathbb{R}^d`` is the location, and ``\varphi`` is the *base distribution*.
+where ``D \in \mathbb{R}^{d \times d}`` is a diagonal matrix, ``U \in \mathbb{R}^{d \times r}`` is a dense low-rank matrix for the rank ``r > 0``, and ``m \in \mathbb{R}^d`` is the location.
+The vectors ``u_1 \in \mathbb{R}^d`` and ``u_2 \in \mathbb{R}^r`` are independent, and their components are independent draws from the base distribution ``\varphi``.
 ``m``, ``D``, and ``U`` form the variational parameters ``\lambda = (m, D, U)``.
 
 The covariance of this distribution is given as
@@ -120,15 +123,18 @@ The covariance of this distribution is given as
   \mathrm{Var}\left(q_{\lambda}\right) = D \mathrm{Var}(\varphi) D + U \mathrm{Var}(\varphi) U^{\top}
 ```
 
-and the entropy is given by the matrix determinant lemma as
+For a Gaussian base distribution, the entropy is given by the matrix determinant lemma as
 
 ```math
-  \mathbb{H}(q_{\lambda}) 
-  = \mathbb{H}(\varphi) + \log |\Sigma|
-  = \mathbb{H}(\varphi) + 2 \log |D| + \log |I + U^{\top} D^{-2} U|,
+  \mathbb{H}(q_{\lambda})
+  = d\mathbb{H}(\varphi) + \frac{1}{2}\log\lvert\det(D^2 + UU^{\top})\rvert
+  = d\mathbb{H}(\varphi) + \log\lvert\det D\rvert
+    + \frac{1}{2}\log\lvert\det(I + U^{\top}D^{-2}U)\rvert,
 ```
 
-where ``\mathbb{H}(\varphi)`` is the entropy of the base distribution.
+where ``\mathbb{H}(\varphi)`` is the entropy of one component of the base distribution.
+For a non-Gaussian base distribution, the sampling construction remains valid, but this
+entropy identity does not generally hold.
 
 ```@setup lowrank
 using ADTypes

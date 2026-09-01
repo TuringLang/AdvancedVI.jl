@@ -17,7 +17,7 @@ The associated objective can be estimated through the following:
 ```@docs; canonical=false
 estimate_objective(
     ::Random.AbstractRNG,
-    ::KLMinWassFwdBwd,
+    ::KLMinNaturalGradDescent,
     ::MvLocationScale,
     ::Any;
     ::Int,
@@ -50,7 +50,14 @@ Suppose we had access to the exact gradients $\nabla_{\lambda} \mathcal{L}\left(
 NGVI attempts to minimize $\mathcal{L}$ via natural gradient descent, which corresponds to iterating the mirror descent update
 
 ```math
-\lambda_{t+1} =  \argmin_{\lambda \in \Lambda} {\langle \nabla_{\lambda} \mathcal{L}\left(q_{\lambda_t}\right), \lambda - \lambda_t \rangle} + \frac{1}{2 \gamma_t} \mathrm{KL}\left(q, q_{\lambda_t}\right) .
+\lambda_{t+1}
+= \argmin_{\lambda \in \Lambda}\left\lbrace
+    \left\langle
+        \nabla_{\lambda}\mathcal{L}(q_{\lambda_t}),
+        \lambda - \lambda_t
+    \right\rangle
+    + \frac{1}{\gamma_t}\mathrm{KL}(q_{\lambda}, q_{\lambda_t})
+\right\rbrace .
 ```
 
 This turns out to be equivalent to the update
@@ -61,7 +68,7 @@ This turns out to be equivalent to the update
 
 where $F(\lambda_t)$ is the Fisher information matrix of $q_{\lambda}$.
 That is, natural gradient descent can be viewed as gradient descent with an iterate-dependent preconditioning.
-Furthermore, ${F(\lambda_t)}^{-1} \nabla_{\lambda} \mathcal{L}(q_{\lambda_t})$ is refered to as the *natural gradient* of the KL divergence[^A1998], hence natural gradient variational inference.
+Furthermore, ${F(\lambda_t)}^{-1} \nabla_{\lambda} \mathcal{L}(q_{\lambda_t})$ is referred to as the *natural gradient* of the KL divergence[^A1998], hence natural gradient variational inference.
 Also note that the gradient is taken over the parameters of $q_{\lambda}$.
 Therefore, NGVI is parametrization dependent: for the same variational family, different parametrizations will result in different behavior.
 However, the pseudo-metric $\mathrm{KL}\left(q, q_{\lambda_t}\right)$ is over measures.

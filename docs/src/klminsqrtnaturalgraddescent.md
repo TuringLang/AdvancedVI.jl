@@ -18,7 +18,7 @@ The associated objective value can be estimated through the following:
 ```@docs; canonical=false
 estimate_objective(
     ::Random.AbstractRNG,
-    ::KLMinWassFwdBwd,
+    ::KLMinSqrtNaturalGradDescent,
     ::MvLocationScale,
     ::Any;
     ::Int,
@@ -58,13 +58,13 @@ This can be viewed as a discretization of the continuous-time dynamics given by 
 ```math
 \dot{\lambda}_t
 =
-{F(\lambda)}^{-1} \nabla_{\lambda} \mathcal{L}\left(q_{\lambda}\right) .
+-{F(\lambda_t)}^{-1} \nabla_{\lambda} \mathcal{L}\left(q_{\lambda_t}\right) .
 ```
 
 This is also known as the *natural gradient flow*.
 Notice that the flow is over the parameters $\lambda_t$.
 Therefore, the natural gradient flow depends on the way we parametrize $q_{\lambda}$.
-For Gaussian variational families, if we specifically choose the *square-root* (or Cholesky) parametrization such that $q_{\lambda_t} = \mathrm{Normal}(m_t, C_t C_t)$, the flow of $\lambda_t = (m_t, C_t)$ given as
+For Gaussian variational families, if we specifically choose the *square-root* (or Cholesky) parametrization such that $q_{\lambda_t} = \mathrm{Normal}(m_t, C_t C_t^{\top})$, the flow of $\lambda_t = (m_t, C_t)$ is given as
 
 ```math
 \begin{align*}
@@ -78,9 +78,9 @@ where $M$ is a $\mathrm{tril}$-like function defined as
 
 ```math
 {[ M(A) ]}_{ij} = \begin{cases}
-    0 & \text{if $i > j$} \\
+    A_{ij} & \text{if $i > j$} \\
     \frac{1}{2} A_{ii} & \text{if $i = j$} \\
-    A_{ij} & \text{if $i < j$} .
+    0 & \text{if $i < j$} .
 \end{cases}
 ```
 

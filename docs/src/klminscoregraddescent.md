@@ -2,8 +2,8 @@
 
 ## Description
 
-This algorithms aim to minimize the exclusive (or reverse) Kullback-Leibler (KL) divergence via stochastic gradient descent in the space of parameters.
-Specifically, it uses the the *score gradient* estimator, which is similar to the algorithm that was originally referred to as black-box variational inference (BBVI; [^RGB2014][^WW2013]).
+This algorithm aims to minimize the exclusive (or reverse) Kullback-Leibler (KL) divergence via stochastic gradient descent in the space of parameters.
+Specifically, it uses the *score gradient* estimator, which is similar to the algorithm that was originally referred to as black-box variational inference (BBVI; [^RGB2014][^WW2013]).
 (The term BBVI has also recently been used to refer to the more general setup of maximizing the ELBO in parameter space. We are using the more narrow definition, which restricts to the use of the score gradient.)
 However, instead of using the vanilla score gradient estimator, we differentiate the "VarGrad" objective[^RBNRA2020], which results in the score gradient variance-reduced by the leave-one-out control variate[^SK2014][^KvHW2019].
 `KLMinScoreGradDescent` is also an alias of `BBVI`.
@@ -65,12 +65,24 @@ For this reason, the score gradient is the standard method to deal with discrete
 In more detail, the score gradient uses the Fisher log-derivative identity: For any regular $f$,
 
 ```math
-\nabla_{\lambda} \mathbb{E}_{z \sim q_{\lambda}} f
+\nabla_{\lambda} \mathbb{E}_{z \sim q_{\lambda}} f(z)
 =
-\mathbb{E}_{z \sim q_{\lambda}}\left[ f(z) \log q_{\lambda}(z) \right] \; .
+\mathbb{E}_{z \sim q_{\lambda}}\left[
+    f(z)\nabla_{\lambda}\log q_{\lambda}(z)
+\right] .
 ```
 
-The ELBO corresponds to the case where $f = \log \pi / \log q$, where $\log \pi$ is the target log density.
+Since the expected score is zero, the score-gradient form of the ELBO is
+
+```math
+\nabla_{\lambda}\mathrm{ELBO}(q_{\lambda})
+= \mathbb{E}_{z \sim q_{\lambda}}\left[
+    \left(\log \pi(z) - \log q_{\lambda}(z)\right)
+    \nabla_{\lambda}\log q_{\lambda}(z)
+\right],
+```
+
+where $\log \pi$ is the target log density.
 Instead of implementing the canonical score gradient, `KLMinScoreGradDescent` internally uses the "VarGrad" objective[^RBNRA2020]:
 
 ```math

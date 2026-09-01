@@ -30,7 +30,7 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
     σ = exp(logσ)
 
     logprior_β = logpdf(MvNormal(Zeros(d), σ), β)
-    logprior_σ = logpdf(Normal(0, 3), σ)
+    logprior_σ = logpdf(Normal(0, 3), logσ)
 
     logit = X * β
     loglike_y = mapreduce((li, yi) -> logpdf(BernoulliLogit(li), yi), +, logit, y)
@@ -38,7 +38,7 @@ function LogDensityProblems.logdensity(model::LogReg, θ)
 end
 
 function LogDensityProblems.dimension(model::LogReg)
-    return size(prob.X, 2) + 1
+    return size(model.X, 2) + 1
 end
 
 function LogDensityProblems.capabilities(::Type{<:LogReg})
@@ -57,18 +57,18 @@ In particular, we will utilize the "Phishing" dataset[^Tan2018], which consists 
 The goal is to predict whether the features of a specific website indicate whether it is a phishing website or a legitimate one.
 The [dataset](https://www.openml.org/search?type=data&status=active&id=46722) id on the [`OpenML`](https://github.com/JuliaAI/OpenML.jl) repository is 46722.
 
-[^Tan2018]: Tan, Choon Lin (2018), "Phishing Dataset for Machine Learning: Feature Evaluation", Mendeley Data, V1, doi: 10.17632/h3cgnj8hft.1]
+[^Tan2018]: Tan, Choon Lin (2018), "Phishing Dataset for Machine Learning: Feature Evaluation", Mendeley Data, V1, doi: 10.17632/h3cgnj8hft.1.
 ```@example subsampling
 using OpenML: OpenML
 using DataFrames: DataFrames
 
 data = Array(DataFrames.DataFrame(OpenML.load(46722)))
-X = Matrix{Float64}(data[:, 2:end])
+X = Matrix{Float64}(data[:, 2:(end - 1)])
 y = Vector{Bool}(data[:, end])
 nothing
 ```
 
-The features start from the seoncd column, while the last column are the class labels.
+The features start from the second column, while the last column contains the class labels.
 
 Let's also apply some basic pre-processing.
 
@@ -114,7 +114,7 @@ nothing
 In this example, we will compare the convergence speed of `KLMinRepGradProxDescent` with and without subsampling.
 Subsampling can be turned on by supplying a subsampling strategy.
 Here, we will use `ReshufflingBatchSubsampling`, which implements random reshuffling.
-We will us a batch size of 32, which results in `313 = length(subsampling) = ceil(Int, size(X,2)/32)` steps per epoch.
+We will use a batch size of 32, which results in `313 = length(subsampling) = ceil(Int, size(X, 2) / 32)` steps per epoch.
 
 ```@example subsampling
 dataset = 1:size(prob.X, 1)
@@ -168,7 +168,7 @@ time_begin = nothing
 Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
 """
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((prob.X * Σ_β) .* prob.X; dims=2)[:, 1]
+    xtΣx = sum((X * Σ_β) .* X; dims=2)[:, 1]
     κ = @. 1 / sqrt(1 + π / 8 * xtΣx)
     return StatsFuns.logistic.(κ .* X * μ_β)
 end
@@ -181,7 +181,7 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
 
         # Compute predictions using 
         μ_β = mean(q_avg)[1:(end - 1)] # posterior mean of β
-        Σ_β = cov(q_avg)[1:(end - 1), end - 1] # marginal posterior covariance of β
+        Σ_β = cov(q_avg)[1:(end - 1), 1:(end - 1)] # marginal posterior covariance of β
         y_pred = logistic_prediction(X, μ_β, Σ_β) .> 0.5
 
         # Prediction accuracy

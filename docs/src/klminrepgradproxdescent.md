@@ -57,9 +57,9 @@ where
 
 ```math
 \mathrm{prox}_{h}(\lambda_t) 
-= \argmin_{\lambda \in \Lambda}\left\{ 
-    h(\lambda) + {\lVert \lambda - \lambda_t \rVert}_2^2 
-\right\}
+= \argmin_{\lambda \in \Lambda}\left\lbrace
+    h(\lambda) + \frac{1}{2}{\lVert \lambda - \lambda_t \rVert}_2^2
+\right\rbrace
 ```
 
 is a proximal operator for the entropy.

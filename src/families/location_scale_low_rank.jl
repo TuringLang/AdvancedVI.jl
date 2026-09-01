@@ -43,15 +43,25 @@ function StatsBase.entropy(q::MvLocationScaleLowRank)
 end
 
 function Distributions.logpdf(
-    q::MvLocationScaleLowRank, z::AbstractVector{<:Real}; non_differntiable::Bool=false
+    q::MvLocationScaleLowRank,
+    z::AbstractVector{<:Real};
+    non_differentiable::Bool=false,
+    non_differntiable::Union{Nothing,Bool}=nothing,
 )
+    if !isnothing(non_differntiable)
+        Base.depwarn(
+            "`non_differntiable` is deprecated; use `non_differentiable`.", :logpdf
+        )
+        non_differentiable = non_differntiable
+    end
+
     (; location, scale_diag, scale_factors, dist) = q
     μ_base = mean(dist)
     n_dims = length(location)
 
-    scale2chol = if non_differntiable
+    scale2chol = if non_differentiable
         # Fast O(kd^2) path (not supported by most current AD frameworks):
-        scale2chol = Cholesky(LowerTriangular(diagm(sqrt.(scale_diag))))
+        scale2chol = Cholesky(LowerTriangular(diagm(scale_diag)))
         n_factors = size(scale_factors, 2)
         for k in 1:n_factors
             factor = scale_factors[:, k] # copy necessary due to in-place mutation
