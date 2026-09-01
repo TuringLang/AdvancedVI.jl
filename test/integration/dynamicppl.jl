@@ -13,12 +13,7 @@
         μ_true = [-2.0, 2.0]
 
         model = normal(μ_true)
-        vi = DynamicPPL.VarInfo(model)
-        vi = DynamicPPL.link!!(vi, model)
-
-        prob = DynamicPPL.LogDensityFunction(
-            model, DynamicPPL.getlogjoint_internal, vi; adtype=AD
-        )
+        prob = DynamicPPL.LogDensityFunction(model; adtype=AD)
 
         alg = KLMinRepGradProxDescent(AD)
         d = LogDensityProblems.dimension(prob)
