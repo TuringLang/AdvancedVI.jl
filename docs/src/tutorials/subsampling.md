@@ -286,61 +286,39 @@ Therefore, subsampling is most beneficial when a crude solution to the VI proble
 
 ## Subsampling with `DynamicPPL` models
 
-Rebuild the `DynamicPPL` model for each batch, then wrap the resulting
-log-density factory in `SubsampledLogDensity`. `AdvancedVI.WeightedLogJoint`
-scales the likelihood while leaving the prior and Jacobian unchanged.
+`DynamicPPL.subsample` constructs a log-density problem for a selected batch
+and scales its likelihood while leaving the prior and Jacobian unchanged. Pass
+a one-argument problem factory to `AdvancedVI`; it is called with the batch
+selected at each optimization step.
 
 ```julia
 using AdvancedVI, ADTypes, DynamicPPL, Distributions, LinearAlgebra, LogDensityProblems
 
-DynamicPPL.@model function bayes_logreg(X_batch, N)
-    d = size(X_batch, 2)
+DynamicPPL.@model function bayes_logreg(X)
+    d = size(X, 2)
     β ~ MvNormal(zeros(d), I)
-    return y ~ arraydist([BernoulliLogit(dot(X_batch[i, :], β)) for i in 1:N])
+    return y ~ DynamicPPL.independent_distribution(
+        i -> BernoulliLogit(dot(X[i, :], β)), size(X, 1)
+    )
 end
 
 # `X` and `y_obs` contain the full dataset.
 n_data = size(X, 1)
-
-# Use the full model to establish the latent-variable layout.
-model = bayes_logreg(X, n_data) | (y=y_obs,)
-vi = DynamicPPL.link!!(DynamicPPL.VarInfo(model), model)
+model = bayes_logreg(X) | (y=y_obs,)
 
 subsampling = ReshufflingBatchSubsampling(1:n_data, 32)
-minibatch_model = batch -> bayes_logreg(X[batch, :], length(batch)) | (y=y_obs[batch],)
-
-make_prob =
-    (batch, scale) -> DynamicPPL.LogDensityFunction(
-        minibatch_model(batch), AdvancedVI.WeightedLogJoint(scale), vi
-    )
-prob = SubsampledLogDensity(make_prob(1:n_data, 1.0), make_prob, n_data)
+make_prob = batch -> DynamicPPL.subsample(model, batch, n_data)
+prob = make_prob(1:n_data)
 
 alg = KLMinRepGradProxDescent(AutoForwardDiff(); subsampling)
 dim = LogDensityProblems.dimension(prob)
 q0 = FullRankGaussian(zeros(dim), LowerTriangular(Matrix{Float64}(0.6 * I, dim, dim)))
-q, _, _ = AdvancedVI.optimize(alg, 1000, prob, q0; show_progress=false)
+q, _, _ = AdvancedVI.optimize(alg, 1000, make_prob, q0; show_progress=false)
 ```
 
-Do not pass an `adtype` to the inner `LogDensityFunction`: AdvancedVI prepares
-differentiation around the variational objective once and replaces the problem
-for each batch. Supplying an inner `adtype` would repeat its preparation for
-every batch.
-
-Observations may instead be passed as a model argument:
-
-```julia
-DynamicPPL.@model function bayes_logreg(X_batch, y_batch, N)
-    β ~ MvNormal(zeros(size(X_batch, 2)), I)
-    return y_batch ~ arraydist([BernoulliLogit(dot(X_batch[i, :], β)) for i in 1:N])
-end
-
-minibatch_model = batch -> bayes_logreg(X[batch, :], y_obs[batch], length(batch))
-```
-
-Conditioned and argument-passed observations both enter
-`LogLikelihoodAccumulator`, so the likelihood scale applies identically.
-
-The latent-variable dimension must remain fixed across batches. Here, `N`
-changes the number of likelihood terms but not the dimension of `β`.
-Parameter-space SGD does not support models whose latent dimension depends on
-the batch, such as matrix factorisation with one latent vector per observation.
+The observation must be conditioned and use
+`DynamicPPL.independent_distribution`; `DynamicPPL.subsample` checks the other
+structural requirements. The latent-variable dimension must remain fixed
+across batches. Parameter-space SGD does not support models whose latent
+dimension depends on the batch, such as matrix factorisation with one latent
+vector per observation.

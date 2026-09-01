@@ -4,12 +4,9 @@
         return x ~ MvNormal(μ, I)
     end
 
-    # Model arguments on the left of `~` are accumulated as likelihood terms.
-    DynamicPPL.@model function normal_minibatch(obs_batch, N)
-        μ ~ MvNormal(zeros(size(obs_batch, 1)), 100.0 * I)
-        for i in 1:N
-            obs_batch[:, i] ~ MvNormal(μ, I)
-        end
+    DynamicPPL.@model function normal_subsampled()
+        μ ~ MvNormal(zeros(2), 100.0 * I)
+        return x ~ DynamicPPL.independent_distribution(MvNormal(μ, I))
     end
 
     @testset "basic" begin
@@ -39,35 +36,25 @@
         # The weak prior makes the MAP effectively equal to the sample mean.
         μ_true = mean(observations; dims=2)[:, 1]
 
-        model = normal_minibatch(observations, n_data)
-        vi = DynamicPPL.link!!(DynamicPPL.VarInfo(model), model)
+        model = normal_subsampled() | (x=observations,)
 
         batchsize = 2
         subsampling = ReshufflingBatchSubsampling(1:n_data, batchsize)
-        minibatch_model = batch -> normal_minibatch(observations[:, batch], length(batch))
-
-        make_prob =
-            (batch, scale) -> DynamicPPL.LogDensityFunction(
-                minibatch_model(batch), AdvancedVI.WeightedLogJoint(scale), vi
-            )
-        prob = SubsampledLogDensity(make_prob(1:n_data, 1.0), make_prob, n_data)
-        @test LogDensityProblems.capabilities(typeof(prob)) ==
-            LogDensityProblems.LogDensityOrder{0}()
+        make_prob = batch -> DynamicPPL.subsample(model, batch, n_data)
+        prob = make_prob(1:n_data)
 
         batch = 1:batchsize
-        likelihood_prob = DynamicPPL.LogDensityFunction(
-            minibatch_model(batch), DynamicPPL.getloglikelihood, vi
-        )
         d = LogDensityProblems.dimension(prob)
         θ = zeros(d)
-        scaled = LogDensityProblems.logdensity(make_prob(batch, 2.0), θ)
-        unscaled = LogDensityProblems.logdensity(make_prob(batch, 1.0), θ)
-        likelihood = LogDensityProblems.logdensity(likelihood_prob, θ)
-        @test scaled ≈ unscaled + likelihood
+        logdensity = LogDensityProblems.logdensity(make_prob(batch), θ)
+        expected =
+            logpdf(MvNormal(zeros(2), 100.0 * I), θ) +
+            n_data / batchsize * sum(i -> logpdf(MvNormal(θ, I), observations[:, i]), batch)
+        @test logdensity ≈ expected
 
         alg = KLMinRepGradProxDescent(AD; subsampling)
         q0 = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
-        q, _, _ = AdvancedVI.optimize(alg, 1000, prob, q0; show_progress=false)
+        q, _, _ = AdvancedVI.optimize(alg, 1000, make_prob, q0; show_progress=false)
 
         Δλ0 = sum(abs2, q0.location - μ_true)
         Δλ = sum(abs2, q.location - μ_true)

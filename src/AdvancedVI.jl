@@ -303,21 +303,24 @@ export estimate_objective
 """
     subsample(model, batch)
     subsample(q, batch)
+    subsample(make_prob::Function, batch)
 
 Inform `model` or `q` to only use the data points designated by the iterable collection `batch`.
 For `model`, the log-density should also be adjusted to account for the change in number of data points.
 
 Implementations may mutate `model`/`q` in place and return the same object,
 so callers must not assume the returned value is distinct from the input.
+
+A function is treated as a problem factory and called with `batch`.
 """
 subsample(model_or_q::Any, ::Any) = model_or_q
+subsample(make_prob::Function, batch) = make_prob(batch)
 
 abstract type AbstractSubsampling end
 
 include("reshuffling.jl")
-include("subsampled_logdensity.jl")
 
-export ReshufflingBatchSubsampling, SubsampledLogDensity
+export ReshufflingBatchSubsampling
 
 # Main optimization routine
 function optimize end

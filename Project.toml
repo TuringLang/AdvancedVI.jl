@@ -23,13 +23,11 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
-DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8"
 
 [extensions]
 AdvancedVIEnzymeExt = ["Enzyme", "ChainRulesCore"]
 AdvancedVIMooncakeExt = ["Mooncake", "ChainRulesCore"]
 AdvancedVIReverseDiffExt = ["ReverseDiff", "ChainRulesCore"]
-AdvancedVIDynamicPPLExt = ["DynamicPPL", "Accessors", "Distributions", "LogDensityProblems"]
 
 [compat]
 ADTypes = "1"
@@ -63,3 +61,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 test = ["Pkg", "Test"]
+
+[sources]
+DynamicPPL = {url = "https://github.com/TuringLang/DynamicPPL.jl.git", rev = "subsampling"}

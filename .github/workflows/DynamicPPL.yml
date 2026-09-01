@@ -29,6 +29,8 @@ jobs:
         with:
           version: ${{ matrix.version }}
       - uses: julia-actions/cache@v3
+      - name: Use DynamicPPL subsampling branch
+        run: julia --project -e 'using Pkg; Pkg.add(url="https://github.com/TuringLang/DynamicPPL.jl.git", rev="subsampling")'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         env:
