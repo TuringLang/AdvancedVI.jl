@@ -1,6 +1,6 @@
 
 """
-    MvLocationLowRankScale(location, scale_diag, scale_factors, dist)
+    MvLocationScaleLowRank(location, scale_diag, scale_factors, dist)
 
 Variational family with a covariance in the form of a diagonal matrix plus a squared low-rank matrix.
 The rank is given by `size(scale_factors, 2)`.
@@ -14,6 +14,10 @@ represented as follows:
   u_factors = rand(dist, r)
   z = scale_diag.*u_diag + scale_factors*u_factors + location
 ```
+
+`entropy` and `logpdf` are available only when `dist` is a `Normal`
+distribution. For other base distributions, the low-rank term produces a
+convolution whose density is not implemented.
 """
 struct MvLocationScaleLowRank{
     D<:ContinuousDistribution,L,SD<:AbstractVector,SF<:AbstractMatrix
@@ -32,7 +36,7 @@ Base.size(q::MvLocationScaleLowRank) = size(q.location)
 
 Base.eltype(::Type{<:MvLocationScaleLowRank{D,L,SD,SF}}) where {D,L,SD,SF} = eltype(L)
 
-function StatsBase.entropy(q::MvLocationScaleLowRank)
+function StatsBase.entropy(q::MvLocationScaleLowRank{<:Normal})
     (; location, scale_diag, scale_factors, dist) = q
     n_dims = length(location)
     scale_diag2 = scale_diag .* scale_diag
@@ -42,16 +46,30 @@ function StatsBase.entropy(q::MvLocationScaleLowRank)
     return n_dims * convert(eltype(location), entropy(dist)) + logdetΣ / 2
 end
 
+function StatsBase.entropy(q::MvLocationScaleLowRank)
+    throw(ArgumentError("entropy is only implemented for a Normal base distribution"))
+end
+
 function Distributions.logpdf(
-    q::MvLocationScaleLowRank, z::AbstractVector{<:Real}; non_differntiable::Bool=false
+    q::MvLocationScaleLowRank{<:Normal},
+    z::AbstractVector{<:Real};
+    non_differentiable::Bool=false,
+    non_differntiable::Union{Nothing,Bool}=nothing,
 )
+    if !isnothing(non_differntiable)
+        Base.depwarn(
+            "`non_differntiable` is deprecated; use `non_differentiable`.", :logpdf
+        )
+        non_differentiable = non_differntiable
+    end
+
     (; location, scale_diag, scale_factors, dist) = q
     μ_base = mean(dist)
     n_dims = length(location)
 
-    scale2chol = if non_differntiable
+    scale2chol = if non_differentiable
         # Fast O(kd^2) path (not supported by most current AD frameworks):
-        scale2chol = Cholesky(LowerTriangular(diagm(sqrt.(scale_diag))))
+        scale2chol = Cholesky(LowerTriangular(diagm(scale_diag)))
         n_factors = size(scale_factors, 2)
         for k in 1:n_factors
             factor = scale_factors[:, k] # copy necessary due to in-place mutation
@@ -65,6 +83,12 @@ function Distributions.logpdf(
     end
     z_std = z - mean(q) + scale2chol.L * Fill(μ_base, n_dims)
     return sum(Base.Fix1(logpdf, dist), scale2chol.L \ z_std) - logdet(scale2chol.L)
+end
+
+function Distributions.logpdf(
+    q::MvLocationScaleLowRank, z::AbstractVector{<:Real}; kwargs...
+)
+    throw(ArgumentError("logpdf is only implemented for a Normal base distribution"))
 end
 
 function Distributions.rand(q::MvLocationScaleLowRank)

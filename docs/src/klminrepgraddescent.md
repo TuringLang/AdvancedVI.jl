@@ -1,7 +1,7 @@
 # [`KLMinRepGradDescent`](@id klminrepgraddescent)
 
-This algorithms aim to minimize the exclusive (or reverse) Kullback-Leibler (KL) divergence via stochastic gradient descent in the space of parameters.
-Specifically, it uses the the *reparameterization gradient* estimator.
+This algorithm aims to minimize the exclusive (or reverse) Kullback-Leibler (KL) divergence via stochastic gradient descent in the space of parameters.
+Specifically, it uses the *reparameterization gradient* estimator.
 As a result, this algorithm is best applicable when the target log-density is differentiable and the sampling process of the variational family is differentiable.
 (See the [methodology section](@ref klminrepgraddescent_method) for more details.)
 This algorithm is also commonly referred to as automatic differentiation variational inference, black-box variational inference with the reparameterization gradient, and stochastic gradient variational inference.
@@ -13,7 +13,7 @@ KLMinRepGradDescent
 
 ## [Methodology](@id klminrepgraddescent_method)
 
-This algorithms aim to solve the problem
+This algorithm aims to solve the problem
 
 ```math
   \mathrm{minimize}_{q \in \mathcal{Q}}\quad \mathrm{KL}\left(q, \pi\right)
@@ -40,14 +40,14 @@ Algorithmically, `KLMinRepGradDescent` iterates the step
 where $\widehat{\nabla \mathrm{ELBO}}(q_{\lambda})$ is the reparameterization gradient estimate[^HC1983][^G1991][^R1992][^P1996] of the ELBO gradient and $$\mathrm{operator}$$ is an optional operator (*e.g.* projections, identity mapping).
 
 The reparameterization gradient, also known as the push-in gradient or the pathwise gradient, was introduced to VI in [^TL2014][^RMW2014][^KW2014].
-For the variational family $\mathcal{Q} = \{q_{\lambda} \mid \lambda \in \Lambda\}$, suppose the process of sampling from $q_{\lambda}$ can be described by some differentiable reparameterization function $$T_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
+For the variational family $\mathcal{Q} = \lbrace q_{\lambda} \mid \lambda \in \Lambda \rbrace$, suppose the process of sampling from $q_{\lambda}$ can be described by some differentiable reparameterization function $$T_{\lambda}$$ and a *base distribution* $$\varphi$$ independent of $$\lambda$$ such that
 
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
 z \stackrel{d}{=} T_{\lambda}\left(\epsilon\right);\quad \epsilon \sim \varphi \; .
 ```
 
-In these cases, denoting the target log denstiy as $\log \pi$, we can effectively estimate the gradient of the ELBO by directly differentiating the stochastic estimate of the ELBO objective
+In these cases, denoting the target log density as $\log \pi$, we can effectively estimate the gradient of the ELBO by directly differentiating the stochastic estimate of the ELBO objective
 
 ```math
   \widehat{\mathrm{ELBO}}\left(q_{\lambda}\right) = \frac{1}{M}\sum^M_{m=1} \log \pi\left(T_{\lambda}\left(\epsilon_m\right)\right) + \mathbb{H}\left(q_{\lambda}\right),
@@ -92,7 +92,7 @@ The conditions for which the STL estimator results in lower variance is still an
 
 The main downside of the STL estimator is that it needs to evaluate and differentiate the log density of ``q_{\lambda}``, `logpdf(q)`, in every iteration.
 Depending on the variational family, this might be computationally inefficient or even numerically unstable.
-For example, if ``q_{\lambda}`` is a Gaussian with a full-rank covariance, a back-substitution must be performed at every step, making the per-iteration complexity ``\mathcal{O}(d^3)`` and reducing numerical stability.
+For example, if ``q_{\lambda}`` is a Gaussian with a full-rank covariance, a back-substitution must be performed at every step, adding ``\mathcal{O}(d^2)`` work per sample and potentially reducing numerical stability.
 
 ```@setup repgradelbo
 using Distributions

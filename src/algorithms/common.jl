@@ -20,7 +20,7 @@ Estimate the negative ELBO of the variational approximation `q` against the targ
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 
 # Keyword Arguments
-- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the the number of samples used for estimating the gradient during optimization.)
+- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the number of samples used for estimating the gradient during optimization.)
 - `entropy::AbstractEntropyEstimator`: Entropy estimator. (default: `MonteCarloEntropy()`)
 
 # Returns

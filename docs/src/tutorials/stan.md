@@ -63,7 +63,7 @@ nothing
 
 ## Inference via AdvancedVI
 
-We can now call `StanLogDensityProblems` to recieve a `LogDensityProblem`.
+We can now call `StanLogDensityProblems` to receive a `LogDensityProblem`.
 
 ```@example stan
 using StanLogDensityProblems: StanLogDensityProblems
@@ -72,7 +72,7 @@ model = StanLogDensityProblems.StanProblem("logistic_model.stan", "logistic_data
 nothing
 ```
 
-The rest is the same as all `LogDensityProblem` with the exception of how to deal with constrainted variables: Since `StanLogDensityProblems` automatically transforms the support of the target problem to be unconstrained, we do not need to involve `Bijectors`.
+The rest is the same as for any `LogDensityProblem`, except for how constrained variables are handled: Since `StanLogDensityProblems` automatically transforms the support of the target problem to be unconstrained, we do not need to involve `Bijectors`.
 
 ```@example stan
 using ADTypes, Mooncake

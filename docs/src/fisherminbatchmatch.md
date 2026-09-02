@@ -15,7 +15,7 @@ The associated objective value can be estimated through the following:
 ```@docs; canonical=false
 estimate_objective(
     ::Random.AbstractRNG,
-    ::KLMinWassFwdBwd,
+    ::FisherMinBatchMatch,
     ::MvLocationScale,
     ::Any;
     ::Int,
@@ -41,14 +41,19 @@ where ${\lVert x \rVert}_{A}^2 = x^{\top} A x $ is a weighted norm.
 $\mathrm{F}_{\mathrm{cov}}$ can be viewed as a variant of the canonical 2nd-order Fisher divergence defined as
 
 ```math
-\mathrm{F}_{2}(q, \pi) = \sqrt{ \mathbb{E}_{z \sim q} {\left\lVert \nabla \log \frac{q}{\pi} (z) \right\rVert}^2 }.
+\mathrm{F}_{2}(q, \pi)
+= \mathbb{E}_{z \sim q}
+  {\left\lVert \nabla \log \frac{q}{\pi}(z) \right\rVert}_2^2 .
 ```
 
-The use of the weighted norm ${\lVert \cdot \rVert}_{\mathrm{Cov}(q)}^2$ facilitates the use of a proximal point-type method for minimizing $\mathrm{F}_{2}(q, \pi)$.
+The use of the weighted norm ${\lVert \cdot \rVert}_{\mathrm{Cov}(q)}^2$ facilitates the use of a proximal point-type method for minimizing $\mathrm{F}_{\mathrm{cov}}(q, \pi)$.
 In particular, BaM iterates the update
 
 ```math
-  q_{t+1} = \argmin_{q \in \mathcal{Q}} \left\{ \mathrm{F}_{\mathrm{cov}}(q, \pi) + \frac{2}{\lambda_t} \mathrm{KL}\left(q_t, q\right) \right\} .
+  q_{t+1} = \argmin_{q \in \mathcal{Q}} \left\lbrace
+      \mathrm{F}_{\mathrm{cov}}(q, \pi)
+      + \frac{2}{\lambda_t} \mathrm{KL}\left(q_t, q\right)
+  \right\rbrace .
 ```
 
 Since $\mathrm{F}(q, \pi)$ is intractable, it is replaced with a Monte Carlo approximation with a number of samples `n_samples`.

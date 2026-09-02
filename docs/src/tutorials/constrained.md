@@ -32,11 +32,11 @@ The corresponding posterior
 has a density with respect to the space
 
 ```math
-    \mathcal{X} = \mathbb{R}_{> 0} \times \mathbb{R} .
+    \mathcal{X} = \mathbb{R} \times \mathbb{R}_{> 0} .
 ```
 
 There are also more complicated examples of constrained spaces.
-For example, a $k$-dimensional variable with a Dirichlet prior will be constrained to live on a $k$-dimensional simplex.
+For example, a $k$-component variable with a Dirichlet prior is constrained to a simplex with intrinsic dimension $k-1$.
 
 Now, most algorithms provided by `AdvancedVI`, such as:
 
@@ -69,7 +69,7 @@ q^* = \arg\min_{q \in \mathcal{Q}} \;\; \mathrm{D}(q, \pi_{b^{-1}}) .
 and then transform the optimal unconstrained approximation $q^*$ to be constrained by again applying a change of variable as
 
 ```math
-q_{b}^* : \mathcal{X} \to \mathbb{R}_{>0} = q(b(z)) {\lvert \mathrm{J}_{b}(z) \rvert} .
+q_{b}^* : \mathcal{X} \to \mathbb{R}_{>0} = q^*(b(z)) {\lvert \mathrm{J}_{b}(z) \rvert} .
 ```
 
 Sampling from $q_{b}^*$ amounts to pushing each sample from $q$ into $b^{-1}$:

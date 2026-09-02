@@ -4,7 +4,7 @@ In this example, we will see how to use [`NormalizingFlows`](https://github.com/
 
 ## Problem Setup
 
-For the problem, we will look into a toy problem where `NormalizingFlows` can be benficial.
+For the problem, we will look into a toy problem where `NormalizingFlows` can be beneficial.
 For a dataset of real valued data $y_1, \ldots, y_n$, consider the following generative model:
 
 ```math
@@ -219,7 +219,7 @@ Furthermore, Agrawal *et al.*[^AD2025] claim that using a larger number of Monte
 [^RM2015]: Rezende, D., & Mohamed, S. (2015, June). Variational inference with normalizing flows. In *Proceedings of the International conference on machine learning*. PMLR.
 [^RWD2017]: Roeder, G., Wu, Y., & Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. In *Advances in Neural Information Processing Systems*, 30.
 [^ASD2020]: Agrawal, A., Sheldon, D. R., & Domke, J. (2020). Advances in black-box VI: Normalizing flows, importance weighting, and optimization. In *Advances in Neural Information Processing Systems*, 33, 17358-17369.
-[^AD2025]: Agrawal, A., & Domke, J. (2024). Disentangling impact of capacity, objective, batchsize, estimators, and step-size on flow VI. In *Proceedings of the International Conference on Artificial Intelligence and Statistics*.
+[^AD2025]: Agrawal, A., & Domke, J. (2025). Disentangling impact of capacity, objective, batchsize, estimators, and step-size on flow VI. In *Proceedings of the International Conference on Artificial Intelligence and Statistics*.
 ```@example flow
 using Optimisers: Optimisers
 

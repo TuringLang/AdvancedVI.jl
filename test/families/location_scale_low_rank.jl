@@ -39,10 +39,10 @@
             @test logpdf(q, z) ≈ logpdf(q_true, z) rtol = realtype(1e-2)
             @test eltype(logpdf(q, z)) == realtype
 
-            @test logpdf(q, z; non_differntiable=true) ≈ logpdf(q_true, z) rtol = realtype(
+            @test logpdf(q, z; non_differentiable=true) ≈ logpdf(q_true, z) rtol = realtype(
                 1e-2
             )
-            @test eltype(logpdf(q, z; non_differntiable=true)) == realtype
+            @test eltype(logpdf(q, z; non_differentiable=true)) == realtype
         end
 
         @testset "entropy" begin
@@ -146,4 +146,25 @@
             end
         end
     end
+end
+
+@testset "non-differentiable logpdf with non-unit scale" begin
+    location = [0.2, -0.1]
+    scale_diag = [2.0, 3.0]
+    scale_factors = reshape([0.4, -0.3], 2, 1)
+    q = LowRankGaussian(location, scale_diag, scale_factors)
+    q_true = MvNormal(location, Diagonal(scale_diag .^ 2) + scale_factors * scale_factors')
+    z = [0.7, -1.2]
+
+    @test logpdf(q, z; non_differentiable=true) ≈ logpdf(q_true, z)
+    @test_deprecated "`non_differntiable` is deprecated; use `non_differentiable`." logpdf(
+        q, z; non_differntiable=true
+    )
+end
+
+@testset "non-Gaussian density and entropy are unsupported" begin
+    q = MvLocationScaleLowRank([0.0], [1.0], ones(1, 1), Laplace())
+
+    @test_throws ArgumentError logpdf(q, [0.0])
+    @test_throws ArgumentError entropy(q)
 end
