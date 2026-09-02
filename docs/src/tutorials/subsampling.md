@@ -283,3 +283,42 @@ nothing
 But remember that subsampling will always be *asymptotically* slower than no subsampling.
 That is, as the number of iterations increase, there will be a point where no subsampling will overtake subsampling even in terms of wallclock time.
 Therefore, subsampling is most beneficial when a crude solution to the VI problem suffices.
+
+## Subsampling with `DynamicPPL` models
+
+`DynamicPPL.subsample` constructs a log-density problem for a selected batch
+and scales its likelihood while leaving the prior and Jacobian unchanged. Pass
+a one-argument problem factory to `AdvancedVI`; it is called with the batch
+selected at each optimization step.
+
+```julia
+using AdvancedVI, ADTypes, DynamicPPL, Distributions, LinearAlgebra, LogDensityProblems
+
+DynamicPPL.@model function bayes_logreg(X)
+    d = size(X, 2)
+    β ~ MvNormal(zeros(d), I)
+    return y ~ DynamicPPL.independent_distribution(
+        i -> BernoulliLogit(dot(X[i, :], β)), size(X, 1)
+    )
+end
+
+# `X` and `y_obs` contain the full dataset.
+n_data = size(X, 1)
+model = bayes_logreg(X) | (y=y_obs,)
+
+subsampling = ReshufflingBatchSubsampling(1:n_data, 32)
+make_prob = batch -> DynamicPPL.subsample(model, batch, n_data)
+prob = make_prob(1:min(32, n_data))
+
+alg = KLMinRepGradProxDescent(AutoForwardDiff(); subsampling)
+dim = LogDensityProblems.dimension(prob)
+q0 = FullRankGaussian(zeros(dim), LowerTriangular(Matrix{Float64}(0.6 * I, dim, dim)))
+q, _, _ = AdvancedVI.optimize(alg, 1000, make_prob, q0; show_progress=false)
+```
+
+The observation must be conditioned and use
+`DynamicPPL.independent_distribution`; `DynamicPPL.subsample` checks the other
+structural requirements. The latent-variable dimension must remain fixed
+across batches. Parameter-space SGD does not support models whose latent
+dimension depends on the batch, such as matrix factorisation with one latent
+vector per observation.
