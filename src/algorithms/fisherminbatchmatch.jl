@@ -141,8 +141,8 @@ function step(
     )
 
     # BaM updates
-    zbar, C = mean_and_cov(z, 2)
-    gbar, Γ = mean_and_cov(grad_buf, 2)
+    zbar, C = mean_and_cov(z, 2; corrected=false)
+    gbar, Γ = mean_and_cov(grad_buf, 2; corrected=false)
 
     μmz = μ - zbar
     λ = convert(eltype(μ), d * n_samples / iteration)

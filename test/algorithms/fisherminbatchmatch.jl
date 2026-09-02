@@ -1,4 +1,13 @@
 
+struct FixedBatchRNG{A<:AbstractMatrix} <: AbstractRNG
+    values::A
+end
+
+function Random.randn!(rng::FixedBatchRNG, x::AbstractMatrix)
+    size(x) == size(rng.values) || throw(DimensionMismatch())
+    return copyto!(x, rng.values)
+end
+
 @testset "FisherMinBatchMatch" begin
     begin
         modelstats = normal_meanfield(Random.default_rng(), Float64; capability=2)
@@ -40,6 +49,57 @@
             L_repl = q_avg.scale
             @test μ == μ_repl
             @test L == L_repl
+        end
+
+        @testset "population batch moments" begin
+            target_mean = [0.5]
+            target_var = Diagonal([0.7])
+            model = TestNormal(
+                target_mean, target_var, LogDensityProblems.LogDensityOrder{1}()
+            )
+            q0 = FullRankGaussian([0.2], LowerTriangular(reshape([1.3], 1, 1)))
+            u = reshape([-1.0, 0.25, 2.0], 1, :)
+            alg = FisherMinBatchMatch(; n_samples=size(u, 2))
+            rng = FixedBatchRNG(u)
+            state = AdvancedVI.init(rng, alg, q0, model)
+
+            state′, _, _ = AdvancedVI.step(rng, alg, state, nothing)
+
+            z = q0.scale * u .+ q0.location
+            grad = -(z .- target_mean) ./ target_var[1, 1]
+            zbar, C = mean_and_cov(z, 2; corrected=false)
+            gbar, Γ = mean_and_cov(grad, 2; corrected=false)
+            λ = size(u, 2)
+            μmz = q0.location - zbar
+            U = Symmetric(λ * Γ + (λ / (1 + λ) * gbar) * gbar')
+            V = Symmetric(cov(q0) + λ * C + (λ / (1 + λ) * μmz) * μmz')
+            Σ_expected = Hermitian(2 * V / (I + real(sqrt(I + 4 * U * V))))
+
+            _, C_corrected = mean_and_cov(z, 2; corrected=true)
+            _, Γ_corrected = mean_and_cov(grad, 2; corrected=true)
+            U_corrected = Symmetric(λ * Γ_corrected + (λ / (1 + λ) * gbar) * gbar')
+            V_corrected = Symmetric(cov(q0) + λ * C_corrected + (λ / (1 + λ) * μmz) * μmz')
+            Σ_corrected = Hermitian(
+                2 * V_corrected / (I + real(sqrt(I + 4 * U_corrected * V_corrected)))
+            )
+
+            @test state′.sigma ≈ Σ_expected
+            @test !isapprox(state′.sigma, Σ_corrected)
+        end
+
+        @testset "one-sample batch" begin
+            model = TestNormal(
+                [0.5], Diagonal([0.7]), LogDensityProblems.LogDensityOrder{1}()
+            )
+            q0 = FullRankGaussian([0.2], LowerTriangular(reshape([1.3], 1, 1)))
+            rng = FixedBatchRNG(reshape([0.25], 1, 1))
+            alg = FisherMinBatchMatch(; n_samples=1)
+            state = AdvancedVI.init(rng, alg, q0, model)
+
+            state′, _, _ = AdvancedVI.step(rng, alg, state, nothing)
+
+            @test all(isfinite, state′.sigma)
+            @test all(isfinite, state′.q.location)
         end
     end
 

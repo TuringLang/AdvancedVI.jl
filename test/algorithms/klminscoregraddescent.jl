@@ -6,10 +6,40 @@
 
         q0 = MeanFieldGaussian(zeros(n_dims), Diagonal(ones(n_dims)))
 
-        @testset "basic n_samples=$(n_samples)" for n_samples in [1, 10]
+        @testset "basic n_samples=$(n_samples)" for n_samples in [2, 10]
             alg = KLMinScoreGradDescent(AD; n_samples, operator=ClipScale())
             T = 1
             optimize(alg, T, model, q0; show_progress=PROGRESS)
+        end
+
+        @testset "sample count" begin
+            @test KLMinScoreGradDescent(AD).objective.n_samples == 2
+            @test_throws ArgumentError KLMinScoreGradDescent(AD; n_samples=1)
+            @test_throws ArgumentError AdvancedVI.ScoreGradELBO(1)
+        end
+
+        @testset "VarGrad normalization" begin
+            samples = reshape([-1.0, 0.5, 2.0], 1, :)
+            logprob = [-0.2, -1.1, -0.7]
+            params = [0.3, log(1.2)]
+            restructure(p) = MeanFieldGaussian(p[1:1], Diagonal(exp.(p[2:2])))
+            aux = (
+                samples_stop=samples,
+                logprob_stop=logprob,
+                adtype=AutoForwardDiff(),
+                restructure=restructure,
+            )
+
+            old_objective(p) = begin
+                q = restructure(p)
+                f = logpdf.(Ref(q), AdvancedVI.eachsample(samples)) - logprob
+                (mean(abs2, f) - mean(f)^2) / 2
+            end
+            objective(p) = AdvancedVI.estimate_scoregradelbo_ad_forward(p, aux)
+
+            gradient = ForwardDiff.gradient(objective, params)
+            old_gradient = ForwardDiff.gradient(old_objective, params)
+            @test gradient ≈ (3 / 2) * old_gradient
         end
 
         @testset "callback" begin

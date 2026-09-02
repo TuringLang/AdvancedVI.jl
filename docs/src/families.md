@@ -102,11 +102,11 @@ L = Diagonal(ones(2));
 q = MvLocationScale(μ, L, Laplace())
 ```
 
-## The `LocationScaleLowRank` Family
+## The `LocationScaleLowRank` Gaussian family
 
 In practice, `LocationScale` families with full-rank scale matrices are known to converge slowly as they require a small SGD stepsize.
 Low-rank variational families can be an effective alternative[^ONS2018].
-`LocationScaleLowRank` generally represent any ``d``-dimensional distribution which its sampling path can be represented as
+`LocationScaleLowRank` represents a ``d``-dimensional Gaussian distribution whose sampling path can be written as
 
 ```math
 z \sim  q_{\lambda} \qquad\Leftrightarrow\qquad
@@ -114,7 +114,7 @@ z \stackrel{d}{=} D u_1 + U u_2 + m,
 ```
 
 where ``D \in \mathbb{R}^{d \times d}`` is a diagonal matrix, ``U \in \mathbb{R}^{d \times r}`` is a dense low-rank matrix for the rank ``r > 0``, and ``m \in \mathbb{R}^d`` is the location.
-The vectors ``u_1 \in \mathbb{R}^d`` and ``u_2 \in \mathbb{R}^r`` are independent, and their components are independent draws from the base distribution ``\varphi``.
+The vectors ``u_1 \in \mathbb{R}^d`` and ``u_2 \in \mathbb{R}^r`` are independent, and their components are independent draws from the univariate Gaussian base distribution ``\varphi``.
 ``m``, ``D``, and ``U`` form the variational parameters ``\lambda = (m, D, U)``.
 
 The covariance of this distribution is given as
@@ -123,7 +123,7 @@ The covariance of this distribution is given as
   \mathrm{Var}\left(q_{\lambda}\right) = D \mathrm{Var}(\varphi) D + U \mathrm{Var}(\varphi) U^{\top}
 ```
 
-For a Gaussian base distribution, the entropy is given by the matrix determinant lemma as
+The entropy is given by the matrix determinant lemma as
 
 ```math
   \mathbb{H}(q_{\lambda})
@@ -133,8 +133,6 @@ For a Gaussian base distribution, the entropy is given by the matrix determinant
 ```
 
 where ``\mathbb{H}(\varphi)`` is the entropy of one component of the base distribution.
-For a non-Gaussian base distribution, the sampling construction remains valid, but this
-entropy identity does not generally hold.
 
 ```@setup lowrank
 using ADTypes

@@ -153,4 +153,16 @@
         @test length(λ) == 2 * n_dims
         @test q == re(λ)
     end
+
+    @testset "negative determinant" begin
+        location = [0.5]
+        scale = Diagonal([-2.0])
+        dist = Normal(1.0, 3.0)
+        q = MvLocationScale(location, scale, dist)
+        q_true = MvNormal(location + scale * [mean(dist)], 9 * scale * scale')
+        z = [-1.2]
+
+        @test logpdf(q, z) ≈ logpdf(q_true, z)
+        @test entropy(q) ≈ entropy(q_true)
+    end
 end

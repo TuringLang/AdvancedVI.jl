@@ -148,6 +148,16 @@
     end
 end
 
+@testset "Gaussian base" begin
+    location = [0.2, -0.1]
+    scale_diag = [2.0, 3.0]
+    scale_factors = reshape([0.4, -0.3], 2, 1)
+
+    @test_throws ArgumentError MvLocationScaleLowRank(
+        location, scale_diag, scale_factors, Laplace()
+    )
+end
+
 @testset "non-differentiable logpdf with non-unit scale" begin
     location = [0.2, -0.1]
     scale_diag = [2.0, 3.0]
@@ -162,9 +172,15 @@ end
     )
 end
 
-@testset "non-Gaussian density and entropy are unsupported" begin
-    q = MvLocationScaleLowRank([0.0], [1.0], ones(1, 1), Laplace())
+@testset "negative diagonal scale" begin
+    location = [0.2, -0.1]
+    scale_diag = [-2.0, 3.0]
+    scale_factors = reshape([0.4, -0.3], 2, 1)
+    q = LowRankGaussian(location, scale_diag, scale_factors)
+    q_true = MvNormal(location, Diagonal(scale_diag .^ 2) + scale_factors * scale_factors')
+    z = [0.7, -1.2]
 
-    @test_throws ArgumentError logpdf(q, [0.0])
-    @test_throws ArgumentError entropy(q)
+    @test entropy(q) ≈ entropy(q_true)
+    @test logpdf(q, z) ≈ logpdf(q_true, z)
+    @test logpdf(q, z; non_differentiable=true) ≈ logpdf(q_true, z)
 end
