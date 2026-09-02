@@ -5,7 +5,7 @@ In this tutorial, we will demonstrate the basic usage of `AdvancedVI` with [`Log
 ## Problem Setup
 
 Let's consider a basic logistic regression example with a hierarchical prior.
-For a dataset $(X, y)$ with the design matrix $X \in \mathbb{R}^{n \times d}$ and the response variables $y \in \{0, 1\}^n$, we assume the following data generating process:
+For a dataset $(X, y)$ with the design matrix $X \in \mathbb{R}^{n \times d}$ and the response variables $y \in \lbrace 0, 1 \rbrace^n$, we assume the following data generating process:
 
 ```math
 \begin{aligned}
@@ -233,7 +233,7 @@ using StatsFuns: StatsFuns
 Approximate the posterior predictive probability for a logistic link function using Mackay's approximation (Bishop p. 220).
 """
 function logistic_prediction(X, μ_β, Σ_β)
-    xtΣx = sum((prob.X * Σ_β) .* prob.X; dims=2)[:, 1]
+    xtΣx = sum((X * Σ_β) .* X; dims=2)[:, 1]
     κ = @. 1 / sqrt(1 + π / 8 * xtΣx)
     return StatsFuns.logistic.(κ .* X * μ_β)
 end
@@ -248,7 +248,7 @@ function callback(; iteration, averaged_params, restructure, kwargs...)
 
         # Compute predictions
         μ_β = mean(q_avg_trans.dist)[1:(end - 1)] # posterior mean of β
-        Σ_β = cov(q_avg_trans.dist)[1:(end - 1), end - 1] # marginal posterior covariance of β
+        Σ_β = cov(q_avg_trans.dist)[1:(end - 1), 1:(end - 1)] # marginal posterior covariance of β
         y_pred = logistic_prediction(X, μ_β, Σ_β) .> 0.5
 
         # Prediction accuracy

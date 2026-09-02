@@ -158,7 +158,7 @@ end
     )
 end
 
-@testset "non-unit diagonal fast density" begin
+@testset "non-differentiable logpdf with non-unit scale" begin
     location = [0.2, -0.1]
     scale_diag = [2.0, 3.0]
     scale_factors = reshape([0.4, -0.3], 2, 1)
@@ -167,6 +167,9 @@ end
     z = [0.7, -1.2]
 
     @test logpdf(q, z; non_differentiable=true) ≈ logpdf(q_true, z)
+    @test_deprecated "`non_differntiable` is deprecated; use `non_differentiable`." logpdf(
+        q, z; non_differntiable=true
+    )
 end
 
 @testset "negative diagonal scale" begin

@@ -54,8 +54,18 @@ function StatsBase.entropy(q::MvLocationScaleLowRank)
 end
 
 function Distributions.logpdf(
-    q::MvLocationScaleLowRank, z::AbstractVector{<:Real}; non_differentiable::Bool=false
+    q::MvLocationScaleLowRank,
+    z::AbstractVector{<:Real};
+    non_differentiable::Bool=false,
+    non_differntiable::Union{Nothing,Bool}=nothing,
 )
+    if !isnothing(non_differntiable)
+        Base.depwarn(
+            "`non_differntiable` is deprecated; use `non_differentiable`.", :logpdf
+        )
+        non_differentiable = non_differntiable
+    end
+
     (; location, scale_diag, scale_factors, dist) = q
     μ_base = mean(dist)
     n_dims = length(location)

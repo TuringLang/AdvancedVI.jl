@@ -3,7 +3,7 @@
     KLMinNaturalGradDescent(stepsize, n_samples, ensure_posdef, subsampling)
     KLMinNaturalGradDescent(; stepsize, n_samples, ensure_posdef, subsampling)
 
-KL divergence minimization by running natural gradient descent[^KL2017][^KR2023], also called variational online Newton.
+KL divergence minimization by running natural gradient descent[^KR2023], also called variational online Newton.
 This algorithm can be viewed as an instantiation of mirror descent, where the Bregman divergence is chosen to be the KL divergence.
 
 If the `ensure_posdef` argument is true, the algorithm applies the technique by Lin *et al.*[^LSK2020], where the precision matrix update includes an additional term that guarantees positive definiteness.
@@ -122,7 +122,7 @@ function step(
     )
 
     S′ = if ensure_posdef
-        # Udpate rule guaranteeing positive definiteness in the proof of Theorem 1.
+        # Update rule guaranteeing positive definiteness in the proof of Theorem 1.
         # Lin, W., Schmidt, M., & Khan, M. E.
         # Handling the positive-definite constraint in the Bayesian learning rule.
         # In ICML 2020.
@@ -165,7 +165,7 @@ Estimate the negative ELBO of the variational approximation `q` against the targ
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 
 # Keyword Arguments
-- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the the number of samples used for estimating the gradient during optimization.)
+- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the number of samples used for estimating the gradient during optimization.)
 
 # Returns
 - `obj_est`: Estimate of the objective value.

@@ -22,7 +22,7 @@ For example, integrating `Turing` with `AdvancedVI.ADVI` only involves convertin
 We will describe a simple example to demonstrate the basic usage of `AdvancedVI`.
 `AdvancedVI` works with differentiable models specified through the [`LogDensityProblem`](https://github.com/tpapp/LogDensityProblems.jl) interface.
 Let's look at a basic logistic regression example with a hierarchical prior.
-For a dataset $(X, y)$ with the design matrix $X \in \mathbb{R}^{n \times d}$ and the response variables $y \in \{0, 1\}^n$, we assume the following data generating process:
+For a dataset $(X, y)$ with the design matrix $X \in \mathbb{R}^{n \times d}$ and the response variables $y \in \lbrace 0, 1 \rbrace^n$, we assume the following data generating process:
 
 $$
 \begin{aligned}

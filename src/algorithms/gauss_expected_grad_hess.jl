@@ -38,7 +38,7 @@ function gaussian_expectation_gradient_and_hessian!(
         #   = E_{u ~ N(0, I)} C' \ (u ∇ log π(z)T) .
         # 
         # Algorithmically, draw u ~ N(0, I), z = C u + m, where C = q.scale.
-        # Accumulate A = E[ u ∇ log π(z)T ], then map back: H = C \ A.
+        # Accumulate A = E[ u ∇ log π(z)T ], then map back: H = C' \ A.
         d = LogDensityProblems.dimension(prob)
         u = randn(rng, T, d, n_samples)
         m, C = q.location, q.scale

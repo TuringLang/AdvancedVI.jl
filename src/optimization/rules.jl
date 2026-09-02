@@ -7,7 +7,7 @@ Its only parameter is the guess for the distance between the optimum and the ini
 
 DoWG is a minor modification to DoG so that the step sizes are always provably larger than DoG.
 Similarly to DoG, it works by starting from a AdaGrad-like update rule with a small step size, but then automatically increases the step size ("warming up") to be as large as possible.
-If `alpha` is too large, the optimzier can initially diverge, while if it is too small, the warm up period can be too long.
+If `alpha` is too large, the optimizer can initially diverge, while if it is too small, the warm up period can be too long.
 Depending on the problem, DoWG can be too aggressive and result in unstable behavior.
 If this is suspected, try using DoG instead.
 
@@ -40,7 +40,7 @@ Distance over gradient (DoG[^IHC2023]) optimizer.
 Its only parameter is the guess for the distance between the optimum and the initialization `alpha`, which shouldn't need much tuning.
 
 DoG works by starting from a AdaGrad-like update rule with a small step size, but then automatically increases the step size ("warming up") to be as large as possible.
-If `alpha` is too large, the optimzier can initially diverge, while if it is too small, the warm up period can be too long.
+If `alpha` is too large, the optimizer can initially diverge, while if it is too small, the warm up period can be too long.
 
 # Parameters
 - `alpha`: Scaling factor for initial guess (`repsilon` in the original paper) of the Euclidean distance between the initial point and the optimum. For the initial parameter `lambda0`, `repsilon` is calculated as `repsilon = alpha*(1 + norm(lambda0))`. (default value: `1e-6`)

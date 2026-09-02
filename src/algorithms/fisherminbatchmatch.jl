@@ -178,7 +178,7 @@ Estimate the covariance-weighted Fisher divergence of the variational approximat
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 
 # Keyword Arguments
-- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the the number of samples used for estimating the gradient during optimization.)
+- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the number of samples used for estimating the gradient during optimization.)
 
 # Returns
 - `obj_est`: Estimate of the objective value.

@@ -3,7 +3,7 @@
     KLMinSqrtNaturalGradDescent(stepsize, n_samples, subsampling)
     KLMinSqrtNaturalGradDescent(; stepsize, n_samples, subsampling)
 
-KL divergence minimization algorithm obtained by discretizing the natural gradient flow (the Riemannian gradient flow with the Fisher information matrix as the metric tensor) under the square-root parameterization[^KMKL2025][^LDENKTM2024][^LDLNKS2023][^T2025].
+KL divergence minimization algorithm obtained by discretizing the natural gradient flow (the Riemannian gradient flow with the Fisher information matrix as the metric tensor) under the square-root parameterization[^KMKL2025][^LDEBTM2024][^LDLNKS2023][^T2025].
 
 This algorithm requires second-order information about the target.
 If the target `LogDensityProblem` has second-order differentiation [capability](https://www.tamaspapp.eu/LogDensityProblems.jl/dev/#LogDensityProblems.capabilities), Hessians are used.
@@ -138,7 +138,7 @@ Estimate the negative ELBO of the variational approximation `q` against the targ
 - `prob`: The target log-joint likelihood implementing the `LogDensityProblem` interface.
 
 # Keyword Arguments
-- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the the number of samples used for estimating the gradient during optimization.)
+- `n_samples::Int`: Number of Monte Carlo samples for estimating the objective. (default: Same as the number of samples used for estimating the gradient during optimization.)
 
 # Returns
 - `obj_est`: Estimate of the objective value.
