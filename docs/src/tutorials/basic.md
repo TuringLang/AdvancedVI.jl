@@ -177,8 +177,11 @@ Since we applied a bijector to the posterior to make it unconstrained, and the s
 We can now run VI:
 
 ```@example basic
+using Random
+
 max_iter = 10^4
-q_out, info, _ = AdvancedVI.optimize(alg, max_iter, prob_trans, q; show_progress=false)
+rng = Random.Xoshiro(1)
+q_out, info, _ = AdvancedVI.optimize(rng, alg, max_iter, prob_trans, q; show_progress=false)
 nothing
 ```
 
