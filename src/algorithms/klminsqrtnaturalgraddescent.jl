@@ -116,7 +116,7 @@ function step(
     state = KLMinSqrtNaturalGradDescentState(
         q′, prob, iteration, sub_st′, grad_buf, hess_buf
     )
-    elbo = logπ_avg + entropy(q′)
+    elbo = logπ_avg + entropy(q)
     info = merge((elbo=elbo,), sub_inf)
 
     if !isnothing(callback)

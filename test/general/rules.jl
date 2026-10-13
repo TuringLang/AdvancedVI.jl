@@ -1,5 +1,17 @@
 
 @testset "rules" begin
+    @testset "zero initial gradient $(rule) $(realtype)" for rule in
+                                                             [DoWG(), DoG(), COCOB()],
+        realtype in [Float32, Float64]
+
+        x = ones(realtype, 2)
+        opt_st = Optimisers.setup(rule, x)
+        opt_st, x′ = Optimisers.update!(opt_st, x, zeros(realtype, 2))
+
+        @test x′ == x
+        @test all(isfinite, x′)
+    end
+
     @testset "$(rule) $(realtype)" for rule in [
             DoWG(), DoG(), COCOB(), DoWG(1e-5), DoG(1e-5), COCOB(100.0)
         ],

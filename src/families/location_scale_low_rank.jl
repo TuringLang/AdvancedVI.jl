@@ -2,11 +2,10 @@
 """
     MvLocationScaleLowRank(location, scale_diag, scale_factors, dist)
 
-Variational family with a covariance in the form of a diagonal matrix plus a squared low-rank matrix.
+Gaussian variational family with diagonal-plus-low-rank covariance.
 The rank is given by `size(scale_factors, 2)`.
 
-It generally represents any distribution for which the sampling path can be
-represented as follows:
+It represents a Gaussian distribution with the following sampling path:
 ```julia
   d = length(location)
   r = size(scale_factors, 2)
@@ -15,17 +14,25 @@ represented as follows:
   z = scale_diag.*u_diag + scale_factors*u_factors + location
 ```
 
-`entropy` and `logpdf` are available only when `dist` is a `Normal`
-distribution. For other base distributions, the low-rank term produces a
-convolution whose density is not implemented.
+The base distribution `dist` must be univariate Gaussian.
 """
 struct MvLocationScaleLowRank{
-    D<:ContinuousDistribution,L,SD<:AbstractVector,SF<:AbstractMatrix
+    D<:Union{Normal,NormalCanon},L,SD<:AbstractVector,SF<:AbstractMatrix
 } <: ContinuousMultivariateDistribution
     location::L
     scale_diag::SD
     scale_factors::SF
     dist::D
+end
+
+function MvLocationScaleLowRank(
+    location, scale_diag, scale_factors, dist::ContinuousDistribution
+)
+    throw(
+        ArgumentError(
+            "`MvLocationScaleLowRank` requires a Gaussian base distribution; got $(typeof(dist)).",
+        ),
+    )
 end
 
 Functors.@functor MvLocationScaleLowRank (location, scale_diag, scale_factors)
@@ -36,22 +43,18 @@ Base.size(q::MvLocationScaleLowRank) = size(q.location)
 
 Base.eltype(::Type{<:MvLocationScaleLowRank{D,L,SD,SF}}) where {D,L,SD,SF} = eltype(L)
 
-function StatsBase.entropy(q::MvLocationScaleLowRank{<:Normal})
+function StatsBase.entropy(q::MvLocationScaleLowRank)
     (; location, scale_diag, scale_factors, dist) = q
     n_dims = length(location)
     scale_diag2 = scale_diag .* scale_diag
     # `Symmetric` rather than `Hermitian`: Mooncake lacks an `rrule` for the `Hermitian` path.
     UtDinvU = Symmetric(scale_factors' * (scale_factors ./ scale_diag2))
-    logdetΣ = 2 * sum(log.(scale_diag)) + logdet(I + UtDinvU)
+    logdetΣ = 2 * sum(log.(abs.(scale_diag))) + logdet(I + UtDinvU)
     return n_dims * convert(eltype(location), entropy(dist)) + logdetΣ / 2
 end
 
-function StatsBase.entropy(q::MvLocationScaleLowRank)
-    throw(ArgumentError("entropy is only implemented for a Normal base distribution"))
-end
-
 function Distributions.logpdf(
-    q::MvLocationScaleLowRank{<:Normal},
+    q::MvLocationScaleLowRank,
     z::AbstractVector{<:Real};
     non_differentiable::Bool=false,
     non_differntiable::Union{Nothing,Bool}=nothing,
@@ -69,7 +72,7 @@ function Distributions.logpdf(
 
     scale2chol = if non_differentiable
         # Fast O(kd^2) path (not supported by most current AD frameworks):
-        scale2chol = Cholesky(LowerTriangular(diagm(scale_diag)))
+        scale2chol = Cholesky(LowerTriangular(diagm(abs.(scale_diag))))
         n_factors = size(scale_factors, 2)
         for k in 1:n_factors
             factor = scale_factors[:, k] # copy necessary due to in-place mutation
@@ -83,12 +86,6 @@ function Distributions.logpdf(
     end
     z_std = z - mean(q) + scale2chol.L * Fill(μ_base, n_dims)
     return sum(Base.Fix1(logpdf, dist), scale2chol.L \ z_std) - logdet(scale2chol.L)
-end
-
-function Distributions.logpdf(
-    q::MvLocationScaleLowRank, z::AbstractVector{<:Real}; kwargs...
-)
-    throw(ArgumentError("logpdf is only implemented for a Normal base distribution"))
 end
 
 function Distributions.rand(q::MvLocationScaleLowRank)

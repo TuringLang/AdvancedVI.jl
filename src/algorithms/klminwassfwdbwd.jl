@@ -111,7 +111,7 @@ function step(
     q′ = MvLocationScale(m′, cholesky(Σ′).L, q.dist)
 
     state = KLMinWassFwdBwdState(q′, prob, Σ′, iteration, sub_st′, grad_buf, hess_buf)
-    elbo = logπ_avg + entropy(q′)
+    elbo = logπ_avg + entropy(q)
     info = merge((elbo=elbo,), sub_inf)
 
     if !isnothing(callback)

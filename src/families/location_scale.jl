@@ -53,13 +53,13 @@ function StatsBase.entropy(q::MvLocationScale)
     (; location, scale, dist) = q
     n_dims = length(location)
     # `convert` is necessary because `entropy` is not type stable upstream
-    return n_dims * convert(eltype(location), entropy(dist)) + logdet(scale)
+    return n_dims * convert(eltype(location), entropy(dist)) + first(logabsdet(scale))
 end
 
 function Distributions.logpdf(q::MvLocationScale, z::AbstractVector{<:Real})
     (; location, scale, dist) = q
     z_std = scale \ (z - location)
-    return sum(Base.Fix1(logpdf, dist), z_std) - logdet(scale)
+    return sum(Base.Fix1(logpdf, dist), z_std) - first(logabsdet(scale))
 end
 
 function Distributions.rand(q::MvLocationScale)

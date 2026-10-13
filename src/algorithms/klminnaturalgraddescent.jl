@@ -131,7 +131,8 @@ function step(
     else
         Hermitian(((1 - η) * S + η * (-hess_buf)))
     end
-    m′ = m - η * (S′ \ (-grad_buf))
+    mean_precision = ensure_posdef ? S : S′
+    m′ = m - η * (mean_precision \ (-grad_buf))
 
     prec_chol = cholesky(S′).L
     prec_chol_inv = inv(prec_chol)
@@ -142,7 +143,7 @@ function step(
     state = KLMinNaturalGradDescentState(
         q′, prob, S′, qcov, iteration, sub_st′, grad_buf, hess_buf
     )
-    elbo = logπ_avg + entropy(q′)
+    elbo = logπ_avg + entropy(q)
     info = merge((elbo=elbo,), sub_inf)
 
     if !isnothing(callback)

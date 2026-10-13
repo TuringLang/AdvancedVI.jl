@@ -41,6 +41,20 @@
             @test μ == μ_repl
             @test L == L_repl
         end
+
+        @testset "reported ELBO" begin
+            seed = 0x5d58253be55d6be2
+            n_samples = 3
+            alg = KLMinWassFwdBwd(; n_samples, stepsize=1e-3)
+            state = AdvancedVI.init(StableRNG(seed), alg, q0, model)
+            logπ_avg, _, _ = AdvancedVI.gaussian_expectation_gradient_and_hessian!(
+                StableRNG(seed), q0, n_samples, zeros(n_dims), zeros(n_dims, n_dims), model
+            )
+
+            _, _, info = AdvancedVI.step(StableRNG(seed), alg, state, nothing)
+
+            @test info.elbo ≈ logπ_avg + entropy(q0)
+        end
     end
 
     @testset "error low capability" begin

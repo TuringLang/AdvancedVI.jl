@@ -5,7 +5,7 @@
 Evidence lower-bound objective computed with score function gradient with the VarGrad objective, also known as the leave-one-out control variate.
 
 # Arguments
-- `n_samples::Int`: Number of Monte Carlo samples used to estimate the VarGrad objective.
+- `n_samples::Int`: Number of Monte Carlo samples used to estimate the VarGrad objective. Must be at least `2`.
 
 # Requirements
 - The variational approximation ``q_{\\lambda}`` implements `rand` and `logpdf`.
@@ -14,6 +14,12 @@ Evidence lower-bound objective computed with score function gradient with the Va
 """
 struct ScoreGradELBO <: AbstractVariationalObjective
     n_samples::Int
+
+    function ScoreGradELBO(n_samples::Int)
+        n_samples >= 2 ||
+            throw(ArgumentError("`ScoreGradELBO` requires at least two samples."))
+        return new(n_samples)
+    end
 end
 
 struct ScoreGradELBOState{Problem,ObjADPrep}
@@ -90,7 +96,8 @@ function estimate_scoregradelbo_ad_forward(params, aux)
     ℓπ = logprob_stop
     ℓq = logpdf.(Ref(q), AdvancedVI.eachsample(samples_stop))
     f = ℓq - ℓπ
-    return (mean(abs2, f) - mean(f)^2) / 2
+    n_samples = length(f)
+    return n_samples * (mean(abs2, f) - mean(f)^2) / (2 * (n_samples - 1))
 end
 
 function AdvancedVI.estimate_gradient!(
