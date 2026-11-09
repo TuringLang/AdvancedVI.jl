@@ -1,3 +1,7 @@
+# Unreleased
+
+- Model gradients and Hessians rejected sample views with strict AD preparation checks.
+
 # Release 0.7
 
 ## Removal of special treatment to `Bijectors.TransformedDistribution`

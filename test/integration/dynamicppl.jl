@@ -20,6 +20,14 @@
         ext = Base.get_extension(AdvancedVI, :AdvancedVIDynamicPPLExt)
         prob = ext.DynamicPPLModelLogDensityFunction(model, vi; adtype=AD)
 
+        x = view(zeros(2, 1), :, 1)
+        @test LogDensityProblems.logdensity_and_gradient(prob, x)[2] ≈ μ_true
+        if LogDensityProblems.capabilities(typeof(prob)) >=
+            LogDensityProblems.LogDensityOrder{2}()
+            @test LogDensityProblems.logdensity_gradient_and_hessian(prob, x)[3] ≈
+                -Matrix{Float64}(I, 2, 2)
+        end
+
         alg = KLMinRepGradProxDescent(AD)
         d = LogDensityProblems.dimension(prob)
         q0 = FullRankGaussian(zeros(d), LowerTriangular(Matrix{Float64}(0.6 * I, d, d)))
