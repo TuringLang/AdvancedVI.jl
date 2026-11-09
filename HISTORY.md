@@ -1,5 +1,6 @@
 # Unreleased
 
+- DynamicPPL 0.43 is now supported.
 - Model gradients and Hessians rejected sample views with strict AD preparation checks.
 
 # Release 0.7

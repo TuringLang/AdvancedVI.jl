@@ -86,7 +86,9 @@ function DynamicPPLModelLogDensityFunction(
         subsample_dynamicpplmodel(model, batch)
     end
 
-    ranges_and_transforms, params = DynamicPPL.get_rat_and_samplevec(varinfo.values)
+    ranges_and_transforms, params = DynamicPPL.get_rat_and_samplevec(
+        DynamicPPL.get_values(varinfo)
+    )
     transform_strategy = DynamicPPL.infer_transform_strategy_from_values(
         ranges_and_transforms
     )
