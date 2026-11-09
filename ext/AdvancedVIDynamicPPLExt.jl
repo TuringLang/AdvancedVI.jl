@@ -86,7 +86,9 @@ function DynamicPPLModelLogDensityFunction(
         subsample_dynamicpplmodel(model, batch)
     end
 
-    ranges_and_transforms, params = DynamicPPL.get_rat_and_samplevec(varinfo.values)
+    ranges_and_transforms, params = DynamicPPL.get_rat_and_samplevec(
+        DynamicPPL.get_values(varinfo)
+    )
     transform_strategy = DynamicPPL.infer_transform_strategy_from_values(
         ranges_and_transforms
     )
@@ -160,14 +162,16 @@ end
 function LogDensityProblems.logdensity_and_gradient(
     prob::DynamicPPLModelLogDensityFunction, params
 )
-    val, grad = AbstractPPL.value_and_gradient!!(prob.prep_grad, params)
+    val, grad = AbstractPPL.value_and_gradient!!(prob.prep_grad, convert(Vector, params))
     return val, copy(grad)
 end
 
 function LogDensityProblems.logdensity_gradient_and_hessian(
     prob::DynamicPPLModelLogDensityFunction, params
 )
-    val, grad, H = AbstractPPL.value_gradient_and_hessian!!(prob.prep_hess, params)
+    val, grad, H = AbstractPPL.value_gradient_and_hessian!!(
+        prob.prep_hess, convert(Vector, params)
+    )
     return val, copy(grad), copy(H)
 end
 
